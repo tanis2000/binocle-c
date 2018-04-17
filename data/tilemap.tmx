@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="40" height="30" tilewidth="70" tileheight="70" nextobjectid="1">
+ <tileset firstgid="1" name="tileset_forTiled" tilewidth="70" tileheight="70" spacing="2" margin="2" tilecount="196">
+  <image source="tileset_forTiled.png" width="1024" height="1024"/>
+ </tileset>
+ <layer name="sfondo" width="40" height="30">
+  <data encoding="base64" compression="zlib">
+   eJztwzENAAAMBKHzP7zm2ugACaumqqqqqk8f7/qZvw==
+  </data>
+ </layer>
+ <layer name="piattaforme" width="40" height="30">
+  <data encoding="base64" compression="zlib">
+   eJzt0cENABAMhWGxDovYfyFXGiJIS5P/S3rgoK8VAgDPoigAAAD0iijLXtr9fs0gc2i9+3K+EzKv1hwnO7rJ4O0vZnl3d+Vt7pXUVJ6cR/dWVQGXPhSP
+  </data>
+ </layer>
+ <layer name="Oggetti" width="40" height="30">
+  <data encoding="base64" compression="zlib">
+   eJzt0TkKACAMRNG5/01sXGorb6aFhSAiGFCE/yCkCFkgXlJoEVskAQAAAAB2cs/u6RXv9+Mu/v0Pp/lfxTDLUl/1jH3+YMZtFZU7Cto=
+  </data>
+ </layer>
+</map>
