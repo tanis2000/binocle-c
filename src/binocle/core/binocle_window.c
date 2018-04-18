@@ -152,7 +152,7 @@ void binocle_window_set_title(binocle_window *win, char* title) {
 }
 
 void binocle_window_toggle_fullscreen(binocle_window *win) {
-  SDL_SetWindowFullscreen(win, 0);
+  SDL_SetWindowFullscreen(win->window, 0);
 }
 
 void binocle_window_minimize(binocle_window *win) {

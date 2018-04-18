@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "my_script.h"
-#include <binocle_window.c>
+//#include <binocle_window.c>
 
 GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
   {
@@ -13,7 +13,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     GameState = Memory->gameState = (struct game_state*)Platform.Allocate(sizeof(struct game_state));
     GameState->counter = 0;
   } else {
-    GameState->counter += 2;
+    GameState->counter += 3;
     char str[256];
     sprintf(str, "Count: %d things", GameState->counter);
     Platform.binocle_log_debug(str);

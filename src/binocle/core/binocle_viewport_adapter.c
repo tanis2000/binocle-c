@@ -23,7 +23,10 @@ binocle_viewport_adapter binocle_viewport_adapter_new(
   res.kind = kind;
   res.scaling_type = scaling_type;
 
-  binocle_viewport_adapter_reset(res, window);
+  kmVec2 old_size = {window.original_width, window.original_height};
+  kmVec2 new_size = {window.width, window.height};
+
+  binocle_viewport_adapter_reset(res, old_size, new_size);
 
   return res;
 }
@@ -44,7 +47,7 @@ uint32_t binocle_viewport_adapter_get_viewport_height(binocle_viewport_adapter a
   return adapter.viewport.max.y;
 }
 
-kmVec2 binocle_viewport_adapter__point_to_virtual_viewport(binocle_viewport_adapter adapter, kmVec2 point) {
+kmVec2 binocle_viewport_adapter_point_to_virtual_viewport(binocle_viewport_adapter adapter, kmVec2 point) {
   return point;
 }
 
@@ -53,10 +56,10 @@ kmVec2 binocle_viewport_adapter_screen_to_virtual_viewport(binocle_viewport_adap
   return point;
 }
 
-void binocle_viewport_adapter_reset(binocle_viewport_adapter adapter, binocle_window window) {
+void binocle_viewport_adapter_reset(binocle_viewport_adapter adapter, kmVec2 oldWindowSize, kmVec2 newWindowSize) {
   if (adapter.kind == BINOCLE_VIEWPORT_ADAPTER_KIND_SCALING) {
-    kmVec2 oldWindowSize = { .x = adapter.virtual_width, .y = adapter.virtual_height};
-    kmVec2 newWindowSize = { .x = window.width, .y = window.height };
+    //kmVec2 oldWindowSize = { .x = adapter.virtual_width, .y = adapter.virtual_height};
+    //kmVec2 newWindowSize = { .x = window.width, .y = window.height };
     float ratioX = newWindowSize.x / oldWindowSize.x;
     float ratioY = newWindowSize.y / oldWindowSize.y;
     kmAABB2 originalViewport = binocle_viewport_adapter_get_original_viewport(adapter);

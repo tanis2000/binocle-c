@@ -6,6 +6,7 @@
 #define BINOCLE_BINOCLE_SDL_H
 
 #include <stdbool.h>
+#include <sys/stat.h>
 
 #if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
 

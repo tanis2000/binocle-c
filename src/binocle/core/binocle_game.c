@@ -17,43 +17,58 @@
 #include "binocle_game.h"
 #include "binocle_platform.h"
 #include "binocle_log.h"
+#include "binocle_window.h"
+#include "binocle_input.h"
 
-void binocle_game_run() {
+void binocle_game_run(binocle_window window, binocle_input input) {
   binocle_game game = {};
-  game_memory gameMemory = {};
-  game_code gameCode = {};
+  game_memory game_memory = {};
+  game_code game_code = {};
   char *sourceGameCodeDLLFullPath = "/Users/tanis/Documents/binocle-c/cmake-build-debug/example/gameplay/libgameplay.dylib";
-  game.gameCode = gameCode;
-  gameMemory.gameState = NULL;
-  gameMemory.PlatformAPI = (struct platform_api){ .binocle_log_debug = NULL, .Allocate = NULL};
-  gameMemory.PlatformAPI.binocle_log_debug = binocle_log_debug;
-  gameMemory.PlatformAPI.Allocate = SDL_malloc;
+  game.game_code = game_code;
+  game.game_memory = game_memory;
+  game.game_memory.gameState = NULL;
+  game.game_memory.PlatformAPI = (struct platform_api){ .binocle_log_debug = NULL, .Allocate = NULL};
+  game.game_memory.PlatformAPI.binocle_log_debug = binocle_log_debug;
+  game.game_memory.PlatformAPI.Allocate = SDL_malloc;
 
-  while (1 != 0) {
-    binocle_game_update(&gameCode, &gameMemory);
-    binocle_game_hotreload(&gameCode, &gameMemory, sourceGameCodeDLLFullPath);
-    SDL_Delay(1000);
+  while (!input.quit_requested) {
+    float delta = (float)binocle_window_get_delta(&window) / 1000.0f;
+
+    binocle_game_update(&game, delta);
+    binocle_game_draw(&game, window, delta);
+    binocle_game_hotreload(&game, sourceGameCodeDLLFullPath);
+    if (!game.paused) {
+      binocle_window_refresh(&window);
+    }
+    binocle_window_delay_framerate_if_needed(&window);
   }
 }
 
-void binocle_game_update(game_code *game, game_memory *memory) {
-  if (game->UpdateAndRender != 0) {
-    game->UpdateAndRender(memory);
+void binocle_game_update(binocle_game *game, float dt) {
+  if (game->game_code.UpdateAndRender != 0) {
+    game->game_code.UpdateAndRender(&game->game_memory);
   }
 }
 
-void binocle_game_hotreload(game_code *game, game_memory *memory, char* sourceGameCodeDLLFullPath) {
+void binocle_game_draw(binocle_game *game, binocle_window window, float dt) {
+  // TODO: split UpdateAndRender into Update and Render
+  if (game->paused) return;
+  binocle_window_clear(&window);
+}
+
+void binocle_game_hotreload(binocle_game *game, char* sourceGameCodeDLLFullPath) {
   time_t NewDLLWriteTime = binocle_sdl_get_last_write_time(sourceGameCodeDLLFullPath);
-  int32_t executableNeedsToBeReloaded = NewDLLWriteTime != game->DLLLastWriteTime;
+  int32_t executableNeedsToBeReloaded = NewDLLWriteTime != game->game_code.DLLLastWriteTime;
 
-  memory->executableReloaded = -1;
+  game->game_memory.executableReloaded = -1;
 
   if(executableNeedsToBeReloaded)
   {
-    binocle_unload_game_code(game);
-    *game = binocle_load_game_code(sourceGameCodeDLLFullPath);
+    binocle_unload_game_code(&game->game_code);
+    game->game_code = binocle_load_game_code(sourceGameCodeDLLFullPath);
 
-    memory->executableReloaded = 0;
+    game->game_memory.executableReloaded = 0;
   }
 
 }

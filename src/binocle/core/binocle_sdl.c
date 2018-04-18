@@ -2,8 +2,6 @@
 // Created by Valerio Santinelli on 13/04/18.
 //
 
-#include <sys/stat.h>
-
 #include "binocle_sdl.h"
 #include "binocle_log.h"
 
@@ -64,13 +62,13 @@ bool binocle_sdl_init() {
   /* print out some info on the formats this run of SDL_mixer supports */
   {
     int i, n = Mix_GetNumChunkDecoders();
-    printf("There are %d available chunk(sample) decoders:\n", n);
+    SDL_Log("There are %d available chunk(sample) decoders:\n", n);
     for (i = 0; i < n; ++i)
-      printf("	%s\n", Mix_GetChunkDecoder(i));
+      SDL_Log("	%s\n", Mix_GetChunkDecoder(i));
     n = Mix_GetNumMusicDecoders();
-    printf("There are %d available music decoders:\n", n);
+    SDL_Log("There are %d available music decoders:\n", n);
     for (i = 0; i < n; ++i)
-      printf("	%s\n", Mix_GetMusicDecoder(i));
+      SDL_Log("	%s\n", Mix_GetMusicDecoder(i));
   }
 
 
