@@ -1,5 +1,11 @@
 <component name="ProjectCodeStyleConfiguration">
   <code_scheme name="Project" version="173">
+    <Objective-C>
+      <option name="INDENT_NAMESPACE_MEMBERS" value="2" />
+      <option name="INDENT_C_STRUCT_MEMBERS" value="2" />
+      <option name="INDENT_CLASS_MEMBERS" value="2" />
+      <option name="INDENT_INSIDE_CODE_BLOCK" value="2" />
+    </Objective-C>
     <Objective-C-extensions>
       <file>
         <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="Import" />
@@ -21,9 +27,16 @@
         <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="DeallocMethod" />
       </class>
       <extensions>
+        <pair source="c" header="h" fileNamingConvention="SNAKE_CASE" />
         <pair source="cpp" header="h" fileNamingConvention="NONE" />
-        <pair source="c" header="h" fileNamingConvention="NONE" />
       </extensions>
     </Objective-C-extensions>
+    <codeStyleSettings language="ObjectiveC">
+      <indentOptions>
+        <option name="INDENT_SIZE" value="2" />
+        <option name="CONTINUATION_INDENT_SIZE" value="4" />
+        <option name="TAB_SIZE" value="2" />
+      </indentOptions>
+    </codeStyleSettings>
   </code_scheme>
 </component>

@@ -7,6 +7,8 @@
 
 #include "binocle_sdl.h"
 
+struct binocle_image;
+
 typedef struct binocle_texture {
   GLuint tex_id;
   uint64_t width;
@@ -14,6 +16,7 @@ typedef struct binocle_texture {
 } binocle_texture;
 
 binocle_texture binocle_texture_new();
-void binocle_texture_from_image(binocle_texture texture, unsigned char *image, uint64_t w, uint64_t h);
+binocle_texture binocle_texture_from_image_data(unsigned char *image, uint64_t w, uint64_t h);
+binocle_texture binocle_texture_from_image(struct binocle_image image);
 
 #endif //BINOCLE_BINOCLE_TEXTURE_H

@@ -47,7 +47,7 @@ if (NOT DEFINED BINOCLE_DATA_DIR)
     elseif (EMSCRIPTEN)
         # TODO: make this relative but also make sure that it
         # becomes relative in BinocleWeb.cmake as they have to be the same
-        set(BINOCLE_DATA_DIR "/Users/tanis/Documents/binocle/data/")
+        set(BINOCLE_DATA_DIR "/Users/tanis/Documents/binocle-c/data/")
     endif ()
 endif ()
 message("Data dir is ${BINOCLE_DATA_DIR}")

@@ -38,7 +38,7 @@ bool binocle_sdl_init() {
     binocle_sdl_exit();
   }
 
-  int flags = MIX_INIT_OGG | MIX_INIT_MP3;
+  int flags = MIX_INIT_OGG /*| MIX_INIT_MP3*/;
   if ((Mix_Init(flags) & flags) != flags) {
     binocle_log_warning("Mix_Init: Couldn't start Audio");
     binocle_log_warning(SDL_GetError());

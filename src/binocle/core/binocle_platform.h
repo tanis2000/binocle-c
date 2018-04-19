@@ -7,7 +7,7 @@
 
 #include "stdint.h"
 
-typedef void binocle_log_debug_t(const char *msg);
+typedef void binocle_log_debug_t(const char *msg, ...);
 typedef void *binocle_allocate_t(size_t size);
 
 typedef struct platform_api {

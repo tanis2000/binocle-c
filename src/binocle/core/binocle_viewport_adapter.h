@@ -40,8 +40,8 @@ uint32_t binocle_viewport_adapter_get_viewport_width(binocle_viewport_adapter ad
 uint32_t binocle_viewport_adapter_get_viewport_height(binocle_viewport_adapter adapter);
 kmVec2 binocle_viewport_adapter_point_to_virtual_viewport(binocle_viewport_adapter adapter, kmVec2 point);
 kmVec2 binocle_viewport_adapter_screen_to_virtual_viewport(binocle_viewport_adapter adapter, kmVec2 point);
-void binocle_viewport_adapter_reset(binocle_viewport_adapter adapter, kmVec2 oldWindowSize, kmVec2 newWindowSize);
-void binocle_viewport_adapter_set_viewport(binocle_viewport_adapter adapter, kmAABB2 viewport);
+void binocle_viewport_adapter_reset(binocle_viewport_adapter *adapter, kmVec2 oldWindowSize, kmVec2 newWindowSize);
+void binocle_viewport_adapter_set_viewport(binocle_viewport_adapter *adapter, kmAABB2 viewport);
 kmAABB2 binocle_viewport_adapter_get_viewport(binocle_viewport_adapter adapter);
 kmAABB2 binocle_viewport_adapter_get_original_viewport(binocle_viewport_adapter adapter);
 

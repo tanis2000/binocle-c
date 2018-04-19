@@ -1,6 +1,6 @@
-# Binocle
+# Binocle C version
 
-Binocle is a 2D game engine written in C++.
+Binocle C version is a game engine written in C.
 
 It's born out of the need for the following features:
 
@@ -9,7 +9,7 @@ It's born out of the need for the following features:
 - Simple Entity-Component-System
 - Sprite batching
 
-Nothing too fancy, but still something I always need when I make 2D games. 
+Nothing too fancy, but still something I always need when I make 2D (but 3D as well) games. 
 
 # Installing
 
@@ -43,23 +43,17 @@ The current libraries are the following:
 
 - SDL by the almighty Ryan C. Gordon
 - SDL_Mixer
-- SDL_Image
 - zlib
-- libjpeg by Thomas G. Lane
-- libpng
 - FLAC by the Xiph.Org Foundation
 - Vorbis by the Xiph.Org Foundation
 - OGG by the Xiph.Org Foundation
 - FreeType (http://www.freetype.org)
-- TinyXML by Lee Thomason (http://www.grinninglizard.com/tinyxml/)
-- TmxParser by Tamir Atias (Currently maintained by Adaleigh Martin at https://github.com/sainteos/tmxparser)
-- LUA
-- luasocket
 - Dear ImGui
-- Overlap2D (my own C++ parser)
 - glew
+- Kazmath by Luke Benstead
+- stbimage
 
-The plan for the near future is to drop `SDL_Mixer` and replace it with `soloud`, drop `SDL_Image` and replace it with the equivalent `stb` header-only library, drop GLEW as it's probably not even worth supporting it just for the desktop platforms.
+The plan for the near future is to drop `SDL_Mixer` and replace it with `soloud`, drop `GLEW` as it's probably not even worth supporting it just for the desktop platforms.
 
 # Coordinate system
 
@@ -100,7 +94,7 @@ cmake -G Xcode -D DEBUG=1 -D IOS=1 ../../..
 cd build/emscripten/gen
 emcmake cmake ../../.. -DCMAKE_BUILD_TYPE=Release
 make -j8
-cd src/ExampleProject/src
+cd example/src
 python -m SimpleHTTPServer 8000
 open http://localhost:8000/ExampleProject.html
 ```

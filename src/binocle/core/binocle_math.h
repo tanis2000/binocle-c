@@ -23,7 +23,10 @@
 #define MAXOF(a, b, c, d) MAX(a, MAX(b, MAX(c, d)))
 #endif
 
-kmMat4 binocle_math_create_orthographic_matrix_off_center(
+static kmMat4 binocle_math_create_orthographic_matrix_off_center(float left, float right, float bottom, float top, float z_near_plane, float z_far_plane);
+
+//#ifdef BINOCLE_MATH_IMPL
+static kmMat4 binocle_math_create_orthographic_matrix_off_center(
   float left, float right, float bottom, float top, float z_near_plane, float z_far_plane) {
   kmMat4 m;
 
@@ -42,4 +45,6 @@ kmMat4 binocle_math_create_orthographic_matrix_off_center(
 
   return m;
 }
+//#endif //BINOCLE_MATH_IMPL
+
 #endif //BINOCLE_BINOCLE_MATH_H

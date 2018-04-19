@@ -19,6 +19,7 @@
 #include "binocle_log.h"
 #include "binocle_window.h"
 #include "binocle_input.h"
+#include "binocle_math.h"
 
 void binocle_game_run(binocle_window window, binocle_input input) {
   binocle_game game = {};

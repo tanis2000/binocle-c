@@ -2,6 +2,7 @@
 // Created by Valerio Santinelli on 13/04/18.
 //
 
+#include <inttypes.h>
 #include "binocle_sdl.h"
 #include "binocle_color.h"
 #include "binocle_window.h"
@@ -15,10 +16,11 @@ binocle_window binocle_window_new(uint32_t width, uint32_t height, char* title) 
   res.original_width = width;
   res.original_height = height;
   res.is_fullscreen = false;
-  res.framerate = 60;
-  res.frame_delay = 0;
   res.current_frame_delta = 0;
   res.framerate_timer = binocle_timer_new();
+
+  // Default to 60 FPS
+  binocle_window_set_target_fps(&res, 60);
 
   binocle_window_resize(&res, title, width, height);
   if (res.window == 0) {
@@ -107,7 +109,7 @@ void binocle_window_resize(binocle_window *win, char* title, uint32_t width, uin
     return;
   }
 
-  //Use Vsync
+  //Use Vsync (0 = no vsync, 1 = vsync)
   if (SDL_GL_SetSwapInterval(1) < 0) {
     binocle_log_warning("Warning: Unable to set VSync!");
     binocle_log_warning(SDL_GetError());
@@ -168,6 +170,26 @@ void binocle_window_restore(binocle_window *win) {
 }
 
 void binocle_window_delay_framerate_if_needed(binocle_window *win) {
+  // Frame time control system
+  win->current_time = SDL_GetTicks();
+  win->draw_time = win->current_time - win->previous_time;
+  win->previous_time = win->current_time;
+
+  win->frame_time = (win->update_time + win->draw_time);
+
+  // Wait for some milliseconds...
+  if (win->frame_time < win->target_time)
+  {
+    SDL_Delay(win->target_time - win->frame_time);
+
+    win->current_time = SDL_GetTicks();
+    double extra_time = win->current_time - win->previous_time;
+    win->previous_time = win->current_time;
+
+    win->frame_time += extra_time;
+  }
+
+  /*
   // How many milliseconds the last frame took
   win->current_frame_delta = binocle_timer_delta(&win->framerate_timer);
 
@@ -185,6 +207,7 @@ void binocle_window_delay_framerate_if_needed(binocle_window *win) {
   }
 
   binocle_timer_restart(&win->framerate_timer);
+   */
 }
 
 uint32_t binocle_window_get_delta(binocle_window *win) {
@@ -193,4 +216,37 @@ uint32_t binocle_window_get_delta(binocle_window *win) {
 
 void binocle_window_set_minimum_size(binocle_window *win, int width, int height) {
   SDL_SetWindowMinimumSize(win->window, width, height);
+}
+
+void binocle_window_set_target_fps(binocle_window *win, uint64_t fps) {
+  win->target_fps = fps;
+  if (fps < 1) {
+    win->target_time = 0;
+  } else {
+    win->target_time = (uint32_t)(1.0/(double)fps * 1000.0);
+  }
+  binocle_log_info("Target FPS: %" PRIu64 " and target time per frame: %" PRIu32" milliseconds", win->target_fps, win->target_time);
+}
+
+// Returns current FPS
+uint64_t binocle_window_get_fps(binocle_window *win)
+{
+  return (uint64_t)(1000.0/binocle_window_get_frame_time(win));
+}
+
+// Returns time in seconds for last frame drawn
+uint32_t binocle_window_get_frame_time(binocle_window *win)
+{
+  // NOTE: We round value to milliseconds
+  return win->frame_time;
+}
+
+void binocle_window_begin_frame(binocle_window *win) {
+  win->current_time = SDL_GetTicks();
+  win->update_time = win->current_time - win->previous_time;
+  win->previous_time = win->current_time;
+}
+
+void binocle_window_end_frame(binocle_window *win) {
+  binocle_window_delay_framerate_if_needed(win);
 }

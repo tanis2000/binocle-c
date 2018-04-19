@@ -15,7 +15,8 @@
 
 #else
 
-#include <SDL_opengl.h>
+//#include <SDL_opengl.h>
+#include <OpenGL/gl.h>
 
 #endif
 

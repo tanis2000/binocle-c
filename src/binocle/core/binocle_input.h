@@ -7,6 +7,9 @@
 
 #include <stdbool.h>
 #include "binocle_sdl.h"
+#include "binocle_math.h"
+
+struct binocle_camera;
 
 typedef enum binocle_input_mouse_button {
   MOUSE_LEFT = 1,
@@ -278,8 +281,52 @@ typedef struct binocle_input {
   /// Saves internal mouse state.
   bool previousMouseButtons[MOUSE_MAX];
   bool currentMouseButtons[MOUSE_MAX];
+
+  /// Current mouse X position.
+  int mouseX;
+
+  /// Current mouse Y position.
+  int mouseY;
+
+  /// If the user pressed a printable key, this is where
+  /// it'll be stored.
+  binocle_input_keyboard_key curPrintableKey;
+
+  /// Tells if the input manager is currently locked.
+  bool isLocked;
+
+  /// Tells if we must pause tha game (i.e. lost window focus)
+  bool willPause;
+
+  bool resized;
+  kmVec2 newWindowSize;
+
 } binocle_input;
 
 binocle_input binocle_input_new();
+void binocle_input_update(binocle_input *input);
+bool binocle_input_is_printable(SDL_Keycode key);
+bool binocle_input_is_key_down(binocle_input input, int key);
+bool binocle_input_is_key_up(binocle_input input, int key);
+bool binocle_input_is_key_pressed(binocle_input input, binocle_input_keyboard_key key);
+bool binocle_input_shift(binocle_input input);
+bool binocle_input_ctrl(binocle_input input);
+bool binocle_input_alt(binocle_input input);
+bool binocle_input_is_mouse_down(binocle_input input, binocle_input_mouse_button button);
+bool binocle_input_is_mouse_up(binocle_input input, binocle_input_mouse_button button);
+bool binocle_input_is_mouse_pressed(binocle_input input, binocle_input_mouse_button button);
+int binocle_input_get_mouse_x(binocle_input input);
+int binocle_input_get_mouse_y(binocle_input input);
+bool binocle_input_quit_requested(binocle_input input);
+bool binocle_input_pause_requested(binocle_input input);
+bool binocle_input_is_mouse_inside(binocle_input input, kmAABB2 rectangle);
+kmVec2 binocle_input_get_mouse_position(binocle_input input, struct binocle_camera camera);
+bool binocle_input_is_printable(SDL_Keycode key);
+bool binocle_input_is_printable_key_down(binocle_input input);
+const char binocle_input_get_cur_printable_key(binocle_input input);
+void binocle_input_lock(binocle_input input);
+void binocle_input_unlock(binocle_input input);
+bool binocle_input_is_touch_down(unsigned int finger);
+kmVec2 binocle_input_get_touch_position(unsigned int finger, struct binocle_camera camera);
 
 #endif //BINOCLE_BINOCLE_INPUT_H

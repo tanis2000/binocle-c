@@ -299,5 +299,5 @@ kmMat4 binocle_camera_get_view_projection_matrix(binocle_camera camera)
 
 
 void binocle_camera_handle_window_resize(binocle_camera camera, kmVec2 old_window_size, kmVec2 new_window_size) {
-  binocle_viewport_adapter_reset(*camera.viewport_adapter, old_window_size, new_window_size);
+  binocle_viewport_adapter_reset(camera.viewport_adapter, old_window_size, new_window_size);
 }
