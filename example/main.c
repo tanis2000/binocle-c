@@ -4,6 +4,9 @@
 //
 
 #include <stdio.h>
+#ifdef __EMSCRIPTEN__
+#include "emscripten.h"
+#endif
 #include "binocle_sdl.h"
 #include "binocle_color.h"
 #include "binocle_window.h"
@@ -24,16 +27,54 @@
 
 //#define GAMELOOP 1
 
+binocle_window window;
+binocle_input input;
+binocle_viewport_adapter adapter;
+binocle_camera camera;
+binocle_sprite player;
+kmVec2 player_pos;
+binocle_gd gd;
+
+void main_loop() {
+  binocle_window_begin_frame(&window);
+  binocle_input_update(&input);
+
+  if (input.resized) {
+    kmVec2 oldWindowSize = {.x = window.width, .y = window.height};
+    window.width = input.newWindowSize.x;
+    window.height = input.newWindowSize.y;
+    binocle_viewport_adapter_reset(&adapter, oldWindowSize, input.newWindowSize);
+    input.resized = false;
+  }
+
+
+  if (binocle_input_is_key_pressed(input, KEY_RIGHT)) {
+    player_pos.x += 50 * (1.0/window.frame_time);
+  } else if (binocle_input_is_key_pressed(input, KEY_LEFT)) {
+    player_pos.x -= 50 * (1.0/window.frame_time);
+  }
+
+  if (binocle_input_is_key_pressed(input, KEY_UP)) {
+    player_pos.y += 50 * (1.0/window.frame_time);
+  } else if (binocle_input_is_key_pressed(input, KEY_DOWN)) {
+    player_pos.y -= 50 * (1.0/window.frame_time);
+  }
+
+  binocle_window_clear(&window);
+  binocle_sprite_draw(player, &gd, (uint64_t)player_pos.x, (uint64_t)player_pos.y, adapter.viewport);
+  binocle_window_refresh(&window);
+  binocle_window_end_frame(&window);
+  //binocle_log_info("FPS: %d", binocle_window_get_fps(&window));
+}
+
 int main(int argc, char *argv[])
 {
   binocle_sdl_init();
-  binocle_window window = binocle_window_new(320, 240, "Binocle Test Game");
+  window = binocle_window_new(320, 240, "Binocle Test Game");
   binocle_window_set_background_color(&window, binocle_color_azure());
-  binocle_viewport_adapter adapter = binocle_viewport_adapter_new(window, BINOCLE_VIEWPORT_ADAPTER_KIND_SCALING, BINOCLE_VIEWPORT_ADAPTER_SCALING_TYPE_PIXEL_PERFECT, window.original_width, window.original_height, window.original_width, window.original_height);
-  binocle_camera camera = binocle_camera_new(&adapter);
-  //binocle_window_clear(&window);
-  //binocle_window_refresh(&window);
-  binocle_input input = binocle_input_new();
+  adapter = binocle_viewport_adapter_new(window, BINOCLE_VIEWPORT_ADAPTER_KIND_SCALING, BINOCLE_VIEWPORT_ADAPTER_SCALING_TYPE_PIXEL_PERFECT, window.original_width, window.original_height, window.original_width, window.original_height);
+  camera = binocle_camera_new(&adapter);
+  input = binocle_input_new();
   char filename[1024];
   sprintf(filename, "%s%s", BINOCLE_DATA_DIR, "wabbit_alpha.png");
   binocle_image image = binocle_image_load(filename);
@@ -46,45 +87,24 @@ int main(int argc, char *argv[])
   binocle_material material = binocle_material_new();
   material.texture = &texture;
   material.shader = &shader;
-  binocle_sprite player = binocle_sprite_from_material(&material);
-  kmVec2 player_pos = {.x = 50, .y = 50};
-  binocle_gd gd = binocle_gd_new();
+  player = binocle_sprite_from_material(&material);
+  player_pos.x = 50;
+  player_pos.y = 50;
+  gd = binocle_gd_new();
   binocle_gd_init(&gd);
 #ifdef GAMELOOP
   binocle_game_run(window, input);
 #else
+#ifdef __EMSCRIPTEN__
+  emscripten_set_main_loop(main_loop, 0, 1);
+#else
   while (!input.quit_requested) {
-    binocle_window_begin_frame(&window);
-    binocle_input_update(&input);
-
-    if (input.resized) {
-      kmVec2 oldWindowSize = {.x = window.width, .y = window.height};
-      window.width = input.newWindowSize.x;
-      window.height = input.newWindowSize.y;
-      binocle_viewport_adapter_reset(&adapter, oldWindowSize, input.newWindowSize);
-      input.resized = false;
-    }
-
-
-    if (binocle_input_is_key_pressed(input, KEY_RIGHT)) {
-      player_pos.x += 50 * (1.0/window.frame_time);
-    } else if (binocle_input_is_key_pressed(input, KEY_LEFT)) {
-      player_pos.x -= 50 * (1.0/window.frame_time);
-    }
-
-    if (binocle_input_is_key_pressed(input, KEY_UP)) {
-      player_pos.y += 50 * (1.0/window.frame_time);
-    } else if (binocle_input_is_key_pressed(input, KEY_DOWN)) {
-      player_pos.y -= 50 * (1.0/window.frame_time);
-    }
-
-    binocle_window_clear(&window);
-    binocle_sprite_draw(player, &gd, (uint64_t)player_pos.x, (uint64_t)player_pos.y, adapter.viewport);
-    binocle_window_refresh(&window);
-    binocle_window_end_frame(&window);
-    //binocle_log_info("FPS: %d", binocle_window_get_fps(&window));
+    main_loop();
   }
+#endif
   binocle_log_info("Quit requested");
 #endif
   binocle_sdl_exit();
 }
+
+

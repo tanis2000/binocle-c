@@ -8,6 +8,6 @@
 #define GAME_VERSION "v0.1.0"
 
 /* where to look for the game data files */
-#define BINOCLE_DATA_DIR "../Resources/"
+#define BINOCLE_DATA_DIR "/Users/tanis/Documents/binocle-c/data/"
 
 

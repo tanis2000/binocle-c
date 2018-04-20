@@ -66,6 +66,7 @@ void binocle_gd_gl_check_error(const char *file, unsigned int line, const char *
 
         // Log the error
         SDL_Log("An internal OpenGL call failed in %s (%d).\nExpression:\n%s\nError description:\n %s\n%s", file, line, expression, error, description);
+        SDL_Quit();
     }
 }
 

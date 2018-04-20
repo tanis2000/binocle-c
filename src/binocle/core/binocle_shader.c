@@ -2,6 +2,8 @@
 // Created by Valerio Santinelli on 19/04/18.
 //
 
+#include <stdio.h>
+#include <string.h>
 #include "binocle_shader.h"
 #include "binocle_sdl.h"
 #include "binocle_log.h"
