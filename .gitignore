@@ -2,7 +2,6 @@ build/macosx/gen
 build/windows/gen
 build/ios/gen
 build/android/gen
-deps/
 
 build/android/android-project/bin
 build/android/android-project/gen

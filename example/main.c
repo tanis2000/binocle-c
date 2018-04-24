@@ -23,6 +23,7 @@
 #include "binocle_math.h"
 #include "binocle_gd.h"
 #include "binocle_log.h"
+#include "binocle_bitmapfont.h"
 #include "sys_config.h"
 
 //#define GAMELOOP 1
@@ -34,6 +35,10 @@ binocle_camera camera;
 binocle_sprite player;
 kmVec2 player_pos;
 binocle_gd gd;
+binocle_bitmapfont font;
+binocle_image font_image;
+binocle_texture font_texture;
+binocle_material font_material;
 
 void main_loop() {
   binocle_window_begin_frame(&window);
@@ -62,6 +67,7 @@ void main_loop() {
 
   binocle_window_clear(&window);
   binocle_sprite_draw(player, &gd, (uint64_t)player_pos.x, (uint64_t)player_pos.y, adapter.viewport);
+  binocle_bitmapfont_draw_string(font, "TEST", 20, &gd, 50, 50, adapter.viewport);
   binocle_window_refresh(&window);
   binocle_window_end_frame(&window);
   //binocle_log_info("FPS: %d", binocle_window_get_fps(&window));
@@ -90,6 +96,20 @@ int main(int argc, char *argv[])
   player = binocle_sprite_from_material(&material);
   player_pos.x = 50;
   player_pos.y = 50;
+
+  char font_filename[1024];
+  sprintf(font_filename, "%s%s", BINOCLE_DATA_DIR, "font.fnt");
+  font = binocle_bitmapfont_from_file(font_filename);
+
+  char font_image_filename[1024];
+  sprintf(font_image_filename, "%s%s", BINOCLE_DATA_DIR, "font.png");
+  font_image = binocle_image_load(font_image_filename);
+  font_texture = binocle_texture_from_image(font_image);
+  font_material = binocle_material_new();
+  font_material.texture = &font_texture;
+  font_material.shader = &shader;
+  font.material = &font_material;
+
   gd = binocle_gd_new();
   binocle_gd_init(&gd);
 #ifdef GAMELOOP

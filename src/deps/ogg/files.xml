@@ -1,0 +1,12 @@
+<xml>
+	
+	<files id="native-toolkit-ogg" >
+		
+		<compilerflag value="-I${NATIVE_TOOLKIT_PATH}/ogg/include/"/>
+		
+		<file name="${NATIVE_TOOLKIT_PATH}/ogg/src/bitwise.c" />
+		<file name="${NATIVE_TOOLKIT_PATH}/ogg/src/framing.c" />
+		
+	</files>
+	
+</xml>
