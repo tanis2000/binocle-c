@@ -8,6 +8,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <kazmath/kazmath.h>
 #include "binocle_vpct.h"
 #include "binocle_material.h"
 

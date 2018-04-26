@@ -5,7 +5,7 @@
 #ifndef BINOCLE_BINOCLE_MATH_H
 #define BINOCLE_BINOCLE_MATH_H
 
-#import <kazmath/kazmath.h>
+#include <kazmath/kazmath.h>
 
 #ifndef MIN
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))

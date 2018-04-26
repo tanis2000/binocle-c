@@ -13,7 +13,7 @@
 #include <SDL_opengles.h>
 #include <SDL_opengles2.h>
 
-#else
+#elseif defined(__APPLE__)
 
 //#include <SDL_opengl.h>
 #include <OpenGL/gl.h>
@@ -21,6 +21,7 @@
 #endif
 
 #if defined(__WINDOWS__)
+#include <SDL_opengl.h>
 #include <sdl/include/SDL_syswm.h>
 #endif
 
