@@ -312,6 +312,8 @@ endif()
 set_source_files_properties (${SOURCES} PROPERTIES LANGUAGE C)
 
 add_library(sdl ${HEADERS} ${SOURCES})
+set_property(TARGET sdl PROPERTY C_STANDARD 11)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
 
 if (IOS)
     set_target_properties(
