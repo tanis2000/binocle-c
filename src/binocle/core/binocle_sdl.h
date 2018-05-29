@@ -13,7 +13,7 @@
 #include <SDL_opengles.h>
 #include <SDL_opengles2.h>
 
-#elseif defined(__APPLE__)
+#elif defined(__APPLE__)
 
 //#include <SDL_opengl.h>
 #include <OpenGL/gl.h>
