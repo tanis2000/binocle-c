@@ -11,8 +11,9 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <sys/wait.h>
+#if defined(__WINDOWS__)
 #include <x86intrin.h>
-
+#endif
 #include "binocle_sdl.h"
 #include "binocle_game.h"
 #include "binocle_platform.h"
