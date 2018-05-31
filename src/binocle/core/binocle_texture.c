@@ -19,6 +19,8 @@ binocle_texture binocle_texture_from_image_data(unsigned char *image, uint64_t w
   binocle_texture texture = binocle_texture_new();
   texture.width = w;
   texture.height = h;
+  glCheck(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+  glCheck(glPixelStorei(GL_PACK_LSB_FIRST, 1) );
   glCheck(glGenTextures(1, &texture.tex_id));
   glCheck(glBindTexture(GL_TEXTURE_2D, texture.tex_id));
   glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
