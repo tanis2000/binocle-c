@@ -101,7 +101,7 @@ void binocle_bitmapfont_parse_kerning_entry(binocle_bitmapfont *font, const char
   font->kerning[firstChar][secondChar] = atoi(components[3]);
 }
 
-void binocle_bitmapfont_parse_common_line(binocle_bitmapfont *font, const char *line) {
+void binocle_bitmapfont_parse_common_line(binocle_bitmapfont *font, const char *line, bool flip) {
   int count = 0;
   char **components = NULL;
   count = binocle_bitmapfont_split(line, '=', &components);
@@ -109,9 +109,10 @@ void binocle_bitmapfont_parse_common_line(binocle_bitmapfont *font, const char *
   font->line_height = atoi(components[1]);
   font->scale_w = atoi(components[3]);
   font->scale_h = atoi(components[4]);
+  font->flip = flip;
 }
 
-binocle_bitmapfont binocle_bitmapfont_from_file(const char *filename) {
+binocle_bitmapfont binocle_bitmapfont_from_file(const char *filename, bool flip) {
   binocle_bitmapfont font = binocle_bitmapfont_new();
 
   SDL_RWops *file = SDL_RWFromFile(filename, "rb");
@@ -159,12 +160,17 @@ binocle_bitmapfont binocle_bitmapfont_from_file(const char *filename) {
       binocle_bitmapfont_parse_kerning_entry(&font, line);
     }
     if (binocle_bitmapfont_string_starts_with("common", line)) {
-      binocle_bitmapfont_parse_common_line(&font, line);
+      binocle_bitmapfont_parse_common_line(&font, line, flip);
     }
   }
 
   free(res);
   return font;
+}
+
+binocle_bitmapfont_square_t binocle_bitmapfont_make_square_t(float x1, float y1, float x2, float y2, float tx1, float ty1, float tx2, float ty2) {
+  binocle_bitmapfont_square_t res = BINOCLE_MAKE_SQUARE_T(x1, y1, x2, y2, tx1, ty1, tx2, ty2);
+  return res;
 }
 
 void binocle_bitmapfont_create_vertice_and_tex_coords_for_string(binocle_bitmapfont *font, const char *str, float height,
@@ -182,12 +188,33 @@ void binocle_bitmapfont_create_vertice_and_tex_coords_for_string(binocle_bitmapf
       x += scale * ((float) font->kerning[c][str[i - 1]]);
     }
     const binocle_bitmapfont_character *cdef = &font->characters[c];
-    binocle_bitmapfont_square_t tmp = BINOCLE_MAKE_SQUARE_T(x + cdef->x_offset * scale, y + scale * (cdef->y_offset),
-                                      x + scale * (cdef->x_offset + cdef->width),
-                                      y + scale * (cdef->y_offset + cdef->height),
-                                      (float) cdef->x / (float) font->scale_w, (float) cdef->y / (float) font->scale_h,
-                                      (float) (cdef->x + cdef->width) / (float) font->scale_w,
-                                      (float) (cdef->y + cdef->height) / (float) font->scale_h);
+
+    binocle_bitmapfont_square_t tmp;
+
+    if (font->flip) {
+      // Flipped version
+      tmp = binocle_bitmapfont_make_square_t(
+          x + cdef->x_offset * scale,
+          y + scale * (cdef->y_offset),
+          x + scale * (cdef->x_offset + cdef->width),
+          y + scale * (cdef->y_offset + cdef->height),
+          (float) cdef->x / (float) font->scale_w,
+          (float) (font->scale_h - cdef->y - cdef->height) / (float) font->scale_h,
+          (float) (cdef->x + cdef->width) / (float) font->scale_w,
+          (float) (font->scale_h - cdef->y) / (float) font->scale_h
+      );
+    } else {
+      // Not flipped version (good if we're loading without setting stbi to flip the image)
+      tmp = binocle_bitmapfont_make_square_t(
+          x + cdef->x_offset * scale,
+          y + scale * (cdef->y_offset),
+          x + scale * (cdef->x_offset + cdef->width),
+          y + scale * (cdef->y_offset + cdef->height),
+          (float) cdef->x / (float) font->scale_w,
+          (float) cdef->y / (float) font->scale_h,
+          (float) (cdef->x + cdef->width) / (float) font->scale_w,
+          (float) (cdef->y + cdef->height) / (float) font->scale_h);
+    }
 
     char_squares[i] = tmp;
     x += scale * (float) cdef->x_advance;

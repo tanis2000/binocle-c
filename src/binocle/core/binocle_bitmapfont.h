@@ -56,6 +56,7 @@ typedef struct binocle_bitmapfont {
   binocle_vpct vertexes[BINOCLE_MAX_FONT_VERTICES];
   size_t vertexes_count;
   struct binocle_material *material;
+  bool flip;
 } binocle_bitmapfont;
 
 binocle_bitmapfont binocle_bitmapfont_new();
@@ -63,11 +64,12 @@ int binocle_bitmapfont_split (const char *str, char c, char ***arr);
 bool binocle_bitmapfont_string_starts_with(const char *prefix, const char *str);
 void binocle_bitmapfont_parse_character(binocle_bitmapfont *font, const char *line);
 void binocle_bitmapfont_parse_kerning_entry(binocle_bitmapfont *font, const char *line);
-void binocle_bitmapfont_parse_common_line(binocle_bitmapfont *font, const char *line);
-binocle_bitmapfont binocle_bitmapfont_from_file(const char *filename);
+void binocle_bitmapfont_parse_common_line(binocle_bitmapfont *font, const char *line, bool flip);
+binocle_bitmapfont binocle_bitmapfont_from_file(const char *filename, bool flip);
 float binocle_bitmapfont_get_width_of_string(binocle_bitmapfont font, const char *str, float height);
 void binocle_bitmapfont_create_vertice_and_tex_coords_for_string(binocle_bitmapfont *font, const char *str, float height,
                                                                  kmMat4 transformation_matrix);
 void binocle_bitmapfont_draw_string(binocle_bitmapfont font, const char *str, float height, struct binocle_gd *gd, uint64_t x, uint64_t y, kmAABB2 viewport);
+binocle_bitmapfont_square_t binocle_bitmapfont_make_square_t(float x1, float y1, float x2, float y2, float tx1, float ty1, float tx2, float ty2);
 
 #endif //BINOCLE_BINOCLE_BITMAPFONT_H
