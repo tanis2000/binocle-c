@@ -1,6 +1,6 @@
 //
 //  Binocle
-//  Copyright(C)2015-2017 Valerio Santinelli
+//  Copyright(C)2015-2018 Valerio Santinelli
 //
 
 #include <stdio.h>
@@ -39,6 +39,8 @@ binocle_bitmapfont font;
 binocle_image font_image;
 binocle_texture font_texture;
 binocle_material font_material;
+binocle_sprite font_sprite;
+kmVec2 font_sprite_pos;
 
 void main_loop() {
   binocle_window_begin_frame(&window);
@@ -67,7 +69,10 @@ void main_loop() {
 
   binocle_window_clear(&window);
   binocle_sprite_draw(player, &gd, (uint64_t)player_pos.x, (uint64_t)player_pos.y, adapter.viewport);
-  binocle_bitmapfont_draw_string(font, "TEST", 20, &gd, 50, 50, adapter.viewport);
+  char fps_str[256];
+  sprintf(fps_str, "FPS: %d", binocle_window_get_fps(&window));
+  binocle_bitmapfont_draw_string(font, fps_str, 32, &gd, 0, 0, adapter.viewport);
+  //binocle_sprite_draw(font_sprite, &gd, (uint64_t)font_sprite_pos.x, (uint64_t)font_sprite_pos.y, adapter.viewport);
   binocle_window_refresh(&window);
   binocle_window_end_frame(&window);
   //binocle_log_info("FPS: %d", binocle_window_get_fps(&window));
@@ -99,7 +104,7 @@ int main(int argc, char *argv[])
 
   char font_filename[1024];
   sprintf(font_filename, "%s%s", BINOCLE_DATA_DIR, "font.fnt");
-  font = binocle_bitmapfont_from_file(font_filename);
+  font = binocle_bitmapfont_from_file(font_filename, true);
 
   char font_image_filename[1024];
   sprintf(font_image_filename, "%s%s", BINOCLE_DATA_DIR, "font.png");
@@ -109,6 +114,9 @@ int main(int argc, char *argv[])
   font_material.texture = &font_texture;
   font_material.shader = &shader;
   font.material = &font_material;
+  font_sprite = binocle_sprite_from_material(&font_material);
+  font_sprite_pos.x = 0;
+  font_sprite_pos.y = -256;
 
   gd = binocle_gd_new();
   binocle_gd_init(&gd);
