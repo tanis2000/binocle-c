@@ -55,6 +55,10 @@ void binocle_gd_gl_check_error(const char *file, unsigned int line, const char *
                 strcpy(description, "There is not enough memory left to execute the command.");
                 break;
             }
+            default: {
+                strcpy(error, "UNKNOWN");
+                strcpy(description, "An unknown error has occurred.");
+            }
 
                 /*case GLEXT_GL_INVALID_FRAMEBUFFER_OPERATION:
                 {
@@ -239,4 +243,120 @@ GLuint binocle_gd_equation_to_gl_constant(binocle_blend_equation blend_equation)
 
     SDL_Log("Invalid value for Binocle::BlendMode::Equation! Fallback to Binocle::BlendMode::Add.");
     return GL_FUNC_ADD;
+}
+
+binocle_render_target binocle_gd_create_render_target(uint32_t width, uint32_t height, bool use_depth, GLenum format) {
+    /*
+     * glGenBuffers creates regular buffers for vertex data, etc.
+     * glGenFrameBuffers creates a framebuffer object primarily used as render targets for offscreen rendering.
+     * glGenRenderBuffers creates a renderbuffer object that are specifically used with framebuffer objects for any depth-testing required.
+     */
+
+    binocle_render_target res = {};
+
+    GLuint fb[1];
+    glCheck(glGenFramebuffers(1, fb));
+    res.frame_buffer = fb[0];
+
+    GLuint rb[1];
+    glCheck(glGenRenderbuffers(1, rb));
+    res.render_buffer = rb[0];
+
+    GLuint t[1];
+    glCheck(glGenTextures(1, t));
+    res.texture = t[0];
+
+    // set up framebuffer
+
+    // bind the framebuffer
+    glCheck(glBindFramebuffer(GL_FRAMEBUFFER, res.frame_buffer));
+
+    // bind the newly created texture: all future texture functions will modify this texture
+    glCheck(glBindTexture(GL_TEXTURE_2D, res.texture));
+    // Give an empty image to OpenGL ( the last "0" )
+    glCheck(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+    // filtering
+    glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+    glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+    glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+    glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+    // not sure why
+    glCheck(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, res.texture, 0));
+
+    // set up renderbuffer (depth buffer)
+    glCheck(glBindRenderbuffer(GL_RENDERBUFFER, res.render_buffer));
+    glCheck(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height));
+    glCheck(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, res.render_buffer));
+
+    // clean up
+    glCheck(glBindTexture(GL_TEXTURE_2D, 0));
+    glCheck(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+    glCheck(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+
+    return res;
+}
+
+void binocle_gd_set_uniform_float(struct binocle_shader shader, const char *name, float value) {
+    GLint id = glGetUniformLocation(shader.program_id, name);
+    glCheck(glUniform1f(id, value));
+}
+
+void binocle_gd_set_uniform_float2(struct binocle_shader shader, const char *name, float value1, float value2) {
+    GLint id = glGetUniformLocation(shader.program_id, name);
+    glCheck(glUniform2f(id, value1, value2));
+}
+
+void binocle_gd_clear(struct binocle_color color) {
+    glCheck(glClearColor(color.r, color.g, color.b, color.a));
+    glCheck(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+}
+
+void binocle_gd_set_render_target(binocle_render_target render_target) {
+    glCheck(glBindFramebuffer(GL_FRAMEBUFFER, render_target.frame_buffer));
+}
+
+void binocle_gd_draw_quad(struct binocle_shader shader) {
+    static const GLfloat g_quad_vertex_buffer_data[] = {
+        -1.0f, -1.0f,
+        1.0f, -1.0f,
+        -1.0f,  1.0f,
+        -1.0f,  1.0f,
+        1.0f, -1.0f,
+        1.0f,  1.0f,
+    };
+
+    GLuint quad_vertexbuffer;
+    glCheck(glGenBuffers(1, &quad_vertexbuffer));
+    glCheck(glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer));
+    glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW));
+    GLint id = glGetAttribLocation(shader.program_id, "position");
+    glCheck(glVertexAttribPointer(id, 2, GL_FLOAT, false, 0, 0 ));
+    glCheck(glEnableVertexAttribArray(id));
+    glCheck(glDrawArrays( GL_TRIANGLES, 0, 6 ));
+}
+
+void binocle_gd_draw_quad_to_screen(struct binocle_shader shader, binocle_render_target render_target) {
+    static const GLfloat g_quad_vertex_buffer_data[] = {
+        -1.0f, -1.0f,
+        1.0f, -1.0f,
+        -1.0f,  1.0f,
+        -1.0f,  1.0f,
+        1.0f, -1.0f,
+        1.0f,  1.0f,
+    };
+
+    GLuint quad_vertexbuffer;
+    glCheck(glGenBuffers(1, &quad_vertexbuffer));
+    glCheck(glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer));
+    glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW));
+    GLint id = glGetAttribLocation(shader.program_id, "position");
+    glCheck(glVertexAttribPointer(id, 2, GL_FLOAT, false, 0, 0 ));
+    glCheck(glEnableVertexAttribArray(id));
+    id = glGetUniformLocation(shader.program_id, "texture");
+    glCheck(glUniform1i(id, 0));
+    glCheck(glActiveTexture( GL_TEXTURE0 ));
+    glCheck(glBindTexture(GL_TEXTURE_2D, render_target.texture ));
+    // Sets the frame buffer to use as the screen
+    glCheck(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+    glCheck(glDrawArrays(GL_TRIANGLES, 0, 6 ));
 }
