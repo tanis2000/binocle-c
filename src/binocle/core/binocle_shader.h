@@ -20,5 +20,6 @@ binocle_shader binocle_shader_load_from_file(char *vert_filename, char *frag_fil
 GLuint binocle_shader_compile(const char *src, GLenum shader_type);
 GLuint binocle_shader_link(GLuint vert_id, GLuint frag_id);
 void binocle_shader_unload(binocle_shader *shader);
+char *str_replace(char *orig, char *rep, char *with);
 
 #endif //BINOCLE_BINOCLE_SHADER_H

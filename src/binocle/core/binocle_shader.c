@@ -17,6 +17,9 @@ binocle_shader binocle_shader_new() {
 }
 
 binocle_shader binocle_shader_load_from_file(char *vert_filename, char *frag_filename) {
+    char info[1024];
+    sprintf(info, "Loading vertex shader %s", vert_filename);
+    binocle_log_info(info);
   char opengles_precision[128];
   strcpy(opengles_precision, "precision mediump float;\n\0");
     binocle_shader shader = binocle_shader_new();
@@ -49,6 +52,42 @@ binocle_shader binocle_shader_load_from_file(char *vert_filename, char *frag_fil
         }
     }
 
+  // Load common primitives file to include where needed
+  char include_filename[1024];
+    char *include_src;
+    // TODO: fix this as it's crap as it is now
+  sprintf(include_filename, "../Resources/primitives.frag");
+  SDL_RWops *include_file = SDL_RWFromFile(include_filename, "rb");
+  if (include_file != NULL) {
+    Sint64 res_size = SDL_RWsize(include_file);
+    char *tmp = (char *) SDL_malloc(res_size + 1);
+
+    Sint64 nb_read_total = 0, nb_read = 1;
+    char *buf = tmp;
+    while (nb_read_total < res_size && nb_read != 0) {
+      nb_read = SDL_RWread(include_file, buf, 1, (res_size - nb_read_total));
+      nb_read_total += nb_read;
+      buf += nb_read;
+    }
+    SDL_RWclose(include_file);
+    if (nb_read_total != res_size) {
+      SDL_Log("Size mismatch");
+      SDL_free(tmp);
+    } else {
+      tmp[nb_read_total] = '\0';
+      include_src = (char *)SDL_malloc(res_size + 1 + sizeof(opengles_precision));
+#if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
+      strcpy(include_src, opengles_precision);
+            strcat(include_src, tmp);
+#else
+      strcpy(include_src, tmp);
+#endif
+    }
+  }
+
+
+  sprintf(info, "Loading fragment shader %s", frag_filename);
+    binocle_log_info(info);
     SDL_RWops *frag_file = SDL_RWFromFile(frag_filename, "rb");
     if (frag_file != NULL) {
         Sint64 res_size = SDL_RWsize(frag_file);
@@ -74,21 +113,28 @@ binocle_shader binocle_shader_load_from_file(char *vert_filename, char *frag_fil
 #else
           strcpy(shader.frag_src, tmp);
 #endif
+          shader.frag_src = str_replace(shader.frag_src, "#include \"primitives.frag\"", include_src);
         }
     }
 
     if (shader.vert_src != NULL) {
+        sprintf(info, "Compiling vertex shader %s", vert_filename);
+        binocle_log_info(info);
         shader.vert_id = binocle_shader_compile(shader.vert_src, GL_VERTEX_SHADER);
     } else {
-        binocle_log_warning("Vertex shader not loaded");
+        binocle_log_warning("Vertex shader not found");
     }
 
     if (shader.frag_src != NULL) {
+        sprintf(info, "Compiling fragment shader %s", frag_filename);
+        binocle_log_info(info);
         shader.frag_id = binocle_shader_compile(shader.frag_src, GL_FRAGMENT_SHADER);
     } else {
-        binocle_log_warning("Fragment shader not loaded");
+        binocle_log_warning("Fragment shader not found");
     }
 
+    sprintf(info, "Linking vertex shader %s and fragment shader %s", vert_filename, frag_filename);
+    binocle_log_info(info);
     shader.program_id = binocle_shader_link(shader.vert_id, shader.frag_id);
 
     return shader;
@@ -142,4 +188,50 @@ void binocle_shader_unload(binocle_shader *shader) {
         glCheck(glDeleteShader(shader->frag_id));
         shader->frag_id = 0;
     }
+}
+
+char *str_replace(char *orig, char *rep, char *with) {
+  char *result; // the return string
+  char *ins;    // the next insert point
+  char *tmp;    // varies
+  int len_rep;  // length of rep (the string to remove)
+  int len_with; // length of with (the string to replace rep with)
+  int len_front; // distance between rep and end of last rep
+  int count;    // number of replacements
+
+  // sanity checks and initialization
+  if (!orig || !rep)
+    return NULL;
+  len_rep = strlen(rep);
+  if (len_rep == 0)
+    return NULL; // empty rep causes infinite loop during count
+  if (!with)
+    with = "";
+  len_with = strlen(with);
+
+  // count the number of replacements needed
+  ins = orig;
+  for (count = 0; tmp = strstr(ins, rep); ++count) {
+    ins = tmp + len_rep;
+  }
+
+  tmp = result = malloc(strlen(orig) + (len_with - len_rep) * count + 1);
+
+  if (!result)
+    return NULL;
+
+  // first time through the loop, all the variable are set correctly
+  // from here on,
+  //    tmp points to the end of the result string
+  //    ins points to the next occurrence of rep in orig
+  //    orig points to the remainder of orig after "end of rep"
+  while (count--) {
+    ins = strstr(orig, rep);
+    len_front = ins - orig;
+    tmp = strncpy(tmp, orig, len_front) + len_front;
+    tmp = strcpy(tmp, with) + len_with;
+    orig += len_front + len_rep; // move to next "end of rep"
+  }
+  strcpy(tmp, orig);
+  return result;
 }
