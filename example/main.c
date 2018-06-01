@@ -27,6 +27,8 @@
 #include "sys_config.h"
 
 //#define GAMELOOP 1
+#define DEMOLOOP
+//#define TWODLOOP
 
 binocle_window window;
 binocle_input input;
@@ -41,7 +43,11 @@ binocle_texture font_texture;
 binocle_material font_material;
 binocle_sprite font_sprite;
 kmVec2 font_sprite_pos;
+float time;
+binocle_shader quad_shader;
+binocle_shader sdf_shader;
 
+#ifdef TWODLOOP
 void main_loop() {
   binocle_window_begin_frame(&window);
   binocle_input_update(&input);
@@ -77,6 +83,133 @@ void main_loop() {
   binocle_window_end_frame(&window);
   //binocle_log_info("FPS: %d", binocle_window_get_fps(&window));
 }
+#endif
+
+#ifdef DEMOLOOP
+
+binocle_render_target g_buffer;
+binocle_render_target dof_buffer;
+binocle_render_target dof_far_buffer1;
+binocle_render_target dof_far_buffer2;
+binocle_render_target dof_far_buffer3;
+binocle_render_target dof_near_buffer1;
+binocle_render_target dof_near_buffer2;
+binocle_render_target bloom_depth_buffer;
+binocle_render_target bloom_buffer1;
+binocle_render_target bloom_buffer2;
+binocle_render_target masking_buffer;
+binocle_render_target aberration_buffer;
+binocle_render_target compose_buffer;
+binocle_render_target fxaa_buffer;
+
+void init_render_targets() {
+  g_buffer = binocle_gd_create_render_target(window.width, window.height, false, GL_RGBA);
+  dof_buffer = binocle_gd_create_render_target(window.width, window.height, false, GL_RGBA);
+  dof_far_buffer1 = binocle_gd_create_render_target(window.width, window.height, false, GL_RGBA);
+  dof_far_buffer2 = binocle_gd_create_render_target(window.width, window.height, false, GL_RGBA);
+  dof_far_buffer3 = binocle_gd_create_render_target(window.width, window.height, false, GL_RGBA);
+  dof_near_buffer1 = binocle_gd_create_render_target(window.width, window.height, false, GL_RGBA);
+  dof_near_buffer2 = binocle_gd_create_render_target(window.width, window.height, false, GL_RGBA);
+  bloom_depth_buffer = binocle_gd_create_render_target(window.width, window.height, false, GL_RGBA);
+  bloom_buffer1 = binocle_gd_create_render_target(window.width, window.height, false, GL_RGBA);
+  bloom_buffer2 = binocle_gd_create_render_target(window.width, window.height, false, GL_RGBA);
+  masking_buffer = binocle_gd_create_render_target(window.width, window.height, false, GL_RGBA);
+  aberration_buffer = binocle_gd_create_render_target(window.width, window.height, false, GL_RGBA);
+  compose_buffer = binocle_gd_create_render_target(window.width, window.height, false, GL_RGBA);
+  fxaa_buffer = binocle_gd_create_render_target(window.width, window.height, false, GL_RGBA);
+}
+
+void draw_scene() {
+  binocle_gd_apply_shader(&gd, sdf_shader);
+  binocle_gd_set_uniform_float(sdf_shader, "time", time);
+  binocle_gd_set_uniform_float2(sdf_shader, "resolution", window.width, window.height);
+  // TODO: set all other uniforms
+  binocle_gd_draw_quad(sdf_shader); // Draws the current vertices buffer to the render target
+}
+
+void gbuffer_pass() {
+  binocle_gd_set_render_target(g_buffer);
+  kmAABB2 vp = {.min.x = 0, .min.y = 0, .max.x = window.width, .max.y = window.height};
+  binocle_gd_apply_viewport(vp);
+  binocle_color clear_color = {.a = 1.0, .r = 0.0, .g = 1.0, .b = 0.0};
+  binocle_gd_clear(clear_color);
+  draw_scene();
+}
+
+void fxaa_pass() {
+
+}
+
+void dof_pass() {
+
+}
+
+void bloom_pass() {
+
+}
+
+void compose_pass() {
+
+}
+
+void masking_pass() {
+
+}
+
+void aberration_pass() {
+
+}
+
+void tonemap_pass() {
+
+}
+
+void screen_pass() {
+  //binocle_gd_set_render_target(g_buffer);
+  binocle_gd_apply_shader(&gd, quad_shader);
+  binocle_gd_set_uniform_float(quad_shader, "time", time);
+  binocle_gd_set_uniform_float2(quad_shader, "resolution", window.width, window.height);
+  binocle_gd_draw_quad_to_screen(quad_shader, g_buffer);
+}
+
+void render_loop() {
+  init_render_targets();
+  gbuffer_pass();
+  fxaa_pass();
+  dof_pass();
+  bloom_pass();
+  compose_pass();
+  masking_pass();
+  aberration_pass();
+  tonemap_pass();
+  screen_pass();
+}
+
+void main_loop() {
+  binocle_window_begin_frame(&window);
+  binocle_input_update(&input);
+
+  if (input.resized) {
+    kmVec2 oldWindowSize = {.x = window.width, .y = window.height};
+    window.width = input.newWindowSize.x;
+    window.height = input.newWindowSize.y;
+    binocle_viewport_adapter_reset(&adapter, oldWindowSize, input.newWindowSize);
+    input.resized = false;
+  }
+
+
+  binocle_window_clear(&window);
+
+  render_loop();
+  time += (binocle_window_get_frame_time(&window) / 1000.0);
+  char fps_str[256];
+  sprintf(fps_str, "FPS: %d", binocle_window_get_fps(&window));
+  binocle_bitmapfont_draw_string(font, fps_str, 32, &gd, 0, window.height - 32, adapter.viewport);
+
+  binocle_window_refresh(&window);
+  binocle_window_end_frame(&window);
+}
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -102,6 +235,16 @@ int main(int argc, char *argv[])
   player_pos.x = 50;
   player_pos.y = 50;
 
+  // Load the default quad shader
+  sprintf(vert, "%s%s", BINOCLE_DATA_DIR, "screen.vert");
+  sprintf(frag, "%s%s", BINOCLE_DATA_DIR, "screen.frag");
+  quad_shader = binocle_shader_load_from_file(vert, frag);
+
+  // Load the SDF shader
+  sprintf(vert, "%s%s", BINOCLE_DATA_DIR, "test.vert");
+  sprintf(frag, "%s%s", BINOCLE_DATA_DIR, "test2.frag");
+  sdf_shader = binocle_shader_load_from_file(vert, frag);
+
   char font_filename[1024];
   sprintf(font_filename, "%s%s", BINOCLE_DATA_DIR, "font.fnt");
   font = binocle_bitmapfont_from_file(font_filename, true);
@@ -120,6 +263,7 @@ int main(int argc, char *argv[])
 
   gd = binocle_gd_new();
   binocle_gd_init(&gd);
+  time = 0;
 #ifdef GAMELOOP
   binocle_game_run(window, input);
 #else
