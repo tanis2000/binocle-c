@@ -48,6 +48,7 @@ binocle_shader quad_shader;
 binocle_shader sdf_shader;
 binocle_shader fxaa_shader;
 binocle_shader dof_shader;
+binocle_shader bloom_shader;
 
 #ifdef TWODLOOP
 void main_loop() {
@@ -163,7 +164,13 @@ void dof_pass() {
 }
 
 void bloom_pass() {
-
+  binocle_gd_set_render_target(bloom_buffer1);
+  binocle_gd_apply_shader(&gd, bloom_shader);
+  binocle_gd_set_uniform_float(bloom_shader, "time", time);
+  binocle_gd_set_uniform_float2(bloom_shader, "resolution", window.width, window.height);
+  binocle_gd_set_uniform_float2(bloom_shader, "uv", 1.0, 1.0);
+  binocle_gd_set_uniform_render_target_as_texture(bloom_shader, "tInput", g_buffer);
+  binocle_gd_draw_quad(bloom_shader);
 }
 
 void compose_pass() {
@@ -191,6 +198,8 @@ void screen_pass() {
     binocle_gd_draw_quad_to_screen(quad_shader, fxaa_buffer);
   } else if (binocle_input_is_key_pressed(input, KEY_2)) {
     binocle_gd_draw_quad_to_screen(quad_shader, dof_buffer);
+  } else if (binocle_input_is_key_pressed(input, KEY_3)) {
+    binocle_gd_draw_quad_to_screen(quad_shader, bloom_buffer1);
   } else {
     binocle_gd_draw_quad_to_screen(quad_shader, g_buffer);
   }
@@ -278,6 +287,11 @@ int main(int argc, char *argv[])
   sprintf(vert, "%s%s", BINOCLE_DATA_DIR, "dof.vert");
   sprintf(frag, "%s%s", BINOCLE_DATA_DIR, "dof.frag");
   dof_shader = binocle_shader_load_from_file(vert, frag);
+
+  // Load the bloom shader
+  sprintf(vert, "%s%s", BINOCLE_DATA_DIR, "dof.vert");
+  sprintf(frag, "%s%s", BINOCLE_DATA_DIR, "bloom2.frag");
+  bloom_shader = binocle_shader_load_from_file(vert, frag);
 
   char font_filename[1024];
   sprintf(font_filename, "%s%s", BINOCLE_DATA_DIR, "font.fnt");
