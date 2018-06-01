@@ -47,6 +47,7 @@ float time;
 binocle_shader quad_shader;
 binocle_shader sdf_shader;
 binocle_shader fxaa_shader;
+binocle_shader dof_shader;
 
 #ifdef TWODLOOP
 void main_loop() {
@@ -147,7 +148,18 @@ void fxaa_pass() {
 }
 
 void dof_pass() {
-
+  binocle_gd_set_render_target(dof_buffer);
+  binocle_gd_apply_shader(&gd, dof_shader);
+  binocle_gd_set_uniform_float(dof_shader, "time", time);
+  binocle_gd_set_uniform_float2(dof_shader, "resolution", window.width, window.height);
+  binocle_gd_set_uniform_float2(dof_shader, "uv", 1.0, 1.0);
+  binocle_gd_set_uniform_render_target_as_texture(dof_shader, "tInput", g_buffer);
+  binocle_gd_set_uniform_render_target_as_texture(dof_shader, "tBias", g_buffer);
+  binocle_gd_set_uniform_float(dof_shader, "radius", 0.5);
+  binocle_gd_set_uniform_float(dof_shader, "amount", 1.0);
+  binocle_gd_set_uniform_float(dof_shader, "focalDistance", 2.0);
+  binocle_gd_set_uniform_float(dof_shader, "aperture", 2.0);
+  binocle_gd_draw_quad(dof_shader);
 }
 
 void bloom_pass() {
@@ -177,6 +189,8 @@ void screen_pass() {
   binocle_gd_set_uniform_float2(quad_shader, "resolution", window.width, window.height);
   if (binocle_input_is_key_pressed(input, KEY_1)) {
     binocle_gd_draw_quad_to_screen(quad_shader, fxaa_buffer);
+  } else if (binocle_input_is_key_pressed(input, KEY_2)) {
+    binocle_gd_draw_quad_to_screen(quad_shader, dof_buffer);
   } else {
     binocle_gd_draw_quad_to_screen(quad_shader, g_buffer);
   }
@@ -259,6 +273,11 @@ int main(int argc, char *argv[])
   sprintf(vert, "%s%s", BINOCLE_DATA_DIR, "test.vert");
   sprintf(frag, "%s%s", BINOCLE_DATA_DIR, "fxaa.frag");
   fxaa_shader = binocle_shader_load_from_file(vert, frag);
+
+  // Load the DOF shader
+  sprintf(vert, "%s%s", BINOCLE_DATA_DIR, "dof.vert");
+  sprintf(frag, "%s%s", BINOCLE_DATA_DIR, "dof.frag");
+  dof_shader = binocle_shader_load_from_file(vert, frag);
 
   char font_filename[1024];
   sprintf(font_filename, "%s%s", BINOCLE_DATA_DIR, "font.fnt");
