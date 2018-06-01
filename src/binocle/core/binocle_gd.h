@@ -58,5 +58,6 @@ void binocle_gd_clear(struct binocle_color color);
 void binocle_gd_set_render_target(binocle_render_target render_target);
 void binocle_gd_draw_quad(struct binocle_shader shader);
 void binocle_gd_draw_quad_to_screen(struct binocle_shader shader, binocle_render_target render_target);
+void binocle_gd_set_uniform_render_target_as_texture(struct binocle_shader shader, const char *name, binocle_render_target render_target);
 
 #endif //BINOCLE_BINOCLE_GD_H
