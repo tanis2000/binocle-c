@@ -3,16 +3,18 @@
 //
 
 #include <stdio.h>
-#include <unistd.h>
 #include <fcntl.h>
-#include <glob.h>
-#include <dlfcn.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#if defined(__WINDOWS__)
+//#include <x86intrin.h>
+#define RTLD_LAZY   0
+#else
+#include <unistd.h>
+#include <glob.h>
+#include <dlfcn.h>
 #include <sys/mman.h>
 #include <sys/wait.h>
-#if defined(__WINDOWS__)
-#include <x86intrin.h>
 #endif
 #include "binocle_sdl.h"
 #include "binocle_game.h"
@@ -23,9 +25,9 @@
 #include "binocle_math.h"
 
 void binocle_game_run(binocle_window window, binocle_input input) {
-  binocle_game game = {};
-  game_memory game_memory = {};
-  game_code game_code = {};
+  binocle_game game = {0};
+  game_memory game_memory = {0};
+  game_code game_code = {0};
   char *sourceGameCodeDLLFullPath = "/Users/tanis/Documents/binocle-c/cmake-build-debug/example/gameplay/libgameplay.dylib";
   game.game_code = game_code;
   game.game_memory = game_memory;
@@ -87,7 +89,7 @@ void binocle_unload_game_code(game_code *game) {
 }
 
 game_code binocle_load_game_code(char* SourceDLLName) {
-  game_code Result = {};
+  game_code Result = {0};
 
   Result.DLLLastWriteTime = binocle_sdl_get_last_write_time(SourceDLLName);
 

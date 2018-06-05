@@ -9,7 +9,7 @@
 #include "binocle_log.h"
 
 binocle_window binocle_window_new(uint32_t width, uint32_t height, char* title) {
-  binocle_window res = {};
+  binocle_window res = {0};
   res.width = width;
   res.height = height;
   res.title = title;

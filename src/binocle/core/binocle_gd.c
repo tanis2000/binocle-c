@@ -75,7 +75,7 @@ void binocle_gd_gl_check_error(const char *file, unsigned int line, const char *
 }
 
 binocle_gd binocle_gd_new() {
-    binocle_gd res = {};
+    binocle_gd res = {0};
     return res;
 }
 
@@ -252,7 +252,7 @@ binocle_render_target binocle_gd_create_render_target(uint32_t width, uint32_t h
      * glGenRenderBuffers creates a renderbuffer object that are specifically used with framebuffer objects for any depth-testing required.
      */
 
-    binocle_render_target res = {};
+    binocle_render_target res = {0};
 
     GLuint fb[1];
     glCheck(glGenFramebuffers(1, fb));

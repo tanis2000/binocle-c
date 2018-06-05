@@ -9,7 +9,7 @@
 #include "binocle_gd.h"
 
 binocle_bitmapfont binocle_bitmapfont_new() {
-  binocle_bitmapfont res = {};
+  binocle_bitmapfont res = {0};
 }
 
 int binocle_bitmapfont_split (const char *str, char c, char ***arr)
@@ -17,7 +17,7 @@ int binocle_bitmapfont_split (const char *str, char c, char ***arr)
   int count = 1;
   int token_len = 1;
   int i = 0;
-  char *p;
+  const char *p;
   char *t;
 
   p = str;
@@ -222,7 +222,7 @@ void binocle_bitmapfont_create_vertice_and_tex_coords_for_string(binocle_bitmapf
 
     // TODO: do this for each vertex!
     //glm::vec2.Transform( ref p, ref _transformationMatrix, out p );
-    kmVec4 p = { .x = tmp.vtlx, .y = tmp.vtly, .z = 0, .w = 1};
+    kmVec4 p = { tmp.vtlx, tmp.vtly, 0, 1};
     kmVec4 tl;
     kmVec4MultiplyMat4(&tl, &p, &transformation_matrix);
     p.x = tmp.vtrx;

@@ -24,8 +24,8 @@ typedef struct binocle_camera {
   bool are_bounds_dirty;
   kmAABB2 bounds;
   struct binocle_viewport_adapter *viewport_adapter;
-  float near;
-  float far;
+  float near_distance;
+  float far_distance;
 } binocle_camera;
 
 binocle_camera binocle_camera_new(struct binocle_viewport_adapter *adapter);

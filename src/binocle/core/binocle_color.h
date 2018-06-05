@@ -14,20 +14,12 @@ typedef struct binocle_color {
 } binocle_color;
 
 static binocle_color binocle_color_white() {
-  binocle_color res = {};
-  res.r = 1;
-  res.g = 1;
-  res.b = 1;
-  res.a = 1;
+  binocle_color res = {.r = 1, .g = 1, .b = 1, .a = 1};
   return res;
 }
 
 static binocle_color binocle_color_azure() {
-  binocle_color res = {};
-  res.r = 191.0f/255.0f;
-  res.g = 1;
-  res.b = 1;
-  res.a = 1;
+  binocle_color res = { .r = 191.0f / 255.0f,.g = 1, .b = 1, .a = 1 };
   return res;
 }
 

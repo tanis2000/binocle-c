@@ -9,8 +9,10 @@
 #include "binocle_gd.h"
 #include "binocle_vpct.h"
 
+#define BINOCLE_SPRITE_VERTEX_COUNT 6
+
 binocle_sprite binocle_sprite_from_material(binocle_material *material) {
-  binocle_sprite res = {};
+  binocle_sprite res = {0};
   res.origin.x = 0;
   res.origin.y = 0;
   res.material = material;
@@ -19,8 +21,7 @@ binocle_sprite binocle_sprite_from_material(binocle_material *material) {
 }
 
 void binocle_sprite_draw(binocle_sprite sprite, binocle_gd *gd, uint64_t x, uint64_t y, kmAABB2 viewport) {
-  size_t vertex_count = 6;
-  binocle_vpct vertices[vertex_count];
+  binocle_vpct vertices[BINOCLE_SPRITE_VERTEX_COUNT];
   vertices[0].pos.x = sprite.origin.x + x;
   vertices[0].pos.y = sprite.origin.y + sprite.subtexture.rect.max.y + y;
   vertices[0].color = binocle_color_white();
@@ -57,5 +58,5 @@ void binocle_sprite_draw(binocle_sprite sprite, binocle_gd *gd, uint64_t x, uint
   vertices[5].tex.x = 0;//sprite.subtexture.rect.min.x;
   vertices[5].tex.y = 0;//sprite.subtexture.rect.min.y;
 
-  binocle_gd_draw(gd, vertices, vertex_count, *sprite.material, viewport);
+  binocle_gd_draw(gd, vertices, BINOCLE_SPRITE_VERTEX_COUNT, *sprite.material, viewport);
 }

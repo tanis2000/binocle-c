@@ -8,7 +8,7 @@
 binocle_viewport_adapter binocle_viewport_adapter_new(
   binocle_window window, binocle_viewport_adapter_kind kind, binocle_viewport_adapter_scaling_type scaling_type, uint32_t width, uint32_t height, uint32_t virtual_width, uint32_t virtual_height
 ) {
-  binocle_viewport_adapter res = {};
+  binocle_viewport_adapter res = {0};
   kmMat4Identity(&res.scale_matrix);
   res.original_viewport.min.x = 0;
   res.original_viewport.min.y = 0;

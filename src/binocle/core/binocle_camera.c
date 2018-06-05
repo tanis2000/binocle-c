@@ -7,7 +7,7 @@
 #include "binocle_math.h"
 
 binocle_camera binocle_camera_new(struct binocle_viewport_adapter *adapter) {
-  binocle_camera res = {};
+  binocle_camera res = {0};
   kmMat4Identity(&res.transform_matrix);
   kmMat4Identity(&res.inverse_transform_matrix);
   res.position.x = 0;
@@ -25,8 +25,8 @@ binocle_camera binocle_camera_new(struct binocle_viewport_adapter *adapter) {
   res.bounds.max.x = 0;
   res.bounds.max.y = 0;
   res.viewport_adapter = adapter;
-  res.near = -10.0;
-  res.far = 10.0;
+  res.near_distance = -10.0;
+  res.far_distance = 10.0;
 
   return res;
 }
@@ -98,7 +98,7 @@ kmAABB2 binocle_camera_get_bounds(binocle_camera camera) {
 
   if (camera.are_bounds_dirty) {
     // top-left and bottom-right are needed by either rotated or non-rotated bounds
-    kmVec2 screen_position = {.x = camera.viewport_adapter->viewport.min.x, .y = camera.viewport_adapter->viewport.min.y};
+    kmVec2 screen_position = {camera.viewport_adapter->viewport.min.x, camera.viewport_adapter->viewport.min.y};
     kmVec2 top_left = binocle_camera_screen_to_world_point(camera, screen_position);
     screen_position.x = camera.viewport_adapter->viewport.min.x + camera.viewport_adapter->viewport.max.x;
     screen_position.y = camera.viewport_adapter->viewport.min.y + camera.viewport_adapter->viewport.max.y;
@@ -205,8 +205,8 @@ void binocle_camera_round_position(binocle_camera camera) {
 
 void binocle_camera_center_origin(binocle_camera camera) {
   kmVec2 o = {
-    .x = camera.viewport_adapter->virtual_width / 2.0,
-    .y = camera.viewport_adapter->virtual_height / 2.0
+    camera.viewport_adapter->virtual_width / 2.0,
+    camera.viewport_adapter->virtual_height / 2.0
   };
   binocle_camera_set_origin(camera, o.x, o.y);
 
@@ -247,9 +247,9 @@ void binocle_camera_zoom_out(binocle_camera camera, float delta_zoom)
 /// <returns>The to screen point.</returns>
 /// <param name="worldPosition">World position.</param>
 kmVec2 binocle_camera_world_to_screen_point(binocle_camera camera, kmVec2 world_position) {
-  kmVec3 pos = {.x = world_position.x, .y = world_position.y, 0.0};
+  kmVec3 pos = {world_position.x, world_position.y, 0.0};
   kmVec3MultiplyMat4(&pos, &pos, &camera.transform_matrix);
-  kmVec2 pos2 = {.x = pos.x, .y = pos.y};
+  kmVec2 pos2 = {pos.x, pos.y};
 
   kmVec2 p = binocle_viewport_adapter_screen_to_virtual_viewport(*camera.viewport_adapter, pos2);
   return p;
@@ -264,7 +264,7 @@ kmVec2 binocle_camera_world_to_screen_point(binocle_camera camera, kmVec2 world_
 kmVec2 binocle_camera_screen_to_world_point(binocle_camera camera, kmVec2 screen_position) {
   kmVec2 pos2;
   pos2 = binocle_viewport_adapter_point_to_virtual_viewport(*camera.viewport_adapter, screen_position);
-  kmVec3 pos = {.x = pos2.x, .y = pos2.y, 0};
+  kmVec3 pos = {pos2.x, pos2.y, 0};
   kmVec3 res;
   kmVec3MultiplyMat4(&res, &pos, &camera.inverse_transform_matrix);
   pos2.x = res.x;
@@ -280,7 +280,7 @@ kmVec2 binocle_camera_screen_to_world_point(binocle_camera camera, kmVec2 screen
 kmMat4 binocle_camera_get_projection_matrix(binocle_camera camera) {
   // not currently blocked with a dirty flag due to the core engine not using this
   return binocle_math_create_orthographic_matrix_off_center(
-    0.0, camera.viewport_adapter->viewport.max.x, camera.viewport_adapter->viewport.max.y, 0.0, camera.near, camera.far );
+    0.0, camera.viewport_adapter->viewport.max.x, camera.viewport_adapter->viewport.max.y, 0.0, camera.near_distance, camera.far_distance );
 }
 
 

@@ -10,8 +10,7 @@
 #include "binocle_gd.h"
 
 binocle_shader binocle_shader_new() {
-    binocle_shader res = {
-    };
+    binocle_shader res = {0};
 
     return res;
 }
