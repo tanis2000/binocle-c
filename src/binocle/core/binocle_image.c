@@ -10,7 +10,7 @@
 #include "binocle_log.h"
 
 binocle_image binocle_image_load(const char *filename) {
-  binocle_image res = {};
+  binocle_image res = {0};
 
   int width = 0;
   int height = 0;

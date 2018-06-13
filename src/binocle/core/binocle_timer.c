@@ -6,7 +6,7 @@
 #include "binocle_sdl.h"
 
 binocle_timer binocle_timer_new() {
-  binocle_timer result = {};
+  binocle_timer result = {0};
   result.startMark = 0;
   result.stopMark = 0;
   result.pausedMark = 0;
