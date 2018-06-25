@@ -89,6 +89,14 @@ bool binocle_sdl_init() {
     binocle_sdl_exit();
   }
 
+  char *base_path = SDL_GetBasePath();
+  if (base_path) {
+    binocle_log_info("Base path: %s", base_path);
+    SDL_free(base_path);
+  } else {
+    binocle_log_info("Base path not available");
+  }
+
 
   return true;
 }
