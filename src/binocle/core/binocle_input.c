@@ -98,6 +98,13 @@ void binocle_input_update(binocle_input *input) {
         // // If positive, scrolled up
         break;
 
+      case SDL_FINGERDOWN:
+        // do something with event.tfinger
+      break;
+      case SDL_FINGERMOTION:
+      break;
+      case SDL_FINGERUP:
+      break;
       default:
         break;
     }
