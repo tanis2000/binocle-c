@@ -91,7 +91,7 @@ void binocle_gd_draw(binocle_gd *gd, const binocle_vpct *vertices, size_t vertex
     binocle_gd_apply_shader(gd, *material.shader);
     binocle_gd_apply_texture(*material.texture);
 
-    kmMat4 projectionMatrix = binocle_math_create_orthographic_matrix_off_center(0.0f, viewport.max.x, 0.0, viewport.max.y, -1000.0f, 1000.0f);
+    kmMat4 projectionMatrix = binocle_math_create_orthographic_matrix_off_center(viewport.min.x, viewport.max.x, viewport.min.y, viewport.max.y, -1000.0f, 1000.0f);
     //kmMat4 modelViewMatrix = binocle_gd_create_model_view_matrix(0.0f, 0.0f, 1.0f, 0.0f);
     kmMat4 viewMatrix;
     kmMat4Identity(&viewMatrix);
@@ -166,9 +166,22 @@ void binocle_gd_apply_gl_states() {
     glCheck(glDisable(GL_DEPTH_TEST));
 
     glCheck(glEnable(GL_BLEND));
-//    glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-//    glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-//    glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+
+    // This is for better 2D textures placement
+    //glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+    //glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+
+    /**
+     * GL_NEAREST	Returns the value of the texture element that is nearest (in Manhattan distance) to the center of
+     * the pixel being textured.
+     *
+     * GL_LINEAR	Returns the weighted average of the four texture elements that are closest to the center of the pixel being textured.
+     * These can include border texture elements, depending on the values of GL_TEXTURE_WRAP_S and GL_TEXTURE_WRAP_T,
+     * and on the exact mapping.
+     */
+    // Enable the following for better 2D pixel rendering
+    //glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+    //glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
 
     glCheck(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 }
