@@ -23,4 +23,9 @@ static binocle_color binocle_color_azure() {
   return res;
 }
 
+static binocle_color binocle_color_black() {
+  binocle_color res = {.r = 0, .g = 0, .b = 0, .a = 1};
+  return res;
+}
+
 #endif //BINOCLE_BINOCLE_COLOR_H
