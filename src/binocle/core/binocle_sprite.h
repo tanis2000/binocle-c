@@ -18,6 +18,6 @@ typedef struct binocle_sprite {
 } binocle_sprite;
 
 binocle_sprite binocle_sprite_from_material(struct binocle_material *material);
-void binocle_sprite_draw(binocle_sprite sprite, struct binocle_gd *gd, uint64_t x, uint64_t y, kmAABB2 viewport);
+void binocle_sprite_draw(binocle_sprite sprite, struct binocle_gd *gd, int64_t x, int64_t y, kmAABB2 viewport, float rotation, float scale);
 
 #endif //BINOCLE_BINOCLE_SPRITE_H
