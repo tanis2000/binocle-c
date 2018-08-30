@@ -7,6 +7,7 @@
 #include "binocle_log.h"
 #include "binocle_vpct.h"
 #include "binocle_gd.h"
+#include "binocle_color.h"
 
 binocle_bitmapfont binocle_bitmapfont_new() {
   binocle_bitmapfont res = {0};
@@ -174,7 +175,7 @@ binocle_bitmapfont_square_t binocle_bitmapfont_make_square_t(float x1, float y1,
 }
 
 void binocle_bitmapfont_create_vertice_and_tex_coords_for_string(binocle_bitmapfont *font, const char *str, float height,
-    kmMat4 transformation_matrix) {
+    kmMat4 transformation_matrix, binocle_color color) {
   memset(font->vertexes, BINOCLE_MAX_FONT_VERTICES, sizeof(binocle_vpct));
   float scale = height / (float) font->line_height;
   binocle_bitmapfont_square_t *char_squares = (binocle_bitmapfont_square_t *) malloc(sizeof(binocle_bitmapfont_square_t) * strlen(str));
@@ -246,37 +247,37 @@ void binocle_bitmapfont_create_vertice_and_tex_coords_for_string(binocle_bitmapf
     pos.y = tl.y;
     tex.x = tmp.ttlx;
     tex.y = tmp.ttly;
-    font->vertexes[index] = binocle_vpct_new(pos, binocle_color_white(), tex);
+    font->vertexes[index] = binocle_vpct_new(pos, color, tex);
 
     pos.x = tr.x;
     pos.y = tr.y;
     tex.x = tmp.ttrx;
     tex.y = tmp.ttry;
-    font->vertexes[index+1] = binocle_vpct_new(pos, binocle_color_white(), tex);
+    font->vertexes[index+1] = binocle_vpct_new(pos, color, tex);
 
     pos.x = bl.x;
     pos.y = bl.y;
     tex.x = tmp.tblx;
     tex.y = tmp.tbly;
-    font->vertexes[index+2] = binocle_vpct_new(pos, binocle_color_white(), tex);
+    font->vertexes[index+2] = binocle_vpct_new(pos, color, tex);
 
     pos.x = bl.x;
     pos.y = bl.y;
     tex.x = tmp.tblx;
     tex.y = tmp.tbly;
-    font->vertexes[index+3] = binocle_vpct_new(pos, binocle_color_white(), tex);
+    font->vertexes[index+3] = binocle_vpct_new(pos, color, tex);
 
     pos.x = tr.x;
     pos.y = tr.y;
     tex.x = tmp.ttrx;
     tex.y = tmp.ttry;
-    font->vertexes[index+4] = binocle_vpct_new(pos, binocle_color_white(), tex);
+    font->vertexes[index+4] = binocle_vpct_new(pos, color, tex);
 
     pos.x = br.x;
     pos.y = br.y;
     tex.x = tmp.tbrx;
     tex.y = tmp.tbry;
-    font->vertexes[index+5] = binocle_vpct_new(pos, binocle_color_white(), tex);
+    font->vertexes[index+5] = binocle_vpct_new(pos, color, tex);
 
     index += 6;
   }
@@ -303,11 +304,11 @@ float binocle_bitmapfont_get_width_of_string(binocle_bitmapfont font, const char
   return scale * x;
 }
 
-void binocle_bitmapfont_draw_string(binocle_bitmapfont font, const char *str, float height, binocle_gd *gd, uint64_t x, uint64_t y, kmAABB2 viewport) {
+void binocle_bitmapfont_draw_string(binocle_bitmapfont font, const char *str, float height, binocle_gd *gd, uint64_t x, uint64_t y, kmAABB2 viewport, binocle_color color) {
   kmMat4 transformation_matrix;
   kmMat4Identity(&transformation_matrix);
   kmMat4Translation(&transformation_matrix, x, y, 0);
-  binocle_bitmapfont_create_vertice_and_tex_coords_for_string(&font, str, height, transformation_matrix);
+  binocle_bitmapfont_create_vertice_and_tex_coords_for_string(&font, str, height, transformation_matrix, color);
   binocle_gd_draw(gd, font.vertexes, font.vertexes_count, *font.material, viewport);
 
 }
