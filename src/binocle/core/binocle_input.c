@@ -100,10 +100,28 @@ void binocle_input_update(binocle_input *input) {
 
       case SDL_FINGERDOWN:
         // do something with event.tfinger
+            input->touch.x = event.tfinger.x;
+            input->touch.y = event.tfinger.y;
+            input->touch.dx = event.tfinger.dx;
+            input->touch.dy = event.tfinger.dy;
+            input->touch.pressure = event.tfinger.pressure;
+            input->touch.type = FINGER_DOWN;
       break;
       case SDL_FINGERMOTION:
+            input->touch.x = event.tfinger.x;
+            input->touch.y = event.tfinger.y;
+            input->touch.dx = event.tfinger.dx;
+            input->touch.dy = event.tfinger.dy;
+            input->touch.pressure = event.tfinger.pressure;
+            input->touch.type = FINGER_MOTION;
       break;
       case SDL_FINGERUP:
+            input->touch.x = event.tfinger.x;
+            input->touch.y = event.tfinger.y;
+            input->touch.dx = event.tfinger.dx;
+            input->touch.dy = event.tfinger.dy;
+            input->touch.pressure = event.tfinger.pressure;
+            input->touch.type = FINGER_UP;
       break;
       default:
         break;
@@ -242,8 +260,12 @@ void binocle_input_lock(binocle_input input) { input.isLocked = true; }
 
 void binocle_input_unlock(binocle_input input) { input.isLocked = false; }
 
-bool binocle_input_is_touch_down(unsigned int finger) {
-  return false;//sf::Touch::isDown(finger);
+bool binocle_input_is_touch_down(binocle_input input, unsigned int finger) {
+    if (input.touch.type == FINGER_DOWN) {
+        return true;
+    }
+    return false;
+  //sf::Touch::isDown(finger);
 }
 
 kmVec2 binocle_input_get_touch_position(unsigned int finger, binocle_camera camera) {
