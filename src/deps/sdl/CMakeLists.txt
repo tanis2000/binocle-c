@@ -3,6 +3,7 @@ include_directories(include)
 file(GLOB_RECURSE SOURCES 
         src/SDL.c
         src/SDL_assert.c
+		src/SDL_dataqueue.c
         src/SDL_error.c
         src/SDL_hints.c
         src/SDL_log.c
@@ -29,7 +30,9 @@ file(GLOB_RECURSE SOURCES
         src/joystick/SDL_gamecontroller.c
         src/joystick/SDL_joystick.c
         src/libm/e_atan2.c
+        src/libm/e_fmod.c
         src/libm/e_log.c
+        src/libm/e_log10.c
         src/libm/e_pow.c
         src/libm/e_rem_pio2.c
         src/libm/e_sqrt.c
@@ -47,7 +50,6 @@ file(GLOB_RECURSE SOURCES
         src/libm/s_sin.c
         src/power/SDL_power.c
         src/render/SDL_render.c
-        src/render/SDL_yuv_mmx.c
         src/render/SDL_yuv_sw.c
         src/stdlib/SDL_getenv.c
         src/stdlib/SDL_iconv.c
@@ -75,6 +77,9 @@ file(GLOB_RECURSE SOURCES
         src/video/SDL_stretch.c
         src/video/SDL_surface.c
         src/video/SDL_video.c
+		src/video/SDL_vulkan_utils.c
+		src/video/SDL_yuv.c
+		src/video/yuv2rgb/yuv_rgb.c
         src/audio/disk/SDL_diskaudio.c
         src/loadso/dlopen/SDL_sysloadso.c
         src/render/opengl/SDL_render_gl.c
@@ -122,16 +127,20 @@ if(APPLE)
             src/joystick/iphoneos/SDL_sysjoystick.m
             src/haptic/dummy/SDL_syshaptic.c
             src/power/uikit/SDL_syspower.m
+			src/video/cocoa/SDL_cocoaopengles.m
+			src/video/cocoa/SDL_cocoavulkan.m
             src/video/uikit/SDL_uikitappdelegate.m
             src/video/uikit/SDL_uikitclipboard.m
             src/video/uikit/SDL_uikitevents.m
             src/video/uikit/SDL_uikitmessagebox.m
+            src/video/uikit/SDL_uikitmetalview.m
             src/video/uikit/SDL_uikitmodes.m
             src/video/uikit/SDL_uikitopengles.m
             src/video/uikit/SDL_uikitopenglview.m
             src/video/uikit/SDL_uikitvideo.m
             src/video/uikit/SDL_uikitview.m
             src/video/uikit/SDL_uikitviewcontroller.m
+            src/video/uikit/SDL_uikitvulkan.m
             src/video/uikit/SDL_uikitwindow.m
 
             include/*.h
@@ -217,7 +226,9 @@ if(ANDROID)
             src/video/android/SDL_androidwindow.c
             src/video/android/SDL_androidmessagebox.c
             src/video/android/SDL_androidmouse.c
-            src/haptic/dummy/SDL_syshaptic.c
+            src/video/android/SDL_androidvulkan.c
+            #src/haptic/dummy/SDL_syshaptic.c
+			src/haptic/android/SDL_syshaptic.c
 
             #include/*.h
             include/SDL_config_android.h
@@ -239,8 +250,9 @@ if(MSVC)
 
             src/thread/generic/SDL_syscond.c
             src/audio/directsound/SDL_directsound.c
+            src/audio/wasapi/SDL_wasapi.c
+            src/audio/wasapi/SDL_wasapi_win32.c
             src/audio/winmm/SDL_winmm.c
-            src/audio/xaudio2/SDL_xaudio2.c
             src/core/windows/SDL_windows.c
             src/core/windows/SDL_xinput.c
             src/filesystem/windows/SDL_sysfilesystem.c
@@ -273,10 +285,13 @@ if(MSVC)
             src/video/windows/SDL_windowsopengles.c
             src/video/windows/SDL_windowsshape.c
             src/video/windows/SDL_windowsvideo.c
+            src/video/windows/SDL_windowsvulkan.c
             src/video/windows/SDL_windowswindow.c
             src/render/SDL_d3dmath.c
             src/render/direct3d/SDL_render_d3d.c
+            src/render/direct3d/SDL_shaders_d3d.c
             src/render/direct3d11/SDL_render_d3d11.c
+            src/render/direct3d11/SDL_shaders_d3d11.c
 
             #include/*.h
             include/SDL_config_windows.h
