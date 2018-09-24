@@ -19,6 +19,21 @@ typedef enum binocle_input_mouse_button {
   MOUSE_MAX   // No button, just to define max array size.
 } binocle_input_mouse_button;
 
+typedef enum binocle_input_finger_type {
+    FINGER_MOTION = 1,
+    FINGER_DOWN = 2,
+    FINGER_UP = 3,
+    
+    FINGER_MAX   // just to define max array size.
+} binocle_input_finger_type;
+
+typedef struct binocle_input_touch {
+    float x, y;
+    float dx, dy;
+    float pressure;
+    binocle_input_finger_type type;
+} binocle_input_touch;
+
 /// I've made the following table according to this reference:
 /// http://wiki.libsdl.org/SDLScancodeLookup
 ///
@@ -301,6 +316,7 @@ typedef struct binocle_input {
   bool resized;
   kmVec2 newWindowSize;
 
+  binocle_input_touch touch;
 } binocle_input;
 
 binocle_input binocle_input_new();
@@ -326,7 +342,7 @@ bool binocle_input_is_printable_key_down(binocle_input input);
 const char binocle_input_get_cur_printable_key(binocle_input input);
 void binocle_input_lock(binocle_input input);
 void binocle_input_unlock(binocle_input input);
-bool binocle_input_is_touch_down(unsigned int finger);
+bool binocle_input_is_touch_down(binocle_input input, unsigned int finger);
 kmVec2 binocle_input_get_touch_position(unsigned int finger, struct binocle_camera camera);
 
 #endif //BINOCLE_BINOCLE_INPUT_H

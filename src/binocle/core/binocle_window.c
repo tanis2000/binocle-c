@@ -98,8 +98,8 @@ void binocle_window_resize(binocle_window *win, char* title, uint32_t width, uin
     return;
   }
 
-#if defined(__ANDROID__)
-  SDL_SetWindowFullscreen(window, SDL_TRUE);
+#if defined(__ANDROID__) || defined(__IPHONEOS__)
+  SDL_SetWindowFullscreen(win->window, SDL_TRUE);
 #endif
 
   win->gl_context = SDL_GL_CreateContext(win->window);
