@@ -1,5 +1,6 @@
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/src/deps
+        ${CMAKE_SOURCE_DIR}/src/deps/glew
         ${CMAKE_SOURCE_DIR}/src/deps/freetype
         ${CMAKE_SOURCE_DIR}/src/deps/ogg
         ${CMAKE_SOURCE_DIR}/src/deps/zlib

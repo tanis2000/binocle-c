@@ -237,7 +237,7 @@ void main_loop() {
   time += (binocle_window_get_frame_time(&window) / 1000.0);
   char fps_str[256];
   sprintf(fps_str, "FPS: %d", binocle_window_get_fps(&window));
-  binocle_bitmapfont_draw_string(font, fps_str, 32, &gd, 0, window.height - 32, adapter.viewport);
+  binocle_bitmapfont_draw_string(font, fps_str, 32, &gd, 0, window.height - 32, adapter.viewport, binocle_color_white());
 
   binocle_window_refresh(&window);
   binocle_window_end_frame(&window);

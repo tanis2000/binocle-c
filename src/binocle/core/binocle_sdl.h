@@ -21,6 +21,7 @@
 #endif
 
 #if defined(__WINDOWS__)
+#include <glew/include/GL/glew.h>
 #include <SDL_opengl.h>
 #include <sdl/include/SDL_syswm.h>
 #endif
