@@ -380,3 +380,47 @@ void binocle_gd_draw_quad_to_screen(struct binocle_shader shader, binocle_render
     glCheck(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     glCheck(glDrawArrays(GL_TRIANGLES, 0, 6 ));
 }
+
+void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect, binocle_color col, kmAABB2 viewport)
+{
+    static GLfloat g_quad_vertex_buffer_data[6*2] = {0};
+    g_quad_vertex_buffer_data[0] = rect.min.x;
+    g_quad_vertex_buffer_data[1] = rect.min.y;
+    g_quad_vertex_buffer_data[2] = rect.max.x;
+    g_quad_vertex_buffer_data[3] = rect.min.y;
+    g_quad_vertex_buffer_data[4] = rect.min.x;
+    g_quad_vertex_buffer_data[5] = rect.max.y;
+    g_quad_vertex_buffer_data[6] = rect.min.x;
+    g_quad_vertex_buffer_data[7] = rect.max.x;
+    g_quad_vertex_buffer_data[8] = rect.max.x;
+    g_quad_vertex_buffer_data[9] = rect.min.y;
+    g_quad_vertex_buffer_data[10] = rect.max.x;
+    g_quad_vertex_buffer_data[11] = rect.max.y;
+
+    kmMat4 projectionMatrix = binocle_math_create_orthographic_matrix_off_center(viewport.min.x, viewport.max.x, viewport.min.y, viewport.max.y, -1000.0f, 1000.0f);
+    kmMat4 viewMatrix;
+    kmMat4Identity(&viewMatrix);
+    kmMat4 modelMatrix;
+    kmMat4Identity(&modelMatrix);
+
+    //GLuint quad_vertexbuffer;
+    //glCheck(glGenBuffers(1, &quad_vertexbuffer));
+    //glCheck(glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer));
+    glCheck(glBindBuffer(GL_ARRAY_BUFFER, gd->vbo));
+    glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_DYNAMIC_DRAW));
+    glCheck(glUseProgram(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id));
+    GLint color_id = glGetUniformLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id, "color");
+    GLint pos_id = glGetAttribLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id, "vertexPosition");
+    glCheck(glUniform4f(color_id, col.r, col.g, col.b, col.a));
+    binocle_gd_apply_viewport(viewport);
+    glCheck(glVertexAttribPointer(pos_id, 2, GL_FLOAT, false, sizeof(GLfloat)*2, 0 ));
+    glCheck(glEnableVertexAttribArray(pos_id));
+    glCheck(glUniformMatrix4fv(gd->projection_matrix_uniform, 1, GL_FALSE, projectionMatrix.mat));
+    glCheck(glUniformMatrix4fv(gd->view_matrix_uniform, 1, GL_FALSE, viewMatrix.mat));
+    glCheck(glUniformMatrix4fv(gd->model_matrix_uniform, 1, GL_FALSE, modelMatrix.mat));
+    //glCheck(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+    glCheck(glDrawArrays( GL_TRIANGLES, 0, 6 ));
+    
+    glCheck(glDisableVertexAttribArray (pos_id));
+    glCheck(glUseProgram (GL_ZERO));
+}

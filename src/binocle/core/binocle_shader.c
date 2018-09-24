@@ -9,6 +9,40 @@
 #include "binocle_log.h"
 #include "binocle_gd.h"
 
+const char* binocle_shader_default_vertex_src = "\
+\n\
+\
+attribute vec3 vertexPosition;\
+attribute vec2 vertexTCoord;\
+attribute vec4 vertexColor;\
+attribute vec3 vertexNormal;\
+\
+varying vec2 tcoord;\
+varying vec4 color;\
+\
+uniform mat4 projectionMatrix;\
+uniform mat4 viewMatrix;\
+uniform mat4 modelMatrix;\
+\
+void main(void) {\
+    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);\
+    tcoord = vertexTCoord;\
+    color = vertexColor;\
+    vec3 n = vertexNormal;\
+    gl_PointSize = 1.0;\
+}\
+\0";
+
+const char* binocle_shader_flat_src = "\
+\n\
+uniform vec4 color;\
+void main(void)\
+{\
+    gl_FragColor = color;\
+}\
+\0";
+
+
 binocle_shader binocle_shader_new() {
     binocle_shader res = {0};
 
@@ -234,3 +268,30 @@ char *str_replace(char *orig, char *rep, char *with) {
   strcpy(tmp, orig);
   return result;
 }
+
+void binocle_shader_init_defaults() {
+    binocle_shader *flat = &binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT];
+    char opengles_precision[128];
+
+    flat->vert_src = (char *)SDL_malloc(strlen(binocle_shader_default_vertex_src) + 1 + sizeof(opengles_precision));
+    flat->frag_src = (char *)SDL_malloc(strlen(binocle_shader_flat_src) + 1 + sizeof(opengles_precision));
+
+    strcpy(opengles_precision, "precision mediump float;\n\0");
+
+#if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
+    strcpy(flat->vert_src, opengles_precision);
+    strcat(flat->vert_src, (char *)binocle_shader_default_vertex_src);
+
+    strcpy(flat->frag_src, opengles_precision);
+    strcat(flat->frag_src, (char *)binocle_shader_flat_src);
+#else
+    strcpy(flat->vert_src, binocle_shader_default_vertex_src);
+    strcpy(flat->frag_src, binocle_shader_flat_src);
+#endif
+    //flat.vert_src = (char *)binocle_shader_default_vertex_src;
+    flat->vert_id = binocle_shader_compile(flat->vert_src, GL_VERTEX_SHADER);
+    //flat.frag_src = (char *)binocle_shader_flat_src;
+    flat->frag_id = binocle_shader_compile(flat->frag_src, GL_FRAGMENT_SHADER);
+    flat->program_id = binocle_shader_link(flat->vert_id, flat->frag_id);
+}
+
