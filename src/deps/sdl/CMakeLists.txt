@@ -29,6 +29,7 @@ file(GLOB_RECURSE SOURCES
         src/haptic/SDL_haptic.c
         src/joystick/SDL_gamecontroller.c
         src/joystick/SDL_joystick.c
+        src/joystick/steam/SDL_steamcontroller.c
         src/libm/e_atan2.c
         src/libm/e_fmod.c
         src/libm/e_log.c
@@ -170,6 +171,7 @@ if(APPLE)
             src/power/macosx/SDL_syspower.c
             src/file/cocoa/SDL_rwopsbundlesupport.m
             src/filesystem/cocoa/SDL_sysfilesystem.m
+            src/video/SDL_egl.c
             src/video/cocoa/SDL_cocoaclipboard.m
             src/video/cocoa/SDL_cocoaevents.m
             src/video/cocoa/SDL_cocoakeyboard.m
@@ -180,6 +182,7 @@ if(APPLE)
             src/video/cocoa/SDL_cocoaopengl.m
             src/video/cocoa/SDL_cocoashape.m
             src/video/cocoa/SDL_cocoavideo.m
+            src/video/cocoa/SDL_cocoavulkan.m
             src/video/cocoa/SDL_cocoawindow.m
 
             #include/configs/mac/*.h
