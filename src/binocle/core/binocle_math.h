@@ -23,6 +23,14 @@
 #define MAXOF(a, b, c, d) MAX(a, MAX(b, MAX(c, d)))
 #endif
 
+/* SIGNOF
+ If value is positive or zero, return 1
+ If negative return -1
+ */
+#ifndef SIGNOF
+#define SIGNOF(value) ((value >= 0) ? 1 : -1)
+#endif
+
 static kmMat4 binocle_math_create_orthographic_matrix_off_center(float left, float right, float bottom, float top, float z_near_plane, float z_far_plane);
 
 //#ifdef BINOCLE_MATH_IMPL
