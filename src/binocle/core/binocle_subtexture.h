@@ -15,8 +15,8 @@ typedef struct binocle_subtexture {
   kmAABB2 rect;
 } binocle_subtexture;
 
-binocle_subtexture binocle_subtexture_with_texture(struct binocle_texture *texture, uint64_t x, uint64_t y, uint64_t width, uint64_t height);
-binocle_subtexture binocle_subtexture_with_subtexture(binocle_subtexture *subtexture, uint64_t x, uint64_t y, uint64_t width, uint64_t height);
+binocle_subtexture binocle_subtexture_with_texture(struct binocle_texture *texture, float x, float y, float width, float height);
+binocle_subtexture binocle_subtexture_with_subtexture(binocle_subtexture *subtexture, float x, float y, float width, float height);
 uint64_t binocle_subtexture_get_x(binocle_subtexture subtexture);
 uint64_t binocle_subtexture_get_y(binocle_subtexture subtexture);
 uint64_t binocle_subtexture_get_width(binocle_subtexture subtexture);

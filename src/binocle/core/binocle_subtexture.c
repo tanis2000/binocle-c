@@ -13,7 +13,7 @@ binocle_subtexture binocle_subtexture_new() {
   return res;
 }
 
-binocle_subtexture binocle_subtexture_with_texture(struct binocle_texture *texture, uint64_t x, uint64_t y, uint64_t width, uint64_t height) {
+binocle_subtexture binocle_subtexture_with_texture(struct binocle_texture *texture, float x, float y, float width, float height) {
   binocle_subtexture res = {
     .texture = texture,
     .rect = {.min.x = x, .min.y = y, .max.x = width, .max.y = height}
@@ -21,7 +21,7 @@ binocle_subtexture binocle_subtexture_with_texture(struct binocle_texture *textu
   return res;
 }
 
-binocle_subtexture binocle_subtexture_with_subtexture(binocle_subtexture *subtexture, uint64_t x, uint64_t y, uint64_t width, uint64_t height) {
+binocle_subtexture binocle_subtexture_with_subtexture(binocle_subtexture *subtexture, float x, float y, float width, float height) {
   binocle_subtexture res = {
     .texture = subtexture->texture,
     .rect = {.min.x = x, .min.y = y, .max.x = width, .max.y = height}
