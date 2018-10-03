@@ -28,4 +28,6 @@ static binocle_color binocle_color_black() {
   return res;
 }
 
+binocle_color binocle_color_new(float r, float g, float b, float a);
+
 #endif //BINOCLE_BINOCLE_COLOR_H
