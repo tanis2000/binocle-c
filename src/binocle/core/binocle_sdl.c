@@ -18,6 +18,16 @@ bool binocle_sdl_init() {
   // 2 = anisotropic filtering
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 
+#if defined(__IPHONEOS__) || defined(__ANDROID__)
+  /*
+    LandscapeLeft - top of device left
+    LandscapeRight - top of device right
+    Portrait - top of device up
+    PortraitUpsideDown - top of device down
+    The list is separated by spaces
+    */
+  //SDL_SetHint(SDL_HINT_ORIENTATIONS, "Portrait");
+#endif
 
   if (SDL_Init(0) < 0) {
     binocle_log_error("SDL_Init: Couldn't start SDL");
