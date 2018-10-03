@@ -391,7 +391,7 @@ void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect, binocle_color col, kmAAB
     g_quad_vertex_buffer_data[4] = rect.min.x;
     g_quad_vertex_buffer_data[5] = rect.max.y;
     g_quad_vertex_buffer_data[6] = rect.min.x;
-    g_quad_vertex_buffer_data[7] = rect.max.x;
+    g_quad_vertex_buffer_data[7] = rect.max.y;
     g_quad_vertex_buffer_data[8] = rect.max.x;
     g_quad_vertex_buffer_data[9] = rect.min.y;
     g_quad_vertex_buffer_data[10] = rect.max.x;
