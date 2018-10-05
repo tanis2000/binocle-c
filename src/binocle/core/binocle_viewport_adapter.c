@@ -60,8 +60,10 @@ void binocle_viewport_adapter_reset(binocle_viewport_adapter *adapter, kmVec2 ol
   if (adapter->kind == BINOCLE_VIEWPORT_ADAPTER_KIND_SCALING) {
     //kmVec2 oldWindowSize = { .x = adapter->virtual_width, .y = adapter->virtual_height};
     //kmVec2 newWindowSize = { .x = window.width, .y = window.height };
-    float ratioX = newWindowSize.x / oldWindowSize.x;
-    float ratioY = newWindowSize.y / oldWindowSize.y;
+    //float ratioX = newWindowSize.x / oldWindowSize.x;
+    //float ratioY = newWindowSize.y / oldWindowSize.y;
+    float ratioX = newWindowSize.x / adapter->virtual_width;
+    float ratioY = newWindowSize.y / adapter->virtual_height;
     kmAABB2 originalViewport = binocle_viewport_adapter_get_original_viewport(*adapter);
     if (adapter->scaling_type == BINOCLE_VIEWPORT_ADAPTER_SCALING_TYPE_FREE) {
       adapter->viewport.min.x = originalViewport.min.x * ratioX;
@@ -87,8 +89,8 @@ void binocle_viewport_adapter_reset(binocle_viewport_adapter *adapter, kmVec2 ol
       }
 
       // viewport origin translation
-      float diffX = (newWindowSize.x / 2.0f) - (adapter->virtual_width * multiplier / 2.0f);
-      float diffY = (newWindowSize.y / 2.0f) - (adapter->virtual_height * multiplier / 2.0f);
+      float diffX = (newWindowSize.x / 2.0f) - ((float)adapter->virtual_width * multiplier / 2.0f);
+      float diffY = (newWindowSize.y / 2.0f) - ((float)adapter->virtual_height * multiplier / 2.0f);
 
       // build the new viewport
       adapter->viewport.min.x = diffX;

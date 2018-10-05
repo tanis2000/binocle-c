@@ -381,7 +381,7 @@ void binocle_gd_draw_quad_to_screen(struct binocle_shader shader, binocle_render
     glCheck(glDrawArrays(GL_TRIANGLES, 0, 6 ));
 }
 
-void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect, binocle_color col, kmAABB2 viewport)
+void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect, binocle_color col, kmAABB2 viewport, kmMat4 viewMatrix)
 {
     static GLfloat g_quad_vertex_buffer_data[6*2] = {0};
     g_quad_vertex_buffer_data[0] = rect.min.x;
@@ -398,8 +398,8 @@ void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect, binocle_color col, kmAAB
     g_quad_vertex_buffer_data[11] = rect.max.y;
 
     kmMat4 projectionMatrix = binocle_math_create_orthographic_matrix_off_center(viewport.min.x, viewport.max.x, viewport.min.y, viewport.max.y, -1000.0f, 1000.0f);
-    kmMat4 viewMatrix;
-    kmMat4Identity(&viewMatrix);
+    //kmMat4 viewMatrix;
+    //kmMat4Identity(&viewMatrix);
     kmMat4 modelMatrix;
     kmMat4Identity(&modelMatrix);
 
