@@ -40,11 +40,11 @@ uint32_t binocle_wiewport_adapter_get_virtual_height(binocle_viewport_adapter ad
 }
 
 uint32_t binocle_viewport_adapter_get_viewport_width(binocle_viewport_adapter adapter) {
-  return adapter.viewport.max.x;
+  return (uint32_t)adapter.viewport.max.x;
 }
 
 uint32_t binocle_viewport_adapter_get_viewport_height(binocle_viewport_adapter adapter) {
-  return adapter.viewport.max.y;
+  return (uint32_t)adapter.viewport.max.y;
 }
 
 kmVec2 binocle_viewport_adapter_point_to_virtual_viewport(binocle_viewport_adapter adapter, kmVec2 point) {
@@ -102,8 +102,13 @@ void binocle_viewport_adapter_reset(binocle_viewport_adapter *adapter, kmVec2 ol
       float matMulX = (adapter->viewport.max.x - adapter->viewport.min.x)/adapter->virtual_width;
       float matMulY = (adapter->viewport.max.y - adapter->viewport.min.y)/adapter->virtual_height;
       kmMat4Identity(&adapter->scale_matrix);
-      kmMat4Translation(&adapter->scale_matrix, diffX, diffY, 0.0f);
-      kmMat4Scaling(&adapter->scale_matrix, matMulX, matMulY, 1.0f);
+      kmMat4 trans_matrix;
+      kmMat4Identity(&trans_matrix);
+      kmMat4Translation(&trans_matrix, diffX, diffY, 0.0f);
+      kmMat4 sc_matrix;
+      kmMat4Identity(&sc_matrix);
+      kmMat4Scaling(&sc_matrix, matMulX, matMulY, 1.0f);
+      kmMat4Multiply(&adapter->scale_matrix, &trans_matrix, &sc_matrix);
     } else if (adapter->scaling_type == BINOCLE_VIEWPORT_ADAPTER_SCALING_TYPE_BOXING) {
       int HorizontalBleed = 16;
       int VerticalBleed = 16;
