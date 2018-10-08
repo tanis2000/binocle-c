@@ -166,12 +166,12 @@ void binocle_sprite_stop(binocle_sprite *sprite) {
 }
 
 void binocle_sprite_update(binocle_sprite *sprite, float dt) {
-  binocle_log_info("dt %f, sprite->rate %f", dt, sprite->rate);
+  //binocle_log_info("dt %f, sprite->rate %f", dt, sprite->rate);
     if (sprite->playing && sprite->current_animation->delay > 0) {
       sprite->timer += (dt * fabsf(sprite->rate));
-      binocle_log_info("timer %f fabsf(sprite->rate) %f", sprite->timer, fabsf(sprite->rate));
+      //binocle_log_info("timer %f fabsf(sprite->rate) %f", sprite->timer, fabsf(sprite->rate));
       while (sprite->timer >= sprite->current_animation->delay) {
-        binocle_log_info("sprite->timer %f sprite->current_animation->delay %f", sprite->timer, sprite->current_animation->delay);
+        //binocle_log_info("sprite->timer %f sprite->current_animation->delay %f", sprite->timer, sprite->current_animation->delay);
         int oldFrame = sprite->current_frame;
         sprite->timer -= sprite->current_animation->delay;
         sprite->current_animation_frame += SIGNOF(sprite->rate);
