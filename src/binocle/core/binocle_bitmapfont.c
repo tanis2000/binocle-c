@@ -304,11 +304,11 @@ float binocle_bitmapfont_get_width_of_string(binocle_bitmapfont font, const char
   return scale * x;
 }
 
-void binocle_bitmapfont_draw_string(binocle_bitmapfont font, const char *str, float height, binocle_gd *gd, uint64_t x, uint64_t y, kmAABB2 viewport, binocle_color color) {
+void binocle_bitmapfont_draw_string(binocle_bitmapfont font, const char *str, float height, binocle_gd *gd, uint64_t x, uint64_t y, kmAABB2 viewport, binocle_color color, kmMat4 view_matrix) {
   kmMat4 transformation_matrix;
   kmMat4Identity(&transformation_matrix);
   kmMat4Translation(&transformation_matrix, x, y, 0);
+  kmMat4Multiply(&transformation_matrix, &transformation_matrix, &view_matrix);
   binocle_bitmapfont_create_vertice_and_tex_coords_for_string(&font, str, height, transformation_matrix, color);
   binocle_gd_draw(gd, font.vertexes, font.vertexes_count, *font.material, viewport);
-
 }
