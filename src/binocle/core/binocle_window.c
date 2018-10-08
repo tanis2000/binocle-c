@@ -251,6 +251,6 @@ void binocle_window_end_frame(binocle_window *win) {
   binocle_window_delay_framerate_if_needed(win);
 }
 
-void binocle_window_get_real_size(binocle_window *win, int *w, int *h) {
-    SDL_GetWindowSize(win->window, w, h);
+void binocle_window_get_real_size(binocle_window *win, uint32_t *w, uint32_t *h) {
+    SDL_GetWindowSize(win->window, (int *)w, (int *)h);
 }

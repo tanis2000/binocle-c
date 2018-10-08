@@ -54,6 +54,6 @@ uint64_t binocle_window_get_fps(binocle_window *win);
 uint32_t binocle_window_get_frame_time(binocle_window *win);
 void binocle_window_begin_frame(binocle_window *win);
 void binocle_window_end_frame(binocle_window *win);
-void binocle_window_get_real_size(binocle_window *win, int *w, int *h);
+void binocle_window_get_real_size(binocle_window *win, uint32_t *w, uint32_t *h);
 
 #endif //BINOCLE_BINOCLE_WINDOW_H
