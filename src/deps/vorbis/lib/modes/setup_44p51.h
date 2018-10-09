@@ -11,11 +11,10 @@
  ********************************************************************
 
  function: toplevel settings for 44.1/48kHz 5.1 surround modes
- last mod: $Id$
 
  ********************************************************************/
 
-#include "./residue_44p51.h"
+#include "modes/residue_44p51.h"
 
 static const double rate_mapping_44p51[12]={
   14000.,20000.,28000.,38000.,46000.,54000.,

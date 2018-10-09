@@ -19,7 +19,7 @@ binocle_texture binocle_texture_from_image_data(unsigned char *image, uint64_t w
   binocle_texture texture = binocle_texture_new();
   texture.width = w;
   texture.height = h;
-#ifdef __IPHONEOS__
+#if defined(__IPHONEOS__) || defined(__EMSCRIPTEN__)
     glCheck(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
     glCheck(glPixelStorei(GL_PACK_ALIGNMENT, 1) );
 #else

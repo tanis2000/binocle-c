@@ -11,12 +11,11 @@
  ********************************************************************
 
  function: toplevel residue templates 8/11kHz
- last mod: $Id: residue_8.h 16962 2010-03-11 07:30:34Z xiphmont $
 
  ********************************************************************/
 
 #include "vorbis/codec.h"
-#include "../backends.h"
+#include "backends.h"
 
 /***** residue backends *********************************************/
 

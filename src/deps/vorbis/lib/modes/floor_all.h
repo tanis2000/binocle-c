@@ -11,13 +11,12 @@
  ********************************************************************
 
  function: key floor settings
- last mod: $Id: floor_all.h 17050 2010-03-26 01:34:42Z xiphmont $
 
  ********************************************************************/
 
 #include "vorbis/codec.h"
-#include "../backends.h"
-#include "../books/floor/floor_books.h"
+#include "backends.h"
+#include "books/floor/floor_books.h"
 
 static const static_codebook*const _floor_128x4_books[]={
   &_huff_book_line_128x4_class0,

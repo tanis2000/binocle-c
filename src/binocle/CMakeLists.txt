@@ -5,7 +5,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/src/deps/ogg
         ${CMAKE_SOURCE_DIR}/src/deps/zlib
         ${CMAKE_SOURCE_DIR}/src/deps/vorbis
-        ${CMAKE_SOURCE_DIR}/src/deps/FLAC
         ${CMAKE_SOURCE_DIR}/src/deps/sdl/include
         ${CMAKE_SOURCE_DIR}/src/deps/sdl_mixer
         ${CMAKE_SOURCE_DIR}/src/deps/stb_image

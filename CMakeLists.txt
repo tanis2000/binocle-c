@@ -35,7 +35,7 @@ SET(VERSION_MINOR "1")
 SET(VERSION_PATCH "0")
 SET(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
-set(BINOCLE_LINK_LIBRARIES binocle flac freetype sdl_mixer vorbis ogg kazmath)
+set(BINOCLE_LINK_LIBRARIES binocle freetype sdl_mixer vorbis ogg kazmath)
 
 if (NOT EMSCRIPTEN)
 	set(BINOCLE_LINK_LIBRARIES ${BINOCLE_LINK_LIBRARIES} sdl zlib)

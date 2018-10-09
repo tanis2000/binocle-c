@@ -1,5 +1,4 @@
 
-add_subdirectory(FLAC)
 add_subdirectory(freetype)
 add_subdirectory(kazmath)
 add_subdirectory(ogg)

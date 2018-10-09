@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "binocle_shader.h"
 #include "binocle_sdl.h"
 #include "binocle_log.h"
