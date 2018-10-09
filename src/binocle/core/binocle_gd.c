@@ -326,6 +326,11 @@ void binocle_gd_set_uniform_render_target_as_texture(struct binocle_shader shade
     glCheck(glBindTexture(GL_TEXTURE_2D, render_target.texture ));
 }
 
+void binocle_gd_set_uniform_mat4(struct binocle_shader shader, const char *name, kmMat4 mat) {
+    GLint id = glGetUniformLocation(shader.program_id, name);
+    glCheck(glUniformMatrix4fv(id, 1, GL_FALSE, mat.mat));
+}
+
 void binocle_gd_clear(struct binocle_color color) {
     glCheck(glClearColor(color.r, color.g, color.b, color.a));
     glCheck(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
@@ -333,6 +338,7 @@ void binocle_gd_clear(struct binocle_color color) {
 
 void binocle_gd_set_render_target(binocle_render_target render_target) {
     glCheck(glBindFramebuffer(GL_FRAMEBUFFER, render_target.frame_buffer));
+    glCheck(glBindRenderbuffer(GL_RENDERBUFFER, render_target.render_buffer));
 }
 
 void binocle_gd_draw_quad(struct binocle_shader shader) {
@@ -377,7 +383,15 @@ void binocle_gd_draw_quad_to_screen(struct binocle_shader shader, binocle_render
     glCheck(glActiveTexture( GL_TEXTURE0 ));
     glCheck(glBindTexture(GL_TEXTURE_2D, render_target.texture ));
     // Sets the frame buffer to use as the screen
+#if defined(__IPHONEOS__)
+    SDL_SysWMinfo info;
+    SDL_VERSION(&info.version);
+    SDL_GetWindowWMInfo(SDL_GL_GetCurrentWindow(), &info);
+    id = info.info.uikit.framebuffer;
+    glCheck(glBindFramebuffer(GL_FRAMEBUFFER, id));
+#else
     glCheck(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+#endif
     glCheck(glDrawArrays(GL_TRIANGLES, 0, 6 ));
 }
 

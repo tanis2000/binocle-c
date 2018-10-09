@@ -45,6 +45,14 @@ void binocle_window_clear(binocle_window *win) {
 }
 
 void binocle_window_refresh(binocle_window *win) {
+  #if defined(__IPHONEOS__)
+  SDL_SysWMinfo info;
+  SDL_VERSION(&info.version);
+  SDL_GetWindowWMInfo(win->window, &info);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, info.info.uikit.framebuffer);
+  glBindRenderbuffer(GL_RENDERBUFFER,info.info.uikit.colorbuffer);
+  #endif
   SDL_GL_SwapWindow(win->window);
 }
 

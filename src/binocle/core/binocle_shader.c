@@ -185,6 +185,7 @@ GLuint binocle_shader_compile(const char *src, GLenum shader_type) {
         char *buf = SDL_malloc(len);
         glCheck(glGetShaderInfoLog(shader_id, len, NULL, buf));
         SDL_Log("%s", buf);
+        assert(false);
     }
 
     return shader_id;
@@ -203,6 +204,7 @@ GLuint binocle_shader_link(GLuint vert_id, GLuint frag_id) {
         char *buf = SDL_malloc(len);
         glCheck(glGetProgramInfoLog(program_id, len, NULL, buf));
         SDL_Log("%s", buf);
+        assert(false);
     }
 
     return program_id;

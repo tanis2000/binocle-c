@@ -12,6 +12,7 @@
 
 #include <SDL_opengles.h>
 #include <SDL_opengles2.h>
+#include <SDL_syswm.h>
 
 #elif defined(__APPLE__)
 
