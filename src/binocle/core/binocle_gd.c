@@ -393,6 +393,7 @@ void binocle_gd_draw_quad_to_screen(struct binocle_shader shader, binocle_render
     glCheck(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 #endif
     glCheck(glDrawArrays(GL_TRIANGLES, 0, 6 ));
+    glCheck(glDeleteBuffers(1, &quad_vertexbuffer));
 }
 
 void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect, binocle_color col, kmAABB2 viewport, kmMat4 viewMatrix)
@@ -437,4 +438,5 @@ void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect, binocle_color col, kmAAB
     
     glCheck(glDisableVertexAttribArray (pos_id));
     glCheck(glUseProgram (GL_ZERO));
+    glCheck(glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
