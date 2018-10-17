@@ -50,51 +50,57 @@ binocle_shader binocle_shader_new() {
     return res;
 }
 
-binocle_shader binocle_shader_load_from_file(char *vert_filename, char *frag_filename) {
-    char info[1024];
-    sprintf(info, "Loading vertex shader %s", vert_filename);
-    binocle_log_info(info);
+binocle_shader binocle_shader_load_from_file(char *vert_filename,
+                                             char *frag_filename) {
+  char info[1024];
+  sprintf(info, "Loading vertex shader %s", vert_filename);
+  binocle_log_info(info);
   char opengles_precision[128];
   strcpy(opengles_precision, "precision mediump float;\n\0");
-    binocle_shader shader = binocle_shader_new();
+  binocle_shader shader = binocle_shader_new();
 
-    SDL_RWops *vert_file = SDL_RWFromFile(vert_filename, "rb");
-    if (vert_file != NULL) {
-        Sint64 res_size = SDL_RWsize(vert_file);
-        char *tmp = (char *) SDL_malloc(res_size + 1);
+  SDL_RWops *vert_file = SDL_RWFromFile(vert_filename, "rb");
+  if (vert_file != NULL) {
+    Sint64 res_size = SDL_RWsize(vert_file);
+    char *tmp = (char *)SDL_malloc(res_size + 1);
 
-        Sint64 nb_read_total = 0, nb_read = 1;
-        char *buf = tmp;
-        while (nb_read_total < res_size && nb_read != 0) {
-            nb_read = SDL_RWread(vert_file, buf, 1, (res_size - nb_read_total));
-            nb_read_total += nb_read;
-            buf += nb_read;
-        }
-        SDL_RWclose(vert_file);
-        if (nb_read_total != res_size) {
-            SDL_Log("Size mismatch");
-            SDL_free(tmp);
-        } else {
-            tmp[nb_read_total] = '\0';
-            shader.vert_src = (char *)SDL_malloc(res_size + 1 + sizeof(opengles_precision));
-#if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
-            strcpy(shader.vert_src, opengles_precision);
-            strcat(shader.vert_src, tmp);
-#else
-          strcpy(shader.vert_src, tmp);
-#endif
-        }
+    Sint64 nb_read_total = 0, nb_read = 1;
+    char *buf = tmp;
+    while (nb_read_total < res_size && nb_read != 0) {
+      nb_read = SDL_RWread(vert_file, buf, 1, (res_size - nb_read_total));
+      nb_read_total += nb_read;
+      buf += nb_read;
     }
+    SDL_RWclose(vert_file);
+    if (nb_read_total != res_size) {
+      SDL_Log("Size mismatch");
+      SDL_free(tmp);
+    } else {
+      tmp[nb_read_total] = '\0';
+      shader.vert_src =
+        (char *)SDL_malloc(res_size + 1 + sizeof(opengles_precision));
+#if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
+      strcpy(shader.vert_src, opengles_precision);
+      strcat(shader.vert_src, tmp);
+#else
+      strcpy(shader.vert_src, tmp);
+#endif
+    }
+  }
 
   // Load common primitives file to include where needed
   char include_filename[1024];
-    char *include_src;
-    // TODO: fix this as it's crap as it is now
+  char *include_src;
+  // TODO: fix this as it's crap as it is now
+#if defined(WIN32)
+  sprintf(include_filename, "../assets/primitives.frag");
+#else
   sprintf(include_filename, "../Resources/primitives.frag");
+#endif
   SDL_RWops *include_file = SDL_RWFromFile(include_filename, "rb");
   if (include_file != NULL) {
     Sint64 res_size = SDL_RWsize(include_file);
-    char *tmp = (char *) SDL_malloc(res_size + 1);
+    char *tmp = (char *)SDL_malloc(res_size + 1);
 
     Sint64 nb_read_total = 0, nb_read = 1;
     char *buf = tmp;
@@ -109,69 +115,76 @@ binocle_shader binocle_shader_load_from_file(char *vert_filename, char *frag_fil
       SDL_free(tmp);
     } else {
       tmp[nb_read_total] = '\0';
-      include_src = (char *)SDL_malloc(res_size + 1 + sizeof(opengles_precision));
+      include_src =
+        (char *)SDL_malloc(res_size + 1 + sizeof(opengles_precision));
 #if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
       strcpy(include_src, opengles_precision);
-            strcat(include_src, tmp);
+      strcat(include_src, tmp);
 #else
       strcpy(include_src, tmp);
 #endif
     }
+  } else {
+    include_src = (char *)SDL_malloc(1);
+    include_src[0] = '\0';
   }
 
-
   sprintf(info, "Loading fragment shader %s", frag_filename);
-    binocle_log_info(info);
-    SDL_RWops *frag_file = SDL_RWFromFile(frag_filename, "rb");
-    if (frag_file != NULL) {
-        Sint64 res_size = SDL_RWsize(frag_file);
-        char *tmp = (char *) SDL_malloc(res_size + 1);
+  binocle_log_info(info);
+  SDL_RWops *frag_file = SDL_RWFromFile(frag_filename, "rb");
+  if (frag_file != NULL) {
+    Sint64 res_size = SDL_RWsize(frag_file);
+    char *tmp = (char *)SDL_malloc(res_size + 1);
 
-        Sint64 nb_read_total = 0, nb_read = 1;
-        char *buf = tmp;
-        while (nb_read_total < res_size && nb_read != 0) {
-            nb_read = SDL_RWread(frag_file, buf, 1, (res_size - nb_read_total));
-            nb_read_total += nb_read;
-            buf += nb_read;
-        }
-        SDL_RWclose(frag_file);
-        if (nb_read_total != res_size) {
-            SDL_Log("Size mismatch");
-            SDL_free(tmp);
-        } else {
-          tmp[nb_read_total] = '\0';
-          shader.frag_src = (char *)SDL_malloc(res_size + 1 + sizeof(opengles_precision));
+    Sint64 nb_read_total = 0, nb_read = 1;
+    char *buf = tmp;
+    while (nb_read_total < res_size && nb_read != 0) {
+      nb_read = SDL_RWread(frag_file, buf, 1, (res_size - nb_read_total));
+      nb_read_total += nb_read;
+      buf += nb_read;
+    }
+    SDL_RWclose(frag_file);
+    if (nb_read_total != res_size) {
+      SDL_Log("Size mismatch");
+      SDL_free(tmp);
+    } else {
+      tmp[nb_read_total] = '\0';
+      shader.frag_src =
+        (char *)SDL_malloc(res_size + 1 + sizeof(opengles_precision));
 #if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
-          strcpy(shader.frag_src, opengles_precision);
-          strcat(shader.frag_src, tmp);
+      strcpy(shader.frag_src, opengles_precision);
+      strcat(shader.frag_src, tmp);
 #else
-          strcpy(shader.frag_src, tmp);
+      strcpy(shader.frag_src, tmp);
 #endif
-          shader.frag_src = str_replace(shader.frag_src, "#include \"primitives.frag\"", include_src);
-        }
+      shader.frag_src = str_replace(
+        shader.frag_src, "#include \"primitives.frag\"", include_src);
     }
+  }
 
-    if (shader.vert_src != NULL) {
-        sprintf(info, "Compiling vertex shader %s", vert_filename);
-        binocle_log_info(info);
-        shader.vert_id = binocle_shader_compile(shader.vert_src, GL_VERTEX_SHADER);
-    } else {
-        binocle_log_warning("Vertex shader not found");
-    }
-
-    if (shader.frag_src != NULL) {
-        sprintf(info, "Compiling fragment shader %s", frag_filename);
-        binocle_log_info(info);
-        shader.frag_id = binocle_shader_compile(shader.frag_src, GL_FRAGMENT_SHADER);
-    } else {
-        binocle_log_warning("Fragment shader not found");
-    }
-
-    sprintf(info, "Linking vertex shader %s and fragment shader %s", vert_filename, frag_filename);
+  if (shader.vert_src != NULL) {
+    sprintf(info, "Compiling vertex shader %s", vert_filename);
     binocle_log_info(info);
-    shader.program_id = binocle_shader_link(shader.vert_id, shader.frag_id);
+    shader.vert_id = binocle_shader_compile(shader.vert_src, GL_VERTEX_SHADER);
+  } else {
+    binocle_log_warning("Vertex shader not found");
+  }
 
-    return shader;
+  if (shader.frag_src != NULL) {
+    sprintf(info, "Compiling fragment shader %s", frag_filename);
+    binocle_log_info(info);
+    shader.frag_id =
+      binocle_shader_compile(shader.frag_src, GL_FRAGMENT_SHADER);
+  } else {
+    binocle_log_warning("Fragment shader not found");
+  }
+
+  sprintf(info, "Linking vertex shader %s and fragment shader %s",
+          vert_filename, frag_filename);
+  binocle_log_info(info);
+  shader.program_id = binocle_shader_link(shader.vert_id, shader.frag_id);
+
+  return shader;
 }
 
 GLuint binocle_shader_compile(const char *src, GLenum shader_type) {
