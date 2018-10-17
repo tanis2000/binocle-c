@@ -149,7 +149,15 @@ void binocle_window_resize(binocle_window *win, char* title, uint32_t width, uin
   win->width = width;
   win->height = height;
 
-
+#if defined(WIN32)
+  GLenum err = glewInit();
+  if (GLEW_OK != err) {
+    /* Problem: glewInit failed, something is seriously wrong. */
+    binocle_log_info("GLEW error: %s", glewGetErrorString(err));
+    binocle_sdl_exit();
+  }
+  binocle_log_info("Status: Using GLEW %s", glewGetString(GLEW_VERSION));
+#endif
 }
 
 void binocle_window_set_background_color(binocle_window* win, binocle_color color) {
