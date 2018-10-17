@@ -14,7 +14,10 @@ file(GLOB_RECURSE HEADERS include/vorbis/*.h lib/*.h)
 include_directories(include)
 include_directories(lib)
 include_directories(../ogg/include)
-add_definitions(-DHAVE_ALLOCA_H)
+
+if (NOT WIN32)
+	add_definitions(-DHAVE_ALLOCA_H)
+endif()
 
 add_library(vorbis ${HEADERS} ${SOURCES})
 
