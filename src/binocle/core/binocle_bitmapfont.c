@@ -9,8 +9,15 @@
 #include "binocle_gd.h"
 #include "binocle_color.h"
 
-binocle_bitmapfont binocle_bitmapfont_new() {
-  binocle_bitmapfont res = {0};
+binocle_bitmapfont *binocle_bitmapfont_new() {
+  binocle_bitmapfont *res = SDL_malloc(sizeof(binocle_bitmapfont));
+  return res;
+}
+
+void binocle_bitmapfont_destroy(binocle_bitmapfont *font) {
+	if (font != NULL) {
+		SDL_free(font);
+	}
 }
 
 int binocle_bitmapfont_split (const char *str, char c, char ***arr)
@@ -113,8 +120,8 @@ void binocle_bitmapfont_parse_common_line(binocle_bitmapfont *font, const char *
   font->flip = flip;
 }
 
-binocle_bitmapfont binocle_bitmapfont_from_file(const char *filename, bool flip) {
-  binocle_bitmapfont font = binocle_bitmapfont_new();
+binocle_bitmapfont *binocle_bitmapfont_from_file(const char *filename, bool flip) {
+  binocle_bitmapfont *font = binocle_bitmapfont_new();
 
   SDL_RWops *file = SDL_RWFromFile(filename, "rb");
   if (file == NULL) {
@@ -153,15 +160,15 @@ binocle_bitmapfont binocle_bitmapfont_from_file(const char *filename, bool flip)
     if (binocle_bitmapfont_string_starts_with("kernings count", line)) continue;
     // this is a character definition
     if (binocle_bitmapfont_string_starts_with("char", line)) {
-      binocle_bitmapfont_parse_character(&font, line);
+      binocle_bitmapfont_parse_character(font, line);
       continue;
     }
     // kerning info
     if (binocle_bitmapfont_string_starts_with("kerning first", line)) {
-      binocle_bitmapfont_parse_kerning_entry(&font, line);
+      binocle_bitmapfont_parse_kerning_entry(font, line);
     }
     if (binocle_bitmapfont_string_starts_with("common", line)) {
-      binocle_bitmapfont_parse_common_line(&font, line, flip);
+      binocle_bitmapfont_parse_common_line(font, line, flip);
     }
   }
 
@@ -304,11 +311,11 @@ float binocle_bitmapfont_get_width_of_string(binocle_bitmapfont font, const char
   return scale * x;
 }
 
-void binocle_bitmapfont_draw_string(binocle_bitmapfont font, const char *str, float height, binocle_gd *gd, uint64_t x, uint64_t y, kmAABB2 viewport, binocle_color color, kmMat4 view_matrix) {
+void binocle_bitmapfont_draw_string(binocle_bitmapfont *font, const char *str, float height, binocle_gd *gd, uint64_t x, uint64_t y, kmAABB2 viewport, binocle_color color, kmMat4 view_matrix) {
   kmMat4 transformation_matrix;
   kmMat4Identity(&transformation_matrix);
   kmMat4Translation(&transformation_matrix, x, y, 0);
   kmMat4Multiply(&transformation_matrix, &transformation_matrix, &view_matrix);
-  binocle_bitmapfont_create_vertice_and_tex_coords_for_string(&font, str, height, transformation_matrix, color);
-  binocle_gd_draw(gd, font.vertexes, font.vertexes_count, *font.material, viewport);
+  binocle_bitmapfont_create_vertice_and_tex_coords_for_string(font, str, height, transformation_matrix, color);
+  binocle_gd_draw(gd, font->vertexes, font->vertexes_count, *font->material, viewport);
 }
