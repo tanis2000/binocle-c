@@ -76,7 +76,6 @@ void binocle_window_resize(binocle_window *win, char* title, uint32_t width, uin
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-#else
 #endif
 
   int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN;
@@ -158,6 +157,9 @@ void binocle_window_resize(binocle_window *win, char* title, uint32_t width, uin
   }
   binocle_log_info("Status: Using GLEW %s", glewGetString(GLEW_VERSION));
 #endif
+
+  binocle_log_info("OpenGL version supported by this platform (%s): \n",
+                   glGetString(GL_VERSION));
 }
 
 void binocle_window_set_background_color(binocle_window* win, binocle_color color) {
