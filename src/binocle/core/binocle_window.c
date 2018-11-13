@@ -117,10 +117,13 @@ void binocle_window_resize(binocle_window *win, char* title, uint32_t width, uin
   }
 
   //Use Vsync (0 = no vsync, 1 = vsync)
+#if !defined(__EMSCRIPTEN__)
+  // Try to enable VSYNC
   if (SDL_GL_SetSwapInterval(1) < 0) {
     binocle_log_warning("Warning: Unable to set VSync!");
     binocle_log_warning(SDL_GetError());
   }
+#endif
 
   // And here we fake a "logical" size of the window,
   // independent of it's real size.
