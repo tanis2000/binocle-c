@@ -18,7 +18,7 @@ typedef struct binocle_music {
 } binocle_music;
 
 typedef struct binocle_audio {
-  binocle_sound active_sounds[BINOCLE_AUDIO_MAX_SOUNDS];
+  binocle_sound *active_sounds[BINOCLE_AUDIO_MAX_SOUNDS];
   uint32_t active_sounds_counter;
   binocle_music active_music;
   bool paused;
@@ -45,7 +45,7 @@ void binocle_audio_destroy(binocle_audio *audio);
 void binocle_audio_play_music(binocle_audio *audio, binocle_music *music, bool loop);
 void binocle_audio_play_sound(binocle_audio *audio, binocle_sound *sound);
 binocle_music *binocle_audio_load_music(binocle_audio *audio, char *filename);
-binocle_sound *binocle_audio_load_sound(binocle_audio *audio, char *filename);
+bool binocle_audio_load_sound(binocle_audio *audio, char *filename, binocle_sound *sound);
 void binocle_audio_stop_all(binocle_audio *audio);
 void binocle_audio_pause_all(binocle_audio *audio);
 void binocle_audio_resume_all(binocle_audio *audio);

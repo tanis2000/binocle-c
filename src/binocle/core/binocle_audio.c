@@ -113,28 +113,28 @@ binocle_music *binocle_audio_load_music(binocle_audio *audio, char *filename) {
   return &audio->active_music;
 }
 
-binocle_sound *binocle_audio_load_sound(binocle_audio *audio, char *filename) {
+bool binocle_audio_load_sound(binocle_audio *audio, char *filename, binocle_sound *sound) {
   if (audio->active_sounds_counter >= BINOCLE_AUDIO_MAX_SOUNDS) {
     binocle_log_error("Too many sounds already loaded. The max number is %d", BINOCLE_AUDIO_MAX_SOUNDS);
-    return NULL;
+    return false;
   }
-  binocle_sound sound = binocle_sound_new();
-  binocle_sound_load(&sound, filename);
+  binocle_sound_load(sound, filename);
   audio->active_sounds[audio->active_sounds_counter] = sound;
   audio->active_sounds_counter++;
+  return true;
 }
 
 void binocle_audio_stop_all(binocle_audio *audio) {
   binocle_music_stop(&audio->active_music);
   for (int i = 0 ; i < audio->active_sounds_counter ; i++) {
-    binocle_sound_stop(&audio->active_sounds[i]);
+    binocle_sound_stop(audio->active_sounds[i]);
   }
 }
 
 void binocle_audio_pause_all(binocle_audio *audio) {
   binocle_music_pause(&audio->active_music);
   for (int i = 0 ; i < audio->active_sounds_counter ; i++) {
-    binocle_sound_pause(&audio->active_sounds[i]);
+    binocle_sound_pause(audio->active_sounds[i]);
   }
   audio->paused = true;
 }
@@ -142,7 +142,7 @@ void binocle_audio_pause_all(binocle_audio *audio) {
 void binocle_audio_resume_all(binocle_audio *audio) {
   binocle_music_resume(&audio->active_music);
   for (int i = 0 ; i < audio->active_sounds_counter ; i++) {
-    binocle_sound_resume(&audio->active_sounds[i]);
+    binocle_sound_resume(audio->active_sounds[i]);
   }
   audio->paused = false;
 }
