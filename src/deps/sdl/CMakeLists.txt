@@ -15,8 +15,10 @@ file(GLOB_RECURSE SOURCES
         src/audio/SDL_mixer.c
         src/audio/SDL_wave.c
         src/cpuinfo/SDL_cpuinfo.c
+        src/cpuinfo/SDL_simd.c
         src/dynapi/SDL_dynapi.c
         src/events/SDL_clipboardevents.c
+        src/events/SDL_displayevents.c
         src/events/SDL_dropevents.c
         src/events/SDL_events.c
         src/events/SDL_gesture.c
@@ -29,8 +31,14 @@ file(GLOB_RECURSE SOURCES
         src/haptic/SDL_haptic.c
         src/joystick/SDL_gamecontroller.c
         src/joystick/SDL_joystick.c
+        src/joystick/hidapi/SDL_hidapijoystick.c
+        src/joystick/hidapi/SDL_hidapi_ps4.c
+        src/joystick/hidapi/SDL_hidapi_switch.c
+        src/joystick/hidapi/SDL_hidapi_xbox360.c
+        src/joystick/hidapi/SDL_hidapi_xboxone.c
         src/joystick/steam/SDL_steamcontroller.c
         src/libm/e_atan2.c
+        src/libm/e_exp.c
         src/libm/e_fmod.c
         src/libm/e_log.c
         src/libm/e_log10.c
@@ -52,6 +60,8 @@ file(GLOB_RECURSE SOURCES
         src/power/SDL_power.c
         src/render/SDL_render.c
         src/render/SDL_yuv_sw.c
+        src/sensor/SDL_sensor.c
+        src/sensor/dummy/SDL_dummysensor.c
         src/stdlib/SDL_getenv.c
         src/stdlib/SDL_iconv.c
         src/stdlib/SDL_malloc.c
@@ -109,7 +119,9 @@ file(GLOB_RECURSE HEADERS
 
 if(APPLE)
 	if(IOS)
-		file(GLOB_RECURSE IOS_SOURCES 
+		file(GLOB_RECURSE IOS_SOURCES
+                src/sensor/coremotion/SDL_coremotionsensor.m
+                src/hidapi/ios/hid.m
             src/thread/pthread/SDL_syscond.c
             src/thread/pthread/SDL_sysmutex.c
             src/thread/pthread/SDL_syssem.c
@@ -157,7 +169,9 @@ if(APPLE)
         include_directories(include)
         include_directories(include/configs/default)
 	else()
-		file(GLOB MAC_SOURCES 
+		file(GLOB MAC_SOURCES
+                src/sensor/coremotion/SDL_coremotionsensor.m
+                src/hidapi/mac/hid.c
             src/thread/pthread/SDL_syscond.c
             src/thread/pthread/SDL_sysmutex.c
             src/thread/pthread/SDL_syssem.c
@@ -197,11 +211,14 @@ if(APPLE)
         add_definitions(-msse2)
         add_definitions(-DHX_MACOS)
         include_directories(include/configs/mac)
+        include_directories(src/hidapi/hidapi)
 	endif()
 endif()
 
 if(ANDROID)
-	file(GLOB_RECURSE ANDROID_SOURCES 
+	file(GLOB_RECURSE ANDROID_SOURCES
+            src/hidapi/android/hid.cpp
+            src/sensor/android/SDL_androidsensor.c
             src/thread/pthread/SDL_syscond.c
             src/thread/pthread/SDL_sysmutex.c
             src/thread/pthread/SDL_syssem.c
@@ -245,7 +262,8 @@ if(ANDROID)
 endif()
 
 if(MSVC)
-	file(GLOB_RECURSE WIN32_SOURCES 
+	file(GLOB_RECURSE WIN32_SOURCES
+            src/hidapi/hid.c
             src/video/SDL_egl.c
             src/render/opengles/SDL_render_gles.c
             src/render/opengles2/SDL_render_gles2.c
