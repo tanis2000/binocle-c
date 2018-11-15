@@ -252,7 +252,11 @@ void binocle_window_set_target_fps(binocle_window *win, uint64_t fps) {
 // Returns current FPS
 uint64_t binocle_window_get_fps(binocle_window *win)
 {
-  return (uint64_t)(1000.0/binocle_window_get_frame_time(win));
+  if (binocle_window_get_frame_time(win) > 0) {
+    return (uint64_t)(1000.0/binocle_window_get_frame_time(win));
+  } else {
+    return 0;
+  }
 }
 
 // Returns time in seconds for last frame drawn
