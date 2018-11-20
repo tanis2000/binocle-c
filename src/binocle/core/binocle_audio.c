@@ -58,6 +58,7 @@ void binocle_music_load(binocle_music *music, char *filename) {
   music->music = Mix_LoadMUS(filename);
   if (music->music == NULL) {
     binocle_log_error("Cannot load music file: %s", filename);
+    binocle_log_error("Mix error: %s", Mix_GetError());
     return;
   }
 }

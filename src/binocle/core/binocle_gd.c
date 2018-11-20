@@ -441,9 +441,15 @@ void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect, binocle_color col, kmAAB
   binocle_gd_apply_viewport(viewport);
   glCheck(glVertexAttribPointer(pos_id, 2, GL_FLOAT, false, sizeof(GLfloat) * 2, 0));
   glCheck(glEnableVertexAttribArray(pos_id));
-  glCheck(glUniformMatrix4fv(gd->projection_matrix_uniform, 1, GL_FALSE, projectionMatrix.mat));
-  glCheck(glUniformMatrix4fv(gd->view_matrix_uniform, 1, GL_FALSE, viewMatrix.mat));
-  glCheck(glUniformMatrix4fv(gd->model_matrix_uniform, 1, GL_FALSE, modelMatrix.mat));
+  GLint projection_matrix_uniform;
+  glCheck(projection_matrix_uniform = glGetUniformLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id, "projectionMatrix"));
+  GLint view_matrix_uniform;
+  glCheck(view_matrix_uniform = glGetUniformLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id, "viewMatrix"));
+  GLint model_matrix_uniform;
+  glCheck(model_matrix_uniform = glGetUniformLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id, "modelMatrix"));
+  glCheck(glUniformMatrix4fv(projection_matrix_uniform, 1, GL_FALSE, projectionMatrix.mat));
+  glCheck(glUniformMatrix4fv(view_matrix_uniform, 1, GL_FALSE, viewMatrix.mat));
+  glCheck(glUniformMatrix4fv(model_matrix_uniform, 1, GL_FALSE, modelMatrix.mat));
   //glCheck(glBindFramebuffer(GL_FRAMEBUFFER, 0));
   glCheck(glDrawArrays(GL_TRIANGLES, 0, 6));
 
