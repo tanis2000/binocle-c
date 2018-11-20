@@ -78,6 +78,15 @@ void binocle_gd_set_uniform_float(struct binocle_shader shader,
 void binocle_gd_set_uniform_float2(struct binocle_shader shader,
                                    const char *name, float value1,
                                    float value2);
+void binocle_gd_set_uniform_float3(struct binocle_shader shader,
+                                   const char *name, float value1,
+                                   float value2,
+                                   float value3);
+void binocle_gd_set_uniform_float4(struct binocle_shader shader,
+                                   const char *name, float value1,
+                                   float value2,
+                                   float value3,
+                                   float value4);
 void binocle_gd_clear(struct binocle_color color);
 void binocle_gd_set_render_target(binocle_render_target render_target);
 void binocle_gd_draw_quad(struct binocle_shader shader);

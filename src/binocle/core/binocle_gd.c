@@ -325,6 +325,16 @@ void binocle_gd_set_uniform_float2(struct binocle_shader shader, const char *nam
   glCheck(glUniform2f(id, value1, value2));
 }
 
+void binocle_gd_set_uniform_float3(struct binocle_shader shader, const char *name, float value1, float value2, float value3) {
+  GLint id = glGetUniformLocation(shader.program_id, name);
+  glCheck(glUniform3f(id, value1, value2, value3));
+}
+
+void binocle_gd_set_uniform_float4(struct binocle_shader shader, const char *name, float value1, float value2, float value3, float value4) {
+  GLint id = glGetUniformLocation(shader.program_id, name);
+  glCheck(glUniform4f(id, value1, value2, value3, value4));
+}
+
 void binocle_gd_set_uniform_render_target_as_texture(struct binocle_shader shader, const char *name,
                                                      binocle_render_target render_target) {
   GLint id = glGetUniformLocation(shader.program_id, name);
