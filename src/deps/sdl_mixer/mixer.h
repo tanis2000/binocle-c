@@ -19,10 +19,10 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
-/* This file supports Ogg Vorbis music streams */
+/* Locking wrapper functions */
+extern void Mix_LockAudio(void);
+extern void Mix_UnlockAudio(void);
 
-#include "music.h"
-
-extern Mix_MusicInterface Mix_MusicInterface_OGG;
+extern void add_chunk_decoder(const char *decoder);
 
 /* vi: set ts=4 sw=4 expandtab: */

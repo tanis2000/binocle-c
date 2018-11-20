@@ -1,6 +1,6 @@
 /*
   SDL_mixer:  An audio mixer library based on the SDL library
-  Copyright (C) 1997-2013 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -28,16 +28,6 @@
   Heavily borrowed from sox v12.17.1's voc.c.
         (http://www.freshmeat.net/projects/sox/)
 */
-
-/* $Id$ */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "SDL_mutex.h"
-#include "SDL_endian.h"
-#include "SDL_timer.h"
 
 #include "SDL_mixer.h"
 #include "load_voc.h"
@@ -99,7 +89,7 @@ static int voc_check_header(SDL_RWops *src)
     if (SDL_RWread(src, signature, sizeof (signature), 1) != 1)
         return(0);
 
-    if (memcmp(signature, "Creative Voice File\032", sizeof (signature)) != 0) {
+    if (SDL_memcmp(signature, "Creative Voice File\032", sizeof (signature)) != 0) {
         SDL_SetError("Unrecognized file type (not VOC)");
         return(0);
     }
@@ -142,7 +132,7 @@ static int voc_get_block(SDL_RWops *src, vs_t *v, SDL_AudioSpec *spec)
             return 1;  /* assume that's the end of the file. */
 
         /* Size is an 24-bit value. Ugh. */
-        sblen = ( (bits24[0]) | (bits24[1] << 8) | (bits24[2] << 16) );
+        sblen = ((bits24[0]) | (bits24[1] << 8) | (bits24[2] << 16));
 
         switch(block)
         {
@@ -329,7 +319,7 @@ static int voc_get_block(SDL_RWops *src, vs_t *v, SDL_AudioSpec *spec)
 
 static int voc_read(SDL_RWops *src, vs_t *v, Uint8 *buf, SDL_AudioSpec *spec)
 {
-    int done = 0;
+    Uint32 done = 0;
     Uint8 silence = 0x80;
 
     if (v->rest == 0)
@@ -354,7 +344,7 @@ static int voc_read(SDL_RWops *src, vs_t *v, Uint8 *buf, SDL_AudioSpec *spec)
 
     else
     {
-        done = SDL_RWread(src, buf, 1, v->rest);
+        done = (Uint32)SDL_RWread(src, buf, 1, v->rest);
         v->rest -= done;
         if (v->size == ST_SIZE_WORD)
         {
@@ -384,10 +374,10 @@ SDL_AudioSpec *Mix_LoadVOC_RW (SDL_RWops *src, int freesrc,
     Uint8 *fillptr;
     void *ptr;
 
-    if ( (!src) || (!audio_buf) || (!audio_len) )   /* sanity checks. */
+    if ((!src) || (!audio_buf) || (!audio_len))   /* sanity checks. */
         goto done;
 
-    if ( !voc_check_header(src) )
+    if (!voc_check_header(src))
         goto done;
 
     v.rate = -1;
@@ -457,3 +447,5 @@ done:
 } /* Mix_LoadVOC_RW */
 
 /* end of load_voc.c ... */
+
+/* vi: set ts=4 sw=4 expandtab: */

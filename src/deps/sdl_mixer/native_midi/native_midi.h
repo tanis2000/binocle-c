@@ -1,6 +1,6 @@
 /*
-  SDL_mixer:  An audio mixer library based on the SDL library
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  native_midi:  Hardware Midi support for the SDL_mixer library
+  Copyright (C) 2000  Florian 'Proff' Schulze <florian.proff.schulze@gmx.net>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -19,10 +19,22 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
-/* This file supports Ogg Vorbis music streams */
+#ifndef _NATIVE_MIDI_H_
+#define _NATIVE_MIDI_H_
 
-#include "music.h"
+#include "SDL_rwops.h"
 
-extern Mix_MusicInterface Mix_MusicInterface_OGG;
+typedef struct _NativeMidiSong NativeMidiSong;
 
-/* vi: set ts=4 sw=4 expandtab: */
+int native_midi_detect(void);
+NativeMidiSong *native_midi_loadsong_RW(SDL_RWops *src, int freesrc);
+void native_midi_freesong(NativeMidiSong *song);
+void native_midi_start(NativeMidiSong *song, int loops);
+void native_midi_pause(void);
+void native_midi_resume(void);
+void native_midi_stop(void);
+int native_midi_active(void);
+void native_midi_setvolume(int volume);
+const char *native_midi_error(void);
+
+#endif /* _NATIVE_MIDI_H_ */

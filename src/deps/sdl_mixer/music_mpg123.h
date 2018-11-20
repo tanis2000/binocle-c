@@ -19,10 +19,10 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
-/* This file supports Ogg Vorbis music streams */
+/* This file supports playing MP3 files with mpg123 */
 
 #include "music.h"
 
-extern Mix_MusicInterface Mix_MusicInterface_OGG;
+extern Mix_MusicInterface Mix_MusicInterface_MPG123;
 
 /* vi: set ts=4 sw=4 expandtab: */

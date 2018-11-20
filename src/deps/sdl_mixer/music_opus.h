@@ -19,10 +19,10 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
-/* This file supports Ogg Vorbis music streams */
+/* This file supports Ogg Opus music streams */
 
 #include "music.h"
 
-extern Mix_MusicInterface Mix_MusicInterface_OGG;
+extern Mix_MusicInterface Mix_MusicInterface_Opus;
 
 /* vi: set ts=4 sw=4 expandtab: */

@@ -1,6 +1,6 @@
 add_definitions(-DDHAVE_LIBC)
 
-add_definitions(-DOGG_MUSIC)
+add_definitions(-DMUSIC_OGG)
 
 include_directories(.
 	../sdl/include

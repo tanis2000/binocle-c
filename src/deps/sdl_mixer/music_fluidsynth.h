@@ -1,6 +1,6 @@
 /*
   SDL_mixer:  An audio mixer library based on the SDL library
-  Copyright (C) 1997-2013 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -18,14 +18,14 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 
-  This is the source needed to decode a FLAC into a waveform.
-    ~ Austen Dicken (admin@cvpcs.org).
+  James Le Cuirot
+  chewi@aura-online.co.uk
 */
 
-/* $Id: $ */
+/* This file supports playing MIDI files with FluidSynth */
 
-#ifdef FLAC_MUSIC
-/* Don't call this directly; use Mix_LoadWAV_RW() for now. */
-SDL_AudioSpec *Mix_LoadFLAC_RW (SDL_RWops *src, int freesrc,
-        SDL_AudioSpec *spec, Uint8 **audio_buf, Uint32 *audio_len);
-#endif
+#include "music.h"
+
+extern Mix_MusicInterface Mix_MusicInterface_FLUIDSYNTH;
+
+/* vi: set ts=4 sw=4 expandtab: */

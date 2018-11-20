@@ -1,6 +1,6 @@
 /*
   SDL_mixer:  An audio mixer library based on the SDL library
-  Copyright (C) 1997-2013 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -17,15 +17,12 @@
   2. Altered source versions must be plainly marked as such, and must not be
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
-
-  This is the source needed to decode an Ogg Vorbis into a waveform.
-  This file by Vaclav Slavik (vaclav.slavik@matfyz.cz).
 */
 
-/* $Id$ */
+/* This file supports playing MIDI files with timidity */
 
-#ifdef OGG_MUSIC
-/* Don't call this directly; use Mix_LoadWAV_RW() for now. */
-SDL_AudioSpec *Mix_LoadOGG_RW (SDL_RWops *src, int freesrc,
-        SDL_AudioSpec *spec, Uint8 **audio_buf, Uint32 *audio_len);
-#endif
+#include "music.h"
+
+extern Mix_MusicInterface Mix_MusicInterface_TIMIDITY;
+
+/* vi: set ts=4 sw=4 expandtab: */

@@ -1,6 +1,6 @@
 /*
   SDL_mixer:  An audio mixer library based on the SDL library
-  Copyright (C) 1997-2013 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -26,8 +26,8 @@
     This file by Torbjörn Andersson (torbjorn.andersson@eurotime.se)
 */
 
-/* $Id$ */
-
 /* Don't call this directly; use Mix_LoadWAV_RW() for now. */
 SDL_AudioSpec *Mix_LoadAIFF_RW (SDL_RWops *src, int freesrc,
     SDL_AudioSpec *spec, Uint8 **audio_buf, Uint32 *audio_len);
+
+/* vi: set ts=4 sw=4 expandtab: */
