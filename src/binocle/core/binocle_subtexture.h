@@ -13,6 +13,7 @@ struct binocle_texture;
 typedef struct binocle_subtexture {
   struct binocle_texture *texture;
   kmAABB2 rect;
+  char name[1024];
 } binocle_subtexture;
 
 binocle_subtexture binocle_subtexture_with_texture(struct binocle_texture *texture, float x, float y, float width, float height);

@@ -46,8 +46,10 @@ void binocle_sprite_draw(binocle_sprite sprite, binocle_gd *gd, int64_t x, int64
     //binocle_log_info("subtexture %f %f %f %f %d %d", s.rect.min.x, s.rect.min.y, s.rect.max.x, s.rect.max.y, sprite.material->texture->width, sprite.material->texture->height);
   } else {
     s = sprite.subtexture;
-    w = sprite.material->texture->width;
-    h = sprite.material->texture->height;
+    w = sprite.subtexture.rect.max.x;
+    h = sprite.subtexture.rect.max.y;
+    //w = sprite.material->texture->width;
+    //h = sprite.material->texture->height;
   }
 
   // TL
