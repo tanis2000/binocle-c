@@ -85,6 +85,36 @@ void binocle_atlas_load_texturepacker(char *filename, struct binocle_texture *te
   binocle_log_debug("Atlas loaded.");
 }
 
-void binocle_atlas_load_libgdx(struct binocle_subtexture *subtextures, char *filename) {
+void binocle_atlas_load_libgdx(char *filename, struct binocle_texture *texture, struct binocle_subtexture *subtextures, int *num_subtextures) {
+  *num_subtextures = 0;
+  binocle_log_info("Loading LibGDX file: %s", filename);
+  SDL_RWops *file = SDL_RWFromFile(filename, "rb");
+  if (file == NULL) {
+    binocle_log_error("Cannot open text file");
+    return;
+  }
+  char content[BINOCLE_ATLAS_MAX_FILESIZE];
 
+  Sint64 res_size = SDL_RWsize(file);
+  char *res = (char *) malloc(res_size + 1);
+
+  Sint64 nb_read_total = 0, nb_read = 1;
+  char *buf = res;
+  while (nb_read_total < res_size && nb_read != 0) {
+    nb_read = SDL_RWread(file, buf, 1, (res_size - nb_read_total));
+    nb_read_total += nb_read;
+    buf += nb_read;
+  }
+  SDL_RWclose(file);
+  if (nb_read_total != res_size) {
+    binocle_log_error("Size mismatch");
+    free(res);
+    return;
+  }
+
+  res[nb_read_total] = '\0';
+  strcpy(content, res);
+  free(res);
+
+  // TODO: perform all the parsing as needed
 }
