@@ -39,4 +39,6 @@ void binocle_sdl_exit();
 
 time_t binocle_sdl_get_last_write_time(char *Filename);
 
+bool binocle_sdl_load_text_file(char *filename, char *buffer, size_t *buffer_length);
+
 #endif //BINOCLE_BINOCLE_SDL_H

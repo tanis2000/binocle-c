@@ -143,3 +143,34 @@ time_t binocle_sdl_get_last_write_time(char *Filename)
 
   return(LastWriteTime);
 }
+
+bool binocle_sdl_load_text_file(char *filename, char *buffer, size_t *buffer_length) {
+  binocle_log_info("Loading text file: %s", filename);
+  SDL_RWops *file = SDL_RWFromFile(filename, "rb");
+  if (file == NULL) {
+    binocle_log_error("Cannot open text file");
+    return false;
+  }
+
+  Sint64 res_size = SDL_RWsize(file);
+  char *res = (char *) malloc(res_size + 1);
+
+  Sint64 nb_read_total = 0, nb_read = 1;
+  char *buf = res;
+  while (nb_read_total < res_size && nb_read != 0) {
+    nb_read = SDL_RWread(file, buf, 1, (res_size - nb_read_total));
+    nb_read_total += nb_read;
+    buf += nb_read;
+  }
+  SDL_RWclose(file);
+  if (nb_read_total != res_size) {
+    binocle_log_error("Size mismatch");
+    free(res);
+    return false;
+  }
+
+  res[nb_read_total] = '\0';
+  buffer = res;
+  *buffer_length = nb_read_total;
+  return true;
+}
