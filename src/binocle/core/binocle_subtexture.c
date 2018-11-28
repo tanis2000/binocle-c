@@ -37,15 +37,15 @@ uint64_t binocle_subtexture_get_y(binocle_subtexture subtexture) {
   return (uint64_t)subtexture.rect.min.y;
 }
 
-uint64_t binocle_subtexture_get_width(binocle_subtexture subtexture) {
-  return (uint64_t)subtexture.rect.max.x;
+uint64_t binocle_subtexture_get_width(binocle_subtexture *subtexture) {
+  return (uint64_t)subtexture->rect.max.x;
 }
 
-uint64_t binocle_subtexture_get_height(binocle_subtexture subtexture) {
-  return (uint64_t)subtexture.rect.max.y;
+uint64_t binocle_subtexture_get_height(binocle_subtexture *subtexture) {
+  return (uint64_t)subtexture->rect.max.y;
 }
 
-kmVec2 binocle_subtexture_get_size(binocle_subtexture subtexture) {
+kmVec2 binocle_subtexture_get_size(binocle_subtexture *subtexture) {
   kmVec2 res = {
     .x = binocle_subtexture_get_width(subtexture),
     .y = binocle_subtexture_get_height(subtexture)
@@ -53,7 +53,7 @@ kmVec2 binocle_subtexture_get_size(binocle_subtexture subtexture) {
   return res;
 }
 
-kmVec2 binocle_subtexture_get_center(binocle_subtexture subtexture) {
+kmVec2 binocle_subtexture_get_center(binocle_subtexture *subtexture) {
   kmVec2 res = {
     .x = binocle_subtexture_get_size(subtexture).x * 0.5f,
     .y = binocle_subtexture_get_size(subtexture).y * 0.5f

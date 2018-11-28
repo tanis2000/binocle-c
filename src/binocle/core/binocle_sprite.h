@@ -16,7 +16,7 @@ struct binocle_material;
 struct binocle_gd;
 
 typedef struct binocle_sprite_frame {
-  binocle_subtexture subtexture;
+  binocle_subtexture *subtexture;
   kmVec2 origin;
 } binocle_sprite_frame;
 
@@ -63,8 +63,8 @@ void binocle_sprite_clear_frames(binocle_sprite *sprite);
 
 
 // binocle_sprite_frame stuff
-binocle_sprite_frame binocle_sprite_frame_from_subtexture(struct binocle_subtexture subtexture);
-binocle_sprite_frame binocle_sprite_frame_from_subtexture_and_origin(struct binocle_subtexture subtexture, kmVec2 origin);
+binocle_sprite_frame binocle_sprite_frame_from_subtexture(struct binocle_subtexture *subtexture);
+binocle_sprite_frame binocle_sprite_frame_from_subtexture_and_origin(struct binocle_subtexture *subtexture, kmVec2 origin);
 
 
 

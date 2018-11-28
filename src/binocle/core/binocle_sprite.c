@@ -37,15 +37,15 @@ binocle_sprite binocle_sprite_from_material(binocle_material *material) {
 
 void binocle_sprite_draw(binocle_sprite sprite, binocle_gd *gd, int64_t x, int64_t y, kmAABB2 viewport, float rotation, float scale) {
   binocle_vpct vertices[BINOCLE_SPRITE_VERTEX_COUNT];
-  binocle_subtexture s;
+  binocle_subtexture *s;
   float w, h;
   if (sprite.frames_number > 0) {
     s = sprite.frames[sprite.current_frame].subtexture;
-    w = s.rect.max.x;
-    h = s.rect.max.y;
+    w = s->rect.max.x;
+    h = s->rect.max.y;
     //binocle_log_info("subtexture %f %f %f %f %d %d", s.rect.min.x, s.rect.min.y, s.rect.max.x, s.rect.max.y, sprite.material->texture->width, sprite.material->texture->height);
   } else {
-    s = sprite.subtexture;
+    s = &sprite.subtexture;
     w = sprite.subtexture.rect.max.x;
     h = sprite.subtexture.rect.max.y;
     //w = sprite.material->texture->width;
@@ -56,38 +56,38 @@ void binocle_sprite_draw(binocle_sprite sprite, binocle_gd *gd, int64_t x, int64
   vertices[0].pos.x = -sprite.origin.x * scale * cosf(rotation) - (-sprite.origin.y * scale + h * scale) * sinf(rotation) + x;
   vertices[0].pos.y = (-sprite.origin.y * scale + h * scale) * cosf(rotation) - sprite.origin.x * scale * sinf(rotation) + y;
   vertices[0].color = binocle_color_white();
-  vertices[0].tex.x = s.rect.min.x / sprite.material->texture->width;
-  vertices[0].tex.y = (s.rect.min.y + s.rect.max.y) / sprite.material->texture->height;
+  vertices[0].tex.x = s->rect.min.x / sprite.material->texture->width;
+  vertices[0].tex.y = (s->rect.min.y + s->rect.max.y) / sprite.material->texture->height;
   // TR
   vertices[1].pos.x = (-sprite.origin.x * scale + w * scale) * cosf(rotation) - (-sprite.origin.y * scale + h * scale) * sinf(rotation) + x;
   vertices[1].pos.y = (-sprite.origin.y * scale + h * scale) * cosf(rotation) + (-sprite.origin.x * scale + w * scale) * sinf(rotation) + y;
   vertices[1].color = binocle_color_white();
-  vertices[1].tex.x = (s.rect.min.x + s.rect.max.x) / sprite.material->texture->width;
-  vertices[1].tex.y = (s.rect.min.y + s.rect.max.y) / sprite.material->texture->height;
+  vertices[1].tex.x = (s->rect.min.x + s->rect.max.x) / sprite.material->texture->width;
+  vertices[1].tex.y = (s->rect.min.y + s->rect.max.y) / sprite.material->texture->height;
   // BL
   vertices[2].pos.x = -sprite.origin.x * scale * cosf(rotation) + sprite.origin.y * scale * sinf(rotation) + x;
   vertices[2].pos.y = -sprite.origin.y * scale * cosf(rotation) - sprite.origin.x * scale * sinf(rotation) + y;
   vertices[2].color = binocle_color_white();
-  vertices[2].tex.x = s.rect.min.x / sprite.material->texture->width;
-  vertices[2].tex.y = s.rect.min.y / sprite.material->texture->height;
+  vertices[2].tex.x = s->rect.min.x / sprite.material->texture->width;
+  vertices[2].tex.y = s->rect.min.y / sprite.material->texture->height;
   // TR
   vertices[3].pos.x = (-sprite.origin.x * scale + w * scale) * cosf(rotation) - (-sprite.origin.y * scale + h * scale) * sinf(rotation) + x;
   vertices[3].pos.y = (-sprite.origin.y * scale + h * scale) * cosf(rotation) + (-sprite.origin.x * scale + w * scale) * sinf(rotation) + y;
   vertices[3].color = binocle_color_white();
-  vertices[3].tex.x = (s.rect.min.x + s.rect.max.x) / sprite.material->texture->width;
-  vertices[3].tex.y = (s.rect.min.y + s.rect.max.y) / sprite.material->texture->height;
+  vertices[3].tex.x = (s->rect.min.x + s->rect.max.x) / sprite.material->texture->width;
+  vertices[3].tex.y = (s->rect.min.y + s->rect.max.y) / sprite.material->texture->height;
   // BR
   vertices[4].pos.x = (-sprite.origin.x * scale + w * scale) * cosf(rotation) + sprite.origin.y * scale * sinf(rotation) + x;
   vertices[4].pos.y = -sprite.origin.y * scale * cosf(rotation) + (-sprite.origin.x * scale + w * scale) * sinf(rotation) + y;
   vertices[4].color = binocle_color_white();
-  vertices[4].tex.x = (s.rect.min.x + s.rect.max.x) / sprite.material->texture->width;
-  vertices[4].tex.y = s.rect.min.y / sprite.material->texture->height;
+  vertices[4].tex.x = (s->rect.min.x + s->rect.max.x) / sprite.material->texture->width;
+  vertices[4].tex.y = s->rect.min.y / sprite.material->texture->height;
   // BL
   vertices[5].pos.x = -sprite.origin.x * scale * cosf(rotation) + sprite.origin.y * scale * sinf(rotation) + x;
   vertices[5].pos.y = -sprite.origin.y * scale * cosf(rotation) - sprite.origin.x * scale * sinf(rotation) + y;
   vertices[5].color = binocle_color_white();
-  vertices[5].tex.x = s.rect.min.x / sprite.material->texture->width;
-  vertices[5].tex.y = s.rect.min.y / sprite.material->texture->height;
+  vertices[5].tex.x = s->rect.min.x / sprite.material->texture->width;
+  vertices[5].tex.y = s->rect.min.y / sprite.material->texture->height;
 
   binocle_gd_draw(gd, vertices, BINOCLE_SPRITE_VERTEX_COUNT, *sprite.material, viewport);
 }
@@ -98,14 +98,14 @@ void binocle_sprite_add_frame(binocle_sprite *sprite, binocle_sprite_frame frame
 }
 
 
-binocle_sprite_frame binocle_sprite_frame_from_subtexture(struct binocle_subtexture subtexture) {
+binocle_sprite_frame binocle_sprite_frame_from_subtexture(struct binocle_subtexture *subtexture) {
   binocle_sprite_frame res = {0};
   res.subtexture = subtexture;
   res.origin = binocle_subtexture_get_center(subtexture);
   return res;
 }
 
-binocle_sprite_frame binocle_sprite_frame_from_subtexture_and_origin(struct binocle_subtexture subtexture, kmVec2 origin) {
+binocle_sprite_frame binocle_sprite_frame_from_subtexture_and_origin(struct binocle_subtexture *subtexture, kmVec2 origin) {
   binocle_sprite_frame res = {0};
   res.subtexture = subtexture;
   res.origin = origin;
