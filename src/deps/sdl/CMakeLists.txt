@@ -263,7 +263,8 @@ endif()
 
 if(MSVC)
 	file(GLOB_RECURSE WIN32_SOURCES
-            src/hidapi/hid.c
+            #src/hidapi/hid.c
+			src/hidapi/windows/hid.c
             src/video/SDL_egl.c
             src/render/opengles/SDL_render_gles.c
             src/render/opengles2/SDL_render_gles2.c
@@ -277,14 +278,11 @@ if(MSVC)
             src/core/windows/SDL_windows.c
             src/core/windows/SDL_xinput.c
             src/filesystem/windows/SDL_sysfilesystem.c
-            #<!-- src/joystick/windows/SDL_dxjoystick.c removed in 2.0.4?-->
             src/joystick/windows/SDL_mmjoystick.c
             src/joystick/windows/SDL_dinputjoystick.c
             src/joystick/windows/SDL_windowsjoystick.c
             src/joystick/windows/SDL_xinputjoystick.c
-            #<!-- src/joystick/winrt/SDL_xinputjoystick.c  removed in 2.0.4? -->
             src/main/windows/SDL_windows_main.c
-            #<!-- src/haptic/windows/SDL_syshaptic.c  removed in 2.0.4?-->
             src/haptic/windows/SDL_dinputhaptic.c
             src/haptic/windows/SDL_windowshaptic.c
             src/haptic/windows/SDL_xinputhaptic.c
@@ -319,6 +317,7 @@ if(MSVC)
 		)
 	list(APPEND SOURCES ${WIN32_SOURCES})
         add_definitions(-DHX_WINDOWS)
+		add_definitions(-DSDL_JOYSTICK_HIDAPI)
  	   	#add_definitions(-DUSING_GENERATED_CONFIG_H)
         include_directories(include/configs/windows)
         include_directories(src/video/windows)
