@@ -97,6 +97,7 @@ void binocle_bitmapfont_parse_character(binocle_bitmapfont *font, const char *li
   font->characters[charId].x_offset = atoi(components[6]);
   font->characters[charId].y_offset = atoi(components[7]);
   font->characters[charId].x_advance = atoi(components[8]);
+  free(components);
 }
 
 void binocle_bitmapfont_parse_kerning_entry(binocle_bitmapfont *font, const char *line) {
@@ -107,6 +108,7 @@ void binocle_bitmapfont_parse_kerning_entry(binocle_bitmapfont *font, const char
   int firstChar = atoi(components[1]);
   int secondChar = atoi(components[2]);
   font->kerning[firstChar][secondChar] = atoi(components[3]);
+  free(components);
 }
 
 void binocle_bitmapfont_parse_common_line(binocle_bitmapfont *font, const char *line, bool flip) {
@@ -118,6 +120,7 @@ void binocle_bitmapfont_parse_common_line(binocle_bitmapfont *font, const char *
   font->scale_w = atoi(components[3]);
   font->scale_h = atoi(components[4]);
   font->flip = flip;
+  free(components);
 }
 
 binocle_bitmapfont *binocle_bitmapfont_from_file(const char *filename, bool flip) {
@@ -173,6 +176,7 @@ binocle_bitmapfont *binocle_bitmapfont_from_file(const char *filename, bool flip
   }
 
   free(res);
+  free(lines);
   return font;
 }
 
