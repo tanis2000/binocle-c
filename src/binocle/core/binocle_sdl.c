@@ -144,7 +144,7 @@ time_t binocle_sdl_get_last_write_time(char *Filename)
   return(LastWriteTime);
 }
 
-bool binocle_sdl_load_text_file(char *filename, char *buffer, size_t *buffer_length) {
+bool binocle_sdl_load_text_file(char *filename, char **buffer, size_t *buffer_length) {
   binocle_log_info("Loading text file: %s", filename);
   SDL_RWops *file = SDL_RWFromFile(filename, "rb");
   if (file == NULL) {
@@ -170,7 +170,7 @@ bool binocle_sdl_load_text_file(char *filename, char *buffer, size_t *buffer_len
   }
 
   res[nb_read_total] = '\0';
-  buffer = res;
-  *buffer_length = nb_read_total;
+  *buffer = res;
+  *buffer_length = res_size+1;
   return true;
 }
