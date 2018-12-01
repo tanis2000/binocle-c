@@ -46,7 +46,7 @@ typedef struct binocle_sprite {
 } binocle_sprite;
 
 binocle_sprite binocle_sprite_from_material(struct binocle_material *material);
-void binocle_sprite_draw(binocle_sprite sprite, struct binocle_gd *gd, int64_t x, int64_t y, kmAABB2 viewport, float rotation, float scale);
+void binocle_sprite_draw(binocle_sprite sprite, struct binocle_gd *gd, int64_t x, int64_t y, kmAABB2 viewport, float rotation, kmVec2 scale);
 void binocle_sprite_add_frame(binocle_sprite *sprite, binocle_sprite_frame frame);
 void binocle_sprite_add_animation(binocle_sprite *sprite, int id, int frame);
 void binocle_sprite_add_animation_with_frames(binocle_sprite *sprite, int id, bool looping, float delay, int frames[], int frames_count);
