@@ -151,3 +151,7 @@ void binocle_audio_resume_all(binocle_audio *audio) {
 bool binocle_audio_is_paused(binocle_audio *audio) {
   return audio->paused;
 }
+
+void binocle_audio_set_music_volume(int volume) {
+  Mix_VolumeMusic(volume);
+}

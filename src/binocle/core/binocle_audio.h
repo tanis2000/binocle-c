@@ -50,6 +50,6 @@ void binocle_audio_stop_all(binocle_audio *audio);
 void binocle_audio_pause_all(binocle_audio *audio);
 void binocle_audio_resume_all(binocle_audio *audio);
 bool binocle_audio_is_paused(binocle_audio *audio);
-
+void binocle_audio_set_music_volume(int volume);
 
 #endif //HELIRUN_BINOCLE_AUDIO_H

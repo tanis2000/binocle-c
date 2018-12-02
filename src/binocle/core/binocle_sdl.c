@@ -60,7 +60,7 @@ bool binocle_sdl_init() {
   if (-1 == Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, // audio rate
                           MIX_DEFAULT_FORMAT,    // format
                           2,                     // channels
-                          4096))                 // buffers
+                          1024))                 // buffers
   {
     binocle_log_warning("Mix_OpenAudio: Couldn't start Audio");
     binocle_log_warning(SDL_GetError());
@@ -153,7 +153,7 @@ bool binocle_sdl_load_text_file(char *filename, char **buffer, size_t *buffer_le
   }
 
   Sint64 res_size = SDL_RWsize(file);
-  char *res = (char *) malloc(res_size + 1);
+  char *res = (char *) SDL_malloc(res_size + 1);
 
   Sint64 nb_read_total = 0, nb_read = 1;
   char *buf = res;
@@ -165,7 +165,7 @@ bool binocle_sdl_load_text_file(char *filename, char **buffer, size_t *buffer_le
   SDL_RWclose(file);
   if (nb_read_total != res_size) {
     binocle_log_error("Size mismatch");
-    free(res);
+    SDL_free(res);
     return false;
   }
 

@@ -2,6 +2,7 @@
 // Created by Valerio Santinelli on 26/11/2018.
 //
 
+#include <string.h>
 #include "binocle_atlas.h"
 #include "binocle_sdl.h"
 #include "binocle_log.h"
@@ -19,7 +20,7 @@ void binocle_atlas_load_texturepacker(char *filename, struct binocle_texture *te
   char content[BINOCLE_ATLAS_MAX_FILESIZE];
 
   Sint64 res_size = SDL_RWsize(file);
-  char *res = (char *) malloc(res_size + 1);
+  char *res = (char *) SDL_malloc(res_size + 1);
 
   Sint64 nb_read_total = 0, nb_read = 1;
   char *buf = res;
@@ -31,13 +32,13 @@ void binocle_atlas_load_texturepacker(char *filename, struct binocle_texture *te
   SDL_RWclose(file);
   if (nb_read_total != res_size) {
     binocle_log_error("Size mismatch");
-    free(res);
+    SDL_free(res);
     return;
   }
 
   res[nb_read_total] = '\0';
   strcpy(content, res);
-  free(res);
+  SDL_free(res);
 
   JSON_Value *root_value;
   JSON_Object *root;
@@ -96,7 +97,7 @@ void binocle_atlas_load_libgdx(char *filename, struct binocle_texture *texture, 
   char content[BINOCLE_ATLAS_MAX_FILESIZE];
 
   Sint64 res_size = SDL_RWsize(file);
-  char *res = (char *) malloc(res_size + 1);
+  char *res = (char *) SDL_malloc(res_size + 1);
 
   Sint64 nb_read_total = 0, nb_read = 1;
   char *buf = res;
@@ -108,13 +109,13 @@ void binocle_atlas_load_libgdx(char *filename, struct binocle_texture *texture, 
   SDL_RWclose(file);
   if (nb_read_total != res_size) {
     binocle_log_error("Size mismatch");
-    free(res);
+    SDL_free(res);
     return;
   }
 
   res[nb_read_total] = '\0';
   strcpy(content, res);
-  free(res);
+  SDL_free(res);
 
   // TODO: perform all the parsing as needed
 }
