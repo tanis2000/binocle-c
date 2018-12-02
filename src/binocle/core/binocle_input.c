@@ -28,8 +28,9 @@ void binocle_input_update(binocle_input *input) {
     input->currentKeys[i] = state[i];
   }
   for (i = 0; i < MOUSE_MAX; i++) {
+    if (i == 0) continue;
     input->previousMouseButtons[i] = input->currentMouseButtons[i];
-    input->currentMouseButtons[i] = SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(i);
+    input->currentMouseButtons[i] = (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(i)) == 0 ? false : true;
   }
   input->curPrintableKey = KEY_UNKNOWN;
 
