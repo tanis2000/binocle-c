@@ -2,6 +2,7 @@
 // Created by Valerio Santinelli on 19/04/18.
 //
 
+#include <string.h>
 #include "binocle_sprite.h"
 #include "binocle_texture.h"
 #include "binocle_subtexture.h"
