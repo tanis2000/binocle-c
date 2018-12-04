@@ -21,13 +21,21 @@ typedef struct binocle_sprite_frame {
   kmVec2 origin;
 } binocle_sprite_frame;
 
+typedef struct binocle_sprite_animation_frame_mapping {
+  char *name;
+  int original_frame;
+  int real_frame;
+} binocle_sprite_animation_frame_mapping;
+
 typedef struct binocle_sprite_animation {
   bool enabled;
   int frames[BINOCLE_SPRITE_MAX_FRAMES];
-  float delay;
+  float delays[BINOCLE_SPRITE_MAX_FRAMES];
   bool looping;
   int frames_number;
   char *name;
+  binocle_sprite_animation_frame_mapping frame_mapping[BINOCLE_SPRITE_MAX_FRAMES];
+  int frame_mapping_number;
 } binocle_sprite_animation;
 
 typedef struct binocle_sprite {
@@ -74,7 +82,7 @@ void binocle_sprite_clear_frames(binocle_sprite *sprite);
 // TV: 0-1:3, 2-3:3, 4-5:4, 6-7:4, 8:3, 9:3
 // Idle animation with random fidgets: 0-59, 60-69, 10-59, 0-59(.25), 70-129(.75)
 // Jump animation with looping finish: 0-33, 20-33:forever
-void binocle_sprite_create_animation(binocle_sprite *sprite, char *name, char *subtextures_names, char *sequence_code, binocle_subtexture *subtextures, size_t subtextures_count);
+void binocle_sprite_create_animation(binocle_sprite *sprite, char *name, char *subtextures_names, char *sequence_code, bool loop, binocle_subtexture *subtextures, size_t subtextures_count);
 void binocle_sprite_play_animation(binocle_sprite *sprite, char *name, bool restart);
 
 // binocle_sprite_frame stuff
