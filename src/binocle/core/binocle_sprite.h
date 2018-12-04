@@ -6,6 +6,7 @@
 #define BINOCLE_BINOCLE_SPRITE_H
 
 #include <stdbool.h>
+#include <stdlib.h>
 #include <kazmath/kazmath.h>
 #include "binocle_subtexture.h"
 
@@ -26,6 +27,7 @@ typedef struct binocle_sprite_animation {
   float delay;
   bool looping;
   int frames_number;
+  char *name;
 } binocle_sprite_animation;
 
 typedef struct binocle_sprite {
@@ -40,6 +42,7 @@ typedef struct binocle_sprite {
   float rate;
   int current_frame;
   binocle_sprite_animation *current_animation;
+  int animations_number;
   int current_animation_id;
   int current_animation_frame;
   float timer;
@@ -61,6 +64,18 @@ void binocle_sprite_set_current_animation(binocle_sprite *sprite, int id);
 void binocle_sprite_clear_animations(binocle_sprite *sprite);
 void binocle_sprite_clear_frames(binocle_sprite *sprite);
 
+// sequence code format:
+// startFrame-endFrame:time(chance)
+// time: also be set to "forever" - this will loop the sequence indefinitely
+// chance: float value from 0-1, chance that the sequence will play (if not played, it will be skipped)
+// time and chance can both be ignored, this will mean the sequence plays through once
+//
+// sequence code examples:
+// TV: 0-1:3, 2-3:3, 4-5:4, 6-7:4, 8:3, 9:3
+// Idle animation with random fidgets: 0-59, 60-69, 10-59, 0-59(.25), 70-129(.75)
+// Jump animation with looping finish: 0-33, 20-33:forever
+void binocle_sprite_create_animation(binocle_sprite *sprite, char *name, char *subtextures_names, char *sequence_code, binocle_subtexture *subtextures, size_t subtextures_count);
+void binocle_sprite_play_animation(binocle_sprite *sprite, char *name, bool restart);
 
 // binocle_sprite_frame stuff
 binocle_sprite_frame binocle_sprite_frame_from_subtexture(struct binocle_subtexture *subtexture);

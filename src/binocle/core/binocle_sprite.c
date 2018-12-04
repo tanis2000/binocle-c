@@ -112,6 +112,22 @@ binocle_sprite_frame binocle_sprite_frame_from_subtexture_and_origin(struct bino
   return res;
 }
 
+binocle_sprite_animation *binocle_sprite_create_animation_with_name(binocle_sprite *sprite, char *name) {
+  binocle_sprite_animation res = {0};
+  res.name = name;
+  res.enabled = true;
+  res.delay = 0;
+  res.looping = false;
+  for (int i = 0 ; i < BINOCLE_SPRITE_MAX_FRAMES ; i++) {
+    res.frames[i] = -1;
+  }
+  res.frames_number = 0;
+  sprite->animations[sprite->animations_number] = res;
+  sprite->animations_number++;
+  return &sprite->animations[sprite->animations_number-1];
+}
+
+
 void binocle_sprite_add_animation(binocle_sprite *sprite, int id, int frame) {
   binocle_sprite_animation res = {0};
   res.enabled = true;
@@ -244,5 +260,67 @@ void binocle_sprite_clear_frames(binocle_sprite *sprite) {
   }
   for (int i = 0 ; i < BINOCLE_SPRITE_MAX_FRAMES ; i++) {
     // TODO
+  }
+}
+
+void binocle_sprite_create_frames_with_string(binocle_sprite *sprite, binocle_sprite_animation *animation, char *subtextures_names, binocle_subtexture *subtextures, size_t subtextures_count) {
+  char *s = SDL_strdup(subtextures_names);
+  char *token = strtok(s, ",");
+  while (token) {
+    bool added = false;
+    binocle_subtexture *sub = subtextures;
+    for (int i = 0 ; i < subtextures_count ; i++) {
+      if (strcmp(sub->name, token) == 0) {
+        binocle_sprite_frame frame = binocle_sprite_frame_from_subtexture(sub);
+        binocle_sprite_add_frame(sprite, frame);
+        animation->looping = true; // TODO: remove this
+        animation->delay = 1; // TODO: remove this
+        animation->frames[animation->frames_number] = sprite->frames_number-1;
+        animation->frames_number++;
+        added = true;
+      }
+      sub++;
+    }
+    if (added) {
+      binocle_log_info("Frame %s added", token);
+    } else {
+      binocle_log_error("Cannot find frame with name %s", token);
+    }
+    token = strtok(NULL, ",");
+  }
+}
+
+void binocle_sprite_create_animation(binocle_sprite *sprite, char *name, char *subtextures_names, char *sequence_code, binocle_subtexture *subtextures, size_t subtextures_count) {
+  // create the animation with name `name`
+  binocle_sprite_animation *anim = binocle_sprite_create_animation_with_name(sprite, name);
+  binocle_log_info("Created animation with name %s", name);
+  // assign the subtextures to the frames of the sprite
+  binocle_sprite_create_frames_with_string(sprite, anim, subtextures_names, subtextures, subtextures_count);
+  // build the animation using the sequence code
+}
+
+int binocle_sprite_get_animation_id(binocle_sprite *sprite, char *name) {
+  binocle_sprite_animation *anim = sprite->animations;
+  for (int i = 0 ; i < BINOCLE_SPRITE_MAX_ANIMATIONS ; i++) {
+    if (strcmp(anim->name, name) == 0) {
+      return i;
+    }
+    anim++;
+  }
+  return -1;
+}
+
+void binocle_sprite_play_animation(binocle_sprite *sprite, char *name, bool restart) {
+  int id = binocle_sprite_get_animation_id(sprite, name);
+  if (restart || (!sprite->playing && !sprite->finished) || sprite->current_animation_id != id) {
+    sprite->current_animation_id = id;
+    sprite->current_animation = &sprite->animations[id];
+
+    sprite->current_animation_frame = 0;
+    sprite->current_frame = sprite->current_animation->frames[0];
+    sprite->timer = 0;
+
+    sprite->finished = false;
+    sprite->playing = true;
   }
 }
