@@ -99,6 +99,7 @@ binocle_audio binocle_audio_new() {
 }
 
 void binocle_audio_destroy(binocle_audio *audio) {
+  // TODO: free up all the allocated stuff and consider `audio` as the audio system who takes care of its resources
 }
 
 void binocle_audio_play_music(binocle_audio *audio, binocle_music *music, bool loop) {
