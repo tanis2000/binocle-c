@@ -9,6 +9,7 @@
 #include "binocle_viewport_adapter.h"
 #include "binocle_shader.h"
 #include "binocle_texture.h"
+#include "binocle_camera.h"
 
 void binocle_gd_gl_check_error(const char *file, unsigned int line, const char *expression) {
   // Get the last error
@@ -86,7 +87,7 @@ void binocle_gd_init(binocle_gd *gd) {
 }
 
 void binocle_gd_draw(binocle_gd *gd, const binocle_vpct *vertices, size_t vertex_count, binocle_material material,
-                     kmAABB2 viewport) {
+                     kmAABB2 viewport, binocle_camera *camera) {
   binocle_gd_apply_gl_states();
   binocle_gd_apply_viewport(viewport);
   binocle_gd_apply_blend_mode(material.blend_mode);
@@ -101,6 +102,11 @@ void binocle_gd_draw(binocle_gd *gd, const binocle_vpct *vertices, size_t vertex
   kmMat4Identity(&viewMatrix);
   // TODO: apply the viewport_adapter scale_matrix here
   //kmMat4Scaling(&viewMatrix, 2.0f, 2.0f, 2.0f);
+
+  if (camera != NULL) {
+    kmMat4Multiply(&viewMatrix, &viewMatrix, binocle_camera_get_transform_matrix(camera));
+  }
+
   kmMat4 modelMatrix;
   kmMat4Identity(&modelMatrix);
 

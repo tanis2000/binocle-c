@@ -10,6 +10,7 @@
 #include "binocle_gd.h"
 #include "binocle_vpct.h"
 #include "binocle_log.h"
+#include "binocle_camera.h"
 
 #define BINOCLE_SPRITE_VERTEX_COUNT 6
 
@@ -36,7 +37,7 @@ binocle_sprite binocle_sprite_from_material(binocle_material *material) {
   return res;
 }
 
-void binocle_sprite_draw(binocle_sprite sprite, binocle_gd *gd, int64_t x, int64_t y, kmAABB2 viewport, float rotation, kmVec2 scale) {
+void binocle_sprite_draw(binocle_sprite sprite, binocle_gd *gd, int64_t x, int64_t y, kmAABB2 viewport, float rotation, kmVec2 scale, binocle_camera *camera) {
   binocle_vpct vertices[BINOCLE_SPRITE_VERTEX_COUNT];
   binocle_subtexture *s;
   float w, h;
@@ -90,7 +91,7 @@ void binocle_sprite_draw(binocle_sprite sprite, binocle_gd *gd, int64_t x, int64
   vertices[5].tex.x = s->rect.min.x / sprite.material->texture->width;
   vertices[5].tex.y = s->rect.min.y / sprite.material->texture->height;
 
-  binocle_gd_draw(gd, vertices, BINOCLE_SPRITE_VERTEX_COUNT, *sprite.material, viewport);
+  binocle_gd_draw(gd, vertices, BINOCLE_SPRITE_VERTEX_COUNT, *sprite.material, viewport, camera);
 }
 
 void binocle_sprite_add_frame(binocle_sprite *sprite, binocle_sprite_frame frame) {

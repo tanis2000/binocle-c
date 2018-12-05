@@ -321,5 +321,5 @@ void binocle_bitmapfont_draw_string(binocle_bitmapfont *font, const char *str, f
   kmMat4Translation(&transformation_matrix, x, y, 0);
   kmMat4Multiply(&transformation_matrix, &transformation_matrix, &view_matrix);
   binocle_bitmapfont_create_vertice_and_tex_coords_for_string(font, str, height, transformation_matrix, color);
-  binocle_gd_draw(gd, font->vertexes, font->vertexes_count, *font->material, viewport);
+  binocle_gd_draw(gd, font->vertexes, font->vertexes_count, *font->material, viewport, NULL);
 }

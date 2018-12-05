@@ -138,11 +138,11 @@ kmAABB2 binocle_camera_get_bounds(binocle_camera *camera) {
   return camera->bounds;
 }
 
-kmMat4 binocle_camera_get_transform_matrix(binocle_camera *camera) {
+kmMat4 *binocle_camera_get_transform_matrix(binocle_camera *camera) {
   if (camera->are_matrixes_dirty) {
     binocle_camera_update_matrixes(camera);
   }
-  return camera->transform_matrix;
+  return &camera->transform_matrix;
 }
 
 kmMat4 binocle_camera_get_inverse_transform_matrix(binocle_camera *camera) {

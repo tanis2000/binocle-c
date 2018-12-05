@@ -9,6 +9,7 @@
 #include <kazmath/kazmath.h>
 
 struct binocle_blend;
+struct binocle_camera;
 struct binocle_color;
 struct binocle_material;
 struct binocle_shader;
@@ -60,7 +61,7 @@ kmMat4 binocle_gd_create_model_view_matrix(float x, float y, float scale,
                                            float rotation);
 void binocle_gd_draw(binocle_gd *gd, const struct binocle_vpct *vertices,
                      size_t vertex_count, struct binocle_material material,
-                     kmAABB2 viewport);
+                     kmAABB2 viewport, struct binocle_camera *camera);
 void binocle_gd_apply_gl_states();
 void binocle_gd_apply_viewport(kmAABB2 viewport);
 void binocle_gd_apply_blend_mode(const struct binocle_blend blend_mode);

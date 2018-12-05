@@ -32,8 +32,9 @@ binocle_camera binocle_camera_new(struct binocle_viewport_adapter *adapter);
 kmVec2 binocle_camera_screen_to_world_point(binocle_camera camera, kmVec2 screen_position);
 void binocle_camera_update_matrixes(binocle_camera *camera);
 void binocle_camera_force_matrix_update(binocle_camera *camera);
-kmMat4 binocle_camera_get_transform_matrix(binocle_camera *camera);
+kmMat4 *binocle_camera_get_transform_matrix(binocle_camera *camera);
 struct binocle_viewport_adapter *binocle_camera_get_viewport_adapter(binocle_camera camera);
 kmAABB2 binocle_camera_get_viewport(binocle_camera camera);
+void binocle_camera_set_position(binocle_camera *camera, float x, float y);
 
 #endif //BINOCLE_BINOCLE_CAMERA_H
