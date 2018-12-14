@@ -16,6 +16,10 @@
 
 binocle_sprite binocle_sprite_from_material(binocle_material *material) {
   binocle_sprite res = {0};
+  res.animations =
+    malloc(sizeof(binocle_sprite_animation) * BINOCLE_SPRITE_MAX_ANIMATIONS);
+  res.frames =
+    malloc(sizeof(binocle_sprite_frame) * BINOCLE_SPRITE_MAX_FRAMES);
   // Default origin to bottom-left
   res.origin.x = 0;
   res.origin.y = 0;
@@ -35,6 +39,12 @@ binocle_sprite binocle_sprite_from_material(binocle_material *material) {
   res.current_animation_frame = 0;
   res.current_animation_id = 0;
   return res;
+}
+
+void binocle_sprite_destroy(struct binocle_sprite *sprite) {
+  free(sprite->animations);
+  free(sprite->frames);
+  sprite = NULL;
 }
 
 void binocle_sprite_draw(binocle_sprite sprite, binocle_gd *gd, int64_t x, int64_t y, kmAABB2 viewport, float rotation, kmVec2 scale, binocle_camera *camera) {
