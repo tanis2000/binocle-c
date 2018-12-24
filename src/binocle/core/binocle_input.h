@@ -313,6 +313,9 @@ typedef struct binocle_input {
   /// Tells if we must pause tha game (i.e. lost window focus)
   bool willPause;
 
+  /// If true we ignore the `willPause` flag and keep running at full speed
+  bool force_skip_pause;
+
   bool resized;
   kmVec2 newWindowSize;
 

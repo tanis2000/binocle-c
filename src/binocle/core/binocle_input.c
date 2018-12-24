@@ -129,7 +129,7 @@ void binocle_input_update(binocle_input *input) {
     }
   }
   // If we're paused we let the CPU resources free and slow down
-  if (input->willPause) {
+  if (input->willPause && !input->force_skip_pause) {
     SDL_Delay(100);
   }
 }
