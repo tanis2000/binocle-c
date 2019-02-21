@@ -279,3 +279,20 @@ void binocle_window_end_frame(binocle_window *win) {
 void binocle_window_get_real_size(binocle_window *win, uint32_t *w, uint32_t *h) {
     SDL_GetWindowSize(win->window, (int *)w, (int *)h);
 }
+
+bool binocle_window_get_display_size(uint32_t *w, uint32_t *h) {
+  // NOTE: this only takes into account the first display
+  SDL_DisplayMode current;
+  for(int i = 0; i < SDL_GetNumVideoDisplays(); ++i){
+
+    if (SDL_GetCurrentDisplayMode(i, &current) == 0) {
+      *w = current.w;
+      *h = current.h;
+      return true;
+    } else {
+      binocle_log_warning("Could not get display mode for video display #%d: %s", i, SDL_GetError());
+      return false;
+    }
+  }
+  return false;
+}
