@@ -141,6 +141,7 @@ void binocle_gd_draw(binocle_gd *gd, const binocle_vpct *vertices, size_t vertex
   glCheck(glUseProgram(GL_ZERO));
 
   glCheck(glBindTexture(GL_TEXTURE_2D, 0));
+  glCheck(glBindBuffer(GL_ARRAY_BUFFER, 0));
 
 }
 
@@ -378,10 +379,13 @@ void binocle_gd_draw_quad(struct binocle_shader shader) {
   glCheck(glGenBuffers(1, &quad_vertexbuffer));
   glCheck(glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer));
   glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW));
-  GLint id = glGetAttribLocation(shader.program_id, "position");
-  glCheck(glVertexAttribPointer(id, 2, GL_FLOAT, false, 0, 0));
-  glCheck(glEnableVertexAttribArray(id));
+  GLint pos_id;
+  glCheck(pos_id = glGetAttribLocation(shader.program_id, "position"));
+  glCheck(glVertexAttribPointer(pos_id, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 2, 0));
+  glCheck(glEnableVertexAttribArray(pos_id));
   glCheck(glDrawArrays(GL_TRIANGLES, 0, 6));
+
+  glCheck(glDisableVertexAttribArray(pos_id));
   glCheck(glBindBuffer(GL_ARRAY_BUFFER, 0));
   glCheck(glDeleteBuffers(1, &quad_vertexbuffer));
 }
@@ -400,11 +404,13 @@ void binocle_gd_draw_quad_to_screen(struct binocle_shader shader, binocle_render
   glCheck(glGenBuffers(1, &quad_vertexbuffer));
   glCheck(glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer));
   glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW));
-  GLint id = glGetAttribLocation(shader.program_id, "position");
-  glCheck(glVertexAttribPointer(id, 2, GL_FLOAT, false, 0, 0));
-  glCheck(glEnableVertexAttribArray(id));
-  id = glGetUniformLocation(shader.program_id, "texture");
-  glCheck(glUniform1i(id, 0));
+  GLint pos_id;
+  glCheck(pos_id = glGetAttribLocation(shader.program_id, "position"));
+  glCheck(glVertexAttribPointer(pos_id, 2, GL_FLOAT, false, 0, 0));
+  glCheck(glEnableVertexAttribArray(pos_id));
+  GLint tex_id;
+  glCheck(tex_id = glGetUniformLocation(shader.program_id, "texture"));
+  glCheck(glUniform1i(tex_id, 0));
   glCheck(glActiveTexture(GL_TEXTURE0));
   glCheck(glBindTexture(GL_TEXTURE_2D, render_target.texture));
   // Sets the frame buffer to use as the screen
@@ -418,7 +424,11 @@ void binocle_gd_draw_quad_to_screen(struct binocle_shader shader, binocle_render
   glCheck(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 #endif
   glCheck(glDrawArrays(GL_TRIANGLES, 0, 6));
+
+  glCheck(glDisableVertexAttribArray(pos_id));
+  glCheck(glBindBuffer(GL_ARRAY_BUFFER, 0));
   glCheck(glDeleteBuffers(1, &quad_vertexbuffer));
+  glCheck(glBindTexture(GL_TEXTURE_2D, 0));
 }
 
 void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect, binocle_color col, kmAABB2 viewport, kmMat4 viewMatrix) {
