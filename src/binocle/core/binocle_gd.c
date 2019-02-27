@@ -322,6 +322,15 @@ binocle_render_target binocle_gd_create_render_target(uint32_t width, uint32_t h
   return res;
 }
 
+void binocle_gd_destroy_render_target(binocle_render_target *render_target) {
+  glCheck(glDeleteTextures(1, &render_target->texture));
+  render_target->texture = GL_NONE;
+  glCheck(glDeleteRenderbuffers(1, &render_target->render_buffer));
+  render_target->render_buffer = GL_NONE;
+  glCheck(glDeleteFramebuffers(1, &render_target->frame_buffer));
+  render_target->frame_buffer = GL_NONE;
+}
+
 void binocle_gd_set_uniform_float(struct binocle_shader shader, const char *name, float value) {
   GLint id = glGetUniformLocation(shader.program_id, name);
   glCheck(glUniform1f(id, value));

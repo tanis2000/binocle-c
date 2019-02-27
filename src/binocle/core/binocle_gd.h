@@ -74,6 +74,7 @@ binocle_render_target binocle_gd_create_render_target(uint32_t width,
                                                       uint32_t height,
                                                       bool use_depth,
                                                       GLenum format);
+void binocle_gd_destroy_render_target(binocle_render_target *render_target);
 void binocle_gd_set_uniform_float(struct binocle_shader shader,
                                   const char *name, float value);
 void binocle_gd_set_uniform_float2(struct binocle_shader shader,
