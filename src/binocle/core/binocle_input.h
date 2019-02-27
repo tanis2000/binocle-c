@@ -320,6 +320,8 @@ typedef struct binocle_input {
   kmVec2 newWindowSize;
 
   binocle_input_touch touch;
+
+  char text[SDL_TEXTINPUTEVENT_TEXT_SIZE];
 } binocle_input;
 
 binocle_input binocle_input_new();

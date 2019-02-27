@@ -34,6 +34,8 @@ void binocle_input_update(binocle_input *input) {
   }
   input->curPrintableKey = KEY_UNKNOWN;
 
+  memset(input->text, 0, SDL_TEXTINPUTEVENT_TEXT_SIZE);
+
   // Get key events from the OS
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
@@ -124,6 +126,11 @@ void binocle_input_update(binocle_input *input) {
             input->touch.pressure = event.tfinger.pressure;
             input->touch.type = FINGER_UP;
       break;
+      case SDL_TEXTINPUT:
+      {
+        memcpy(input->text, event.text.text, SDL_TEXTINPUTEVENT_TEXT_SIZE);
+        break;
+      }
       default:
         break;
     }
