@@ -41,4 +41,6 @@ time_t binocle_sdl_get_last_write_time(char *Filename);
 
 bool binocle_sdl_load_text_file(char *filename, char **buffer, size_t *buffer_length);
 
+bool binocle_sdl_write_text_file(char *filename, char *buffer, size_t size);
+
 #endif //BINOCLE_BINOCLE_SDL_H

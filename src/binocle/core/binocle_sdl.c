@@ -174,3 +174,20 @@ bool binocle_sdl_load_text_file(char *filename, char **buffer, size_t *buffer_le
   *buffer_length = res_size+1;
   return true;
 }
+
+bool binocle_sdl_write_text_file(char *filename, char *buffer, size_t size) {
+  binocle_log_info("Writing text file: %s", filename);
+  SDL_RWops *file = SDL_RWFromFile(filename, "wb");
+  if (file == NULL) {
+    binocle_log_error("Cannot open text file");
+    return false;
+  }
+
+  if (SDL_RWwrite(file, buffer, 1, size) != size) {
+    binocle_log_error("Error writing to file");
+    return false;
+  }
+
+  SDL_RWclose(file);
+  return true;
+}
