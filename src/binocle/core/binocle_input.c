@@ -36,6 +36,9 @@ void binocle_input_update(binocle_input *input) {
 
   memset(input->text, 0, SDL_TEXTINPUTEVENT_TEXT_SIZE);
 
+  input->mouseWheelX = 0;
+  input->mouseWheelY = 0;
+
   // Get key events from the OS
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
@@ -100,6 +103,12 @@ void binocle_input_update(binocle_input *input) {
         // // If negative, scrolled down
         // // If positive, scrolled up
         break;
+      case SDL_MOUSEWHEEL:
+      {
+        input->mouseWheelX = event.wheel.x;
+        input->mouseWheelY = event.wheel.y;
+        break;
+      }
 
       case SDL_FINGERDOWN:
         // do something with event.tfinger

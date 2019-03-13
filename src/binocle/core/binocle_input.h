@@ -303,6 +303,12 @@ typedef struct binocle_input {
   /// Current mouse Y position.
   int mouseY;
 
+  /// Current mouse wheel X value
+  int mouseWheelX;
+
+  /// Current mouse wheel Y value
+  int mouseWheelY;
+
   /// If the user pressed a printable key, this is where
   /// it'll be stored.
   binocle_input_keyboard_key curPrintableKey;
