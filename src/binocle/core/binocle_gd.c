@@ -10,6 +10,7 @@
 #include "binocle_shader.h"
 #include "binocle_texture.h"
 #include "binocle_camera.h"
+#include "binocle_log.h"
 
 void binocle_gd_gl_check_error(const char *file, unsigned int line, const char *expression) {
   // Get the last error
@@ -306,7 +307,7 @@ binocle_render_target binocle_gd_create_render_target(uint32_t width, uint32_t h
   glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
   glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
   glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-  // not sure why
+  // attach the texture to the bound framebuffer object
   glCheck(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, res.texture, 0));
 
   // set up renderbuffer (depth buffer)
@@ -319,6 +320,9 @@ binocle_render_target binocle_gd_create_render_target(uint32_t width, uint32_t h
   glCheck(glBindRenderbuffer(GL_RENDERBUFFER, 0));
   glCheck(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
+  //if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+  //  binocle_log_error("Framebuffer isn't complete");
+  //}
   return res;
 }
 
