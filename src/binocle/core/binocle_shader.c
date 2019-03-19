@@ -165,7 +165,9 @@ binocle_shader binocle_shader_load_from_file(char *vert_filename,
   if (shader.vert_src != NULL) {
     sprintf(info, "Compiling vertex shader %s", vert_filename);
     binocle_log_info(info);
-    shader.vert_id = binocle_shader_compile(shader.vert_src, GL_VERTEX_SHADER);
+    if (!binocle_shader_compile(shader.vert_src, GL_VERTEX_SHADER, &shader.vert_id)) {
+      binocle_log_error("Error compiling vertex shader %s", vert_filename);
+    }
   } else {
     binocle_log_warning("Vertex shader not found");
   }
@@ -173,8 +175,9 @@ binocle_shader binocle_shader_load_from_file(char *vert_filename,
   if (shader.frag_src != NULL) {
     sprintf(info, "Compiling fragment shader %s", frag_filename);
     binocle_log_info(info);
-    shader.frag_id =
-      binocle_shader_compile(shader.frag_src, GL_FRAGMENT_SHADER);
+    if (!binocle_shader_compile(shader.frag_src, GL_FRAGMENT_SHADER, &shader.frag_id)) {
+      binocle_log_error("Error compiling fragment shader %s", frag_filename);
+    }
   } else {
     binocle_log_warning("Fragment shader not found");
   }
@@ -182,60 +185,98 @@ binocle_shader binocle_shader_load_from_file(char *vert_filename,
   sprintf(info, "Linking vertex shader %s and fragment shader %s",
           vert_filename, frag_filename);
   binocle_log_info(info);
-  shader.program_id = binocle_shader_link(shader.vert_id, shader.frag_id);
+  if (!binocle_shader_link(shader.vert_id, shader.frag_id, &shader.program_id)) {
+    binocle_log_error("Error linking shader with vertex %s and fragment %s", vert_filename, frag_filename);
+  }
 
   return shader;
 }
 
-GLuint binocle_shader_compile(const char *src, GLenum shader_type) {
-    GLuint shader_id = glCreateShader(shader_type);
+bool binocle_shader_compile(const char *src, GLenum shader_type, GLuint *shad_id) {
+    GLuint shader_id = 0;
+    glCheck(shader_id = glCreateShader(shader_type));
     glCheck(glShaderSource(shader_id, 1, &src, NULL));
     glCheck(glCompileShader(shader_id));
     GLint status = 0;
     glCheck(glGetShaderiv(shader_id, GL_COMPILE_STATUS, &status));
     if (status != GL_TRUE) {
-        int len = 0;
+        GLint len = 0;
         glCheck(glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &len));
-        char *buf = SDL_malloc(len);
-        glCheck(glGetShaderInfoLog(shader_id, len, NULL, buf));
-        SDL_Log("%s", buf);
-        assert(false);
+        if (len > 0) {
+          char *buf = SDL_malloc(len);
+          glCheck(glGetShaderInfoLog(shader_id, len, NULL, buf));
+          binocle_log_error("%s", buf);
+          SDL_free(buf);
+        } else {
+          binocle_log_error("Cannot compile shader but can't retrieve the GL error");
+        }
+        glCheck(glDeleteShader(shader_id));
+        shader_id = 0;
+        return false;
     }
 
-    return shader_id;
+    *shad_id = shader_id;
+    return true;
 }
 
-GLuint binocle_shader_link(GLuint vert_id, GLuint frag_id) {
-    GLuint program_id = glCreateProgram();
+bool binocle_shader_link(GLuint vert_id, GLuint frag_id, GLuint *prog_id) {
+    if (vert_id == 0) {
+      binocle_log_error("Cannot link shader as it's got no vertex shader compiled");
+      return false;
+    }
+    if (frag_id == 0) {
+      binocle_log_error("Cannot link shader as it's got no fragment shader compiled");
+      return false;
+    }
+    GLuint program_id = 0;
+    glCheck(program_id = glCreateProgram());
     glCheck(glAttachShader(program_id, vert_id));
     glCheck(glAttachShader(program_id, frag_id));
     glCheck(glLinkProgram(program_id));
     GLint status = 0;
     glCheck(glGetProgramiv(program_id, GL_LINK_STATUS, &status));
     if (status != GL_TRUE) {
-        int len = 0;
+        GLint len = 0;
         glCheck(glGetProgramiv(program_id, GL_INFO_LOG_LENGTH, &len));
-        char *buf = SDL_malloc(len);
-        glCheck(glGetProgramInfoLog(program_id, len, NULL, buf));
-        SDL_Log("%s", buf);
-        assert(false);
+        if (len > 0) {
+          char *buf = SDL_malloc(len);
+          glCheck(glGetProgramInfoLog(program_id, len, NULL, buf));
+          binocle_log_error("%s", buf);
+          SDL_free(buf);
+        } else {
+          binocle_log_error("Cannot link shader but can't retrieve the GL error");
+        }
+        glCheck(glDeleteProgram(program_id));
+        program_id = 0;
+        glCheck(glDeleteShader(vert_id));
+        glCheck(glDeleteShader(frag_id));
+        return false;
     }
 
-    return program_id;
+    glCheck(glDetachShader(program_id, vert_id));
+    glCheck(glDetachShader(program_id, frag_id));
+    *prog_id = program_id;
+    return true;
 }
 
 void binocle_shader_unload(binocle_shader *shader) {
     if (shader->program_id != 0) {
         glCheck(glDeleteProgram(shader->program_id));
         shader->program_id = 0;
+    } else {
+      binocle_log_warning("Trying to delete a program with ID=0");
     }
     if (shader->vert_id != 0) {
         glCheck(glDeleteShader(shader->vert_id));
         shader->vert_id = 0;
+    } else {
+      binocle_log_warning("Trying to delete a vertex shader with ID=0");
     }
     if (shader->frag_id != 0) {
         glCheck(glDeleteShader(shader->frag_id));
         shader->frag_id = 0;
+    } else {
+      binocle_log_warning("Trying to delete a fragment shader with ID=0");
     }
 }
 
@@ -305,9 +346,15 @@ void binocle_shader_init_defaults() {
     strcpy(flat->frag_src, binocle_shader_flat_src);
 #endif
     //flat.vert_src = (char *)binocle_shader_default_vertex_src;
-    flat->vert_id = binocle_shader_compile(flat->vert_src, GL_VERTEX_SHADER);
+    if (!binocle_shader_compile(flat->vert_src, GL_VERTEX_SHADER, &flat->vert_id)) {
+      binocle_log_error("Error compiling default flat vertex shader");
+    }
     //flat.frag_src = (char *)binocle_shader_flat_src;
-    flat->frag_id = binocle_shader_compile(flat->frag_src, GL_FRAGMENT_SHADER);
-    flat->program_id = binocle_shader_link(flat->vert_id, flat->frag_id);
+    if (!binocle_shader_compile(flat->frag_src, GL_FRAGMENT_SHADER, &flat->frag_id)) {
+      binocle_log_error("Error compiling default flat fragment shader");
+    }
+    if (!binocle_shader_link(flat->vert_id, flat->frag_id, &flat->program_id)) {
+      binocle_log_error("Error linking default flat shader");
+    }
 }
 
