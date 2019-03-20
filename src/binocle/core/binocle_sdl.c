@@ -163,6 +163,7 @@ bool binocle_sdl_load_text_file(char *filename, char **buffer, size_t *buffer_le
     buf += nb_read;
   }
   SDL_RWclose(file);
+  binocle_log_info("%d bytes read of %d", nb_read_total, res_size);
   if (nb_read_total != res_size) {
     binocle_log_error("Size mismatch");
     SDL_free(res);
