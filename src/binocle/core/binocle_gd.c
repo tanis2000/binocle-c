@@ -336,35 +336,65 @@ void binocle_gd_destroy_render_target(binocle_render_target *render_target) {
 }
 
 void binocle_gd_set_uniform_float(struct binocle_shader shader, const char *name, float value) {
-  GLint id = glGetUniformLocation(shader.program_id, name);
+  GLint id = 0;
+  glCheck(id = glGetUniformLocation(shader.program_id, name));
+  if (id == -1) {
+    binocle_log_error("Cannot find uniform called %s", name);
+    return;
+  }
   glCheck(glUniform1f(id, value));
 }
 
 void binocle_gd_set_uniform_float2(struct binocle_shader shader, const char *name, float value1, float value2) {
-  GLint id = glGetUniformLocation(shader.program_id, name);
+  GLint id = 0;
+  glCheck(id = glGetUniformLocation(shader.program_id, name));
+  if (id == -1) {
+    binocle_log_error("Cannot find uniform called %s", name);
+    return;
+  }
   glCheck(glUniform2f(id, value1, value2));
 }
 
 void binocle_gd_set_uniform_float3(struct binocle_shader shader, const char *name, float value1, float value2, float value3) {
-  GLint id = glGetUniformLocation(shader.program_id, name);
+  GLint id = 0;
+  glCheck(id = glGetUniformLocation(shader.program_id, name));
+  if (id == -1) {
+    binocle_log_error("Cannot find uniform called %s", name);
+    return;
+  }
   glCheck(glUniform3f(id, value1, value2, value3));
 }
 
 void binocle_gd_set_uniform_float4(struct binocle_shader shader, const char *name, float value1, float value2, float value3, float value4) {
-  GLint id = glGetUniformLocation(shader.program_id, name);
+  GLint id = 0;
+  glCheck(id = glGetUniformLocation(shader.program_id, name));
+  if (id == -1) {
+    binocle_log_error("Cannot find uniform called %s", name);
+    return;
+  }
   glCheck(glUniform4f(id, value1, value2, value3, value4));
 }
 
 void binocle_gd_set_uniform_render_target_as_texture(struct binocle_shader shader, const char *name,
                                                      binocle_render_target render_target) {
-  GLint id = glGetUniformLocation(shader.program_id, name);
+  GLint id = 0;
+  glCheck(id = glGetUniformLocation(shader.program_id, name));
+  if (id == -1) {
+    binocle_log_error("Cannot find uniform called %s", name);
+    return;
+  }
   glCheck(glUniform1i(id, 0));
   glCheck(glActiveTexture(GL_TEXTURE0));
   glCheck(glBindTexture(GL_TEXTURE_2D, render_target.texture));
 }
 
 void binocle_gd_set_uniform_mat4(struct binocle_shader shader, const char *name, kmMat4 mat) {
-  GLint id = glGetUniformLocation(shader.program_id, name);
+  GLint id = 0;
+  glCheck(id = glGetUniformLocation(shader.program_id, name));
+  if (id == -1) {
+    binocle_log_error("Cannot find uniform called %s", name);
+    return;
+  }
   glCheck(glUniformMatrix4fv(id, 1, GL_FALSE, mat.mat));
 }
 
