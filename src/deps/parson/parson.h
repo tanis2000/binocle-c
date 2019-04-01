@@ -37,19 +37,19 @@ typedef struct json_array_t  JSON_Array;
 typedef struct json_value_t  JSON_Value;
 
 enum json_value_type {
-  JSONError   = -1,
-  JSONNull    = 1,
-  JSONString  = 2,
-  JSONNumber  = 3,
-  JSONObject  = 4,
-  JSONArray   = 5,
-  JSONBoolean = 6
+    JSONError   = -1,
+    JSONNull    = 1,
+    JSONString  = 2,
+    JSONNumber  = 3,
+    JSONObject  = 4,
+    JSONArray   = 5,
+    JSONBoolean = 6
 };
 typedef int JSON_Value_Type;
 
 enum json_result_t {
-  JSONSuccess = 0,
-  JSONFailure = -1
+    JSONSuccess = 0,
+    JSONFailure = -1
 };
 typedef int JSON_Status;
 
@@ -59,6 +59,10 @@ typedef void   (*JSON_Free_Function)(void *);
 /* Call only once, before calling any other function from parson API. If not called, malloc and free
    from stdlib will be used for all allocations */
 void json_set_allocation_functions(JSON_Malloc_Function malloc_fun, JSON_Free_Function free_fun);
+
+/* Sets if slashes should be escaped or not when serializing JSON. By default slashes are escaped.
+ This function sets a global setting and is not thread safe. */
+void json_set_escape_slashes(int escape_slashes);
 
 /* Parses first JSON value in a file, returns NULL in case of error */
 JSON_Value * json_parse_file(const char *filename);
