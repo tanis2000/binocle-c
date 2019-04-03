@@ -259,7 +259,7 @@ uint64_t binocle_window_get_fps(binocle_window *win)
   }
 }
 
-// Returns time in seconds for last frame drawn
+// Returns time in milliseconds for last frame drawn
 uint32_t binocle_window_get_frame_time(binocle_window *win)
 {
   // NOTE: We round value to milliseconds
