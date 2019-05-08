@@ -1,9 +1,7 @@
 
 add_subdirectory(freetype)
 add_subdirectory(kazmath)
-#add_subdirectory(miniaudio)
 add_subdirectory(parson)
-add_subdirectory(sdl_mixer)
 add_subdirectory(zlib)
 
 if (NOT EMSCRIPTEN)
