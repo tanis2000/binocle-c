@@ -2,8 +2,8 @@
 // Created by Valerio Santinelli on 2019-04-18.
 //
 
-#ifndef DEMOMAKER_C_BINOCLE_BEZIER_H
-#define DEMOMAKER_C_BINOCLE_BEZIER_H
+#ifndef BINOCLE_BEZIER_H
+#define BINOCLE_BEZIER_H
 
 #include <kazmath/kazmath.h>
 
@@ -53,4 +53,4 @@ static struct {
 void binocle_bezier_table(kmVec2 P[4], kmVec2 results[BINOCLE_BEZIER_STEPS + 1]);
 float binocle_bezier_value(float dt01, float P[4]);
 
-#endif //DEMOMAKER_C_BINOCLE_BEZIER_H
+#endif //BINOCLE_BEZIER_H

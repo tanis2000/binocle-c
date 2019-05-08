@@ -2,8 +2,8 @@
 // Created by Valerio Santinelli on 24/04/18.
 //
 
-#ifndef BINOCLE_BINOCLE_BITMAPFONT_H
-#define BINOCLE_BINOCLE_BITMAPFONT_H
+#ifndef BINOCLE_BITMAPFONT_H
+#define BINOCLE_BITMAPFONT_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -75,4 +75,4 @@ void binocle_bitmapfont_create_vertice_and_tex_coords_for_string(binocle_bitmapf
 void binocle_bitmapfont_draw_string(binocle_bitmapfont *font, const char *str, float height, struct binocle_gd *gd, uint64_t x, uint64_t y, kmAABB2 viewport, binocle_color color, kmMat4 view_matrix);
 binocle_bitmapfont_square_t binocle_bitmapfont_make_square_t(float x1, float y1, float x2, float y2, float tx1, float ty1, float tx2, float ty2);
 
-#endif //BINOCLE_BINOCLE_BITMAPFONT_H
+#endif //BINOCLE_BITMAPFONT_H

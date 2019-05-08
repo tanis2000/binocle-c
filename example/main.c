@@ -82,7 +82,7 @@ void main_loop() {
   scale.y = 1.0f;
   binocle_sprite_draw(player, &gd, (uint64_t)player_pos.x, (uint64_t)player_pos.y, adapter.viewport, 0, scale, &camera);
   char fps_str[256];
-  sprintf(fps_str, "FPS: %d", binocle_window_get_fps(&window));
+  sprintf(fps_str, "FPS: %llu", binocle_window_get_fps(&window));
   kmMat4 view_matrix;
   kmMat4Identity(&view_matrix);
   binocle_bitmapfont_draw_string(font, fps_str, 32, &gd, 0, window.height - 32, adapter.viewport, binocle_color_white(), view_matrix);

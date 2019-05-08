@@ -2,8 +2,8 @@
 // Created by Valerio Santinelli on 17/04/18.
 //
 
-#ifndef BINOCLE_BINOCLE_CAMERA_H
-#define BINOCLE_BINOCLE_CAMERA_H
+#ifndef BINOCLE_CAMERA_H
+#define BINOCLE_CAMERA_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -37,4 +37,4 @@ struct binocle_viewport_adapter *binocle_camera_get_viewport_adapter(binocle_cam
 kmAABB2 binocle_camera_get_viewport(binocle_camera camera);
 void binocle_camera_set_position(binocle_camera *camera, float x, float y);
 
-#endif //BINOCLE_BINOCLE_CAMERA_H
+#endif //BINOCLE_CAMERA_H

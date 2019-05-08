@@ -4,6 +4,7 @@
 
 #include "binocle_sdl.h"
 #include "binocle_log.h"
+#include "binocle_audio.h"
 
 bool binocle_sdl_init() {
 
@@ -37,57 +38,14 @@ bool binocle_sdl_init() {
 
   // Initializing everything related to AUDIO
 
-  if (SDL_WasInit(SDL_INIT_AUDIO) != 0) {
-    binocle_log_error("SDL_WasInit: Tried to reinitailize Audio");
-    binocle_log_error(SDL_GetError());
-    binocle_sdl_exit();
-  }
-  if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0) {
-    binocle_log_error("SDL_Init: Couldn't start Audio");
-    binocle_log_error(SDL_GetError());
-    binocle_sdl_exit();
-  }
-
-  int flags = MIX_INIT_OGG /*| MIX_INIT_MP3*/;
-  if ((Mix_Init(flags) & flags) != flags) {
-    binocle_log_warning("Mix_Init: Couldn't start Audio");
-    binocle_log_warning(SDL_GetError());
-  }
-
-  // TODO: How do I find out the optimal
-  //       audio rate of a music?
-
-  if (-1 == Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, // audio rate
-                          MIX_DEFAULT_FORMAT,    // format
-                          2,                     // channels
-                          1024))                 // buffers
-  {
-    binocle_log_warning("Mix_OpenAudio: Couldn't start Audio");
-    binocle_log_warning(SDL_GetError());
-  }
-
-  // Reserving 16 channels (meaning 16 simultaneous SFXs playing)
-  Mix_AllocateChannels(16);
-
-  /* print out some info on the formats this run of SDL_mixer supports */
-  {
-    int i, n = Mix_GetNumChunkDecoders();
-    SDL_Log("There are %d available chunk(sample) decoders:\n", n);
-    for (i = 0; i < n; ++i)
-      SDL_Log("	%s\n", Mix_GetChunkDecoder(i));
-    n = Mix_GetNumMusicDecoders();
-    SDL_Log("There are %d available music decoders:\n", n);
-    for (i = 0; i < n; ++i)
-      SDL_Log("	%s\n", Mix_GetMusicDecoder(i));
-  }
-
+  binocle_audio_init_audio_system();
 
   // Initializing everything related to VIDEO
 
   // Subtle bug here: If VIDEO is initialized but EVENTS
   //                  not or vice-versa.
 
-  flags = (SDL_INIT_VIDEO | SDL_INIT_EVENTS);
+  int flags = (SDL_INIT_VIDEO | SDL_INIT_EVENTS);
   if (SDL_WasInit(flags) != 0) {
     binocle_log_error("SDL_WasInit: Tried to reinitailize Video");
     binocle_log_error(SDL_GetError());

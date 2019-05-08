@@ -2,8 +2,8 @@
 // Created by Valerio Santinelli on 26/11/2018.
 //
 
-#ifndef HELIRUN_BINOCLE_ATLAS_H
-#define HELIRUN_BINOCLE_ATLAS_H
+#ifndef BINOCLE_ATLAS_H
+#define BINOCLE_ATLAS_H
 
 #define BINOCLE_ATLAS_MAX_SUBTEXTURES 256
 #define BINOCLE_ATLAS_MAX_FILESIZE 65535
@@ -27,4 +27,4 @@ void binocle_atlas_load_libgdx(char *filename, struct binocle_texture *texture, 
  */
 void binocle_atlas_load_texturepacker(char *filename, struct binocle_texture *texture, struct binocle_subtexture *subtextures, int *num_subtextures);
 
-#endif //HELIRUN_BINOCLE_ATLAS_H
+#endif //BINOCLE_ATLAS_H

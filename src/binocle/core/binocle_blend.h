@@ -2,8 +2,8 @@
 // Created by Valerio Santinelli on 19/04/18.
 //
 
-#ifndef BINOCLE_BINOCLE_BLEND_H
-#define BINOCLE_BINOCLE_BLEND_H
+#ifndef BINOCLE_BLEND_H
+#define BINOCLE_BLEND_H
 
 /**
  * \brief Enumeration of the blending factors
@@ -51,4 +51,4 @@ binocle_blend binocle_blend_new_simple(binocle_blend_factor source_factor, binoc
                                        binocle_blend_equation blend_equation);
 binocle_blend binocle_blend_new_default();
 
-#endif //BINOCLE_BINOCLE_BLEND_H
+#endif //BINOCLE_BLEND_H
