@@ -50,6 +50,7 @@ binocle_shader sdf_shader;
 binocle_shader fxaa_shader;
 binocle_shader dof_shader;
 binocle_shader bloom_shader;
+binocle_audio audio;
 binocle_audio_sound sound;
 
 #ifdef TWODLOOP
@@ -80,6 +81,13 @@ void main_loop() {
 
   if (binocle_input_is_key_pressed(input, KEY_SPACE)) {
     binocle_audio_play_sound(sound);
+  }
+
+  if (binocle_input_is_key_pressed(input, KEY_1)) {
+    binocle_audio_set_master_volume(&audio, audio.master_volume-0.2f);
+  }
+  if (binocle_input_is_key_pressed(input, KEY_2)) {
+    binocle_audio_set_master_volume(&audio, audio.master_volume+0.2f);
   }
 
   binocle_window_clear(&window);
@@ -322,9 +330,11 @@ int main(int argc, char *argv[])
   font_sprite_pos.x = 0;
   font_sprite_pos.y = -256;
 
+  audio = binocle_audio_new();
+  binocle_audio_init(&audio);
   char sound_filename[1024];
   sprintf(sound_filename, "%s%s", BINOCLE_DATA_DIR, "Jump.wav");
-  sound = binocle_audio_load_sound(sound_filename);
+  sound = binocle_audio_load_sound(&audio, sound_filename);
 
   gd = binocle_gd_new();
   binocle_gd_init(&gd);
@@ -341,7 +351,8 @@ int main(int argc, char *argv[])
 #endif // __EMSCRIPTEN__
   binocle_log_info("Quit requested");
 #endif // GAMELOOP
-  binocle_audio_unload_sound(sound);
+  binocle_audio_unload_sound(&audio, sound);
+  binocle_audio_destroy(&audio);
   binocle_sdl_exit();
 }
 

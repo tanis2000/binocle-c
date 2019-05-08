@@ -21,8 +21,6 @@
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio/miniaudio.h"
 
-static binocle_audio g_audio;
-
 binocle_audio binocle_audio_new() {
   binocle_audio res = { 0 };
   res.paused = false;
@@ -51,7 +49,7 @@ bool binocle_audio_init(binocle_audio *audio) {
   audio->device_config.capture.channels = 1;
   audio->device_config.sampleRate = audio->decoder.outputSampleRate;
   audio->device_config.dataCallback = binocle_audio_data_callback;
-  audio->device_config.pUserData = &audio->decoder;
+  audio->device_config.pUserData = audio;
 
   if (ma_device_init(NULL, &audio->device_config, &audio->device) != MA_SUCCESS) {
     binocle_log_error("Failed to open playback device.\n");
@@ -91,24 +89,16 @@ void binocle_audio_destroy(binocle_audio *audio) {
   binocle_log_info("Audio device closed successfully");
 }
 
-void binocle_audio_init_audio_system() {
-  g_audio = binocle_audio_new();
-  binocle_audio_init(&g_audio);
-}
-
-void binocle_audio_close_audio_system() {
-  binocle_audio_destroy(&g_audio);
-}
-
 void binocle_audio_data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
 {
   // Mix
   (void)pDevice;
+  binocle_audio *audio = (binocle_audio *)pDevice->pUserData;
 
   // Init the output buffer to 0
   memset(pOutput, 0, frameCount * pDevice->playback.channels * ma_get_bytes_per_sample(pDevice->playback.format));
 
-  for (binocle_audio_buffer *audio_buffer = g_audio.first_audio_buffer; audio_buffer != NULL ; audio_buffer = audio_buffer->next) {
+  for (binocle_audio_buffer *audio_buffer = audio->first_audio_buffer; audio_buffer != NULL ; audio_buffer = audio_buffer->next) {
     // Ignore stopped or paused audio.
     if (!audio_buffer->playing || audio_buffer->paused) continue;
 
@@ -138,9 +128,9 @@ void binocle_audio_data_callback(ma_device* pDevice, void* pOutput, const void* 
         ma_uint32 framesJustRead = (ma_uint32)ma_pcm_converter_read(&audio_buffer->dsp, tempBuffer, framesToReadRightNow);
         if (framesJustRead > 0)
         {
-          float *framesOut = (float *)pOutput + (frames_read*g_audio.device.playback.channels);
+          float *framesOut = (float *)pOutput + (frames_read * audio->device.playback.channels);
           float *framesIn  = tempBuffer;
-          binocle_audio_mix_audio_frames(pDevice, framesOut, framesIn, framesJustRead, audio_buffer->volume);
+          binocle_audio_mix_audio_frames(audio, framesOut, framesIn, framesJustRead, audio_buffer->volume);
 
           framesToRead -= framesJustRead;
           frames_read += framesJustRead;
@@ -260,8 +250,11 @@ static ma_uint32 binocle_audio_on_audio_buffer_dsp_read(ma_pcm_converter *pDSP, 
   return framesRead;
 }
 
-static void binocle_audio_mix_audio_frames(ma_device* pDevice, float *framesOut, const float *framesIn, ma_uint32 frameCount, float localVolume)
+static void binocle_audio_mix_audio_frames(void* pUserData, float *framesOut, const float *framesIn, ma_uint32 frameCount, float localVolume)
 {
+  binocle_audio *audio = (binocle_audio *)pUserData;
+  ma_device *pDevice = &audio->device;
+
   for (ma_uint32 iFrame = 0; iFrame < frameCount; ++iFrame)
   {
     for (ma_uint32 iChannel = 0; iChannel < pDevice->playback.channels; ++iChannel)
@@ -269,7 +262,7 @@ static void binocle_audio_mix_audio_frames(ma_device* pDevice, float *framesOut,
       float *frameOut = framesOut + (iFrame*pDevice->playback.channels);
       const float *frameIn  = framesIn  + (iFrame*pDevice->playback.channels);
 
-      frameOut[iChannel] += (frameIn[iChannel]*g_audio.master_volume*localVolume);
+      frameOut[iChannel] += (frameIn[iChannel]*audio->master_volume*localVolume);
     }
   }
 }
@@ -287,7 +280,7 @@ void binocle_audio_set_master_volume(binocle_audio *audio, float volume)
   audio->master_volume = volume;
 }
 
-binocle_audio_buffer *binocle_audio_create_audio_buffer(ma_format format, ma_uint32 channels, ma_uint32 sampleRate, ma_uint32 bufferSizeInFrames, binocle_audio_buffer_usage usage)
+binocle_audio_buffer *binocle_audio_create_audio_buffer(binocle_audio *audio, ma_format format, ma_uint32 channels, ma_uint32 sampleRate, ma_uint32 bufferSizeInFrames, binocle_audio_buffer_usage usage)
 {
   binocle_audio_buffer *audioBuffer = (binocle_audio_buffer *)calloc(sizeof(*audioBuffer) + (bufferSizeInFrames*channels*ma_get_bytes_per_sample(format)), 1);
   if (audioBuffer == NULL)
@@ -330,12 +323,12 @@ binocle_audio_buffer *binocle_audio_create_audio_buffer(ma_format format, ma_uin
   audioBuffer->is_sub_buffer_processed[0] = true;
   audioBuffer->is_sub_buffer_processed[1] = true;
 
-  binocle_audio_track_audio_buffer(audioBuffer);
+  binocle_audio_track_audio_buffer(audio, audioBuffer);
 
   return audioBuffer;
 }
 
-void binocle_audio_delete_audio_buffer(binocle_audio_buffer *audioBuffer)
+void binocle_audio_delete_audio_buffer(binocle_audio *audio, binocle_audio_buffer *audioBuffer)
 {
   if (audioBuffer == NULL)
   {
@@ -343,7 +336,7 @@ void binocle_audio_delete_audio_buffer(binocle_audio_buffer *audioBuffer)
     return;
   }
 
-  binocle_audio_untrack_audio_buffer(audioBuffer);
+  binocle_audio_untrack_audio_buffer(audio, audioBuffer);
   free(audioBuffer);
 }
 
@@ -440,24 +433,24 @@ void binocle_audio_set_audio_buffer_pitch(binocle_audio_buffer *audioBuffer, flo
   ma_pcm_converter_set_output_sample_rate(&audioBuffer->dsp, newOutputSampleRate);
 }
 
-void binocle_audio_track_audio_buffer(binocle_audio_buffer *audioBuffer)
+void binocle_audio_track_audio_buffer(binocle_audio *audio, binocle_audio_buffer *audioBuffer)
 {
-  if (g_audio.first_audio_buffer == NULL) g_audio.first_audio_buffer = audioBuffer;
+  if (audio->first_audio_buffer == NULL) audio->first_audio_buffer = audioBuffer;
   else
   {
-    g_audio.last_audio_buffer->next = audioBuffer;
-    audioBuffer->prev = g_audio.last_audio_buffer;
+    audio->last_audio_buffer->next = audioBuffer;
+    audioBuffer->prev = audio->last_audio_buffer;
   }
 
-  g_audio.last_audio_buffer = audioBuffer;
+  audio->last_audio_buffer = audioBuffer;
 }
 
-void binocle_audio_untrack_audio_buffer(binocle_audio_buffer *audioBuffer)
+void binocle_audio_untrack_audio_buffer(binocle_audio *audio, binocle_audio_buffer *audioBuffer)
 {
-  if (audioBuffer->prev == NULL) g_audio.first_audio_buffer = audioBuffer->next;
+  if (audioBuffer->prev == NULL) audio->first_audio_buffer = audioBuffer->next;
   else audioBuffer->prev->next = audioBuffer->next;
 
-  if (audioBuffer->next == NULL) g_audio.last_audio_buffer = audioBuffer->prev;
+  if (audioBuffer->next == NULL) audio->last_audio_buffer = audioBuffer->prev;
   else audioBuffer->next->prev = audioBuffer->prev;
 
   audioBuffer->prev = NULL;
@@ -599,18 +592,18 @@ static binocle_audio_wave binocle_audio_load_wav(const char *fileName)
   return wave;
 }
 
-binocle_audio_sound binocle_audio_load_sound(const char *fileName)
+binocle_audio_sound binocle_audio_load_sound(binocle_audio *audio, const char *fileName)
 {
   binocle_audio_wave wave = binocle_audio_load_wave(fileName);
 
-  binocle_audio_sound sound = binocle_audio_load_sound_from_wave(wave);
+  binocle_audio_sound sound = binocle_audio_load_sound_from_wave(audio, wave);
 
   binocle_audio_unload_wave(wave);       // Sound is loaded, we can unload wave
 
   return sound;
 }
 
-binocle_audio_sound binocle_audio_load_sound_from_wave(binocle_audio_wave wave)
+binocle_audio_sound binocle_audio_load_sound_from_wave(binocle_audio *audio, binocle_audio_wave wave)
 {
   binocle_audio_sound sound = { 0 };
 
@@ -630,7 +623,7 @@ binocle_audio_sound binocle_audio_load_sound_from_wave(binocle_audio_wave wave)
     ma_uint32 frameCount = (ma_uint32)ma_convert_frames(NULL, BINOCLE_AUDIO_SAMPLE_FORMAT, BINOCLE_AUDIO_CHANNEL_COUNT, BINOCLE_AUDIO_SAMPLE_RATE, NULL, formatIn, wave.channels, wave.sample_rate, frameCountIn);
     if (frameCount == 0) binocle_log_warning("LoadSoundFromWave() : Failed to get frame count for format conversion");
 
-    binocle_audio_buffer* audioBuffer = binocle_audio_create_audio_buffer(BINOCLE_AUDIO_SAMPLE_FORMAT, BINOCLE_AUDIO_CHANNEL_COUNT, BINOCLE_AUDIO_SAMPLE_RATE, frameCount, BINOCLE_AUDIO_BUFFER_USAGE_STATIC);
+    binocle_audio_buffer* audioBuffer = binocle_audio_create_audio_buffer(audio, BINOCLE_AUDIO_SAMPLE_FORMAT, BINOCLE_AUDIO_CHANNEL_COUNT, BINOCLE_AUDIO_SAMPLE_RATE, frameCount, BINOCLE_AUDIO_BUFFER_USAGE_STATIC);
     if (audioBuffer == NULL) binocle_log_warning("LoadSoundFromWave() : Failed to create audio buffer");
 
     if (audioBuffer != NULL) {
@@ -651,9 +644,9 @@ void binocle_audio_unload_wave(binocle_audio_wave wave)
   binocle_log_info("Unloaded wave data from RAM");
 }
 
-void binocle_audio_unload_sound(binocle_audio_sound sound)
+void binocle_audio_unload_sound(binocle_audio *audio, binocle_audio_sound sound)
 {
-  binocle_audio_delete_audio_buffer((binocle_audio_buffer *)sound.audio_buffer);
+  binocle_audio_delete_audio_buffer(audio, (binocle_audio_buffer *)sound.audio_buffer);
 
   binocle_log_info("[SND ID %i][BUFR ID %i] Unloaded sound data from RAM", sound.source, sound.buffer);
 }

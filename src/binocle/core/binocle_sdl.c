@@ -36,10 +36,6 @@ bool binocle_sdl_init() {
     binocle_sdl_exit();
   }
 
-  // Initializing everything related to AUDIO
-
-  binocle_audio_init_audio_system();
-
   // Initializing everything related to VIDEO
 
   // Subtle bug here: If VIDEO is initialized but EVENTS
@@ -72,9 +68,6 @@ bool binocle_sdl_init() {
 void binocle_sdl_exit() {
   // Freeing everything related to VIDEO
 
-
-  // Freeing everything related to AUDIO
-  binocle_audio_close_audio_system();
 
   // Freeing everything related to FONTS
 
