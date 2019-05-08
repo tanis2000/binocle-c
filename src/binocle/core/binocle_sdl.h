@@ -29,7 +29,7 @@
 
 // SDL 2.0
 #include <SDL.h>            // SDL2
-#include <SDL_mixer.h>      // SDL2_Mixer
+//#include <SDL_mixer.h>      // SDL2_Mixer
 
 /// Starts SDL2, MUST be called before everything else.
 bool binocle_sdl_init();

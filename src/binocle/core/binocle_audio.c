@@ -6,107 +6,27 @@
 #include "binocle_audio.h"
 #include "binocle_log.h"
 
+#define STB_VORBIS_IMPLEMENTATION
+#include "miniaudio/stb_vorbis.h"
 #define DR_FLAC_IMPLEMENTATION
-#include "dr_flac.h"  /* Enables FLAC decoding. */
+#include "miniaudio/dr_flac.h"
 #define DR_MP3_IMPLEMENTATION
-#include "dr_mp3.h"   /* Enables MP3 decoding. */
+#include "miniaudio/dr_mp3.h"
 #define DR_WAV_IMPLEMENTATION
-#include "dr_wav.h"   /* Enables WAV decoding. */
+#include "miniaudio/dr_wav.h"
+#define JAR_XM_IMPLEMENTATION
+#include "miniaudio/jar_xm.h"
+#define JAR_MOD_IMPLEMENTATION
+#include "miniaudio/jar_mod.h"
 #define MINIAUDIO_IMPLEMENTATION
-#include "miniaudio.h"
+#include "miniaudio/miniaudio.h"
 
 static binocle_audio g_audio;
-
-binocle_sound binocle_sound_new() {
-  binocle_sound res = {0};
-  res.sound = NULL;
-  return res;
-}
-
-void binocle_sound_load(binocle_sound *sound, char *filename) {
-  sound->sound = Mix_LoadWAV(filename);
-  if (sound->sound == NULL) {
-    binocle_log_error("Cannot load sound file: %s", filename);
-    return;
-  }
-}
-
-void binocle_sound_play(binocle_sound *sound) {
-  if (sound->sound == NULL) {
-    return;
-  }
-
-  Mix_PlayChannel(-1, sound->sound, 0);
-}
-
-void binocle_sound_stop(binocle_sound *sound) {
-  Mix_HaltChannel(-1);
-}
-
-void binocle_sound_pause(binocle_sound *sound) {
-  Mix_Pause(-1);
-}
-
-void binocle_sound_resume(binocle_sound *sound) {
-  if (Mix_Paused(-1)) {
-    Mix_Resume(-1);
-  }
-}
-
-void binocle_sound_destroy(binocle_sound *sound) {
-  Mix_FreeChunk(sound->sound);
-  sound->sound = NULL;
-}
-
-
-
-binocle_music binocle_music_new() {
-  binocle_music res = {0};
-  res.music = NULL;
-  return res;
-}
-
-void binocle_music_load(binocle_music *music, char *filename) {
-  music->music = Mix_LoadMUS(filename);
-  if (music->music == NULL) {
-    binocle_log_error("Cannot load music file: %s", filename);
-    binocle_log_error("Mix error: %s", Mix_GetError());
-    return;
-  }
-}
-
-void binocle_music_play(binocle_music *music, bool loop) {
-  int loops = 0;
-  if (loop) {
-    loops -= 1;
-  }
-  Mix_PlayMusic(music->music, loops);
-}
-
-void binocle_music_stop(binocle_music *music) {
-  Mix_HaltMusic();
-}
-
-void binocle_music_pause(binocle_music *music) {
-  Mix_PauseMusic();
-}
-
-void binocle_music_resume(binocle_music *music) {
-  if (Mix_PausedMusic()) {
-    Mix_ResumeMusic();
-  }
-}
-
-void binocle_music_destroy(binocle_music *music) {
-  Mix_FreeMusic(music->music);
-  music->music = NULL;
-}
-
 
 binocle_audio binocle_audio_new() {
   binocle_audio res = { 0 };
   res.paused = false;
-  res.active_music = binocle_music_new();
+  //res.active_music = binocle_music_new();
   res.master_volume = 1.0f;
   res.first_audio_buffer = NULL;
   res.last_audio_buffer = NULL;
@@ -174,6 +94,10 @@ void binocle_audio_destroy(binocle_audio *audio) {
 void binocle_audio_init_audio_system() {
   g_audio = binocle_audio_new();
   binocle_audio_init(&g_audio);
+}
+
+void binocle_audio_close_audio_system() {
+  binocle_audio_destroy(&g_audio);
 }
 
 void binocle_audio_data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
@@ -540,10 +464,254 @@ void binocle_audio_untrack_audio_buffer(binocle_audio_buffer *audioBuffer)
   audioBuffer->next = NULL;
 }
 
+//
+// Sound loading and playing stuff
+//
+
+bool binocle_audio_is_file_extension(const char *fileName, const char *ext)
+{
+  bool result = false;
+  const char *fileExt;
+
+  if ((fileExt = strrchr(fileName, '.')) != NULL)
+  {
+    if (strcmp(fileExt, ext) == 0) result = true;
+  }
+
+  return result;
+}
+
+
+binocle_audio_wave binocle_audio_load_wave(const char *fileName)
+{
+  // TODO: add support for loading MOD and XM
+
+  binocle_audio_wave wave = { 0 };
+
+  if (binocle_audio_is_file_extension(fileName, ".wav")) {
+    wave = binocle_audio_load_wav(fileName);
+  } else if (binocle_audio_is_file_extension(fileName, ".ogg")) {
+    wave = binocle_audio_load_ogg(fileName);
+  } else if (binocle_audio_is_file_extension(fileName, ".flac")) {
+    wave = binocle_audio_load_flac(fileName);
+  } else if (binocle_audio_is_file_extension(fileName, ".mp3")) {
+    wave = binocle_audio_load_mp3(fileName);
+  } else {
+    binocle_log_warning("[%s] Audio fileformat not supported, it can't be loaded", fileName);
+  }
+
+  return wave;
+}
+
+static binocle_audio_wave binocle_audio_load_ogg(const char *fileName)
+{
+  binocle_audio_wave wave = { 0 };
+
+  stb_vorbis *oggFile = stb_vorbis_open_filename(fileName, NULL, NULL);
+
+  if (oggFile == NULL) binocle_log_warning("[%s] OGG file could not be opened", fileName);
+  else
+  {
+    stb_vorbis_info info = stb_vorbis_get_info(oggFile);
+
+    wave.sample_rate = info.sample_rate;
+    wave.sample_size = 16;                   // 16 bit per sample (short)
+    wave.channels = info.channels;
+    wave.sample_count = (unsigned int)stb_vorbis_stream_length_in_samples(oggFile)*info.channels;  // Independent by channel
+
+    float totalSeconds = stb_vorbis_stream_length_in_seconds(oggFile);
+    if (totalSeconds > 10) binocle_log_warning("[%s] Ogg audio length is larger than 10 seconds (%f), that's a big file in memory, consider music streaming", fileName, totalSeconds);
+
+    wave.data = (short *)malloc(wave.sample_count*wave.channels*sizeof(short));
+
+    // NOTE: Returns the number of samples to process (be careful! we ask for number of shorts!)
+    int numSamplesOgg = stb_vorbis_get_samples_short_interleaved(oggFile, info.channels, (short *)wave.data, wave.sample_count*wave.channels);
+
+    binocle_log_debug("[%s] Samples obtained: %i", fileName, numSamplesOgg);
+
+    binocle_log_info("[%s] OGG file loaded successfully (%i Hz, %i bit, %s)", fileName, wave.sample_rate, wave.sample_size, (wave.channels == 1)? "Mono" : "Stereo");
+
+    stb_vorbis_close(oggFile);
+  }
+
+  return wave;
+}
+
+static binocle_audio_wave binocle_audio_load_flac(const char *fileName)
+{
+  binocle_audio_wave wave;
+
+  // Decode an entire FLAC file in one go
+  uint64_t totalSampleCount;
+  wave.data = drflac_open_file_and_read_pcm_frames_s16(fileName, &wave.channels, &wave.sample_rate, &totalSampleCount);
+
+  wave.sample_count = (unsigned int)totalSampleCount;
+  wave.sample_size = 16;
+
+  // NOTE: Only support up to 2 channels (mono, stereo)
+  if (wave.channels > 2) binocle_log_warning("[%s] FLAC channels number (%i) not supported", fileName, wave.channels);
+
+  if (wave.data == NULL) binocle_log_warning("[%s] FLAC data could not be loaded", fileName);
+  else binocle_log_info("[%s] FLAC file loaded successfully (%i Hz, %i bit, %s)", fileName, wave.sample_rate, wave.sample_size, (wave.channels == 1)? "Mono" : "Stereo");
+
+  return wave;
+}
+
+static binocle_audio_wave binocle_audio_load_mp3(const char *fileName)
+{
+  binocle_audio_wave wave = { 0 };
+
+  // Decode an entire MP3 file in one go
+  uint64_t totalFrameCount = 0;
+  drmp3_config config = { 0 };
+  wave.data = drmp3_open_file_and_read_f32(fileName, &config, &totalFrameCount);
+
+  wave.channels = config.outputChannels;
+  wave.sample_rate = config.outputSampleRate;
+  wave.sample_count = (int)totalFrameCount*wave.channels;
+  wave.sample_size = 32;
+
+  // NOTE: Only support up to 2 channels (mono, stereo)
+  if (wave.channels > 2) binocle_log_warning("[%s] MP3 channels number (%i) not supported", fileName, wave.channels);
+
+  if (wave.data == NULL) binocle_log_warning("[%s] MP3 data could not be loaded", fileName);
+  else binocle_log_info("[%s] MP3 file loaded successfully (%i Hz, %i bit, %s)", fileName, wave.sample_rate, wave.sample_size, (wave.channels == 1)? "Mono" : "Stereo");
+
+  return wave;
+}
+
+static binocle_audio_wave binocle_audio_load_wav(const char *fileName)
+{
+  binocle_audio_wave wave = { 0 };
+
+  // Decode an entire MP3 file in one go
+  uint64_t totalFrameCount = 0;
+  wave.data = drwav_open_file_and_read_pcm_frames_f32(fileName, &wave.channels, &wave.sample_rate, &totalFrameCount);
+  wave.sample_count = (int)totalFrameCount*wave.channels;
+  wave.sample_size = 32;
+
+  // NOTE: Only support up to 2 channels (mono, stereo)
+  if (wave.channels > 2) binocle_log_warning("[%s] WAV channels number (%i) not supported", fileName, wave.channels);
+
+  if (wave.data == NULL) binocle_log_warning("[%s] WAV data could not be loaded", fileName);
+  else binocle_log_info("[%s] WAV file loaded successfully (%i Hz, %i bit, %s)", fileName, wave.sample_rate, wave.sample_size, (wave.channels == 1)? "Mono" : "Stereo");
+
+  return wave;
+}
+
+binocle_audio_sound binocle_audio_load_sound(const char *fileName)
+{
+  binocle_audio_wave wave = binocle_audio_load_wave(fileName);
+
+  binocle_audio_sound sound = binocle_audio_load_sound_from_wave(wave);
+
+  binocle_audio_unload_wave(wave);       // Sound is loaded, we can unload wave
+
+  return sound;
+}
+
+binocle_audio_sound binocle_audio_load_sound_from_wave(binocle_audio_wave wave)
+{
+  binocle_audio_sound sound = { 0 };
+
+  if (wave.data != NULL)
+  {
+    // When using miniaudio we need to do our own mixing. To simplify this we need convert the format of each sound to be consistent with
+    // the format used to open the playback device. We can do this two ways:
+    //
+    //   1) Convert the whole sound in one go at load time (here).
+    //   2) Convert the audio data in chunks at mixing time.
+    //
+    // I have decided on the first option because it offloads work required for the format conversion to the to the loading stage.
+    // The downside to this is that it uses more memory if the original sound is u8 or s16.
+    ma_format formatIn  = ((wave.sample_size == 8)? ma_format_u8 : ((wave.sample_size == 16)? ma_format_s16 : ma_format_f32));
+    ma_uint32 frameCountIn = wave.sample_count/wave.channels;
+
+    ma_uint32 frameCount = (ma_uint32)ma_convert_frames(NULL, BINOCLE_AUDIO_SAMPLE_FORMAT, BINOCLE_AUDIO_CHANNEL_COUNT, BINOCLE_AUDIO_SAMPLE_RATE, NULL, formatIn, wave.channels, wave.sample_rate, frameCountIn);
+    if (frameCount == 0) binocle_log_warning("LoadSoundFromWave() : Failed to get frame count for format conversion");
+
+    binocle_audio_buffer* audioBuffer = binocle_audio_create_audio_buffer(BINOCLE_AUDIO_SAMPLE_FORMAT, BINOCLE_AUDIO_CHANNEL_COUNT, BINOCLE_AUDIO_SAMPLE_RATE, frameCount, BINOCLE_AUDIO_BUFFER_USAGE_STATIC);
+    if (audioBuffer == NULL) binocle_log_warning("LoadSoundFromWave() : Failed to create audio buffer");
+
+    if (audioBuffer != NULL) {
+      frameCount = (ma_uint32)ma_convert_frames(audioBuffer->buffer, audioBuffer->dsp.formatConverterIn.config.formatIn, audioBuffer->dsp.formatConverterIn.config.channels, audioBuffer->dsp.src.config.sampleRateIn, wave.data, formatIn, wave.channels, wave.sample_rate, frameCountIn);
+      if (frameCount == 0) binocle_log_warning("LoadSoundFromWave() : Format conversion failed");
+    }
+
+    sound.audio_buffer = audioBuffer;
+  }
+
+  return sound;
+}
+
+void binocle_audio_unload_wave(binocle_audio_wave wave)
+{
+  if (wave.data != NULL) free(wave.data);
+
+  binocle_log_info("Unloaded wave data from RAM");
+}
+
+void binocle_audio_unload_sound(binocle_audio_sound sound)
+{
+  binocle_audio_delete_audio_buffer((binocle_audio_buffer *)sound.audio_buffer);
+
+  binocle_log_info("[SND ID %i][BUFR ID %i] Unloaded sound data from RAM", sound.source, sound.buffer);
+}
+
+void binocle_audio_update_sound(binocle_audio_sound sound, const void *data, int samplesCount)
+{
+  binocle_audio_buffer *audioBuffer = (binocle_audio_buffer *)sound.audio_buffer;
+
+  if (audioBuffer == NULL)
+  {
+    binocle_log_error("UpdateSound() : Invalid sound - no audio buffer");
+    return;
+  }
+
+  binocle_audio_stop_audio_buffer(audioBuffer);
+
+  // TODO: May want to lock/unlock this since this data buffer is read at mixing time.
+  memcpy(audioBuffer->buffer, data, samplesCount*audioBuffer->dsp.formatConverterIn.config.channels*ma_get_bytes_per_sample(audioBuffer->dsp.formatConverterIn.config.formatIn));
+}
+
+void binocle_audio_play_sound(binocle_audio_sound sound)
+{
+  binocle_audio_play_audio_buffer((binocle_audio_buffer *)sound.audio_buffer);
+}
+
+void binocle_audio_pause_sound(binocle_audio_sound sound)
+{
+  binocle_audio_pause_audio_buffer((binocle_audio_buffer *)sound.audio_buffer);
+}
+
+void binocle_audio_resume_sound(binocle_audio_sound sound)
+{
+  binocle_audio_resume_audio_buffer((binocle_audio_buffer *)sound.audio_buffer);
+}
+
+void binocle_audio_stop_sound(binocle_audio_sound sound)
+{
+  binocle_audio_stop_audio_buffer((binocle_audio_buffer *)sound.audio_buffer);
+}
+
+bool binocle_audio_is_sound_playing(binocle_audio_sound sound)
+{
+  return binocle_audio_is_audio_buffer_playing((binocle_audio_buffer *)sound.audio_buffer);
+}
+
+void binocle_audio_set_sound_volume(binocle_audio_sound sound, float volume)
+{
+  binocle_audio_set_audio_buffer_volume((binocle_audio_buffer *)sound.audio_buffer, volume);
+}
+
+void binocle_audio_set_sound_pitch(binocle_audio_sound sound, float pitch)
+{
+  binocle_audio_set_audio_buffer_pitch((binocle_audio_buffer *)sound.audio_buffer, pitch);
+}
 
 
 
-
+/*
 
 void binocle_audio_play_music(binocle_audio *audio, binocle_music *music, bool loop) {
   binocle_music_play(music, loop);
@@ -599,3 +767,4 @@ bool binocle_audio_is_paused(binocle_audio *audio) {
 void binocle_audio_set_music_volume(int volume) {
   Mix_VolumeMusic(volume);
 }
+ */

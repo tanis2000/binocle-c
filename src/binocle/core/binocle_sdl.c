@@ -74,11 +74,7 @@ void binocle_sdl_exit() {
 
 
   // Freeing everything related to AUDIO
-
-  Mix_AllocateChannels(0); // Frees all allocated channels
-
-  //Mix_Quit(); segmentation fault! why?
-  Mix_CloseAudio();
+  binocle_audio_close_audio_system();
 
   // Freeing everything related to FONTS
 

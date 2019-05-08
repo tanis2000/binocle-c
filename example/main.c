@@ -24,6 +24,7 @@
 #include "binocle_gd.h"
 #include "binocle_log.h"
 #include "binocle_bitmapfont.h"
+#include "binocle_audio.h"
 #include "sys_config.h"
 
 //#define GAMELOOP 1
@@ -43,12 +44,13 @@ binocle_texture font_texture;
 binocle_material font_material;
 binocle_sprite font_sprite;
 kmVec2 font_sprite_pos;
-float time;
+float running_time;
 binocle_shader quad_shader;
 binocle_shader sdf_shader;
 binocle_shader fxaa_shader;
 binocle_shader dof_shader;
 binocle_shader bloom_shader;
+binocle_audio_sound sound;
 
 #ifdef TWODLOOP
 void main_loop() {
@@ -74,6 +76,10 @@ void main_loop() {
     player_pos.y += 50 * (1.0/window.frame_time);
   } else if (binocle_input_is_key_pressed(input, KEY_DOWN)) {
     player_pos.y -= 50 * (1.0/window.frame_time);
+  }
+
+  if (binocle_input_is_key_pressed(input, KEY_SPACE)) {
+    binocle_audio_play_sound(sound);
   }
 
   binocle_window_clear(&window);
@@ -129,7 +135,7 @@ void init_render_targets() {
 
 void draw_scene() {
   binocle_gd_apply_shader(&gd, sdf_shader);
-  binocle_gd_set_uniform_float(sdf_shader, "time", time);
+  binocle_gd_set_uniform_float(sdf_shader, "time", running_time);
   binocle_gd_set_uniform_float2(sdf_shader, "resolution", window.width, window.height);
   // TODO: set all other uniforms
   binocle_gd_draw_quad(sdf_shader); // Draws the current vertices buffer to the render target
@@ -147,7 +153,7 @@ void gbuffer_pass() {
 void fxaa_pass() {
   binocle_gd_set_render_target(fxaa_buffer);
   binocle_gd_apply_shader(&gd, fxaa_shader);
-  binocle_gd_set_uniform_float(fxaa_shader, "time", time);
+  binocle_gd_set_uniform_float(fxaa_shader, "time", running_time);
   binocle_gd_set_uniform_float2(fxaa_shader, "resolution", window.width, window.height);
   binocle_gd_set_uniform_render_target_as_texture(fxaa_shader, "texture", g_buffer);
   binocle_gd_draw_quad(fxaa_shader);
@@ -156,7 +162,7 @@ void fxaa_pass() {
 void dof_pass() {
   binocle_gd_set_render_target(dof_buffer);
   binocle_gd_apply_shader(&gd, dof_shader);
-  binocle_gd_set_uniform_float(dof_shader, "time", time);
+  binocle_gd_set_uniform_float(dof_shader, "time", running_time);
   binocle_gd_set_uniform_float2(dof_shader, "resolution", window.width, window.height);
   binocle_gd_set_uniform_float2(dof_shader, "uv", 1.0, 1.0);
   binocle_gd_set_uniform_render_target_as_texture(dof_shader, "tInput", g_buffer);
@@ -171,7 +177,7 @@ void dof_pass() {
 void bloom_pass() {
   binocle_gd_set_render_target(bloom_buffer1);
   binocle_gd_apply_shader(&gd, bloom_shader);
-  binocle_gd_set_uniform_float(bloom_shader, "time", time);
+  binocle_gd_set_uniform_float(bloom_shader, "time", running_time);
   binocle_gd_set_uniform_float2(bloom_shader, "resolution", window.width, window.height);
   binocle_gd_set_uniform_float2(bloom_shader, "uv", 1.0, 1.0);
   binocle_gd_set_uniform_render_target_as_texture(bloom_shader, "tInput", g_buffer);
@@ -197,7 +203,7 @@ void tonemap_pass() {
 void screen_pass() {
   //binocle_gd_set_render_target(g_buffer);
   binocle_gd_apply_shader(&gd, quad_shader);
-  binocle_gd_set_uniform_float(quad_shader, "time", time);
+  binocle_gd_set_uniform_float(quad_shader, "time", running_time);
   binocle_gd_set_uniform_float2(quad_shader, "resolution", window.width, window.height);
   if (binocle_input_is_key_pressed(input, KEY_1)) {
     binocle_gd_draw_quad_to_screen(quad_shader, fxaa_buffer);
@@ -239,7 +245,7 @@ void main_loop() {
   binocle_window_clear(&window);
 
   render_loop();
-  time += (binocle_window_get_frame_time(&window) / 1000.0);
+  running_time += (binocle_window_get_frame_time(&window) / 1000.0);
   char fps_str[256];
   sprintf(fps_str, "FPS: %d", binocle_window_get_fps(&window));
   kmMat4 view_matrix;
@@ -316,9 +322,13 @@ int main(int argc, char *argv[])
   font_sprite_pos.x = 0;
   font_sprite_pos.y = -256;
 
+  char sound_filename[1024];
+  sprintf(sound_filename, "%s%s", BINOCLE_DATA_DIR, "Jump.wav");
+  sound = binocle_audio_load_sound(sound_filename);
+
   gd = binocle_gd_new();
   binocle_gd_init(&gd);
-  time = 0;
+  running_time = 0;
 #ifdef GAMELOOP
   binocle_game_run(window, input);
 #else
@@ -328,9 +338,10 @@ int main(int argc, char *argv[])
   while (!input.quit_requested) {
     main_loop();
   }
-#endif
+#endif // __EMSCRIPTEN__
   binocle_log_info("Quit requested");
-#endif
+#endif // GAMELOOP
+  binocle_audio_unload_sound(sound);
   binocle_sdl_exit();
 }
 

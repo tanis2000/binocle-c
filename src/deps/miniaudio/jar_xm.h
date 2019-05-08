@@ -135,40 +135,14 @@ void jar_xm_generate_samples(jar_xm_context_t*, float* output, size_t numsamples
  * @param output buffer of 2*numsamples elements (A left and right value for each sample)
  * @param numsamples number of samples to generate
  */
-void jar_xm_generate_samples_16bit(jar_xm_context_t* ctx, short* output, size_t numsamples)
-{
-  float* musicBuffer = malloc((2*numsamples)*sizeof(float));
-  jar_xm_generate_samples(ctx, musicBuffer, numsamples);
-
-  if(output){
-    size_t x;
-    for(x=0;x<2*numsamples;x++)
-      output[x] = (short)(musicBuffer[x] * SHRT_MAX);
-  }
-
-  free(musicBuffer);
-}
+void jar_xm_generate_samples_16bit(jar_xm_context_t* ctx, short* output, size_t numsamples);
 
 /** Play the module, resample from 32 bit to 8 bit, and put the sound samples in an output buffer.
  *
  * @param output buffer of 2*numsamples elements (A left and right value for each sample)
  * @param numsamples number of samples to generate
  */
-void jar_xm_generate_samples_8bit(jar_xm_context_t* ctx, char* output, size_t numsamples)
-{
-  float* musicBuffer = malloc((2*numsamples)*sizeof(float));
-  jar_xm_generate_samples(ctx, musicBuffer, numsamples);
-
-  if(output){
-    size_t x;
-    for(x=0;x<2*numsamples;x++)
-      output[x] = (char)(musicBuffer[x] * CHAR_MAX);
-  }
-
-  free(musicBuffer);
-}
-
-
+void jar_xm_generate_samples_8bit(jar_xm_context_t* ctx, char* output, size_t numsamples);
 
 /** Set the maximum number of times a module can loop. After the
  * specified number of loops, calls to jar_xm_generate_samples will only
@@ -314,12 +288,12 @@ uint64_t jar_xm_get_remaining_samples(jar_xm_context_t*);
 
 #if JAR_XM_DEBUG
 #include <stdio.h>
-#define DEBUG(fmt, ...) do {                                        \
+#define JAR_DEBUG(fmt, ...) do {                                        \
         fprintf(stderr, "%s(): " fmt "\n", __func__, __VA_ARGS__);    \
         fflush(stderr);                                                \
     } while(0)
 #else
-#define DEBUG(...)
+#define JAR_DEBUG(...)
 #endif
 
 #if jar_xm_BIG_ENDIAN
@@ -626,7 +600,7 @@ int jar_xm_create_context_safe(jar_xm_context_t** ctxp, const char* moddata, siz
 
 #if JAR_XM_DEFENSIVE
     if((ret = jar_xm_check_sanity_preload(moddata, moddata_length))) {
-        DEBUG("jar_xm_check_sanity_preload() returned %i, module is not safe to load", ret);
+        JAR_DEBUG("jar_xm_check_sanity_preload() returned %i, module is not safe to load", ret);
         return 1;
     }
 #endif
@@ -635,7 +609,7 @@ int jar_xm_create_context_safe(jar_xm_context_t** ctxp, const char* moddata, siz
     mempool = malloc(bytes_needed);
     if(mempool == NULL && bytes_needed > 0) {
         /* malloc() failed, trouble ahead */
-        DEBUG("call to malloc() failed, returned %p", (void*)mempool);
+        JAR_DEBUG("call to malloc() failed, returned %p", (void*)mempool);
         return 2;
     }
 
@@ -680,7 +654,7 @@ int jar_xm_create_context_safe(jar_xm_context_t** ctxp, const char* moddata, siz
 
 #if JAR_XM_DEFENSIVE
     if((ret = jar_xm_check_sanity_postload(ctx))) {
-        DEBUG("jar_xm_check_sanity_postload() returned %i, module is not safe to play", ret);
+        JAR_DEBUG("jar_xm_check_sanity_postload() returned %i, module is not safe to play", ret);
         jar_xm_free_context(ctx);
         return 1;
     }
@@ -833,9 +807,9 @@ int jar_xm_check_sanity_postload(jar_xm_context_t* ctx) {
             if(i+1 == ctx->module.length && ctx->module.length > 1) {
                 /* Cheap fix */
                 --ctx->module.length;
-                DEBUG("trimming invalid POT at pos %X", i);
+                JAR_DEBUG("trimming invalid POT at pos %X", i);
             } else {
-                DEBUG("module has invalid POT, pos %X references nonexistent pattern %X",
+                JAR_DEBUG("module has invalid POT, pos %X references nonexistent pattern %X",
                       i,
                       ctx->module.pattern_table[i]);
                 return 1;
@@ -1547,7 +1521,7 @@ static float jar_xm_frequency(jar_xm_context_t* ctx, float period, float note_of
         }
 
         if(JAR_XM_DEBUG && (p1 < period || p2 > period)) {
-            DEBUG("%i <= %f <= %i should hold but doesn't, this is a bug", p2, period, p1);
+            JAR_DEBUG("%i <= %f <= %i should hold but doesn't, this is a bug", p2, period, p1);
         }
 
         note = 12.f * (octave + 2) + a + jar_xm_INVERSE_LERP(p1, p2, period);
@@ -2537,7 +2511,7 @@ static void jar_xm_sample(jar_xm_context_t* ctx, float* left, float* right) {
 
 #if JAR_XM_DEBUG
     if(fabs(*left) > 1 || fabs(*right) > 1) {
-        DEBUG("clipping frame: %f %f, this is a bad module or a libxm bug", *left, *right);
+        JAR_DEBUG("clipping frame: %f %f, this is a bad module or a libxm bug", *left, *right);
     }
 #endif
 }
@@ -2549,6 +2523,34 @@ void jar_xm_generate_samples(jar_xm_context_t* ctx, float* output, size_t numsam
             jar_xm_sample(ctx, output + (2 * i), output + (2 * i + 1));
         }
     }
+}
+
+void jar_xm_generate_samples_16bit(jar_xm_context_t* ctx, short* output, size_t numsamples)
+{
+  float* musicBuffer = malloc((2*numsamples)*sizeof(float));
+  jar_xm_generate_samples(ctx, musicBuffer, numsamples);
+
+  if(output){
+    size_t x;
+    for(x=0;x<2*numsamples;x++)
+      output[x] = (short)(musicBuffer[x] * SHRT_MAX);
+  }
+
+  free(musicBuffer);
+}
+
+void jar_xm_generate_samples_8bit(jar_xm_context_t* ctx, char* output, size_t numsamples)
+{
+  float* musicBuffer = malloc((2*numsamples)*sizeof(float));
+  jar_xm_generate_samples(ctx, musicBuffer, numsamples);
+
+  if(output){
+    size_t x;
+    for(x=0;x<2*numsamples;x++)
+      output[x] = (char)(musicBuffer[x] * CHAR_MAX);
+  }
+
+  free(musicBuffer);
 }
 
 uint64_t jar_xm_get_remaining_samples(jar_xm_context_t* ctx)
@@ -2578,8 +2580,8 @@ uint64_t jar_xm_get_remaining_samples(jar_xm_context_t* ctx)
 
 
 
-#undef DEBUG
-#define DEBUG(...) do {      \
+#undef JAR_DEBUG
+#define JAR_DEBUG(...) do {      \
         fprintf(stderr, __VA_ARGS__); \
         fflush(stderr); \
     } while(0)
@@ -2643,7 +2645,7 @@ int jar_xm_create_context_from_file(jar_xm_context_t** ctx, uint32_t rate, const
         break;
 
     case 1:
-        DEBUG("could not create context: module is not sane\n");
+        JAR_DEBUG("could not create context: module is not sane\n");
         *ctx = NULL;
         return 1;
         break;
