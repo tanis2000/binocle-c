@@ -18,6 +18,7 @@
 #define BINOCLE_AUDIO_SAMPLE_FORMAT   ma_format_f32
 #define BINOCLE_AUDIO_CHANNEL_COUNT   2
 #define BINOCLE_AUDIO_SAMPLE_RATE     48000
+#define BINOCLE_AUDIO_BUFFER_SIZE     4096
 
 typedef enum binocle_audio_buffer_usage {
   BINOCLE_AUDIO_BUFFER_USAGE_STATIC = 0,
@@ -45,7 +46,7 @@ typedef struct binocle_audio_stream {
   unsigned int buffers[2];    // Audio buffers (double buffering)
 } binocle_audio_stream;
 
-typedef struct binocle_audio_music_data {
+typedef struct binocle_audio_music {
   binocle_audio_music_context_type ctx_type;
   stb_vorbis *ctx_ogg;
   drflac *ctx_flac;
@@ -59,7 +60,7 @@ typedef struct binocle_audio_music_data {
   int loop_count;                      // Loops count (times music repeats), -1 means infinite loop
   unsigned int total_samples;          // Total number of samples
   unsigned int samples_left;           // Number of samples left to end
-} binocle_audio_music_data;
+} binocle_audio_music;
 
 typedef struct binocle_audio_wave {
   unsigned int sample_count;   // Number of samples
@@ -147,12 +148,30 @@ bool binocle_audio_is_sound_playing(binocle_audio_sound sound);
 void binocle_audio_set_sound_volume(binocle_audio_sound sound, float volume);
 void binocle_audio_set_sound_pitch(binocle_audio_sound sound, float pitch);
 
+binocle_audio_music *binocle_audio_load_music_stream(binocle_audio *audio, const char *fileName);
+void binocle_audio_unload_music_stream(binocle_audio *audio, binocle_audio_music *music);
+void binocle_audio_play_music_stream(binocle_audio_music *music);
+void binocle_audio_pause_music_stream(binocle_audio_music *music);
+void binocle_audio_resume_music_stream(binocle_audio_music *music);
+void binocle_audio_stop_music_stream(binocle_audio_music *music);
+void binocle_audio_update_music_stream(binocle_audio_music *music);
+bool binocle_audio_is_music_playing(binocle_audio_music *music);
+void binocle_audio_set_music_volume(binocle_audio_music *music, float volume);
+void binocle_audio_set_music_pitch(binocle_audio_music *music, float pitch);
+void binocle_audio_set_music_loop_count(binocle_audio_music *music, int count);
+float binocle_audio_get_music_time_length(binocle_audio_music *music);
+float binocle_audio_get_music_time_played(binocle_audio_music *music);
+binocle_audio_stream binocle_audio_init_audio_stream(binocle_audio *audio, unsigned int sampleRate, unsigned int sampleSize, unsigned int channels);
+void binocle_audio_close_audio_stream(binocle_audio *audio, binocle_audio_stream stream);
+void binocle_audio_update_audio_stream(binocle_audio_stream stream, const void *data, int samplesCount);
+bool binocle_audio_is_audio_buffer_processed(binocle_audio_stream stream);
+void binocle_audio_play_audio_stream(binocle_audio_stream stream);
+void binocle_audio_pause_audio_stream(binocle_audio_stream stream);
+void binocle_audio_resume_audio_stream(binocle_audio_stream stream);
+bool binocle_audio_is_audio_stream_playing(binocle_audio_stream stream);
+void binocle_audio_stop_audio_stream(binocle_audio_stream stream);
+void binocle_audio_set_audio_stream_volume(binocle_audio_stream stream, float volume);
+void binocle_audio_set_audio_stream_pitch(binocle_audio_stream stream, float pitch);
 
-
-void binocle_audio_stop_all(binocle_audio *audio);
-void binocle_audio_pause_all(binocle_audio *audio);
-void binocle_audio_resume_all(binocle_audio *audio);
-bool binocle_audio_is_paused(binocle_audio *audio);
-void binocle_audio_set_music_volume(int volume);
 
 #endif //BINOCLE_AUDIO_H

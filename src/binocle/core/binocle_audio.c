@@ -2,9 +2,8 @@
 // Created by Valerio Santinelli on 09/11/2018.
 //
 
-#include <miniaudio/miniaudio.h>
-#include "binocle_audio.h"
 #include "binocle_log.h"
+#include "binocle_audio.h"
 
 #define STB_VORBIS_IMPLEMENTATION
 #include "miniaudio/stb_vorbis.h"
@@ -702,6 +701,481 @@ void binocle_audio_set_sound_pitch(binocle_audio_sound sound, float pitch)
   binocle_audio_set_audio_buffer_pitch((binocle_audio_buffer *)sound.audio_buffer, pitch);
 }
 
+//
+// Music stuff
+//
+
+binocle_audio_music *binocle_audio_load_music_stream(binocle_audio *audio, const char *fileName) {
+  binocle_audio_music *music = (binocle_audio_music *) malloc(sizeof(binocle_audio_music));
+  bool musicLoaded = true;
+
+  if (binocle_audio_is_file_extension(fileName, ".ogg")) {
+    // Open ogg audio stream
+    music->ctx_ogg = stb_vorbis_open_filename(fileName, NULL, NULL);
+
+    if (music->ctx_ogg == NULL) musicLoaded = false;
+    else {
+      stb_vorbis_info info = stb_vorbis_get_info(music->ctx_ogg);  // Get Ogg file info
+
+      // OGG bit rate defaults to 16 bit, it's enough for compressed format
+      music->stream = binocle_audio_init_audio_stream(audio, info.sample_rate, 16, info.channels);
+      music->total_samples = (unsigned int) stb_vorbis_stream_length_in_samples(music->ctx_ogg) * info.channels;
+      music->samples_left = music->total_samples;
+      music->ctx_type = BINOCLE_AUDIO_MUSIC_AUDIO_OGG;
+      music->loop_count = -1;                       // Infinite loop by default
+
+      binocle_log_debug("[%s] OGG total samples: %i", fileName, music->total_samples);
+      binocle_log_debug("[%s] OGG sample rate: %i", fileName, info.sample_rate);
+      binocle_log_debug("[%s] OGG channels: %i", fileName, info.channels);
+      binocle_log_debug("[%s] OGG memory required: %i", fileName, info.temp_memory_required);
+    }
+  } else if (binocle_audio_is_file_extension(fileName, ".flac")) {
+    music->ctx_flac = drflac_open_file(fileName);
+
+    if (music->ctx_flac == NULL) musicLoaded = false;
+    else {
+      music->stream = binocle_audio_init_audio_stream(audio, music->ctx_flac->sampleRate,
+                                                      music->ctx_flac->bitsPerSample, music->ctx_flac->channels);
+      music->total_samples = (unsigned int) music->ctx_flac->totalSampleCount;
+      music->samples_left = music->total_samples;
+      music->ctx_type = BINOCLE_AUDIO_MUSIC_AUDIO_FLAC;
+      music->loop_count = -1;                       // Infinite loop by default
+
+      binocle_log_debug("[%s] FLAC total samples: %i", fileName, music->total_samples);
+      binocle_log_debug("[%s] FLAC sample rate: %i", fileName, music->ctx_flac->sampleRate);
+      binocle_log_debug("[%s] FLAC bits per sample: %i", fileName, music->ctx_flac->bitsPerSample);
+      binocle_log_debug("[%s] FLAC channels: %i", fileName, music->ctx_flac->channels);
+    }
+  } else if (binocle_audio_is_file_extension(fileName, ".mp3")) {
+    int result = drmp3_init_file(&music->ctx_mp3, fileName, NULL);
+
+    if (!result) musicLoaded = false;
+    else {
+      binocle_log_debug("[%s] MP3 sample rate: %i", fileName, music->ctx_mp3.sampleRate);
+      binocle_log_debug("[%s] MP3 bits per sample: %i", fileName, 32);
+      binocle_log_debug("[%s] MP3 channels: %i", fileName, music->ctx_mp3.channels);
+
+      music->stream = binocle_audio_init_audio_stream(audio, music->ctx_mp3.sampleRate, 32, music->ctx_mp3.channels);
+
+      // TODO: There is not an easy way to compute the total number of samples available
+      // in an MP3, frames size could be variable... we tried with a 60 seconds music... but crashes...
+      music->total_samples = drmp3_get_pcm_frame_count(&music->ctx_mp3) * music->ctx_mp3.channels;
+      music->samples_left = music->total_samples;
+      music->ctx_type = BINOCLE_AUDIO_MUSIC_AUDIO_MP3;
+      music->loop_count = -1;                       // Infinite loop by default
+
+      binocle_log_debug("[%s] MP3 total samples: %i", fileName, music->total_samples);
+    }
+  } else if (binocle_audio_is_file_extension(fileName, ".xm")) {
+    int result = jar_xm_create_context_from_file(&music->ctx_xm, 48000, fileName);
+
+    if (!result)    // XM context created successfully
+    {
+      jar_xm_set_max_loop_count(music->ctx_xm, 0); // Set infinite number of loops
+
+      // NOTE: Only stereo is supported for XM
+      music->stream = binocle_audio_init_audio_stream(audio, 48000, 16, 2);
+      music->total_samples = (unsigned int) jar_xm_get_remaining_samples(music->ctx_xm);
+      music->samples_left = music->total_samples;
+      music->ctx_type = BINOCLE_AUDIO_MUSIC_MODULE_XM;
+      music->loop_count = -1;                       // Infinite loop by default
+
+      binocle_log_debug("[%s] XM number of samples: %i", fileName, music->total_samples);
+      binocle_log_debug("[%s] XM track length: %11.6f sec", fileName, (float) music->total_samples / 48000.0f);
+    } else musicLoaded = false;
+  } else if (binocle_audio_is_file_extension(fileName, ".mod")) {
+    jar_mod_init(&music->ctx_mod);
+
+    if (jar_mod_load_file(&music->ctx_mod, fileName)) {
+      // NOTE: Only stereo is supported for MOD
+      music->stream = binocle_audio_init_audio_stream(audio, 48000, 16, 2);
+      music->total_samples = (unsigned int) jar_mod_max_samples(&music->ctx_mod);
+      music->samples_left = music->total_samples;
+      music->ctx_type = BINOCLE_AUDIO_MUSIC_MODULE_MOD;
+      music->loop_count = -1;                       // Infinite loop by default
+
+      binocle_log_debug("[%s] MOD number of samples: %i", fileName, music->samples_left);
+      binocle_log_debug("[%s] MOD track length: %11.6f sec", fileName, (float) music->total_samples / 48000.0f);
+    } else musicLoaded = false;
+  } else musicLoaded = false;
+
+  if (!musicLoaded) {
+    if (music->ctx_type == BINOCLE_AUDIO_MUSIC_AUDIO_OGG) stb_vorbis_close(music->ctx_ogg);
+    else if (music->ctx_type == BINOCLE_AUDIO_MUSIC_AUDIO_FLAC) drflac_free(music->ctx_flac);
+    else if (music->ctx_type == BINOCLE_AUDIO_MUSIC_AUDIO_MP3) drmp3_uninit(&music->ctx_mp3);
+    else if (music->ctx_type == BINOCLE_AUDIO_MUSIC_MODULE_XM) jar_xm_free_context(music->ctx_xm);
+    else if (music->ctx_type == BINOCLE_AUDIO_MUSIC_MODULE_MOD) jar_mod_unload(&music->ctx_mod);
+
+    free(music);
+    music = NULL;
+
+    binocle_log_warning("[%s] Music file could not be opened", fileName);
+  }
+
+  return music;
+}
+
+void binocle_audio_unload_music_stream(binocle_audio *audio, binocle_audio_music *music)
+{
+  if (music == NULL) return;
+
+  binocle_audio_close_audio_stream(audio, music->stream);
+
+  if (music->ctx_type == BINOCLE_AUDIO_MUSIC_AUDIO_OGG) stb_vorbis_close(music->ctx_ogg);
+  else if (music->ctx_type == BINOCLE_AUDIO_MUSIC_AUDIO_FLAC) drflac_free(music->ctx_flac);
+  else if (music->ctx_type == BINOCLE_AUDIO_MUSIC_AUDIO_MP3) drmp3_uninit(&music->ctx_mp3);
+  else if (music->ctx_type == BINOCLE_AUDIO_MUSIC_MODULE_XM) jar_xm_free_context(music->ctx_xm);
+  else if (music->ctx_type == BINOCLE_AUDIO_MUSIC_MODULE_MOD) jar_mod_unload(&music->ctx_mod);
+
+  free(music);
+}
+
+void binocle_audio_play_music_stream(binocle_audio_music *music)
+{
+  if (music != NULL)
+  {
+    binocle_audio_buffer *audioBuffer = (binocle_audio_buffer *)music->stream.audio_buffer;
+
+    if (audioBuffer == NULL)
+    {
+      binocle_log_error("PlayMusicStream() : No audio buffer");
+      return;
+    }
+
+    // For music streams, we need to make sure we maintain the frame cursor position. This is hack for this section of code in UpdateMusicStream()
+    //     // NOTE: In case window is minimized, music stream is stopped,
+    //     // just make sure to play again on window restore
+    //     if (IsMusicPlaying(music)) PlayMusicStream(music);
+    ma_uint32 frameCursorPos = audioBuffer->frame_cursor_pos;
+
+    binocle_audio_play_audio_stream(music->stream); // <-- This resets the cursor position.
+
+    audioBuffer->frame_cursor_pos = frameCursorPos;
+  }
+}
+
+void binocle_audio_pause_music_stream(binocle_audio_music *music)
+{
+  if (music != NULL) binocle_audio_pause_audio_stream(music->stream);
+}
+
+void binocle_audio_resume_music_stream(binocle_audio_music *music)
+{
+  if (music != NULL) binocle_audio_resume_audio_stream(music->stream);
+}
+
+void binocle_audio_stop_music_stream(binocle_audio_music *music)
+{
+  if (music == NULL) return;
+
+  binocle_audio_stop_audio_stream(music->stream);
+
+  // Restart music context
+  switch (music->ctx_type)
+  {
+    case BINOCLE_AUDIO_MUSIC_AUDIO_OGG: stb_vorbis_seek_start(music->ctx_ogg); break;
+    case BINOCLE_AUDIO_MUSIC_AUDIO_FLAC: drflac_seek_to_pcm_frame(music->ctx_flac, 0); break;
+    case BINOCLE_AUDIO_MUSIC_AUDIO_MP3: drmp3_seek_to_pcm_frame(&music->ctx_mp3, 0); break;
+    case BINOCLE_AUDIO_MUSIC_MODULE_XM: /* TODO: seek to start of XM */ break;
+    case BINOCLE_AUDIO_MUSIC_MODULE_MOD: jar_mod_seek_start(&music->ctx_mod); break;
+    default: break;
+  }
+
+  music->samples_left = music->total_samples;
+}
+
+void binocle_audio_update_music_stream(binocle_audio_music *music)
+{
+  if (music == NULL) return;
+
+  bool streamEnding = false;
+
+  unsigned int subBufferSizeInFrames = ((binocle_audio_buffer *)music->stream.audio_buffer)->buffer_size_in_frames/2;
+
+  // NOTE: Using dynamic allocation because it could require more than 16KB
+  void *pcm = calloc(subBufferSizeInFrames*music->stream.channels*music->stream.sample_size/8, 1);
+
+  int samplesCount = 0;    // Total size of data steamed in L+R samples for xm floats, individual L or R for ogg shorts
+
+  while (binocle_audio_is_audio_buffer_processed(music->stream))
+  {
+    if ((music->samples_left/music->stream.channels) >= subBufferSizeInFrames) samplesCount = subBufferSizeInFrames*music->stream.channels;
+    else samplesCount = music->samples_left;
+
+    switch (music->ctx_type)
+    {
+      case BINOCLE_AUDIO_MUSIC_AUDIO_OGG:
+            {
+                // NOTE: Returns the number of samples to process (be careful! we ask for number of shorts!)
+                stb_vorbis_get_samples_short_interleaved(music->ctx_ogg, music->stream.channels, (short *)pcm, samplesCount);
+
+            } break;
+      case BINOCLE_AUDIO_MUSIC_AUDIO_FLAC:
+            {
+                // NOTE: Returns the number of samples to process
+                unsigned int numSamplesFlac = (unsigned int)drflac_read_pcm_frames_s16(music->ctx_flac, samplesCount, (short *)pcm);
+
+            } break;
+      case BINOCLE_AUDIO_MUSIC_AUDIO_MP3:
+            {
+                // NOTE: samplesCount, actually refers to framesCount and returns the number of frames processed
+                drmp3_read_pcm_frames_f32(&music->ctx_mp3, samplesCount/music->stream.channels, (float *)pcm);
+
+            } break;
+      case BINOCLE_AUDIO_MUSIC_MODULE_XM:
+            {
+                // NOTE: Internally this function considers 2 channels generation, so samplesCount/2
+                jar_xm_generate_samples_16bit(music->ctx_xm, (short *)pcm, samplesCount/2);
+            } break;
+      case BINOCLE_AUDIO_MUSIC_MODULE_MOD:
+            {
+                // NOTE: 3rd parameter (nbsample) specify the number of stereo 16bits samples you want, so sampleCount/2
+                jar_mod_fillbuffer(&music->ctx_mod, (short *)pcm, samplesCount/2, 0);
+            } break;
+      default: break;
+    }
+
+
+    binocle_audio_update_audio_stream(music->stream, pcm, samplesCount);
+    if ((music->ctx_type == BINOCLE_AUDIO_MUSIC_MODULE_XM) || (music->ctx_type == BINOCLE_AUDIO_MUSIC_MODULE_MOD))
+    {
+      if (samplesCount > 1) music->samples_left -= samplesCount/2;
+      else music->samples_left -= samplesCount;
+    }
+    else music->samples_left -= samplesCount;
+
+    if (music->samples_left <= 0)
+    {
+      streamEnding = true;
+      break;
+    }
+  }
+
+  // Free allocated pcm data
+  free(pcm);
+
+  // Reset audio stream for looping
+  if (streamEnding)
+  {
+    binocle_audio_stop_music_stream(music);        // Stop music (and reset)
+
+    // Decrease loopCount to stop when required
+    if (music->loop_count > 0)
+    {
+      music->loop_count--;        // Decrease loop count
+      binocle_audio_play_music_stream(music);    // Play again
+    }
+    else
+    {
+      if (music->loop_count == -1) binocle_audio_play_music_stream(music);
+    }
+  }
+  else
+  {
+    // NOTE: In case window is minimized, music stream is stopped,
+    // just make sure to play again on window restore
+    if (binocle_audio_is_music_playing(music)) binocle_audio_play_music_stream(music);
+  }
+}
+
+bool binocle_audio_is_music_playing(binocle_audio_music *music)
+{
+  if (music == NULL) return false;
+  else return binocle_audio_is_audio_stream_playing(music->stream);
+}
+
+void binocle_audio_set_music_volume(binocle_audio_music *music, float volume)
+{
+  if (music != NULL) binocle_audio_set_audio_stream_volume(music->stream, volume);
+}
+
+void binocle_audio_set_music_pitch(binocle_audio_music *music, float pitch)
+{
+  if (music != NULL) binocle_audio_set_audio_stream_pitch(music->stream, pitch);
+}
+
+void binocle_audio_set_music_loop_count(binocle_audio_music *music, int count)
+{
+  // -1 = infinite loop
+  if (music != NULL) music->loop_count = count;
+}
+
+float binocle_audio_get_music_time_length(binocle_audio_music *music)
+{
+  float totalSeconds = 0.0f;
+
+  if (music != NULL) totalSeconds = (float)music->total_samples/(music->stream.sample_rate*music->stream.channels);
+
+  return totalSeconds;
+}
+
+float binocle_audio_get_music_time_played(binocle_audio_music *music)
+{
+  float secondsPlayed = 0.0f;
+
+  if (music != NULL)
+  {
+    unsigned int samplesPlayed = music->total_samples - music->samples_left;
+    secondsPlayed = (float)samplesPlayed/(music->stream.sample_rate*music->stream.channels);
+  }
+
+  return secondsPlayed;
+}
+
+binocle_audio_stream binocle_audio_init_audio_stream(binocle_audio *audio, unsigned int sampleRate, unsigned int sampleSize, unsigned int channels)
+{
+  binocle_audio_stream stream = { 0 };
+
+  stream.sample_rate = sampleRate;
+  stream.sample_size = sampleSize;
+
+  // Only mono and stereo channels are supported, more channels require AL_EXT_MCFORMATS extension
+  if ((channels > 0) && (channels < 3)) stream.channels = channels;
+  else
+  {
+    binocle_log_warning("Init audio stream: Number of channels not supported: %i", channels);
+    stream.channels = 1;  // Fallback to mono channel
+  }
+
+  ma_format formatIn = ((stream.sample_size == 8)? ma_format_u8 : ((stream.sample_size == 16)? ma_format_s16 : ma_format_f32));
+
+  // The size of a streaming buffer must be at least double the size of a period.
+  unsigned int periodSize = audio->device.playback.internalBufferSizeInFrames/audio->device.playback.internalPeriods;
+  unsigned int subBufferSize = BINOCLE_AUDIO_BUFFER_SIZE;
+  if (subBufferSize < periodSize) subBufferSize = periodSize;
+
+  binocle_audio_buffer *audioBuffer = binocle_audio_create_audio_buffer(audio, formatIn, stream.channels, stream.sample_rate, subBufferSize*2, BINOCLE_AUDIO_BUFFER_USAGE_STREAM);
+  if (audioBuffer == NULL)
+  {
+    binocle_log_error("InitAudioStream() : Failed to create audio buffer");
+    return stream;
+  }
+
+  audioBuffer->looping = true;        // Always loop for streaming buffers.
+  stream.audio_buffer = audioBuffer;
+
+  binocle_log_info("[AUD ID %i] Audio stream loaded successfully (%i Hz, %i bit, %s)", stream.source, stream.sample_rate, stream.sample_size, (stream.channels == 1)? "Mono" : "Stereo");
+
+  return stream;
+}
+
+void binocle_audio_close_audio_stream(binocle_audio *audio, binocle_audio_stream stream)
+{
+  binocle_audio_delete_audio_buffer(audio, (binocle_audio_buffer *)stream.audio_buffer);
+
+  binocle_log_info("[AUD ID %i] Unloaded audio stream data", stream.source);
+}
+
+// Update audio stream buffers with data
+// NOTE 1: Only updates one buffer of the stream source: unqueue -> update -> queue
+// NOTE 2: To unqueue a buffer it needs to be processed: IsAudioBufferProcessed()
+void binocle_audio_update_audio_stream(binocle_audio_stream stream, const void *data, int samplesCount)
+{
+  binocle_audio_buffer *audioBuffer = (binocle_audio_buffer *)stream.audio_buffer;
+  if (audioBuffer == NULL)
+  {
+    binocle_log_error("UpdateAudioStream() : No audio buffer");
+    return;
+  }
+
+  if (audioBuffer->is_sub_buffer_processed[0] || audioBuffer->is_sub_buffer_processed[1])
+  {
+    ma_uint32 subBufferToUpdate;
+
+    if (audioBuffer->is_sub_buffer_processed[0] && audioBuffer->is_sub_buffer_processed[1])
+    {
+      // Both buffers are available for updating. Update the first one and make sure the cursor is moved back to the front.
+      subBufferToUpdate = 0;
+      audioBuffer->frame_cursor_pos = 0;
+    }
+    else
+    {
+      // Just update whichever sub-buffer is processed.
+      subBufferToUpdate = (audioBuffer->is_sub_buffer_processed[0])? 0 : 1;
+    }
+
+    ma_uint32 subBufferSizeInFrames = audioBuffer->buffer_size_in_frames/2;
+    unsigned char *subBuffer = audioBuffer->buffer + ((subBufferSizeInFrames*stream.channels*(stream.sample_size/8))*subBufferToUpdate);
+
+    // Does this API expect a whole buffer to be updated in one go? Assuming so, but if not will need to change this logic.
+    if (subBufferSizeInFrames >= (ma_uint32)samplesCount/stream.channels)
+    {
+      ma_uint32 framesToWrite = subBufferSizeInFrames;
+
+      if (framesToWrite > ((ma_uint32)samplesCount/stream.channels)) framesToWrite = (ma_uint32)samplesCount/stream.channels;
+
+      ma_uint32 bytesToWrite = framesToWrite*stream.channels*(stream.sample_size/8);
+      memcpy(subBuffer, data, bytesToWrite);
+
+      // Any leftover frames should be filled with zeros.
+      ma_uint32 leftoverFrameCount = subBufferSizeInFrames - framesToWrite;
+
+      if (leftoverFrameCount > 0)
+      {
+        memset(subBuffer + bytesToWrite, 0, leftoverFrameCount*stream.channels*(stream.sample_size/8));
+      }
+
+      audioBuffer->is_sub_buffer_processed[subBufferToUpdate] = false;
+    }
+    else
+    {
+      binocle_log_error("UpdateAudioStream() : Attempting to write too many frames to buffer");
+      return;
+    }
+  }
+  else
+  {
+    binocle_log_error("Audio buffer not available for updating");
+    return;
+  }
+}
+
+bool binocle_audio_is_audio_buffer_processed(binocle_audio_stream stream)
+{
+  binocle_audio_buffer *audioBuffer = (binocle_audio_buffer *)stream.audio_buffer;
+  if (audioBuffer == NULL)
+  {
+    binocle_log_error("IsAudioBufferProcessed() : No audio buffer");
+    return false;
+  }
+
+  return audioBuffer->is_sub_buffer_processed[0] || audioBuffer->is_sub_buffer_processed[1];
+}
+
+void binocle_audio_play_audio_stream(binocle_audio_stream stream)
+{
+  binocle_audio_play_audio_buffer((binocle_audio_buffer *)stream.audio_buffer);
+}
+
+void binocle_audio_pause_audio_stream(binocle_audio_stream stream)
+{
+  binocle_audio_pause_audio_buffer((binocle_audio_buffer *)stream.audio_buffer);
+}
+
+void binocle_audio_resume_audio_stream(binocle_audio_stream stream)
+{
+  binocle_audio_resume_audio_buffer((binocle_audio_buffer *)stream.audio_buffer);
+}
+
+bool binocle_audio_is_audio_stream_playing(binocle_audio_stream stream)
+{
+  return binocle_audio_is_audio_buffer_playing((binocle_audio_buffer *)stream.audio_buffer);
+}
+
+void binocle_audio_stop_audio_stream(binocle_audio_stream stream)
+{
+  binocle_audio_stop_audio_buffer((binocle_audio_buffer *)stream.audio_buffer);
+}
+
+void binocle_audio_set_audio_stream_volume(binocle_audio_stream stream, float volume)
+{
+  binocle_audio_set_audio_buffer_volume((binocle_audio_buffer *)stream.audio_buffer, volume);
+}
+
+void binocle_audio_set_audio_stream_pitch(binocle_audio_stream stream, float pitch)
+{
+  binocle_audio_set_audio_buffer_pitch((binocle_audio_buffer *)stream.audio_buffer, pitch);
+}
 
 
 /*

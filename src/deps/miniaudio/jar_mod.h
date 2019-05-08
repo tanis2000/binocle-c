@@ -44,7 +44,7 @@
 //
 // LISCENSE:
 //
-// Written by: Jean-Fran�ois DEL NERO (http://hxc2001.com/) <Email : jeanfrancoisdelnero <> free.fr>
+// Written by: Jean-François DEL NERO (http://hxc2001.com/) <Email : jeanfrancoisdelnero <> free.fr>
 // Adapted to jar_mod by: Joshua Adam Reisenauer <kd7tck@gmail.com>
 // This program is free software. It comes without any warranty, to the
 // extent permitted by applicable law. You can redistribute it and/or
@@ -83,8 +83,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h> // comment this line out if you have bool defined somewhere else
-#include <string.h>  // For memset()
+//#include <stdbool.h>
 
 
 #ifdef __cplusplus
@@ -109,29 +108,29 @@ typedef unsigned long mulong;
 #pragma pack(1)
 
 typedef struct {
-  muchar  name[22];
-  muint   length;
-  muchar  finetune;
-  muchar  volume;
-  muint   reppnt;
-  muint   replen;
+    muchar  name[22];
+    muint   length;
+    muchar  finetune;
+    muchar  volume;
+    muint   reppnt;
+    muint   replen;
 } sample;
 
 typedef struct {
-  muchar  sampperiod;
-  muchar  period;
-  muchar  sampeffect;
-  muchar  effect;
+    muchar  sampperiod;
+    muchar  period;
+    muchar  sampeffect;
+    muchar  effect;
 } note;
 
 typedef struct {
-  muchar  title[20];
-  sample  samples[31];
-  muchar  length; // length of tablepos
-  muchar  protracker;
-  muchar  patterntable[128];
-  muchar  signature[4];
-  muchar  speed;
+    muchar  title[20];
+    sample  samples[31];
+    muchar  length; // length of tablepos
+    muchar  protracker;
+    muchar  patterntable[128];
+    muchar  signature[4];
+    muchar  speed;
 } module;
 
 #pragma pack()
@@ -140,64 +139,64 @@ typedef struct {
 // HxCMod Internal structures
 //
 typedef struct {
-  char*   sampdata;
-  muint   sampnum;
-  muint   length;
-  muint   reppnt;
-  muint   replen;
-  mulong  samppos;
-  muint   period;
-  muchar  volume;
-  mulong  ticks;
-  muchar  effect;
-  muchar  parameffect;
-  muint   effect_code;
-  mint    decalperiod;
-  mint    portaspeed;
-  mint    portaperiod;
-  mint    vibraperiod;
-  mint    Arpperiods[3];
-  muchar  ArpIndex;
-  mint    oldk;
-  muchar  volumeslide;
-  muchar  vibraparam;
-  muchar  vibrapointeur;
-  muchar  finetune;
-  muchar  cut_param;
-  muint   patternloopcnt;
-  muint   patternloopstartpoint;
+    char*   sampdata;
+    muint   sampnum;
+    muint   length;
+    muint   reppnt;
+    muint   replen;
+    mulong  samppos;
+    muint   period;
+    muchar  volume;
+    mulong  ticks;
+    muchar  effect;
+    muchar  parameffect;
+    muint   effect_code;
+    mint    decalperiod;
+    mint    portaspeed;
+    mint    portaperiod;
+    mint    vibraperiod;
+    mint    Arpperiods[3];
+    muchar  ArpIndex;
+    mint    oldk;
+    muchar  volumeslide;
+    muchar  vibraparam;
+    muchar  vibrapointeur;
+    muchar  finetune;
+    muchar  cut_param;
+    muint   patternloopcnt;
+    muint   patternloopstartpoint;
 } channel;
 
 typedef struct {
-  module  song;
-  char*   sampledata[31];
-  note*   patterndata[128];
+    module  song;
+    char*   sampledata[31];
+    note*   patterndata[128];
 
-  mulong  playrate;
-  muint   tablepos;
-  muint   patternpos;
-  muint   patterndelay;
-  muint   jump_loop_effect;
-  muchar  bpm;
-  mulong  patternticks;
-  mulong  patterntickse;
-  mulong  patternticksaim;
-  mulong  sampleticksconst;
-  mulong  samplenb;
-  channel channels[NUMMAXCHANNELS];
-  muint   number_of_channels;
-  muint   fullperiod[MAXNOTES * 8];
-  muint   mod_loaded;
-  mint    last_r_sample;
-  mint    last_l_sample;
-  mint    stereo;
-  mint    stereo_separation;
-  mint    bits;
-  mint    filter;
-
-  muchar *modfile; // the raw mod file
-  mulong  modfilesize;
-  muint   loopcount;
+    mulong  playrate;
+    muint   tablepos;
+    muint   patternpos;
+    muint   patterndelay;
+    muint   jump_loop_effect;
+    muchar  bpm;
+    mulong  patternticks;
+    mulong  patterntickse;
+    mulong  patternticksaim;
+    mulong  sampleticksconst;
+    mulong  samplenb;
+    channel channels[NUMMAXCHANNELS];
+    muint   number_of_channels;
+    muint   fullperiod[MAXNOTES * 8];
+    muint   mod_loaded;
+    mint    last_r_sample;
+    mint    last_l_sample;
+    mint    stereo;
+    mint    stereo_separation;
+    mint    bits;
+    mint    filter;
+    
+    muchar *modfile; // the raw mod file
+    mulong  modfilesize;
+    muint   loopcount;
 } jar_mod_context_t;
 
 //
@@ -205,40 +204,40 @@ typedef struct {
 //
 typedef struct track_state_
 {
-  unsigned char instrument_number;
-  unsigned short cur_period;
-  unsigned char  cur_volume;
-  unsigned short cur_effect;
-  unsigned short cur_parameffect;
+    unsigned char instrument_number;
+    unsigned short cur_period;
+    unsigned char  cur_volume;
+    unsigned short cur_effect;
+    unsigned short cur_parameffect;
 }track_state;
 
 typedef struct tracker_state_
 {
-  int number_of_tracks;
-  int bpm;
-  int speed;
-  int cur_pattern;
-  int cur_pattern_pos;
-  int cur_pattern_table_pos;
-  unsigned int buf_index;
-  track_state tracks[32];
+    int number_of_tracks;
+    int bpm;
+    int speed;
+    int cur_pattern;
+    int cur_pattern_pos;
+    int cur_pattern_table_pos;
+    unsigned int buf_index;
+    track_state tracks[32];
 }tracker_state;
 
 typedef struct tracker_state_instrument_
 {
-  char name[22];
-  int  active;
+    char name[22];
+    int  active;
 }tracker_state_instrument;
 
 typedef struct jar_mod_tracker_buffer_state_
 {
-  int  nb_max_of_state;
-  int  nb_of_state;
-  int  cur_rd_index;
-  int  sample_step;
-  char name[64];
-  tracker_state_instrument instruments[31];
-  tracker_state * track_state_buf;
+    int  nb_max_of_state;
+    int  nb_of_state;
+    int  cur_rd_index;
+    int  sample_step;
+    char name[64];
+    tracker_state_instrument instruments[31];
+    tracker_state * track_state_buf;
 }jar_mod_tracker_buffer_state;
 
 
@@ -258,6 +257,7 @@ void   jar_mod_seek_start(jar_mod_context_t * ctx);
 //--------------------------------------------------------------------
 
 
+#endif //end of header file
 
 //-------------------------------------------------------------------------------
 #ifdef JAR_MOD_IMPLEMENTATION
@@ -1088,7 +1088,7 @@ bool jar_mod_setcfg(jar_mod_context_t * modctx, int samplerate, int bits, int st
             modctx->stereo = 1;
         else
             modctx->stereo = 0;
-
+            
         if(stereo_separation < 4)
         {
             modctx->stereo_separation = stereo_separation;
@@ -1120,8 +1120,8 @@ static bool jar_mod_load( jar_mod_context_t * modctx, void * mod_data, int mod_d
 
     modmemory = (unsigned char *)mod_data;
     endmodmemory = modmemory + mod_data_size;
-
-
+    
+    
 
     if(modmemory)
     {
@@ -1493,7 +1493,7 @@ static bool jar_mod_reset( jar_mod_context_t * modctx)
         modctx->mod_loaded = 0;
         modctx->last_r_sample = 0;
         modctx->last_l_sample = 0;
-
+        
         return jar_mod_init(modctx);
     }
     return 0;
@@ -1524,19 +1524,14 @@ mulong jar_mod_load_file(jar_mod_context_t * modctx, const char* filename)
         free(modctx->modfile);
         modctx->modfile = 0;
     }
-
-    FILE *f = NULL;
-#if defined(_MSC_VER) && _MSC_VER >= 1500
-    fopen_s(&f, filename, "rb");
-#else
-    f = fopen(filename, "rb");
-#endif
+    
+    FILE *f = fopen(filename, "rb");
     if(f)
     {
         fseek(f,0,SEEK_END);
         fsize = ftell(f);
         fseek(f,0,SEEK_SET);
-
+        
         if(fsize && fsize < 32*1024*1024)
         {
             modctx->modfile = malloc(fsize);
@@ -1544,7 +1539,7 @@ mulong jar_mod_load_file(jar_mod_context_t * modctx, const char* filename)
             memset(modctx->modfile, 0, fsize);
             fread(modctx->modfile, fsize, 1, f);
             fclose(f);
-
+            
             if(!jar_mod_load(modctx, (void*)modctx->modfile, fsize)) fsize = 0;
         } else fsize = 0;
     }
@@ -1555,7 +1550,7 @@ mulong jar_mod_current_samples(jar_mod_context_t * modctx)
 {
     if(modctx)
         return modctx->samplenb;
-
+    
     return 0;
 }
 
@@ -1565,13 +1560,13 @@ mulong jar_mod_max_samples(jar_mod_context_t * ctx)
     mint buff[2];
     mulong len;
     mulong lastcount = ctx->loopcount;
-
+    
     while(ctx->loopcount <= lastcount)
         jar_mod_fillbuffer(ctx, buff, 1, 0);
-
+    
     len = ctx->samplenb;
     jar_mod_seek_start(ctx);
-
+    
     return len;
 }
 
@@ -1583,7 +1578,7 @@ void jar_mod_seek_start(jar_mod_context_t * ctx)
         muchar* ftmp = ctx->modfile;
         mulong stmp = ctx->modfilesize;
         muint lcnt = ctx->loopcount;
-
+        
         if(jar_mod_reset(ctx)){
             jar_mod_load(ctx, ftmp, stmp);
             ctx->modfile = ftmp;
@@ -1597,4 +1592,3 @@ void jar_mod_seek_start(jar_mod_context_t * ctx)
 //-------------------------------------------------------------------------------
 
 
-#endif //end of header file
