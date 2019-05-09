@@ -1,5 +1,7 @@
 //
-// Created by Valerio Santinelli on 26/11/2018.
+// Binocle
+// Copyright (c) 2015-2019 Valerio Santinelli
+// All rights reserved.
 //
 
 #include <string.h>
@@ -17,7 +19,6 @@ void binocle_atlas_load_texturepacker(char *filename, struct binocle_texture *te
     binocle_log_error("Cannot open JSON file");
     return;
   }
-  char content[BINOCLE_ATLAS_MAX_FILESIZE];
 
   Sint64 res_size = SDL_RWsize(file);
   char *res = (char *) SDL_malloc(res_size + 1);
@@ -37,8 +38,6 @@ void binocle_atlas_load_texturepacker(char *filename, struct binocle_texture *te
   }
 
   res[nb_read_total] = '\0';
-  strcpy(content, res);
-  SDL_free(res);
 
   JSON_Value *root_value;
   JSON_Object *root;
@@ -46,15 +45,26 @@ void binocle_atlas_load_texturepacker(char *filename, struct binocle_texture *te
   JSON_Object *frame;
   JSON_Object *meta;
 
-  root_value = json_parse_string(content);
+  root_value = json_parse_string(res);
+
+  if (root_value == NULL) {
+    binocle_log_error("Error parsing JSON, cannot parse the string");
+    SDL_free(res);
+    return;
+  }
+
   if (json_value_get_type(root_value) != JSONObject) {
     binocle_log_error("Error parsing JSON, root object isn't an Object");
+    json_value_free(root_value);
+    SDL_free(res);
     return;
   }
 
   root = json_value_get_object(root_value);
   if (root == NULL) {
     binocle_log_error("Error parsing JSON, cannot read root object");
+    json_value_free(root_value);
+    SDL_free(res);
     return;
   }
 
@@ -83,6 +93,10 @@ void binocle_atlas_load_texturepacker(char *filename, struct binocle_texture *te
     (*num_subtextures)++;
   }
 
+  // Clean up after ourselves
+  json_value_free(root_value);
+  SDL_free(res);
+
   binocle_log_debug("Atlas loaded.");
 }
 
@@ -94,7 +108,6 @@ void binocle_atlas_load_libgdx(char *filename, struct binocle_texture *texture, 
     binocle_log_error("Cannot open text file");
     return;
   }
-  char content[BINOCLE_ATLAS_MAX_FILESIZE];
 
   Sint64 res_size = SDL_RWsize(file);
   char *res = (char *) SDL_malloc(res_size + 1);
@@ -114,8 +127,11 @@ void binocle_atlas_load_libgdx(char *filename, struct binocle_texture *texture, 
   }
 
   res[nb_read_total] = '\0';
-  strcpy(content, res);
-  SDL_free(res);
 
   // TODO: perform all the parsing as needed
+
+
+  // Clean up after ourselves
+  SDL_free(res);
+
 }

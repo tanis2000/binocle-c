@@ -1,5 +1,7 @@
 //
-// Created by Valerio Santinelli on 24/04/18.
+// Binocle
+// Copyright (c) 2015-2019 Valerio Santinelli
+// All rights reserved.
 //
 
 #include "binocle_bitmapfont.h"

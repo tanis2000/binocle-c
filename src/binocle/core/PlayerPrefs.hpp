@@ -1,6 +1,7 @@
 //
-//  Binocle
-//  Copyright(C)2015-2017 Valerio Santinelli
+// Binocle
+// Copyright (c) 2015-2019 Valerio Santinelli
+// All rights reserved.
 //
 
 #ifndef PlayerPrefs_hpp

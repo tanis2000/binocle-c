@@ -1,5 +1,7 @@
 //
-// Created by Valerio Santinelli on 2019-04-27.
+// Binocle
+// Copyright (c) 2015-2019 Valerio Santinelli
+// All rights reserved.
 //
 
 #include "binocle_easing.h"

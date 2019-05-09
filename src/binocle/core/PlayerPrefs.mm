@@ -1,6 +1,7 @@
 //
-//  Binocle
-//  Copyright(C)2015-2017 Valerio Santinelli
+// Binocle
+// Copyright (c) 2015-2019 Valerio Santinelli
+// All rights reserved.
 //
 
 #if defined(__IPHONEOS__) || defined(__MACOSX__)

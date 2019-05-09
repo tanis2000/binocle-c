@@ -1,5 +1,7 @@
 //
-// Created by Valerio Santinelli on 09/11/2018.
+// Binocle
+// Copyright (c) 2015-2019 Valerio Santinelli
+// All rights reserved.
 //
 
 #include "binocle_log.h"
