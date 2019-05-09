@@ -2,8 +2,8 @@
 // Created by Valerio Santinelli on 18/04/18.
 //
 
-#ifndef BINOCLE_BINOCLE_INPUT_H
-#define BINOCLE_BINOCLE_INPUT_H
+#ifndef BINOCLE_INPUT_H
+#define BINOCLE_INPUT_H
 
 #include <stdbool.h>
 #include "binocle_sdl.h"
@@ -356,4 +356,4 @@ void binocle_input_unlock(binocle_input input);
 bool binocle_input_is_touch_down(binocle_input input, unsigned int finger);
 kmVec2 binocle_input_get_touch_position(unsigned int finger, struct binocle_camera camera);
 
-#endif //BINOCLE_BINOCLE_INPUT_H
+#endif //BINOCLE_INPUT_H

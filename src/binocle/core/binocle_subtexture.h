@@ -2,8 +2,8 @@
 // Created by Valerio Santinelli on 17/04/18.
 //
 
-#ifndef BINOCLE_BINOCLE_SUBTEXTURE_H
-#define BINOCLE_BINOCLE_SUBTEXTURE_H
+#ifndef BINOCLE_SUBTEXTURE_H
+#define BINOCLE_SUBTEXTURE_H
 
 #include <kazmath/kazmath.h>
 #include <stdint.h>
@@ -27,4 +27,4 @@ kmVec2 binocle_subtexture_get_center(binocle_subtexture *subtexture);
 kmAABB2 binocle_subtexture_get_frame(binocle_subtexture subtexture, uint64_t index, uint64_t frame_width, uint64_t frame_height);
 kmAABB2 binocle_subtexture_get_absolute_clip_rect(binocle_subtexture subtexture, kmAABB2 relative_clip_rect);
 
-#endif //BINOCLE_BINOCLE_SUBTEXTURE_H
+#endif //BINOCLE_SUBTEXTURE_H

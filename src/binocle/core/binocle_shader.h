@@ -2,8 +2,8 @@
 // Created by Valerio Santinelli on 19/04/18.
 //
 
-#ifndef BINOCLE_BINOCLE_SHADER_H
-#define BINOCLE_BINOCLE_SHADER_H
+#ifndef BINOCLE_SHADER_H
+#define BINOCLE_SHADER_H
 
 #include "binocle_sdl.h"
 
@@ -30,4 +30,4 @@ void binocle_shader_unload(binocle_shader *shader);
 char *str_replace(char *orig, char *rep, char *with);
 void binocle_shader_init_defaults();
 
-#endif //BINOCLE_BINOCLE_SHADER_H
+#endif //BINOCLE_SHADER_H

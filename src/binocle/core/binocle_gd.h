@@ -2,8 +2,8 @@
 // Created by Valerio Santinelli on 19/04/18.
 //
 
-#ifndef BINOCLE_BINOCLE_GD_H
-#define BINOCLE_BINOCLE_GD_H
+#ifndef BINOCLE_GD_H
+#define BINOCLE_GD_H
 
 #include "binocle_sdl.h"
 #include <kazmath/kazmath.h>
@@ -103,4 +103,4 @@ void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect,
                           struct binocle_color col, kmAABB2 viewport,
                           kmMat4 viewMatrix);
 
-#endif // BINOCLE_BINOCLE_GD_H
+#endif // BINOCLE_GD_H

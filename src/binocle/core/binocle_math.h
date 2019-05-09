@@ -2,8 +2,8 @@
 // Created by Valerio Santinelli on 17/04/18.
 //
 
-#ifndef BINOCLE_BINOCLE_MATH_H
-#define BINOCLE_BINOCLE_MATH_H
+#ifndef BINOCLE_MATH_H
+#define BINOCLE_MATH_H
 
 #include <kazmath/kazmath.h>
 
@@ -55,4 +55,4 @@ static kmMat4 binocle_math_create_orthographic_matrix_off_center(
 }
 //#endif //BINOCLE_MATH_IMPL
 
-#endif //BINOCLE_BINOCLE_MATH_H
+#endif //BINOCLE_MATH_H

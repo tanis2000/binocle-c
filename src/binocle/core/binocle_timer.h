@@ -2,6 +2,9 @@
 // Created by Valerio Santinelli on 13/04/18.
 //
 
+#ifndef BINOCLE_TIMER_H
+#define BINOCLE_TIMER_H
+
 #include "stdint.h" // for uint32_t
 
 /// General-purpose timer, measured in milliseconds.
@@ -50,3 +53,5 @@ uint32_t binocle_timer_delta_s(binocle_timer *timer);
 
 /// Returns the difference between timer's start point and now.
 uint32_t binocle_timer_current_time(binocle_timer *timer);
+
+#endif //BINOCLE_TIMER_H

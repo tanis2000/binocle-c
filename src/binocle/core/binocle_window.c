@@ -24,7 +24,7 @@ binocle_window binocle_window_new(uint32_t width, uint32_t height, char* title) 
 
   binocle_window_resize(&res, title, width, height);
   if (res.window == 0) {
-    binocle_log_error("Window(): Couldn't create Window");
+    binocle_log_error("binocle_window_new(): Couldn't create Window");
     binocle_sdl_exit();
   }
 

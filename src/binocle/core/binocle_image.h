@@ -2,8 +2,8 @@
 // Created by Valerio Santinelli on 19/04/18.
 //
 
-#ifndef BINOCLE_BINOCLE_IMAGE_H
-#define BINOCLE_BINOCLE_IMAGE_H
+#ifndef BINOCLE_IMAGE_H
+#define BINOCLE_IMAGE_H
 
 #include <stdint.h>
 
@@ -16,4 +16,4 @@ typedef struct binocle_image {
 
 binocle_image binocle_image_load(const char *filename);
 
-#endif //BINOCLE_BINOCLE_IMAGE_H
+#endif //BINOCLE_IMAGE_H

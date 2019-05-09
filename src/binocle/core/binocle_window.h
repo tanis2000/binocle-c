@@ -2,8 +2,8 @@
 // Created by Valerio Santinelli on 13/04/18.
 //
 
-#ifndef BINOCLE_BINOCLE_WINDOW_H
-#define BINOCLE_BINOCLE_WINDOW_H
+#ifndef BINOCLE_WINDOW_H
+#define BINOCLE_WINDOW_H
 
 #include <stdbool.h>
 
@@ -57,4 +57,4 @@ void binocle_window_end_frame(binocle_window *win);
 void binocle_window_get_real_size(binocle_window *win, uint32_t *w, uint32_t *h);
 bool binocle_window_get_display_size(uint32_t *w, uint32_t *h);
 
-#endif //BINOCLE_BINOCLE_WINDOW_H
+#endif //BINOCLE_WINDOW_H

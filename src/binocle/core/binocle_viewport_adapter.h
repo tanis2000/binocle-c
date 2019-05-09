@@ -2,8 +2,8 @@
 // Created by Valerio Santinelli on 13/04/18.
 //
 
-#ifndef BINOCLE_BINOCLE_VIEWPORT_ADAPTER_H
-#define BINOCLE_BINOCLE_VIEWPORT_ADAPTER_H
+#ifndef BINOCLE_VIEWPORT_ADAPTER_H
+#define BINOCLE_VIEWPORT_ADAPTER_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -45,4 +45,4 @@ void binocle_viewport_adapter_set_viewport(binocle_viewport_adapter *adapter, km
 kmAABB2 binocle_viewport_adapter_get_viewport(binocle_viewport_adapter adapter);
 kmAABB2 binocle_viewport_adapter_get_original_viewport(binocle_viewport_adapter adapter);
 
-#endif //BINOCLE_BINOCLE_VIEWPORT_ADAPTER_H
+#endif //BINOCLE_VIEWPORT_ADAPTER_H

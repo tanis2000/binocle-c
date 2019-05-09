@@ -5,8 +5,8 @@
 // https://github.com/warrenm/AHEasing
 //
 
-#ifndef DEMOMAKER_C_BINOCLE_EASING_H
-#define DEMOMAKER_C_BINOCLE_EASING_H
+#ifndef BINOCLE_EASING_H
+#define BINOCLE_EASING_H
 
 // Linear interpolation (no easing)
 float binocle_easing_linear_interpolation(float p);
@@ -61,4 +61,4 @@ float binocle_easing_bounce_ease_in(float p);
 float binocle_easing_bounce_ease_out(float p);
 float binocle_easing_bounce_ease_in_out(float p);
 
-#endif //DEMOMAKER_C_BINOCLE_EASING_H
+#endif //BINOCLE_EASING_H

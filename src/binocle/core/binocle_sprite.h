@@ -2,8 +2,8 @@
 // Created by Valerio Santinelli on 19/04/18.
 //
 
-#ifndef BINOCLE_BINOCLE_SPRITE_H
-#define BINOCLE_BINOCLE_SPRITE_H
+#ifndef BINOCLE_SPRITE_H
+#define BINOCLE_SPRITE_H
 
 #include "binocle_subtexture.h"
 #include <kazmath/kazmath.h>
@@ -106,4 +106,4 @@ binocle_sprite_frame_from_subtexture(struct binocle_subtexture *subtexture);
 binocle_sprite_frame binocle_sprite_frame_from_subtexture_and_origin(
   struct binocle_subtexture *subtexture, kmVec2 origin);
 
-#endif // BINOCLE_BINOCLE_SPRITE_H
+#endif // BINOCLE_SPRITE_H

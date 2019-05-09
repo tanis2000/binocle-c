@@ -2,8 +2,8 @@
 // Created by Valerio Santinelli on 19/04/18.
 //
 
-#ifndef BINOCLE_BINOCLE_MATERIAL_H
-#define BINOCLE_BINOCLE_MATERIAL_H
+#ifndef BINOCLE_MATERIAL_H
+#define BINOCLE_MATERIAL_H
 
 #include "binocle_blend.h"
 
@@ -18,4 +18,4 @@ typedef struct binocle_material {
 
 binocle_material binocle_material_new();
 
-#endif //BINOCLE_BINOCLE_MATERIAL_H
+#endif //BINOCLE_MATERIAL_H

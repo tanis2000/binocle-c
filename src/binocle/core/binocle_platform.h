@@ -2,8 +2,8 @@
 // Created by Valerio Santinelli on 13/04/18.
 //
 
-#ifndef BINOCLE_BINOCLE_PLATFORM_H
-#define BINOCLE_BINOCLE_PLATFORM_H
+#ifndef BINOCLE_PLATFORM_H
+#define BINOCLE_PLATFORM_H
 
 #include "stdint.h"
 
@@ -27,4 +27,4 @@ typedef struct game_memory
 #define GAME_UPDATE_AND_RENDER(name) void name(game_memory *Memory/*, game_input *Input, game_render_commands *RenderCommands*/)
 typedef GAME_UPDATE_AND_RENDER(game_update_and_render);
 
-#endif //BINOCLE_BINOCLE_PLATFORM_H
+#endif //BINOCLE_PLATFORM_H

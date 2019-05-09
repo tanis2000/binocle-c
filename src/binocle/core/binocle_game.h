@@ -2,8 +2,8 @@
 // Created by Valerio Santinelli on 13/04/18.
 //
 
-#ifndef BINOCLE_BINOCLE_GAME_H
-#define BINOCLE_BINOCLE_GAME_H
+#ifndef BINOCLE_GAME_H
+#define BINOCLE_GAME_H
 
 #include <sys/types.h>
 #include "binocle_platform.h"
@@ -36,4 +36,4 @@ void binocle_game_hotreload(binocle_game *game, char* sourceGameCodeDLLFullPath)
 void binocle_unload_game_code(game_code *game);
 game_code binocle_load_game_code(char* SourceDLLName);
 
-#endif //BINOCLE_BINOCLE_GAME_H
+#endif //BINOCLE_GAME_H

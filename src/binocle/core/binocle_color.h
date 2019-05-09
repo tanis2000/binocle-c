@@ -2,8 +2,8 @@
 // Created by Valerio Santinelli on 13/04/18.
 //
 
-#ifndef BINOCLE_BINOCLE_COLOR_H
-#define BINOCLE_BINOCLE_COLOR_H
+#ifndef BINOCLE_COLOR_H
+#define BINOCLE_COLOR_H
 
 typedef struct binocle_color {
   //! Red, green, blue, alpha (translucency)
@@ -30,4 +30,4 @@ static binocle_color binocle_color_black() {
 
 binocle_color binocle_color_new(float r, float g, float b, float a);
 
-#endif //BINOCLE_BINOCLE_COLOR_H
+#endif //BINOCLE_COLOR_H

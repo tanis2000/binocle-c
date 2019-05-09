@@ -2,8 +2,8 @@
 // Created by Valerio Santinelli on 13/04/18.
 //
 
-#ifndef BINOCLE_BINOCLE_SDL_H
-#define BINOCLE_BINOCLE_SDL_H
+#ifndef BINOCLE_SDL_H
+#define BINOCLE_SDL_H
 
 #include <stdbool.h>
 #include <sys/stat.h>
@@ -43,4 +43,4 @@ bool binocle_sdl_load_text_file(char *filename, char **buffer, size_t *buffer_le
 
 bool binocle_sdl_write_text_file(char *filename, char *buffer, size_t size);
 
-#endif //BINOCLE_BINOCLE_SDL_H
+#endif //BINOCLE_SDL_H
