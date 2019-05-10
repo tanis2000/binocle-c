@@ -18,7 +18,9 @@ typedef struct binocle_texture {
 } binocle_texture;
 
 binocle_texture binocle_texture_new();
+
 binocle_texture binocle_texture_from_image_data(unsigned char *image, uint64_t w, uint64_t h);
+
 binocle_texture binocle_texture_from_image(struct binocle_image image);
 
 #endif //BINOCLE_TEXTURE_H

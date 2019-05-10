@@ -8,7 +8,8 @@
 #include "binocle_window.h"
 
 binocle_viewport_adapter binocle_viewport_adapter_new(
-  binocle_window window, binocle_viewport_adapter_kind kind, binocle_viewport_adapter_scaling_type scaling_type, uint32_t width, uint32_t height, uint32_t virtual_width, uint32_t virtual_height
+    binocle_window window, binocle_viewport_adapter_kind kind, binocle_viewport_adapter_scaling_type scaling_type,
+    uint32_t width, uint32_t height, uint32_t virtual_width, uint32_t virtual_height
 ) {
   binocle_viewport_adapter res = {0};
   kmMat4Identity(&res.scale_matrix);
@@ -42,11 +43,11 @@ uint32_t binocle_wiewport_adapter_get_virtual_height(binocle_viewport_adapter ad
 }
 
 uint32_t binocle_viewport_adapter_get_viewport_width(binocle_viewport_adapter adapter) {
-  return (uint32_t)adapter.viewport.max.x;
+  return (uint32_t) adapter.viewport.max.x;
 }
 
 uint32_t binocle_viewport_adapter_get_viewport_height(binocle_viewport_adapter adapter) {
-  return (uint32_t)adapter.viewport.max.y;
+  return (uint32_t) adapter.viewport.max.y;
 }
 
 kmVec2 binocle_viewport_adapter_point_to_virtual_viewport(binocle_viewport_adapter adapter, kmVec2 point) {
@@ -91,8 +92,8 @@ void binocle_viewport_adapter_reset(binocle_viewport_adapter *adapter, kmVec2 ol
       }
 
       // viewport origin translation
-      float diffX = (newWindowSize.x / 2.0f) - ((float)adapter->virtual_width * multiplier / 2.0f);
-      float diffY = (newWindowSize.y / 2.0f) - ((float)adapter->virtual_height * multiplier / 2.0f);
+      float diffX = (newWindowSize.x / 2.0f) - ((float) adapter->virtual_width * multiplier / 2.0f);
+      float diffY = (newWindowSize.y / 2.0f) - ((float) adapter->virtual_height * multiplier / 2.0f);
 
       // build the new viewport
       adapter->viewport.min.x = diffX;
@@ -101,8 +102,8 @@ void binocle_viewport_adapter_reset(binocle_viewport_adapter *adapter, kmVec2 ol
       adapter->viewport.max.y = adapter->virtual_height * multiplier;
 
       // compute the scaling matrix
-      float matMulX = (adapter->viewport.max.x - adapter->viewport.min.x)/adapter->virtual_width;
-      float matMulY = (adapter->viewport.max.y - adapter->viewport.min.y)/adapter->virtual_height;
+      float matMulX = (adapter->viewport.max.x - adapter->viewport.min.x) / adapter->virtual_width;
+      float matMulY = (adapter->viewport.max.y - adapter->viewport.min.y) / adapter->virtual_height;
       kmMat4Identity(&adapter->scale_matrix);
       kmMat4 trans_matrix;
       kmMat4Identity(&trans_matrix);
@@ -115,21 +116,21 @@ void binocle_viewport_adapter_reset(binocle_viewport_adapter *adapter, kmVec2 ol
       int HorizontalBleed = 16;
       int VerticalBleed = 16;
 
-      float worldScaleX = (float) newWindowSize.x/adapter->virtual_width;
-      float worldScaleY = (float) newWindowSize.y/adapter->virtual_height;
+      float worldScaleX = (float) newWindowSize.x / adapter->virtual_width;
+      float worldScaleY = (float) newWindowSize.y / adapter->virtual_height;
 
-      float safeScaleX = (float) newWindowSize.x/(adapter->virtual_width - HorizontalBleed);
-      float safeScaleY = (float) newWindowSize.y/(adapter->virtual_height - VerticalBleed);
+      float safeScaleX = (float) newWindowSize.x / (adapter->virtual_width - HorizontalBleed);
+      float safeScaleY = (float) newWindowSize.y / (adapter->virtual_height - VerticalBleed);
 
       float worldScale = kmMax(worldScaleX, worldScaleY);
       float safeScale = kmMin(safeScaleX, safeScaleY);
       float scale = kmMin(worldScale, safeScale);
 
-      int width = (int) (scale*adapter->virtual_width + 0.5f);
-      int height = (int) (scale*adapter->virtual_height + 0.5f);
+      int width = (int) (scale * adapter->virtual_width + 0.5f);
+      int height = (int) (scale * adapter->virtual_height + 0.5f);
 
-      int x = newWindowSize.x/2 - width/2;
-      int y = newWindowSize.y/2 - height/2;
+      int x = newWindowSize.x / 2 - width / 2;
+      int y = newWindowSize.y / 2 - height / 2;
       adapter->viewport.min.x = x;
       adapter->viewport.min.y = y;
       adapter->viewport.max.x = width;

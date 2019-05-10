@@ -8,6 +8,7 @@
 #include <SDL.h>
 #include <stdio.h>
 #include <stdarg.h>
+
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif

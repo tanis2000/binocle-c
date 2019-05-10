@@ -68,29 +68,18 @@ bool binocle_sdl_init() {
 }
 
 void binocle_sdl_exit() {
-  // Freeing everything related to VIDEO
-
-
-  // Freeing everything related to FONTS
-
-  //XXX: release TTF stuff
-  /*if (TTF_WasInit())
-      TTF_Quit();*/
-
   SDL_Quit();
 }
 
-time_t binocle_sdl_get_last_write_time(char *Filename)
-{
-  time_t LastWriteTime = 0;
+time_t binocle_sdl_get_last_modification_time(char *filename) {
+  time_t lastWriteTime = 0;
 
-  struct stat FileStatus;
-  if(stat(Filename, &FileStatus) == 0)
-  {
-    LastWriteTime = FileStatus.st_mtime;
+  struct stat fileStatus;
+  if (stat(filename, &fileStatus) == 0) {
+    lastWriteTime = fileStatus.st_mtime;
   }
 
-  return(LastWriteTime);
+  return (lastWriteTime);
 }
 
 bool binocle_sdl_load_text_file(char *filename, char **buffer, size_t *buffer_length) {
@@ -121,7 +110,7 @@ bool binocle_sdl_load_text_file(char *filename, char **buffer, size_t *buffer_le
 
   res[nb_read_total] = '\0';
   *buffer = res;
-  *buffer_length = res_size+1;
+  *buffer_length = res_size + 1;
   return true;
 }
 

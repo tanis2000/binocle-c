@@ -11,9 +11,9 @@
 #include "binocle_color.h"
 
 typedef struct binocle_vpct {
-    kmVec2 pos;
-    binocle_color color;
-    kmVec2 tex;
+  kmVec2 pos;
+  binocle_color color;
+  kmVec2 tex;
 } binocle_vpct;
 
 binocle_vpct binocle_vpct_new(kmVec2 pos, binocle_color color, kmVec2 tex);

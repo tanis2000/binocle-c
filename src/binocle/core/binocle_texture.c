@@ -10,9 +10,9 @@
 
 binocle_texture binocle_texture_new() {
   binocle_texture res = {
-    .tex_id = 0,
-    .width = 0,
-    .height = 0
+      .tex_id = 0,
+      .width = 0,
+      .height = 0
   };
   return res;
 }
@@ -22,11 +22,11 @@ binocle_texture binocle_texture_from_image_data(unsigned char *image, uint64_t w
   texture.width = w;
   texture.height = h;
 #if defined(__IPHONEOS__) || defined(__EMSCRIPTEN__)
-    glCheck(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
-    glCheck(glPixelStorei(GL_PACK_ALIGNMENT, 1) );
+  glCheck(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+  glCheck(glPixelStorei(GL_PACK_ALIGNMENT, 1) );
 #else
-    glCheck(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
-    glCheck(glPixelStorei(GL_PACK_LSB_FIRST, 1) );
+  glCheck(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+  glCheck(glPixelStorei(GL_PACK_LSB_FIRST, 1));
 #endif
   glCheck(glGenTextures(1, &texture.tex_id));
   glCheck(glBindTexture(GL_TEXTURE_2D, texture.tex_id));

@@ -10,7 +10,7 @@
 #include "binocle_window.h"
 #include "binocle_log.h"
 
-binocle_window binocle_window_new(uint32_t width, uint32_t height, char* title) {
+binocle_window binocle_window_new(uint32_t width, uint32_t height, char *title) {
   binocle_window res = {0};
   res.width = width;
   res.height = height;
@@ -47,14 +47,14 @@ void binocle_window_clear(binocle_window *win) {
 }
 
 void binocle_window_refresh(binocle_window *win) {
-  #if defined(__IPHONEOS__)
+#if defined(__IPHONEOS__)
   SDL_SysWMinfo info;
   SDL_VERSION(&info.version);
   SDL_GetWindowWMInfo(win->window, &info);
 
   glBindFramebuffer(GL_FRAMEBUFFER, info.info.uikit.framebuffer);
   glBindRenderbuffer(GL_RENDERBUFFER,info.info.uikit.colorbuffer);
-  #endif
+#endif
   SDL_GL_SwapWindow(win->window);
 }
 
@@ -71,7 +71,7 @@ void binocle_window_destroy(binocle_window *win) {
 }
 
 
-void binocle_window_resize(binocle_window *win, char* title, uint32_t width, uint32_t height) {
+void binocle_window_resize(binocle_window *win, char *title, uint32_t width, uint32_t height) {
   // Just in case we already have a window
   binocle_window_destroy(win);
 #if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN)
@@ -167,11 +167,11 @@ void binocle_window_resize(binocle_window *win, char* title, uint32_t width, uin
                    glGetString(GL_VERSION));
 }
 
-void binocle_window_set_background_color(binocle_window* win, binocle_color color) {
+void binocle_window_set_background_color(binocle_window *win, binocle_color color) {
   win->bg_color = color;
 }
 
-void binocle_window_set_title(binocle_window *win, char* title) {
+void binocle_window_set_title(binocle_window *win, char *title) {
   if (win->window)
     SDL_SetWindowTitle(win->window, title);
 }
@@ -201,8 +201,7 @@ void binocle_window_delay_framerate_if_needed(binocle_window *win) {
   win->frame_time = (win->update_time + win->draw_time);
 
   // Wait for some milliseconds...
-  if (win->frame_time < win->target_time)
-  {
+  if (win->frame_time < win->target_time) {
     SDL_Delay(win->target_time - win->frame_time);
 
     win->current_time = SDL_GetTicks();
@@ -246,24 +245,23 @@ void binocle_window_set_target_fps(binocle_window *win, uint64_t fps) {
   if (fps < 1) {
     win->target_time = 0;
   } else {
-    win->target_time = (uint32_t)(1.0/(double)fps * 1000.0);
+    win->target_time = (uint32_t) (1.0 / (double) fps * 1000.0);
   }
-  binocle_log_info("Target FPS: %" PRIu64 " and target time per frame: %" PRIu32" milliseconds", win->target_fps, win->target_time);
+  binocle_log_info("Target FPS: %" PRIu64 " and target time per frame: %" PRIu32" milliseconds", win->target_fps,
+                   win->target_time);
 }
 
 // Returns current FPS
-uint64_t binocle_window_get_fps(binocle_window *win)
-{
+uint64_t binocle_window_get_fps(binocle_window *win) {
   if (binocle_window_get_frame_time(win) > 0) {
-    return (uint64_t)(1000.0/binocle_window_get_frame_time(win));
+    return (uint64_t) (1000.0 / binocle_window_get_frame_time(win));
   } else {
     return 0;
   }
 }
 
 // Returns time in milliseconds for last frame drawn
-uint32_t binocle_window_get_frame_time(binocle_window *win)
-{
+uint32_t binocle_window_get_frame_time(binocle_window *win) {
   // NOTE: We round value to milliseconds
   return win->frame_time;
 }
@@ -279,13 +277,13 @@ void binocle_window_end_frame(binocle_window *win) {
 }
 
 void binocle_window_get_real_size(binocle_window *win, uint32_t *w, uint32_t *h) {
-    SDL_GetWindowSize(win->window, (int *)w, (int *)h);
+  SDL_GetWindowSize(win->window, (int *) w, (int *) h);
 }
 
 bool binocle_window_get_display_size(uint32_t *w, uint32_t *h) {
   // NOTE: this only takes into account the first display
   SDL_DisplayMode current;
-  for(int i = 0; i < SDL_GetNumVideoDisplays(); ++i){
+  for (int i = 0; i < SDL_GetNumVideoDisplays(); ++i) {
 
     if (SDL_GetCurrentDisplayMode(i, &current) == 0) {
       *w = current.w;

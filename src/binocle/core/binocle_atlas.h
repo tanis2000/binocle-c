@@ -25,15 +25,18 @@ typedef enum binocle_atlas_file_format {
  * @param subtextures an array of subtextures to store those coming from the JSON
  * @param num_subtextures the number of subtextures that have been loaded by this function
  */
-void binocle_atlas_load_texturepacker(char *filename, struct binocle_texture *texture, struct binocle_subtexture *subtextures, int *num_subtextures);
+void binocle_atlas_load_texturepacker(char *filename, struct binocle_texture *texture,
+                                      struct binocle_subtexture *subtextures, int *num_subtextures);
 
 /**
  * Load a libGDX atlas
+ * \note Not yet implemented
  * @param filename the JSON file path and name
  * @param texture the corresponding texture that we already loaded
  * @param subtextures an array of subtextures to store those coming from the JSON
  * @param num_subtextures the number of subtextures that have been loaded by this function
  */
-void binocle_atlas_load_libgdx(char *filename, struct binocle_texture *texture, struct binocle_subtexture *subtextures, int *num_subtextures);
+void binocle_atlas_load_libgdx(char *filename, struct binocle_texture *texture, struct binocle_subtexture *subtextures,
+                               int *num_subtextures);
 
 #endif //BINOCLE_ATLAS_H

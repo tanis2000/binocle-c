@@ -8,16 +8,20 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
 #if defined(__WINDOWS__)
 //#include <x86intrin.h>
 #define RTLD_LAZY   0
 #else
+
 #include <unistd.h>
 #include <glob.h>
 #include <dlfcn.h>
 #include <sys/mman.h>
 #include <sys/wait.h>
+
 #endif
+
 #include "binocle_sdl.h"
 #include "binocle_game.h"
 #include "binocle_platform.h"
@@ -34,12 +38,12 @@ void binocle_game_run(binocle_window window, binocle_input input) {
   game.game_code = game_code;
   game.game_memory = game_memory;
   game.game_memory.gameState = NULL;
-  game.game_memory.PlatformAPI = (struct platform_api){ .binocle_log_debug = NULL, .Allocate = NULL};
+  game.game_memory.PlatformAPI = (struct platform_api) {.binocle_log_debug = NULL, .Allocate = NULL};
   game.game_memory.PlatformAPI.binocle_log_debug = binocle_log_debug;
   game.game_memory.PlatformAPI.Allocate = SDL_malloc;
 
   while (!input.quit_requested) {
-    float delta = (float)binocle_window_get_delta(&window) / 1000.0f;
+    float delta = (float) binocle_window_get_delta(&window) / 1000.0f;
 
     binocle_game_update(&game, delta);
     binocle_game_draw(&game, window, delta);
@@ -63,14 +67,13 @@ void binocle_game_draw(binocle_game *game, binocle_window window, float dt) {
   binocle_window_clear(&window);
 }
 
-void binocle_game_hotreload(binocle_game *game, char* sourceGameCodeDLLFullPath) {
+void binocle_game_hotreload(binocle_game *game, char *sourceGameCodeDLLFullPath) {
   time_t NewDLLWriteTime = binocle_sdl_get_last_write_time(sourceGameCodeDLLFullPath);
   int32_t executableNeedsToBeReloaded = NewDLLWriteTime != game->game_code.DLLLastWriteTime;
 
   game->game_memory.executableReloaded = -1;
 
-  if(executableNeedsToBeReloaded)
-  {
+  if (executableNeedsToBeReloaded) {
     binocle_unload_game_code(&game->game_code);
     game->game_code = binocle_load_game_code(sourceGameCodeDLLFullPath);
 
@@ -80,8 +83,7 @@ void binocle_game_hotreload(binocle_game *game, char* sourceGameCodeDLLFullPath)
 }
 
 void binocle_unload_game_code(game_code *game) {
-  if(game->GameCodeDLL)
-  {
+  if (game->GameCodeDLL) {
     dlclose(game->GameCodeDLL);
     game->GameCodeDLL = 0;
   }
@@ -90,32 +92,27 @@ void binocle_unload_game_code(game_code *game) {
   game->UpdateAndRender = 0;
 }
 
-game_code binocle_load_game_code(char* SourceDLLName) {
+game_code binocle_load_game_code(char *SourceDLLName) {
   game_code Result = {0};
 
   Result.DLLLastWriteTime = binocle_sdl_get_last_write_time(SourceDLLName);
 
-  if(Result.DLLLastWriteTime)
-  {
+  if (Result.DLLLastWriteTime) {
     Result.GameCodeDLL = dlopen(SourceDLLName, RTLD_LAZY);
-    if(Result.GameCodeDLL)
-    {
+    if (Result.GameCodeDLL) {
       Result.UpdateAndRender = (game_update_and_render *)
-        dlsym(Result.GameCodeDLL, "GameUpdateAndRender");
+          dlsym(Result.GameCodeDLL, "GameUpdateAndRender");
 
       Result.IsValid = (Result.UpdateAndRender != 0);
-    }
-    else
-    {
+    } else {
       fprintf(stderr, "ERROR: Cannot Load game code. %s\n", dlerror());
     }
   }
 
-  if(!Result.IsValid)
-  {
+  if (!Result.IsValid) {
     Result.UpdateAndRender = 0;
   }
 
-  return(Result);
+  return (Result);
 
 }

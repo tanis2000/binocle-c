@@ -37,15 +37,15 @@ typedef enum binocle_audio_music_context_type {
 } binocle_audio_music_context_type;
 
 typedef struct binocle_audio_stream {
-  unsigned int sample_rate;    // Frequency (samples per second)
-  unsigned int sample_size;    // Bit depth (bits per sample): 8, 16, 32 (24 not supported)
-  unsigned int channels;      // Number of channels (1-mono, 2-stereo)
+  unsigned int sample_rate; // Frequency (samples per second)
+  unsigned int sample_size; // Bit depth (bits per sample): 8, 16, 32 (24 not supported)
+  unsigned int channels; // Number of channels (1-mono, 2-stereo)
 
-  void *audio_buffer;          // Pointer to internal data used by the audio system.
+  void *audio_buffer; // Pointer to internal data used by the audio system.
 
-  int format;                 // Audio format specifier
-  unsigned int source;        // Audio source id
-  unsigned int buffers[2];    // Audio buffers (double buffering)
+  int format; // Audio format specifier
+  unsigned int source; // Audio source id
+  unsigned int buffers[2]; // Audio buffers (double buffering)
 } binocle_audio_stream;
 
 typedef struct binocle_audio_music {
@@ -57,19 +57,19 @@ typedef struct binocle_audio_music {
   jar_xm_context_t *ctx_xm;
   jar_mod_context_t ctx_mod;
 
-  binocle_audio_stream stream;                 // Audio stream (double buffering)
+  binocle_audio_stream stream; // Audio stream (double buffering)
 
-  int loop_count;                      // Loops count (times music repeats), -1 means infinite loop
-  unsigned int total_samples;          // Total number of samples
-  unsigned int samples_left;           // Number of samples left to end
+  int loop_count; // Loops count (times music repeats), -1 means infinite loop
+  unsigned int total_samples; // Total number of samples
+  unsigned int samples_left; // Number of samples left to end
 } binocle_audio_music;
 
 typedef struct binocle_audio_wave {
-  unsigned int sample_count;   // Number of samples
-  unsigned int sample_rate;    // Frequency (samples per second)
-  unsigned int sample_size;    // Bit depth (bits per sample): 8, 16, 32 (24 not supported)
-  unsigned int channels;      // Number of channels (1-mono, 2-stereo)
-  void *data;                 // Buffer data pointer
+  unsigned int sample_count; // Number of samples
+  unsigned int sample_rate; // Frequency (samples per second)
+  unsigned int sample_size; // Bit depth (bits per sample): 8, 16, 32 (24 not supported)
+  unsigned int channels; // Number of channels (1-mono, 2-stereo)
+  void *data; // Buffer data pointer
 } binocle_audio_wave;
 
 typedef struct binocle_audio_sound {

@@ -10,7 +10,7 @@
 
 binocle_input binocle_input_new() {
   binocle_input res = {
-    .quit_requested = false
+      .quit_requested = false
   };
   for (int i = 0; i < (int) KEY_MAX; i++) {
     res.previousKeys[i] = res.currentKeys[i] = false;
@@ -83,8 +83,8 @@ void binocle_input_update(binocle_input *input) {
         break;
 
       case SDL_MOUSEMOTION:
-        input->mouseX = event.motion.x;// + cameraX;
-        input->mouseY = event.motion.y;// + cameraY;
+        input->mouseX = event.motion.x;
+        input->mouseY = event.motion.y;
         break;
 
       case SDL_MOUSEBUTTONDOWN:
@@ -95,50 +95,37 @@ void binocle_input_update(binocle_input *input) {
 
         break;
 
-        // Brand new SDL2 event.
-        // case SDL_MOUSEWHEEL:
-        // event.x; // Ammount scrolled horizontally
-        // // If negative, scrolled to the right
-        // // If positive, scrolled to the left
-
-        // event.y; // Ammount scrolled vertically
-        // // If negative, scrolled down
-        // // If positive, scrolled up
-        break;
-      case SDL_MOUSEWHEEL:
-      {
+      case SDL_MOUSEWHEEL: {
         input->mouseWheelX = event.wheel.x;
         input->mouseWheelY = event.wheel.y;
         break;
       }
 
       case SDL_FINGERDOWN:
-        // do something with event.tfinger
-            input->touch.x = event.tfinger.x;
-            input->touch.y = event.tfinger.y;
-            input->touch.dx = event.tfinger.dx;
-            input->touch.dy = event.tfinger.dy;
-            input->touch.pressure = event.tfinger.pressure;
-            input->touch.type = FINGER_DOWN;
-      break;
+        input->touch.x = event.tfinger.x;
+        input->touch.y = event.tfinger.y;
+        input->touch.dx = event.tfinger.dx;
+        input->touch.dy = event.tfinger.dy;
+        input->touch.pressure = event.tfinger.pressure;
+        input->touch.type = FINGER_DOWN;
+        break;
       case SDL_FINGERMOTION:
-            input->touch.x = event.tfinger.x;
-            input->touch.y = event.tfinger.y;
-            input->touch.dx = event.tfinger.dx;
-            input->touch.dy = event.tfinger.dy;
-            input->touch.pressure = event.tfinger.pressure;
-            input->touch.type = FINGER_MOTION;
-      break;
+        input->touch.x = event.tfinger.x;
+        input->touch.y = event.tfinger.y;
+        input->touch.dx = event.tfinger.dx;
+        input->touch.dy = event.tfinger.dy;
+        input->touch.pressure = event.tfinger.pressure;
+        input->touch.type = FINGER_MOTION;
+        break;
       case SDL_FINGERUP:
-            input->touch.x = event.tfinger.x;
-            input->touch.y = event.tfinger.y;
-            input->touch.dx = event.tfinger.dx;
-            input->touch.dy = event.tfinger.dy;
-            input->touch.pressure = event.tfinger.pressure;
-            input->touch.type = FINGER_UP;
-      break;
-      case SDL_TEXTINPUT:
-      {
+        input->touch.x = event.tfinger.x;
+        input->touch.y = event.tfinger.y;
+        input->touch.dx = event.tfinger.dx;
+        input->touch.dy = event.tfinger.dy;
+        input->touch.pressure = event.tfinger.pressure;
+        input->touch.type = FINGER_UP;
+        break;
+      case SDL_TEXTINPUT: {
         memcpy(input->text, event.text.text, SDL_TEXTINPUTEVENT_TEXT_SIZE);
         break;
       }
@@ -176,7 +163,7 @@ bool binocle_input_is_key_pressed(binocle_input input, binocle_input_keyboard_ke
   if (input.isLocked)
     return false;
 
-  int sdl_key = (int)(key);
+  int sdl_key = (int) (key);
 
   if (input.currentKeys[sdl_key])
     return true;
@@ -223,7 +210,7 @@ bool binocle_input_is_mouse_pressed(binocle_input input, binocle_input_mouse_but
   if (input.isLocked)
     return false;
 
-  int sdl_key = (int)(button);
+  int sdl_key = (int) (button);
 
   if (input.currentMouseButtons[sdl_key])
     return true;
@@ -251,18 +238,13 @@ bool binocle_input_is_mouse_inside(binocle_input input, kmAABB2 rectangle) {
 
 kmVec2 binocle_input_get_mouse_position(binocle_input input, binocle_camera camera) {
   kmVec2 res = {
-    .x = input.mouseX + camera.origin.x,
-    .y = input.mouseY + camera.origin.y
+      .x = input.mouseX + camera.origin.x,
+      .y = input.mouseY + camera.origin.y
   };
   return res;
 }
 
 bool binocle_input_is_printable(SDL_Keycode key) {
-  // We test `key` on SDL's internal values for keys
-  //
-  // To get a list of them, go here:
-  // http://wiki.libsdl.org/SDLKeycodeLookup
-
   return ((key > SDLK_SPACE) && (key < SDLK_z));
 }
 
@@ -280,17 +262,16 @@ void binocle_input_lock(binocle_input input) { input.isLocked = true; }
 void binocle_input_unlock(binocle_input input) { input.isLocked = false; }
 
 bool binocle_input_is_touch_down(binocle_input input, unsigned int finger) {
-    if (input.touch.type == FINGER_DOWN) {
-        return true;
-    }
-    return false;
-  //sf::Touch::isDown(finger);
+  if (input.touch.type == FINGER_DOWN) {
+    return true;
+  }
+  return false;
 }
 
 kmVec2 binocle_input_get_touch_position(unsigned int finger, binocle_camera camera) {
   kmVec2 res;
   return res;
-  //sf::glm::vec2i pos = sf::Touch::getPosition(finger, *window);
-  //sf::glm::vec2f worldPos = window->mapPixelToCoords(pos, camera->view);
+  //glm::vec2i pos = Touch::getPosition(finger, *window);
+  //glm::vec2f worldPos = window->mapPixelToCoords(pos, camera->view);
   //return glm::vec2(worldPos.x, worldPos.y);
 }

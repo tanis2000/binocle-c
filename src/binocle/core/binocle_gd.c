@@ -208,8 +208,8 @@ void binocle_gd_apply_viewport(kmAABB2 viewport) {
 
 void binocle_gd_apply_blend_mode(const binocle_blend blend_mode) {
   glCheck(glBlendFunc(
-    binocle_gd_factor_to_gl_constant(blend_mode.color_src_factor),
-    binocle_gd_factor_to_gl_constant(blend_mode.color_dst_factor)));
+      binocle_gd_factor_to_gl_constant(blend_mode.color_src_factor),
+      binocle_gd_factor_to_gl_constant(blend_mode.color_dst_factor)));
   glCheck(glBlendEquation(binocle_gd_equation_to_gl_constant(blend_mode.color_equation)));
 }
 
@@ -357,7 +357,8 @@ void binocle_gd_set_uniform_float2(struct binocle_shader shader, const char *nam
   glCheck(glUniform2f(id, value1, value2));
 }
 
-void binocle_gd_set_uniform_float3(struct binocle_shader shader, const char *name, float value1, float value2, float value3) {
+void binocle_gd_set_uniform_float3(struct binocle_shader shader, const char *name, float value1, float value2,
+                                   float value3) {
   GLint id = 0;
   glCheck(id = glGetUniformLocation(shader.program_id, name));
   if (id == -1) {
@@ -367,7 +368,9 @@ void binocle_gd_set_uniform_float3(struct binocle_shader shader, const char *nam
   glCheck(glUniform3f(id, value1, value2, value3));
 }
 
-void binocle_gd_set_uniform_float4(struct binocle_shader shader, const char *name, float value1, float value2, float value3, float value4) {
+void
+binocle_gd_set_uniform_float4(struct binocle_shader shader, const char *name, float value1, float value2, float value3,
+                              float value4) {
   GLint id = 0;
   glCheck(id = glGetUniformLocation(shader.program_id, name));
   if (id == -1) {
@@ -412,12 +415,12 @@ void binocle_gd_set_render_target(binocle_render_target render_target) {
 
 void binocle_gd_draw_quad(struct binocle_shader shader) {
   static const GLfloat g_quad_vertex_buffer_data[] = {
-    -1.0f, -1.0f,
-    1.0f, -1.0f,
-    -1.0f, 1.0f,
-    -1.0f, 1.0f,
-    1.0f, -1.0f,
-    1.0f, 1.0f,
+      -1.0f, -1.0f,
+      1.0f, -1.0f,
+      -1.0f, 1.0f,
+      -1.0f, 1.0f,
+      1.0f, -1.0f,
+      1.0f, 1.0f,
   };
 
   GLuint quad_vertexbuffer;
@@ -437,12 +440,12 @@ void binocle_gd_draw_quad(struct binocle_shader shader) {
 
 void binocle_gd_draw_quad_to_screen(struct binocle_shader shader, binocle_render_target render_target) {
   static const GLfloat g_quad_vertex_buffer_data[] = {
-    -1.0f, -1.0f,
-    1.0f, -1.0f,
-    -1.0f, 1.0f,
-    -1.0f, 1.0f,
-    1.0f, -1.0f,
-    1.0f, 1.0f,
+      -1.0f, -1.0f,
+      1.0f, -1.0f,
+      -1.0f, 1.0f,
+      -1.0f, 1.0f,
+      1.0f, -1.0f,
+      1.0f, 1.0f,
   };
 
   GLuint quad_vertexbuffer;
@@ -509,17 +512,21 @@ void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect, binocle_color col, kmAAB
   glCheck(color_id = glGetUniformLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id, "color"));
   GLint pos_id;
   glCheck(
-    pos_id = glGetAttribLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id, "vertexPosition"));
+      pos_id = glGetAttribLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id, "vertexPosition"));
   glCheck(glUniform4f(color_id, col.r, col.g, col.b, col.a));
   binocle_gd_apply_viewport(viewport);
   glCheck(glVertexAttribPointer(pos_id, 2, GL_FLOAT, false, sizeof(GLfloat) * 2, 0));
   glCheck(glEnableVertexAttribArray(pos_id));
   GLint projection_matrix_uniform;
-  glCheck(projection_matrix_uniform = glGetUniformLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id, "projectionMatrix"));
+  glCheck(
+      projection_matrix_uniform = glGetUniformLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id,
+                                                       "projectionMatrix"));
   GLint view_matrix_uniform;
-  glCheck(view_matrix_uniform = glGetUniformLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id, "viewMatrix"));
+  glCheck(view_matrix_uniform = glGetUniformLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id,
+                                                     "viewMatrix"));
   GLint model_matrix_uniform;
-  glCheck(model_matrix_uniform = glGetUniformLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id, "modelMatrix"));
+  glCheck(model_matrix_uniform = glGetUniformLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id,
+                                                      "modelMatrix"));
   glCheck(glUniformMatrix4fv(projection_matrix_uniform, 1, GL_FALSE, projectionMatrix.mat));
   glCheck(glUniformMatrix4fv(view_matrix_uniform, 1, GL_FALSE, viewMatrix.mat));
   glCheck(glUniformMatrix4fv(model_matrix_uniform, 1, GL_FALSE, modelMatrix.mat));

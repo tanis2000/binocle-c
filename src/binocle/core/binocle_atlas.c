@@ -11,7 +11,8 @@
 #include "binocle_subtexture.h"
 #include <parson/parson.h>
 
-void binocle_atlas_load_texturepacker(char *filename, struct binocle_texture *texture, struct binocle_subtexture *subtextures, int *num_subtextures) {
+void binocle_atlas_load_texturepacker(char *filename, struct binocle_texture *texture,
+                                      struct binocle_subtexture *subtextures, int *num_subtextures) {
   *num_subtextures = 0;
   binocle_log_info("Loading TexturePacker file: %s", filename);
   SDL_RWops *file = SDL_RWFromFile(filename, "rb");
@@ -69,11 +70,11 @@ void binocle_atlas_load_texturepacker(char *filename, struct binocle_texture *te
   }
 
   meta = json_object_get_object(root, "meta");
-  int atlas_w = (int)json_object_dotget_number(meta, "size.w");
-  int atlas_h = (int)json_object_dotget_number(meta, "size.h");
+  int atlas_w = (int) json_object_dotget_number(meta, "size.w");
+  int atlas_h = (int) json_object_dotget_number(meta, "size.h");
 
   frames = json_object_get_array(root, "frames");
-  for (int i = 0 ; i < json_array_get_count(frames) ; i++) {
+  for (int i = 0; i < json_array_get_count(frames); i++) {
     frame = json_array_get_object(frames, i);
     int x, y, w, h = 0;
     const char *frameFilename;
@@ -81,10 +82,10 @@ void binocle_atlas_load_texturepacker(char *filename, struct binocle_texture *te
 
     frameFilename = json_object_get_string(frame, "filename");
     innerFrame = json_object_get_object(frame, "frame");
-    x = (int)json_object_get_number(innerFrame, "x");
-    y = (int)json_object_get_number(innerFrame, "y");
-    w = (int)json_object_get_number(innerFrame, "w");
-    h = (int)json_object_get_number(innerFrame, "h");
+    x = (int) json_object_get_number(innerFrame, "x");
+    y = (int) json_object_get_number(innerFrame, "y");
+    w = (int) json_object_get_number(innerFrame, "w");
+    h = (int) json_object_get_number(innerFrame, "h");
 
     // We need to invert the coordinates as our reference is with 0,0 in the bottom left corner, thus
     // the y becomes (atlas height - y - height of the frame)
@@ -100,7 +101,8 @@ void binocle_atlas_load_texturepacker(char *filename, struct binocle_texture *te
   binocle_log_debug("Atlas loaded.");
 }
 
-void binocle_atlas_load_libgdx(char *filename, struct binocle_texture *texture, struct binocle_subtexture *subtextures, int *num_subtextures) {
+void binocle_atlas_load_libgdx(char *filename, struct binocle_texture *texture, struct binocle_subtexture *subtextures,
+                               int *num_subtextures) {
   *num_subtextures = 0;
   binocle_log_info("Loading LibGDX file: %s", filename);
   SDL_RWops *file = SDL_RWFromFile(filename, "rb");

@@ -19,16 +19,17 @@
 binocle_sprite binocle_sprite_from_material(binocle_material *material) {
   binocle_sprite res = {0};
   res.animations =
-    malloc(sizeof(binocle_sprite_animation) * BINOCLE_SPRITE_MAX_ANIMATIONS);
+      malloc(sizeof(binocle_sprite_animation) * BINOCLE_SPRITE_MAX_ANIMATIONS);
   res.frames =
-    malloc(sizeof(binocle_sprite_frame) * BINOCLE_SPRITE_MAX_FRAMES);
+      malloc(sizeof(binocle_sprite_frame) * BINOCLE_SPRITE_MAX_FRAMES);
   // Default origin to bottom-left
   res.origin.x = 0;
   res.origin.y = 0;
   res.material = material;
   // Default to use the whole texture
-  res.subtexture = binocle_subtexture_with_texture(material->texture, 0, 0, material->texture->width, material->texture->height);
-  for (int i = 0 ; i < BINOCLE_SPRITE_MAX_ANIMATIONS ; i++) {
+  res.subtexture = binocle_subtexture_with_texture(material->texture, 0, 0, material->texture->width,
+                                                   material->texture->height);
+  for (int i = 0; i < BINOCLE_SPRITE_MAX_ANIMATIONS; i++) {
     res.animations[i].enabled = false;
   }
   res.frames_number = 0;
@@ -49,7 +50,8 @@ void binocle_sprite_destroy(struct binocle_sprite *sprite) {
   sprite = NULL;
 }
 
-void binocle_sprite_draw(binocle_sprite sprite, binocle_gd *gd, int64_t x, int64_t y, kmAABB2 viewport, float rotation, kmVec2 scale, binocle_camera *camera) {
+void binocle_sprite_draw(binocle_sprite sprite, binocle_gd *gd, int64_t x, int64_t y, kmAABB2 viewport, float rotation,
+                         kmVec2 scale, binocle_camera *camera) {
   binocle_vpct vertices[BINOCLE_SPRITE_VERTEX_COUNT];
   binocle_subtexture *s;
   float w, h;
@@ -62,19 +64,21 @@ void binocle_sprite_draw(binocle_sprite sprite, binocle_gd *gd, int64_t x, int64
     s = &sprite.subtexture;
     w = sprite.subtexture.rect.max.x;
     h = sprite.subtexture.rect.max.y;
-    //w = sprite.material->texture->width;
-    //h = sprite.material->texture->height;
   }
 
   // TL
-  vertices[0].pos.x = -sprite.origin.x * scale.x * cosf(rotation) - (-sprite.origin.y * scale.y + h * scale.y) * sinf(rotation) + x;
-  vertices[0].pos.y = (-sprite.origin.y * scale.y + h * scale.y) * cosf(rotation) - sprite.origin.x * scale.x * sinf(rotation) + y;
+  vertices[0].pos.x =
+      -sprite.origin.x * scale.x * cosf(rotation) - (-sprite.origin.y * scale.y + h * scale.y) * sinf(rotation) + x;
+  vertices[0].pos.y =
+      (-sprite.origin.y * scale.y + h * scale.y) * cosf(rotation) - sprite.origin.x * scale.x * sinf(rotation) + y;
   vertices[0].color = binocle_color_white();
   vertices[0].tex.x = s->rect.min.x / sprite.material->texture->width;
   vertices[0].tex.y = (s->rect.min.y + s->rect.max.y) / sprite.material->texture->height;
   // TR
-  vertices[1].pos.x = (-sprite.origin.x * scale.x + w * scale.x) * cosf(rotation) - (-sprite.origin.y * scale.y + h * scale.y) * sinf(rotation) + x;
-  vertices[1].pos.y = (-sprite.origin.y * scale.y + h * scale.y) * cosf(rotation) + (-sprite.origin.x * scale.x + w * scale.x) * sinf(rotation) + y;
+  vertices[1].pos.x = (-sprite.origin.x * scale.x + w * scale.x) * cosf(rotation) -
+                      (-sprite.origin.y * scale.y + h * scale.y) * sinf(rotation) + x;
+  vertices[1].pos.y = (-sprite.origin.y * scale.y + h * scale.y) * cosf(rotation) +
+                      (-sprite.origin.x * scale.x + w * scale.x) * sinf(rotation) + y;
   vertices[1].color = binocle_color_white();
   vertices[1].tex.x = (s->rect.min.x + s->rect.max.x) / sprite.material->texture->width;
   vertices[1].tex.y = (s->rect.min.y + s->rect.max.y) / sprite.material->texture->height;
@@ -85,14 +89,18 @@ void binocle_sprite_draw(binocle_sprite sprite, binocle_gd *gd, int64_t x, int64
   vertices[2].tex.x = s->rect.min.x / sprite.material->texture->width;
   vertices[2].tex.y = s->rect.min.y / sprite.material->texture->height;
   // TR
-  vertices[3].pos.x = (-sprite.origin.x * scale.x + w * scale.x) * cosf(rotation) - (-sprite.origin.y * scale.y + h * scale.y) * sinf(rotation) + x;
-  vertices[3].pos.y = (-sprite.origin.y * scale.y + h * scale.y) * cosf(rotation) + (-sprite.origin.x * scale.x + w * scale.x) * sinf(rotation) + y;
+  vertices[3].pos.x = (-sprite.origin.x * scale.x + w * scale.x) * cosf(rotation) -
+                      (-sprite.origin.y * scale.y + h * scale.y) * sinf(rotation) + x;
+  vertices[3].pos.y = (-sprite.origin.y * scale.y + h * scale.y) * cosf(rotation) +
+                      (-sprite.origin.x * scale.x + w * scale.x) * sinf(rotation) + y;
   vertices[3].color = binocle_color_white();
   vertices[3].tex.x = (s->rect.min.x + s->rect.max.x) / sprite.material->texture->width;
   vertices[3].tex.y = (s->rect.min.y + s->rect.max.y) / sprite.material->texture->height;
   // BR
-  vertices[4].pos.x = (-sprite.origin.x * scale.x + w * scale.x) * cosf(rotation) + sprite.origin.y * scale.y * sinf(rotation) + x;
-  vertices[4].pos.y = -sprite.origin.y * scale.y * cosf(rotation) + (-sprite.origin.x * scale.x + w * scale.x) * sinf(rotation) + y;
+  vertices[4].pos.x =
+      (-sprite.origin.x * scale.x + w * scale.x) * cosf(rotation) + sprite.origin.y * scale.y * sinf(rotation) + x;
+  vertices[4].pos.y =
+      -sprite.origin.y * scale.y * cosf(rotation) + (-sprite.origin.x * scale.x + w * scale.x) * sinf(rotation) + y;
   vertices[4].color = binocle_color_white();
   vertices[4].tex.x = (s->rect.min.x + s->rect.max.x) / sprite.material->texture->width;
   vertices[4].tex.y = s->rect.min.y / sprite.material->texture->height;
@@ -119,7 +127,8 @@ binocle_sprite_frame binocle_sprite_frame_from_subtexture(struct binocle_subtext
   return res;
 }
 
-binocle_sprite_frame binocle_sprite_frame_from_subtexture_and_origin(struct binocle_subtexture *subtexture, kmVec2 origin) {
+binocle_sprite_frame
+binocle_sprite_frame_from_subtexture_and_origin(struct binocle_subtexture *subtexture, kmVec2 origin) {
   binocle_sprite_frame res = {0};
   res.subtexture = subtexture;
   res.origin = origin;
@@ -132,13 +141,13 @@ binocle_sprite_animation *binocle_sprite_create_animation_with_name(binocle_spri
   res.enabled = true;
   //res.delay = 0;
   res.looping = false;
-  for (int i = 0 ; i < BINOCLE_SPRITE_MAX_FRAMES ; i++) {
+  for (int i = 0; i < BINOCLE_SPRITE_MAX_FRAMES; i++) {
     res.frames[i] = -1;
   }
   res.frames_number = 0;
   sprite->animations[sprite->animations_number] = res;
   sprite->animations_number++;
-  return &sprite->animations[sprite->animations_number-1];
+  return &sprite->animations[sprite->animations_number - 1];
 }
 
 
@@ -147,7 +156,7 @@ void binocle_sprite_add_animation(binocle_sprite *sprite, int id, int frame) {
   res.enabled = true;
   //res.delay = 0;
   res.looping = false;
-  for (int i = 0 ; i < BINOCLE_SPRITE_MAX_FRAMES ; i++) {
+  for (int i = 0; i < BINOCLE_SPRITE_MAX_FRAMES; i++) {
     res.frames[i] = -1;
   }
   res.frames[0] = frame;
@@ -155,15 +164,16 @@ void binocle_sprite_add_animation(binocle_sprite *sprite, int id, int frame) {
   sprite->animations[id] = res;
 }
 
-void binocle_sprite_add_animation_with_frames(binocle_sprite *sprite, int id, bool looping, float delay, int frames[], int frames_count) {
+void binocle_sprite_add_animation_with_frames(binocle_sprite *sprite, int id, bool looping, float delay, int frames[],
+                                              int frames_count) {
   binocle_sprite_animation res = {0};
   res.enabled = true;
   //res.delay = delay;
   res.looping = looping;
-  for (int i = 0 ; i < BINOCLE_SPRITE_MAX_FRAMES ; i++) {
+  for (int i = 0; i < BINOCLE_SPRITE_MAX_FRAMES; i++) {
     res.frames[i] = -1;
   }
-  for (int i = 0 ; i < frames_count ; i++) {
+  for (int i = 0; i < frames_count; i++) {
     res.frames[i] = frames[i];
   }
   res.frames_number = frames_count;
@@ -199,38 +209,38 @@ void binocle_sprite_stop(binocle_sprite *sprite) {
 
 void binocle_sprite_update(binocle_sprite *sprite, float dt) {
   //binocle_log_info("dt %f, sprite->rate %f", dt, sprite->rate);
-    if (sprite->playing && sprite->current_animation->delays[sprite->current_animation_frame] > 0) {
-      sprite->timer += (dt * fabsf(sprite->rate));
-      //binocle_log_info("timer %f fabsf(sprite->rate) %f", sprite->timer, fabsf(sprite->rate));
-      while (sprite->timer >= sprite->current_animation->delays[sprite->current_animation_frame]) {
-        //binocle_log_info("sprite->timer %f sprite->current_animation->delay %f", sprite->timer, sprite->current_animation->delay);
-        int oldFrame = sprite->current_frame;
-        sprite->timer -= sprite->current_animation->delays[sprite->current_animation_frame];
-        sprite->current_animation_frame += SIGNOF(sprite->rate);
+  if (sprite->playing && sprite->current_animation->delays[sprite->current_animation_frame] > 0) {
+    sprite->timer += (dt * fabsf(sprite->rate));
+    //binocle_log_info("timer %f fabsf(sprite->rate) %f", sprite->timer, fabsf(sprite->rate));
+    while (sprite->timer >= sprite->current_animation->delays[sprite->current_animation_frame]) {
+      //binocle_log_info("sprite->timer %f sprite->current_animation->delay %f", sprite->timer, sprite->current_animation->delay);
+      int oldFrame = sprite->current_frame;
+      sprite->timer -= sprite->current_animation->delays[sprite->current_animation_frame];
+      sprite->current_animation_frame += SIGNOF(sprite->rate);
 
-        if (sprite->current_animation_frame == sprite->current_animation->frames_number) {
-          //Looping
-          sprite->current_animation_frame = 0;
-          if (sprite->current_animation->looping) {
-            sprite->current_frame = sprite->current_animation->frames[0];
-          } else {
-            sprite->finished = true;
-            sprite->playing = false;
-          }
-        } else if (sprite->current_animation_frame == -1) {
-          //Reverse looping
-          sprite->current_animation_frame = sprite->current_animation->frames_number - 1;
-          if (sprite->current_animation->looping) {
-            sprite->current_frame = sprite->current_animation->frames[0];
-          } else {
-            sprite->finished = true;
-            sprite->playing = false;
-          }
+      if (sprite->current_animation_frame == sprite->current_animation->frames_number) {
+        //Looping
+        sprite->current_animation_frame = 0;
+        if (sprite->current_animation->looping) {
+          sprite->current_frame = sprite->current_animation->frames[0];
         } else {
-          sprite->current_frame = sprite->current_animation->frames[sprite->current_animation_frame];
+          sprite->finished = true;
+          sprite->playing = false;
         }
+      } else if (sprite->current_animation_frame == -1) {
+        //Reverse looping
+        sprite->current_animation_frame = sprite->current_animation->frames_number - 1;
+        if (sprite->current_animation->looping) {
+          sprite->current_frame = sprite->current_animation->frames[0];
+        } else {
+          sprite->finished = true;
+          sprite->playing = false;
+        }
+      } else {
+        sprite->current_frame = sprite->current_animation->frames[sprite->current_animation_frame];
       }
     }
+  }
 }
 
 int binocle_sprite_get_current_frame(binocle_sprite *sprite) {
@@ -263,7 +273,7 @@ void binocle_sprite_clear_animations(binocle_sprite *sprite) {
   if (sprite->playing) {
     binocle_sprite_stop(sprite);
   }
-  for (int i = 0 ; i < BINOCLE_SPRITE_MAX_ANIMATIONS ; i++) {
+  for (int i = 0; i < BINOCLE_SPRITE_MAX_ANIMATIONS; i++) {
     sprite->animations[i].enabled = false;
   }
 }
@@ -272,25 +282,27 @@ void binocle_sprite_clear_frames(binocle_sprite *sprite) {
   if (sprite->playing) {
     binocle_sprite_stop(sprite);
   }
-  for (int i = 0 ; i < BINOCLE_SPRITE_MAX_FRAMES ; i++) {
+  for (int i = 0; i < BINOCLE_SPRITE_MAX_FRAMES; i++) {
     // TODO
   }
 }
 
-void binocle_sprite_create_frames_with_string(binocle_sprite *sprite, binocle_sprite_animation *animation, char *subtextures_names, binocle_subtexture *subtextures, size_t subtextures_count) {
+void binocle_sprite_create_frames_with_string(binocle_sprite *sprite, binocle_sprite_animation *animation,
+                                              char *subtextures_names, binocle_subtexture *subtextures,
+                                              size_t subtextures_count) {
   int start_frame = 0;
   char *s = SDL_strdup(subtextures_names);
   char *token = strtok(s, ",");
   while (token) {
     bool added = false;
     binocle_subtexture *sub = subtextures;
-    for (int i = 0 ; i < subtextures_count ; i++) {
+    for (int i = 0; i < subtextures_count; i++) {
       if (strcmp(sub->name, token) == 0) {
         binocle_sprite_frame frame = binocle_sprite_frame_from_subtexture(sub);
         binocle_sprite_add_frame(sprite, frame);
         animation->frame_mapping[animation->frame_mapping_number].name = SDL_strdup(sub->name);
         animation->frame_mapping[animation->frame_mapping_number].original_frame = start_frame;
-        animation->frame_mapping[animation->frame_mapping_number].real_frame = sprite->frames_number-1;
+        animation->frame_mapping[animation->frame_mapping_number].real_frame = sprite->frames_number - 1;
         animation->frame_mapping_number++;
         /*
         animation->looping = loop;
@@ -322,7 +334,7 @@ typedef struct binocle_animation_codes {
 } binocle_animation_codes;
 
 int binocle_sprite_get_real_frame_for_animation_from_mapping(binocle_sprite_animation *animation, int original_frame) {
-  for (int i = 0 ; i < animation->frame_mapping_number ; i++) {
+  for (int i = 0; i < animation->frame_mapping_number; i++) {
     if (animation->frame_mapping[i].original_frame == original_frame) {
       return animation->frame_mapping[i].real_frame;
     }
@@ -331,7 +343,8 @@ int binocle_sprite_get_real_frame_for_animation_from_mapping(binocle_sprite_anim
   return -1;
 }
 
-void binocle_sprite_create_animation_with_string(binocle_sprite *sprite, binocle_sprite_animation *animation, char *sequence_code, bool loop) {
+void binocle_sprite_create_animation_with_string(binocle_sprite *sprite, binocle_sprite_animation *animation,
+                                                 char *sequence_code, bool loop) {
   char *ptr = NULL;
   struct binocle_animation_codes anim_codes[256]; // elements separated by ,
   struct binocle_frames_codes frames_codes[256]; // elements in form like 0-9
@@ -359,7 +372,7 @@ void binocle_sprite_create_animation_with_string(binocle_sprite *sprite, binocle
     anim_count++;
   }
 
-  for (int i = 0 ; i < anim_count ; i++) {
+  for (int i = 0; i < anim_count; i++) {
     anim_code = anim_codes[i].animation_sequence;
     char *frames_code = strtok(anim_code, ":");
     if (frames_code) {
@@ -378,23 +391,25 @@ void binocle_sprite_create_animation_with_string(binocle_sprite *sprite, binocle
     }
   }
 
-  for (int i = 0 ; i < frames_count ; i++) {
+  for (int i = 0; i < frames_count; i++) {
     char *frames_sequence = frames_codes[i].frames_sequence;
     char *frames_code = strtok(frames_sequence, "-");
     if (frames_code) {
       // 0-1 or 0
-      int start_frame = (int)strtol(frames_code, &ptr, 10);
+      int start_frame = (int) strtol(frames_code, &ptr, 10);
       frames_code = strtok(NULL, "-");
 
       if (frames_code) {
-        int end_frame = (int)strtol(frames_code, &ptr, 10);
-        for (int j = start_frame ; j <= end_frame ; j++) {
-          animation->frames[animation->frames_number] = binocle_sprite_get_real_frame_for_animation_from_mapping(animation, j);
+        int end_frame = (int) strtol(frames_code, &ptr, 10);
+        for (int j = start_frame; j <= end_frame; j++) {
+          animation->frames[animation->frames_number] = binocle_sprite_get_real_frame_for_animation_from_mapping(
+              animation, j);
           animation->delays[animation->frames_number] = frames_codes[i].delay;
           animation->frames_number++;
         }
       } else {
-        animation->frames[animation->frames_number] = binocle_sprite_get_real_frame_for_animation_from_mapping(animation, start_frame);
+        animation->frames[animation->frames_number] = binocle_sprite_get_real_frame_for_animation_from_mapping(
+            animation, start_frame);
         animation->delays[animation->frames_number] = frames_codes[i].delay;
         animation->frames_number++;
       }
@@ -432,7 +447,8 @@ void binocle_sprite_create_animation_with_string(binocle_sprite *sprite, binocle
   */
 }
 
-void binocle_sprite_create_animation(binocle_sprite *sprite, char *name, char *subtextures_names, char *sequence_code, bool loop, binocle_subtexture *subtextures, size_t subtextures_count) {
+void binocle_sprite_create_animation(binocle_sprite *sprite, char *name, char *subtextures_names, char *sequence_code,
+                                     bool loop, binocle_subtexture *subtextures, size_t subtextures_count) {
   // create the animation with name `name`
   binocle_sprite_animation *anim = binocle_sprite_create_animation_with_name(sprite, name);
   binocle_log_info("Created animation with name %s", name);
@@ -444,7 +460,7 @@ void binocle_sprite_create_animation(binocle_sprite *sprite, char *name, char *s
 
 int binocle_sprite_get_animation_id(binocle_sprite *sprite, char *name) {
   binocle_sprite_animation *anim = sprite->animations;
-  for (int i = 0 ; i < sprite->animations_number ; i++) {
+  for (int i = 0; i < sprite->animations_number; i++) {
     if (strcmp(anim->name, name) == 0) {
       return i;
     }
