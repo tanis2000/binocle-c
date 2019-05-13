@@ -68,7 +68,7 @@ void binocle_game_draw(binocle_game *game, binocle_window window, float dt) {
 }
 
 void binocle_game_hotreload(binocle_game *game, char *sourceGameCodeDLLFullPath) {
-  time_t NewDLLWriteTime = binocle_sdl_get_last_write_time(sourceGameCodeDLLFullPath);
+  time_t NewDLLWriteTime = binocle_sdl_get_last_modification_time(sourceGameCodeDLLFullPath);
   int32_t executableNeedsToBeReloaded = NewDLLWriteTime != game->game_code.DLLLastWriteTime;
 
   game->game_memory.executableReloaded = -1;
@@ -95,7 +95,7 @@ void binocle_unload_game_code(game_code *game) {
 game_code binocle_load_game_code(char *SourceDLLName) {
   game_code Result = {0};
 
-  Result.DLLLastWriteTime = binocle_sdl_get_last_write_time(SourceDLLName);
+  Result.DLLLastWriteTime = binocle_sdl_get_last_modification_time(SourceDLLName);
 
   if (Result.DLLLastWriteTime) {
     Result.GameCodeDLL = dlopen(SourceDLLName, RTLD_LAZY);
