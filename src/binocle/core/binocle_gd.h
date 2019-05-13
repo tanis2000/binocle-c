@@ -14,6 +14,7 @@ struct binocle_blend;
 struct binocle_camera;
 struct binocle_color;
 struct binocle_material;
+struct binocle_render_state;
 struct binocle_shader;
 struct binocle_texture;
 struct binocle_vpct;
@@ -127,5 +128,7 @@ void binocle_gd_set_uniform_mat4(struct binocle_shader shader, const char *name,
 void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect,
                           struct binocle_color col, kmAABB2 viewport,
                           kmMat4 viewMatrix);
+
+void binocle_gd_draw_with_state(binocle_gd *gd, const struct binocle_vpct *vertices, size_t vertex_count, struct binocle_render_state *render_state);
 
 #endif // BINOCLE_GD_H
