@@ -654,10 +654,10 @@ void binocle_sprite_batcher_draw_batch(binocle_sprite_batcher *batcher, binocle_
         should_flush = true;
       } else if (batcher->batch_item_list[batch_index].texture == NULL && tex != NULL) {
         should_flush = true;
-      } else if (batcher->batch_item_list[batch_index].texture == NULL && tex != NULL) {
+      } else if (batcher->batch_item_list[batch_index].texture == NULL && tex == NULL) {
         should_flush = false;
       } else {
-        should_flush = batcher->batch_item_list[batch_index].texture != NULL;
+        should_flush = batcher->batch_item_list[batch_index].texture->tex_id != tex->tex_id;
       }
       if (should_flush) {
         binocle_sprite_batcher_flush_vertex_array(batcher, start_index, index, tex, render_state, gd);
@@ -773,7 +773,7 @@ void binocle_sprite_batch_begin(binocle_sprite_batch *batch, kmAABB2 viewport, b
 
 void binocle_sprite_batch_end(binocle_sprite_batch *batch, kmAABB2 viewport) {
   batch->begin_called = false;
-  if (batch->sort_mode == BINOCLE_SPRITE_SORT_MODE_IMMEDIATE) {
+  if (batch->sort_mode != BINOCLE_SPRITE_SORT_MODE_IMMEDIATE) {
     binocle_sprite_batch_setup(batch, viewport);
   }
   binocle_sprite_batcher_draw_batch(&batch->batcher, batch->sort_mode, &batch->render_state, batch->gd);
