@@ -129,6 +129,12 @@ void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect,
                           struct binocle_color col, kmAABB2 viewport,
                           kmMat4 viewMatrix);
 
+void binocle_gd_draw_rect_outline(binocle_gd *gd, kmAABB2 rect, struct binocle_color col, kmAABB2 viewport, kmMat4 viewMatrix);
+
+void binocle_gd_draw_line(binocle_gd *gd, kmVec2 start, kmVec2 end, struct binocle_color col, kmAABB2 viewport, kmMat4 viewMatrix);
+
+void binocle_gd_draw_circle(binocle_gd *gd, kmVec2 center, float radius, struct binocle_color col, kmAABB2 viewport, kmMat4 viewMatrix);
+
 void binocle_gd_draw_with_state(binocle_gd *gd, const struct binocle_vpct *vertices, size_t vertex_count, struct binocle_render_state *render_state);
 
 #endif // BINOCLE_GD_H

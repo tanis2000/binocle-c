@@ -30,6 +30,26 @@ static binocle_color binocle_color_black() {
   return res;
 }
 
+static binocle_color binocle_color_green() {
+  binocle_color res = {.r = 0, .g = 1, .b = 0, .a = 1};
+  return res;
+}
+
+static binocle_color binocle_color_green_translucent() {
+  binocle_color res = {.r = 0, .g = 1, .b = 0, .a = 0.5f};
+  return res;
+}
+
+static binocle_color binocle_color_red() {
+  binocle_color res = {.r = 1, .g = 0, .b = 0, .a = 1};
+  return res;
+}
+
+static binocle_color binocle_color_red_translucent() {
+  binocle_color res = {.r = 1, .g = 0, .b = 0, .a = 0.5f};
+  return res;
+}
+
 /**
  * \brief Gets a new color
  * This is the struct used to represent colors all over the engine

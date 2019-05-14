@@ -539,6 +539,157 @@ void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect, binocle_color col, kmAAB
   glCheck(glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
+void binocle_gd_draw_rect_outline(binocle_gd *gd, kmAABB2 rect, binocle_color col, kmAABB2 viewport, kmMat4 viewMatrix) {
+  kmAABB2 rect_bottom;
+  kmAABB2 rect_top;
+  kmAABB2 rect_left;
+  kmAABB2 rect_right;
+
+  rect_bottom.min.x = rect.min.x;
+  rect_bottom.min.y = rect.min.y;
+  rect_bottom.max.x = rect.max.x;
+  rect_bottom.max.y = rect.min.y + 1;
+
+  rect_top.min.x = rect.min.x;
+  rect_top.min.y = rect.max.y-1;
+  rect_top.max.x = rect.max.x;
+  rect_top.max.y = rect.max.y;
+
+  rect_left.min.x = rect.min.x;
+  rect_left.min.y = rect.min.y;
+  rect_left.max.x = rect.min.x + 1;
+  rect_left.max.y = rect.max.y;
+
+  rect_right.min.x = rect.max.x - 1;
+  rect_right.min.y = rect.min.y;
+  rect_right.max.x = rect.max.x;
+  rect_right.max.y = rect.max.y;
+
+  binocle_gd_draw_rect(gd, rect_bottom, col, viewport, viewMatrix);
+  binocle_gd_draw_rect(gd, rect_top, col, viewport, viewMatrix);
+  binocle_gd_draw_rect(gd, rect_left, col, viewport, viewMatrix);
+  binocle_gd_draw_rect(gd, rect_right, col, viewport, viewMatrix);
+}
+
+void binocle_gd_draw_line(binocle_gd *gd, kmVec2 start, kmVec2 end, binocle_color col, kmAABB2 viewport, kmMat4 viewMatrix) {
+
+  //float angle = atan2f(end.y - start.y, end.x - start.x);//kmVec2DegreesBetween(&start, &end);
+  kmVec2 right;
+  right.x = 1;
+  right.y = 0;
+  kmVec2 norm_end;
+  kmVec2Subtract(&norm_end, &end, &start);
+  kmVec2Normalize(&norm_end, &norm_end);
+  float angle = atan2f(norm_end.y - right.y, norm_end.x - right.x);//kmVec2DegreesBetween(&right, &end);
+  float length = kmVec2DistanceBetween(&start, &end);
+  kmVec2 zero;
+  zero.x = 0;
+  zero.y = 0;
+  kmAABB2 rect;
+  rect.min.x = 0;
+  rect.min.y = 0;
+  rect.max.x = length;
+  rect.max.y = 1;
+  kmAABB2Sanitize(&rect, &rect);
+
+  kmMat4 rot;
+  kmMat4RotationZ(&rot, angle);
+  kmMat4Multiply(&viewMatrix, &rot, &viewMatrix);
+  kmMat4 trans;
+  kmMat4Translation(&trans, start.x, start.y, 0);
+  kmMat4Multiply(&viewMatrix, &trans, &viewMatrix);
+
+  //kmVec2 centre;
+  //kmAABB2Centre(&rect, &centre);
+  //kmVec2RotateBy(&rect.min, &rect.min, angle, &centre);
+  //kmVec2RotateBy(&rect.max, &rect.max, angle, &centre);
+  binocle_gd_draw_rect(gd, rect, col, viewport, viewMatrix);
+}
+
+void binocle_gd_draw_circle(binocle_gd *gd, kmVec2 center, float radius, binocle_color col, kmAABB2 viewport, kmMat4 viewMatrix) {
+  static GLfloat vertex_buffer_data[2 * 3 * 32] = {0};
+
+  int circle_segments = 32;
+  float increment = M_PI * 2.0f / circle_segments;
+  float theta = 0.0f;
+
+  kmVec2 v0;
+  v0.x = cosf(theta) * radius + center.x;
+  v0.y = sinf(theta) * radius + center.y;
+  theta += increment;
+
+  int count = 0;
+  for( int i = 1; i < circle_segments - 1; i++ )
+  {
+    kmVec2 v1;
+    v1.x = cosf(theta) * radius + center.x;
+    v1.y = sinf(theta) * radius + center.y;
+
+    kmVec2 v2;
+    v2.x = cosf(theta + increment) * radius + center.x;
+    v2.y = sinf(theta + increment) * radius + center.y;
+
+    vertex_buffer_data[count] = v0.x;
+    count++;
+    vertex_buffer_data[count] = v0.y;
+    count++;
+    vertex_buffer_data[count] = v1.x;
+    count++;
+    vertex_buffer_data[count] = v1.y;
+    count++;
+    vertex_buffer_data[count] = v2.x;
+    count++;
+    vertex_buffer_data[count] = v2.y;
+    count++;
+
+    theta += increment;
+  }
+
+  kmMat4 projectionMatrix = binocle_math_create_orthographic_matrix_off_center(viewport.min.x, viewport.max.x,
+                                                                               viewport.min.y, viewport.max.y, -1000.0f,
+                                                                               1000.0f);
+  //kmMat4 viewMatrix;
+  //kmMat4Identity(&viewMatrix);
+  kmMat4 modelMatrix;
+  kmMat4Identity(&modelMatrix);
+
+  //GLuint quad_vertexbuffer;
+  //glCheck(glGenBuffers(1, &quad_vertexbuffer));
+  //glCheck(glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer));
+  glCheck(glBindBuffer(GL_ARRAY_BUFFER, gd->vbo));
+  glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_buffer_data), vertex_buffer_data, GL_DYNAMIC_DRAW));
+  glCheck(glUseProgram(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id));
+  GLint color_id;
+  glCheck(color_id = glGetUniformLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id, "color"));
+  GLint pos_id;
+  glCheck(
+    pos_id = glGetAttribLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id, "vertexPosition"));
+  glCheck(glUniform4f(color_id, col.r, col.g, col.b, col.a));
+  binocle_gd_apply_viewport(viewport);
+  glCheck(glVertexAttribPointer(pos_id, 2, GL_FLOAT, false, sizeof(GLfloat) * 2, 0));
+  glCheck(glEnableVertexAttribArray(pos_id));
+  GLint projection_matrix_uniform;
+  glCheck(
+    projection_matrix_uniform = glGetUniformLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id,
+                                                     "projectionMatrix"));
+  GLint view_matrix_uniform;
+  glCheck(view_matrix_uniform = glGetUniformLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id,
+                                                     "viewMatrix"));
+  GLint model_matrix_uniform;
+  glCheck(model_matrix_uniform = glGetUniformLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id,
+                                                      "modelMatrix"));
+  glCheck(glUniformMatrix4fv(projection_matrix_uniform, 1, GL_FALSE, projectionMatrix.mat));
+  glCheck(glUniformMatrix4fv(view_matrix_uniform, 1, GL_FALSE, viewMatrix.mat));
+  glCheck(glUniformMatrix4fv(model_matrix_uniform, 1, GL_FALSE, modelMatrix.mat));
+  //glCheck(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+  glCheck(glDrawArrays(GL_TRIANGLES, 0, 3 * 32));
+
+  glCheck(glDisableVertexAttribArray(pos_id));
+  glCheck(glUseProgram(GL_ZERO));
+  glCheck(glBindBuffer(GL_ARRAY_BUFFER, 0));
+
+}
+
 void binocle_gd_draw_with_state(binocle_gd *gd, const binocle_vpct *vertices, size_t vertex_count, binocle_render_state *render_state) {
   binocle_gd_apply_gl_states();
   binocle_gd_apply_viewport(render_state->viewport);
