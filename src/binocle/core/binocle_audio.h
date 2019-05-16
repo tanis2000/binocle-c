@@ -4,6 +4,13 @@
 // All rights reserved.
 //
 
+/**
+ * \todo The old audio system used to have a centralized manager so that we could pause, stop and play all sounds and
+ * musics together. It's been temporarily removed while I rewrote this to use miniaudio instead of SDL_Mixer.
+ * It's planned to bring it back at some point so that we can control the whole sound system at once when needed, i.e.
+ * when we pause the game or switch to a different window.
+ */
+
 #ifndef BINOCLE_AUDIO_H
 #define BINOCLE_AUDIO_H
 
