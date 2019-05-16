@@ -10,11 +10,11 @@ file(GLOB_RECURSE SOURCES *.c)
 file(GLOB_RECURSE HEADERS *.h)
 
 
-add_library(parson ${HEADERS} ${SOURCES})
+add_library(rxi_map ${HEADERS} ${SOURCES})
 
 if (IOS)
     set_target_properties(
-            parson
+            rxi_map
             PROPERTIES
             XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 8.0
     )

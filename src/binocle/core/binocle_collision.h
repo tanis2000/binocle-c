@@ -9,6 +9,8 @@
 
 #include <stdbool.h>
 #include <kazmath/kazmath.h>
+#include <inttypes.h>
+#include <khash/khash.h>
 
 typedef enum binocle_collider_type {
   BINOCLE_COLLIDER_CIRCLE,
@@ -37,9 +39,41 @@ typedef struct binocle_collider_hitbox {
   kmAABB2 aabb;
 } binocle_collider_hitbox;
 
+typedef struct binocle_collider {
+  binocle_collider_circle *circle;
+  binocle_collider_hitbox *hitbox;
+} binocle_collider;
+
+typedef struct binocle_spatial_hash_cell {
+  binocle_collider *colliders;
+  uint32_t size;
+  uint32_t capacity;
+} binocle_spatial_hash_cell;
+
+#define binocle_spatial_hash_get_key(key) (uint64_t)((int64_t)((key).x)<<32 | (uint32_t)((key).y))
+#define binocle_spatial_hash_equal(a, b) ((a).x == (b).x && (a).y == (b).y)
+KHASH_INIT(spatial_hash_cell_map_t, kmVec2, binocle_spatial_hash_cell, 1, binocle_spatial_hash_get_key, binocle_spatial_hash_equal)
+
+typedef struct binocle_spatial_hash {
+  khash_t(spatial_hash_cell_map_t) *grid;
+  uint32_t cell_size;
+  uint32_t grid_width;
+  uint32_t grid_height;
+  uint32_t grid_length;
+  int32_t grid_x;
+  int32_t grid_y;
+  float inv_cell_size;
+  uint64_t *temp_arr;
+  uint32_t temp_arr_capacity;
+  uint32_t temp_arr_size;
+} binocle_spatial_hash;
 
 binocle_collider_circle binocle_collider_circle_new(float radius, kmVec2 center);
 kmVec2 binocle_collider_circle_get_absolute_position(binocle_collider_circle *circle);
+float binocle_collider_circle_get_absolute_left(binocle_collider_circle *circle);
+float binocle_collider_circle_get_absolute_top(binocle_collider_circle *circle);
+float binocle_collider_circle_get_absolute_right(binocle_collider_circle *circle);
+float binocle_collider_circle_get_absolute_bottom(binocle_collider_circle *circle);
 
 binocle_collider_hitbox binocle_collider_hitbox_new(kmAABB2 aabb);
 float binocle_collider_hitbox_get_absolute_left(binocle_collider_hitbox *hitbox);
@@ -64,5 +98,10 @@ bool binocle_collide_circle_to_line(kmVec2 cPosiition, float cRadius, kmVec2 lin
 bool binocle_collide_circle_to_circle(binocle_collider_circle *circle_a, binocle_collider_circle *circle_b);
 bool binocle_collide_circle_to_hitbox(binocle_collider_circle *circle, binocle_collider_hitbox *hitbox);
 bool binocle_collide_hitbox_to_hitbox(binocle_collider_hitbox *hitbox_a, binocle_collider_hitbox *hitbox_b);
+
+binocle_spatial_hash binocle_spatial_hash_new(float width, float height, uint32_t cell_size);
+void binocle_spatial_hash_destroy(binocle_spatial_hash *spatial_hash);
+binocle_spatial_hash_cell binocle_spatial_hash_cell_new();
+kmVec2 binocle_spatial_hash_get_cell_coords(binocle_spatial_hash *spatial_hash, float x, float y);
 
 #endif //BINOCLE_COLLISION_H

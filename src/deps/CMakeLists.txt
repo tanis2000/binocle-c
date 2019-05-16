@@ -2,6 +2,7 @@
 add_subdirectory(freetype)
 add_subdirectory(kazmath)
 add_subdirectory(parson)
+add_subdirectory(rxi_map)
 add_subdirectory(zlib)
 
 if (NOT EMSCRIPTEN)

@@ -5,6 +5,8 @@
 //
 
 #include "binocle_collision.h"
+#include "binocle_log.h"
+#include <stdlib.h>
 
 kmVec2 binocle_collide_closest_point_on_line(kmVec2 lineA, kmVec2 lineB,
                                              kmVec2 closestTo) {
@@ -31,6 +33,22 @@ binocle_collider_circle binocle_collider_circle_new(float radius, kmVec2 center)
 
 kmVec2 binocle_collider_circle_get_absolute_position(binocle_collider_circle *circle) {
   return circle->center;
+}
+
+float binocle_collider_circle_get_absolute_left(binocle_collider_circle *circle) {
+  return circle->center.x - circle->radius;
+}
+
+float binocle_collider_circle_get_absolute_right(binocle_collider_circle *circle) {
+  return circle->center.x + circle->radius;
+}
+
+float binocle_collider_circle_get_absolute_top(binocle_collider_circle *circle) {
+  return circle->center.y + circle->radius;
+}
+
+float binocle_collider_circle_get_absolute_bottom(binocle_collider_circle *circle) {
+  return circle->center.y - circle->radius;
 }
 
 binocle_collider_hitbox binocle_collider_hitbox_new(kmAABB2 aabb) {
@@ -199,3 +217,124 @@ binocle_point_sectors binocle_collide_get_sector_parts_point(float r_x, float r_
 
   return sector;
 }
+
+//
+// Spatial hash
+//
+
+binocle_spatial_hash binocle_spatial_hash_new(float width, float height, uint32_t cell_size) {
+  binocle_spatial_hash res = {0};
+  res.cell_size = cell_size;
+  res.inv_cell_size = 1.0f / cell_size;
+  res.grid_width = (uint32_t)ceilf(width * res.inv_cell_size);
+  res.grid_height = (uint32_t)ceilf(height * res.inv_cell_size);
+  res.grid_length = res.grid_width * res.grid_height;
+
+  // Preallocate the starting grid
+  res.grid = kh_init(spatial_hash_cell_map_t);
+  for (int y = 0; y < res.grid_height; y++) {
+    for (int x = 0; x < res.grid_width; x++) {
+      kmVec2 key;
+      key.x = x;
+      key.y = y;
+      int ret;
+      khiter_t k = kh_put(spatial_hash_cell_map_t, res.grid, key, &ret);
+      kh_value(res.grid, k) = binocle_spatial_hash_cell_new();
+      //res.cells[GetKey(x, y)] = std::vector<Colliders::Collider *>();
+    }
+  }
+
+  res.temp_arr_capacity = 16;
+  res.temp_arr_size = 0;
+  res.temp_arr = malloc(sizeof(uint64_t) * res.temp_arr_capacity);
+  return res;
+}
+
+void binocle_spatial_hash_destroy(binocle_spatial_hash *spatial_hash) {
+  free(spatial_hash->temp_arr);
+  kh_destroy(spatial_hash_cell_map_t, spatial_hash->grid);
+}
+
+binocle_spatial_hash_cell binocle_spatial_hash_cell_new() {
+  binocle_spatial_hash_cell res = {0};
+  res.capacity = 16;
+  res.size = 0;
+  res.colliders = malloc(sizeof(binocle_collider) * res.capacity);
+  return res;
+}
+
+kmVec2 binocle_spatial_hash_get_cell_coords(binocle_spatial_hash *spatial_hash, float x, float y) {
+  kmVec2 res;
+  res.x = floorf(x * spatial_hash->inv_cell_size);
+  res.y = floorf(y * spatial_hash->inv_cell_size);
+  return res;
+}
+
+/*
+void binocle_spatial_hash_add_body(binocle_spatial_hash *spatial_hash, binocle_collider *collider) {
+  kmVec2 p1;
+  kmVec2 p2;
+
+  if (collider->circle != NULL) {
+    kmVec2 min;
+    kmVec2 max;
+    min.x = binocle_collider_circle_get_absolute_left(collider->circle);
+    min.y = binocle_collider_circle_get_absolute_bottom(collider->circle);
+    max.x = binocle_collider_circle_get_absolute_right(collider->circle);
+    max.y = binocle_collider_circle_get_absolute_top(collider->circle);
+    p1 = binocle_spatial_hash_get_cell_coords(spatial_hash, min.x, min.y);
+    p2 = binocle_spatial_hash_get_cell_coords(spatial_hash, max.x, max.y);
+  } else if (collider->hitbox != NULL) {
+    kmVec2 min;
+    kmVec2 max;
+    min.x = binocle_collider_hitbox_get_absolute_left(collider->hitbox);
+    min.y = binocle_collider_hitbox_get_absolute_bottom(collider->hitbox);
+    max.x = binocle_collider_hitbox_get_absolute_right(collider->hitbox);
+    max.y = binocle_collider_hitbox_get_absolute_top(collider->hitbox);
+    p1 = binocle_spatial_hash_get_cell_coords(spatial_hash, min.x, min.y);
+    p2 = binocle_spatial_hash_get_cell_coords(spatial_hash, max.x, max.y);
+  } else {
+    binocle_log_error("binocle_spatial_hash_add_body(): this collider has no shape");
+    return;
+  }
+
+  if (p2.x > spatial_hash->grid_width) {
+    spatial_hash->grid_width = p2.x;
+  }
+  if (p1.x < spatial_hash->grid_x) {
+    spatial_hash->grid_x = p1.x;
+  }
+  if (p2.y > spatial_hash->grid_height) {
+    spatial_hash->grid_height = p2.y;
+  }
+  if (p1.y < spatial_hash->grid_y) {
+    spatial_hash->grid_y = p1.y;
+  }
+  for (int x = p1.x; x <= p2.x; x++) {
+    for (int y = p1.y; y <= p2.y; y++) {
+      // make sure we have allocated a cell
+      kmVec2 key;
+      key.x = x;
+      key.y = y;
+      auto c = binocle_spatial_hash_cell_at_position(x, y, true);
+      binocle_spatial_hash_add_index(b, binocle_spatial_hash_get_key(key));
+    }
+  }
+}
+
+std::vector<Colliders::Collider *> *SpatialHash::CellAtPosition(int x, int y, bool createCellIfEmpty = false) {
+  std::vector<Colliders::Collider *> *cell = nullptr;
+  glm::vec2 v = GetCellCoords(x, y);
+  if (grid.find(GetKey(v.x, v.y)) != grid.end()) {
+    // found
+    cell = &grid.at(GetKey(v.x, v.y));
+  }
+  if (cell == nullptr || cell->empty()) {
+    if (createCellIfEmpty) {
+      cell = new std::vector<Colliders::Collider *>();
+      grid[GetKey(v.x, v.y)] = *cell;
+    }
+  }
+  return cell;
+}
+*/
