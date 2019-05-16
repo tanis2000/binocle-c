@@ -414,37 +414,37 @@ void binocle_audio_set_audio_buffer_pitch(binocle_audio_buffer *audio_buffer, fl
   ma_pcm_converter_set_output_sample_rate(&audio_buffer->dsp, newOutputSampleRate);
 }
 
-void binocle_audio_track_audio_buffer(binocle_audio *audio, binocle_audio_buffer *audioBuffer) {
-  if (audio->first_audio_buffer == NULL) audio->first_audio_buffer = audioBuffer;
+void binocle_audio_track_audio_buffer(binocle_audio *audio, binocle_audio_buffer *audio_buffer) {
+  if (audio->first_audio_buffer == NULL) audio->first_audio_buffer = audio_buffer;
   else {
-    audio->last_audio_buffer->next = audioBuffer;
-    audioBuffer->prev = audio->last_audio_buffer;
+    audio->last_audio_buffer->next = audio_buffer;
+    audio_buffer->prev = audio->last_audio_buffer;
   }
 
-  audio->last_audio_buffer = audioBuffer;
+  audio->last_audio_buffer = audio_buffer;
 }
 
-void binocle_audio_untrack_audio_buffer(binocle_audio *audio, binocle_audio_buffer *audioBuffer) {
-  if (audioBuffer->prev == NULL) audio->first_audio_buffer = audioBuffer->next;
-  else audioBuffer->prev->next = audioBuffer->next;
+void binocle_audio_untrack_audio_buffer(binocle_audio *audio, binocle_audio_buffer *audio_buffer) {
+  if (audio_buffer->prev == NULL) audio->first_audio_buffer = audio_buffer->next;
+  else audio_buffer->prev->next = audio_buffer->next;
 
-  if (audioBuffer->next == NULL) audio->last_audio_buffer = audioBuffer->prev;
-  else audioBuffer->next->prev = audioBuffer->prev;
+  if (audio_buffer->next == NULL) audio->last_audio_buffer = audio_buffer->prev;
+  else audio_buffer->next->prev = audio_buffer->prev;
 
-  audioBuffer->prev = NULL;
-  audioBuffer->next = NULL;
+  audio_buffer->prev = NULL;
+  audio_buffer->next = NULL;
 }
 
 //
 // Sound loading and playing stuff
 //
 
-bool binocle_audio_is_file_extension(const char *fileName, const char *ext) {
+bool binocle_audio_is_file_extension(const char *file_name, const char *ext) {
   bool result = false;
-  const char *fileExt;
+  const char *file_ext;
 
-  if ((fileExt = strrchr(fileName, '.')) != NULL) {
-    if (strcmp(fileExt, ext) == 0) result = true;
+  if ((file_ext = strrchr(file_name, '.')) != NULL) {
+    if (strcmp(file_ext, ext) == 0) result = true;
   }
 
   return result;
@@ -452,8 +452,6 @@ bool binocle_audio_is_file_extension(const char *fileName, const char *ext) {
 
 
 binocle_audio_wave binocle_audio_load_wave(const char *fileName) {
-  // TODO: add support for loading MOD and XM
-
   binocle_audio_wave wave = {0};
 
   if (binocle_audio_is_file_extension(fileName, ".wav")) {
@@ -471,12 +469,12 @@ binocle_audio_wave binocle_audio_load_wave(const char *fileName) {
   return wave;
 }
 
-static binocle_audio_wave binocle_audio_load_ogg(const char *fileName) {
+static binocle_audio_wave binocle_audio_load_ogg(const char *file_name) {
   binocle_audio_wave wave = {0};
 
-  stb_vorbis *oggFile = stb_vorbis_open_filename(fileName, NULL, NULL);
+  stb_vorbis *oggFile = stb_vorbis_open_filename(file_name, NULL, NULL);
 
-  if (oggFile == NULL) binocle_log_warning("[%s] OGG file could not be opened", fileName);
+  if (oggFile == NULL) binocle_log_warning("[%s] OGG file could not be opened", file_name);
   else {
     stb_vorbis_info info = stb_vorbis_get_info(oggFile);
 
@@ -490,7 +488,7 @@ static binocle_audio_wave binocle_audio_load_ogg(const char *fileName) {
     if (totalSeconds > 10)
       binocle_log_warning(
           "[%s] Ogg audio length is larger than 10 seconds (%f), that's a big file in memory, consider music streaming",
-          fileName, totalSeconds);
+          file_name, totalSeconds);
 
     wave.data = (short *) malloc(wave.sample_count * wave.channels * sizeof(short));
 
@@ -498,9 +496,9 @@ static binocle_audio_wave binocle_audio_load_ogg(const char *fileName) {
     int numSamplesOgg = stb_vorbis_get_samples_short_interleaved(oggFile, info.channels, (short *) wave.data,
                                                                  wave.sample_count * wave.channels);
 
-    binocle_log_debug("[%s] Samples obtained: %i", fileName, numSamplesOgg);
+    binocle_log_debug("[%s] Samples obtained: %i", file_name, numSamplesOgg);
 
-    binocle_log_info("[%s] OGG file loaded successfully (%i Hz, %i bit, %s)", fileName, wave.sample_rate,
+    binocle_log_info("[%s] OGG file loaded successfully (%i Hz, %i bit, %s)", file_name, wave.sample_rate,
                      wave.sample_size, (wave.channels == 1) ? "Mono" : "Stereo");
 
     stb_vorbis_close(oggFile);
@@ -509,34 +507,34 @@ static binocle_audio_wave binocle_audio_load_ogg(const char *fileName) {
   return wave;
 }
 
-static binocle_audio_wave binocle_audio_load_flac(const char *fileName) {
+static binocle_audio_wave binocle_audio_load_flac(const char *file_name) {
   binocle_audio_wave wave;
 
   // Decode an entire FLAC file in one go
   uint64_t totalSampleCount;
-  wave.data = drflac_open_file_and_read_pcm_frames_s16(fileName, &wave.channels, &wave.sample_rate, &totalSampleCount);
+  wave.data = drflac_open_file_and_read_pcm_frames_s16(file_name, &wave.channels, &wave.sample_rate, &totalSampleCount);
 
   wave.sample_count = (unsigned int) totalSampleCount;
   wave.sample_size = 16;
 
   // NOTE: Only support up to 2 channels (mono, stereo)
-  if (wave.channels > 2) binocle_log_warning("[%s] FLAC channels number (%i) not supported", fileName, wave.channels);
+  if (wave.channels > 2) binocle_log_warning("[%s] FLAC channels number (%i) not supported", file_name, wave.channels);
 
-  if (wave.data == NULL) binocle_log_warning("[%s] FLAC data could not be loaded", fileName);
+  if (wave.data == NULL) binocle_log_warning("[%s] FLAC data could not be loaded", file_name);
   else
-    binocle_log_info("[%s] FLAC file loaded successfully (%i Hz, %i bit, %s)", fileName, wave.sample_rate,
+    binocle_log_info("[%s] FLAC file loaded successfully (%i Hz, %i bit, %s)", file_name, wave.sample_rate,
                      wave.sample_size, (wave.channels == 1) ? "Mono" : "Stereo");
 
   return wave;
 }
 
-static binocle_audio_wave binocle_audio_load_mp3(const char *fileName) {
+static binocle_audio_wave binocle_audio_load_mp3(const char *file_name) {
   binocle_audio_wave wave = {0};
 
   // Decode an entire MP3 file in one go
   uint64_t totalFrameCount = 0;
   drmp3_config config = {0};
-  wave.data = drmp3_open_file_and_read_f32(fileName, &config, &totalFrameCount);
+  wave.data = drmp3_open_file_and_read_f32(file_name, &config, &totalFrameCount);
 
   wave.channels = config.outputChannels;
   wave.sample_rate = config.outputSampleRate;
@@ -544,38 +542,38 @@ static binocle_audio_wave binocle_audio_load_mp3(const char *fileName) {
   wave.sample_size = 32;
 
   // NOTE: Only support up to 2 channels (mono, stereo)
-  if (wave.channels > 2) binocle_log_warning("[%s] MP3 channels number (%i) not supported", fileName, wave.channels);
+  if (wave.channels > 2) binocle_log_warning("[%s] MP3 channels number (%i) not supported", file_name, wave.channels);
 
-  if (wave.data == NULL) binocle_log_warning("[%s] MP3 data could not be loaded", fileName);
+  if (wave.data == NULL) binocle_log_warning("[%s] MP3 data could not be loaded", file_name);
   else
-    binocle_log_info("[%s] MP3 file loaded successfully (%i Hz, %i bit, %s)", fileName, wave.sample_rate,
+    binocle_log_info("[%s] MP3 file loaded successfully (%i Hz, %i bit, %s)", file_name, wave.sample_rate,
                      wave.sample_size, (wave.channels == 1) ? "Mono" : "Stereo");
 
   return wave;
 }
 
-static binocle_audio_wave binocle_audio_load_wav(const char *fileName) {
+static binocle_audio_wave binocle_audio_load_wav(const char *file_name) {
   binocle_audio_wave wave = {0};
 
   // Decode an entire MP3 file in one go
   uint64_t totalFrameCount = 0;
-  wave.data = drwav_open_file_and_read_pcm_frames_f32(fileName, &wave.channels, &wave.sample_rate, &totalFrameCount);
+  wave.data = drwav_open_file_and_read_pcm_frames_f32(file_name, &wave.channels, &wave.sample_rate, &totalFrameCount);
   wave.sample_count = (int) totalFrameCount * wave.channels;
   wave.sample_size = 32;
 
   // NOTE: Only support up to 2 channels (mono, stereo)
-  if (wave.channels > 2) binocle_log_warning("[%s] WAV channels number (%i) not supported", fileName, wave.channels);
+  if (wave.channels > 2) binocle_log_warning("[%s] WAV channels number (%i) not supported", file_name, wave.channels);
 
-  if (wave.data == NULL) binocle_log_warning("[%s] WAV data could not be loaded", fileName);
+  if (wave.data == NULL) binocle_log_warning("[%s] WAV data could not be loaded", file_name);
   else
-    binocle_log_info("[%s] WAV file loaded successfully (%i Hz, %i bit, %s)", fileName, wave.sample_rate,
+    binocle_log_info("[%s] WAV file loaded successfully (%i Hz, %i bit, %s)", file_name, wave.sample_rate,
                      wave.sample_size, (wave.channels == 1) ? "Mono" : "Stereo");
 
   return wave;
 }
 
-binocle_audio_sound binocle_audio_load_sound(binocle_audio *audio, const char *fileName) {
-  binocle_audio_wave wave = binocle_audio_load_wave(fileName);
+binocle_audio_sound binocle_audio_load_sound(binocle_audio *audio, const char *file_name) {
+  binocle_audio_wave wave = binocle_audio_load_wave(file_name);
 
   binocle_audio_sound sound = binocle_audio_load_sound_from_wave(audio, wave);
 

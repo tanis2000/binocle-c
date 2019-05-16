@@ -248,52 +248,160 @@ void binocle_audio_stop_audio_buffer(binocle_audio_buffer *audio_buffer);
  */
 void binocle_audio_pause_audio_buffer(binocle_audio_buffer *audio_buffer);
 
+/**
+ * \brief Resumes the audio buffer
+ * @param audio_buffer the audio buffer
+ */
 void binocle_audio_resume_audio_buffer(binocle_audio_buffer *audio_buffer);
 
+/**
+ * \brief Sets the volume of the audio buffer
+ * @param audio_buffer the audio buffer
+ * @param volume the folume [0..1]
+ */
 void binocle_audio_set_audio_buffer_volume(binocle_audio_buffer *audio_buffer, float volume);
 
+/**
+ * \brief Sets the audio buffer pitch
+ * @param audio_buffer the audio buffer
+ * @param pitch the pitch level
+ */
 void binocle_audio_set_audio_buffer_pitch(binocle_audio_buffer *audio_buffer, float pitch);
 
-void binocle_audio_track_audio_buffer(binocle_audio *audio, binocle_audio_buffer *audioBuffer);
+/**
+ * \brief Adds the audio buffer to the list of audio buffers
+ * @param audio the audio system
+ * @param audio_buffer the audio buffer
+ */
+void binocle_audio_track_audio_buffer(binocle_audio *audio, binocle_audio_buffer *audio_buffer);
 
-void binocle_audio_untrack_audio_buffer(binocle_audio *audio, binocle_audio_buffer *audioBuffer);
+/**
+ * \brief Stops tracking an audio buffer and removes it from the list
+ * @param audio the audio system
+ * @param audio_buffer the audio buffer
+ */
+void binocle_audio_untrack_audio_buffer(binocle_audio *audio, binocle_audio_buffer *audio_buffer);
 
-bool binocle_audio_is_file_extension(const char *fileName, const char *ext);
+/**
+ * \brief Returns true if the file extension is the one specified
+ * @param file_name the file name
+ * @param ext the extension including the starting dot
+ * @return true if the filename has the specified extension
+ */
+bool binocle_audio_is_file_extension(const char *file_name, const char *ext);
 
-static binocle_audio_wave binocle_audio_load_ogg(const char *fileName);
+/**
+ * \brief Load an OGG audio file
+ * @param file_name the file name
+ * @return a binocle_audio_wave instance
+ */
+static binocle_audio_wave binocle_audio_load_ogg(const char *file_name);
 
-static binocle_audio_wave binocle_audio_load_flac(const char *fileName);
+/**
+ * \brief Load a FLAC audio file
+ * @param file_name the file name
+ * @return a binocle_audio_wave instance
+ */
+static binocle_audio_wave binocle_audio_load_flac(const char *file_name);
 
-static binocle_audio_wave binocle_audio_load_mp3(const char *fileName);
+/**
+ * \brief Load an MP3 audio file
+ * @param file_name the file name
+ * @return a binocle_audio_wave instance
+ */
+static binocle_audio_wave binocle_audio_load_mp3(const char *file_name);
 
-static binocle_audio_wave binocle_audio_load_wav(const char *fileName);
+/**
+ * \brief Load a WAV audio file
+ * @param file_name the file name
+ * @return a binocle_audio_wave instance
+ */
+static binocle_audio_wave binocle_audio_load_wav(const char *file_name);
 
 //
 // Sound
 //
 
-binocle_audio_sound binocle_audio_load_sound(binocle_audio *audio, const char *fileName);
+/**
+ * \brief Loads a sound file
+ * @param audio the audio system
+ * @param file_name the file to read
+ * @return a binocle_audio_sound instance
+ */
+binocle_audio_sound binocle_audio_load_sound(binocle_audio *audio, const char *file_name);
 
+/**
+ * \brief Loads a sound file from an intermediate wave format
+ * @param audio the audio system
+ * @param wave the binocle_audio_wave struct
+ * @return a binocle_audio_sound instance
+ */
 binocle_audio_sound binocle_audio_load_sound_from_wave(binocle_audio *audio, binocle_audio_wave wave);
 
+/**
+ * \brief Releases the resources allocated within a binocle_audio_wave
+ * @param wave the wave struct
+ */
 void binocle_audio_unload_wave(binocle_audio_wave wave);
 
+/**
+ * \brief Releases the audio buffer of the sound
+ * @param audio the audio system
+ * @param sound the sound
+ */
 void binocle_audio_unload_sound(binocle_audio *audio, binocle_audio_sound sound);
 
+/**
+ * \brief Updates the audio buffer of the sound
+ * @param sound the sound
+ * @param data the buffer with the data to copy from
+ * @param samplesCount the number of samples
+ */
 void binocle_audio_update_sound(binocle_audio_sound sound, const void *data, int samplesCount);
 
+/**
+ * \brief Plays a sound
+ * @param sound the sound
+ */
 void binocle_audio_play_sound(binocle_audio_sound sound);
 
+/**
+ * \brief Pauses a sound
+ * @param sound the sound
+ */
 void binocle_audio_pause_sound(binocle_audio_sound sound);
 
+/**
+ * \brief Resumes a sound
+ * @param sound the sound
+ */
 void binocle_audio_resume_sound(binocle_audio_sound sound);
 
+/**
+ * \brief Stops a sound
+ * @param sound the sound
+ */
 void binocle_audio_stop_sound(binocle_audio_sound sound);
 
+/**
+ * \brief Returns true if the sound is playing
+ * @param sound the sound
+ * @return true if the sound is playing
+ */
 bool binocle_audio_is_sound_playing(binocle_audio_sound sound);
 
+/**
+ * \brief Sets the volume of the sound
+ * @param sound the sound
+ * @param volume the volume [0..1]
+ */
 void binocle_audio_set_sound_volume(binocle_audio_sound sound, float volume);
 
+/**
+ * \brief Sets the pitch of the sound
+ * @param sound the sound
+ * @param pitch the pitch
+ */
 void binocle_audio_set_sound_pitch(binocle_audio_sound sound, float pitch);
 
 //
