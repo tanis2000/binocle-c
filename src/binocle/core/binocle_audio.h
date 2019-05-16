@@ -408,54 +408,171 @@ void binocle_audio_set_sound_pitch(binocle_audio_sound sound, float pitch);
 // Music
 //
 
-binocle_audio_music *binocle_audio_load_music_stream(binocle_audio *audio, const char *fileName);
+/**
+ * \brief Loads a music stream from the given file
+ * @param audio the audio system
+ * @param file_name the filename of the audio file
+ * @return the music struct
+ */
+binocle_audio_music *binocle_audio_load_music_stream(binocle_audio *audio, const char *file_name);
 
+/**
+ * \brief Releases the music stream
+ * @param audio the audio system
+ * @param music the music struct
+ */
 void binocle_audio_unload_music_stream(binocle_audio *audio, binocle_audio_music *music);
 
+/**
+ * \brief Plays a music stream
+ * @param music the music stream
+ */
 void binocle_audio_play_music_stream(binocle_audio_music *music);
 
+/**
+ * \brief Pauses a music stream
+ * @param music the music stream
+ */
 void binocle_audio_pause_music_stream(binocle_audio_music *music);
 
+/**
+ * \brief Resumes a music stream
+ * @param music the music stream
+ */
 void binocle_audio_resume_music_stream(binocle_audio_music *music);
 
+/**
+ * \brief Stops a music stream
+ * @param music the music stream
+ */
 void binocle_audio_stop_music_stream(binocle_audio_music *music);
 
+/**
+ * \brief Updates a music stream
+ * @param music the music stream
+ */
 void binocle_audio_update_music_stream(binocle_audio_music *music);
 
+/**
+ * \brief Returns true if the music stream is playing
+ * @param music the music stream
+ * @return true if the music stream is playing
+ */
 bool binocle_audio_is_music_playing(binocle_audio_music *music);
 
+/**
+ * \brief Sets the music stream volume
+ * @param music the music stream
+ * @param volume the volume [0..1]
+ */
 void binocle_audio_set_music_volume(binocle_audio_music *music, float volume);
 
+/**
+ * \brief Sets the music stream pitch
+ * @param music the music stream
+ * @param pitch the pitch
+ */
 void binocle_audio_set_music_pitch(binocle_audio_music *music, float pitch);
 
+/**
+ * \brief Sets the number of loops of the music stream
+ * If `count` is -1 then it loops indefinitely
+ * @param music the music stream
+ * @param count how many times to loop
+ */
 void binocle_audio_set_music_loop_count(binocle_audio_music *music, int count);
 
+/**
+ * \brief Gets the length of the music stream in seconds
+ * @param music the music stream
+ * @return the length of the music stream in seconds
+ */
 float binocle_audio_get_music_time_length(binocle_audio_music *music);
 
+/**
+ * \brief Gets the length of the music stream already played in seconds
+ * @param music the music stream
+ * @return the length of the music stream already played in seconds
+ */
 float binocle_audio_get_music_time_played(binocle_audio_music *music);
 
+/**
+ * \brief Initialize an audio stream
+ * @param audio the audio system
+ * @param sample_rate the sample rate
+ * @param sample_size the sample size
+ * @param channels the number of channels [1..2]
+ * @return an initialized audio stream
+ */
 binocle_audio_stream
-binocle_audio_init_audio_stream(binocle_audio *audio, unsigned int sampleRate, unsigned int sampleSize,
+binocle_audio_init_audio_stream(binocle_audio *audio, unsigned int sample_rate, unsigned int sample_size,
                                 unsigned int channels);
 
+/**
+ * \brief Closes an audio stream and frees its buffer
+ * @param audio the audio system
+ * @param stream an audio stream
+ */
 void binocle_audio_close_audio_stream(binocle_audio *audio, binocle_audio_stream stream);
 
-void binocle_audio_update_audio_stream(binocle_audio_stream stream, const void *data, int samplesCount);
+/**
+ * \brief Updates an audio stream
+ * @param stream the audio stream
+ * @param data the buffer with audio samples
+ * @param samples_count the number of samples
+ */
+void binocle_audio_update_audio_stream(binocle_audio_stream stream, const void *data, int samples_count);
 
+/**
+ * \brief Returns true if the audio buffer of the stream has been processed
+ * @param stream the audio stream
+ * @return true if the audio buffer has already been processed
+ */
 bool binocle_audio_is_audio_buffer_processed(binocle_audio_stream stream);
 
+/**
+ * \brief Plays an audio stream
+ * @param stream the audio stream
+ */
 void binocle_audio_play_audio_stream(binocle_audio_stream stream);
 
+/**
+ * \brief Pauses an audio stream
+ * @param stream the audio stream
+ */
 void binocle_audio_pause_audio_stream(binocle_audio_stream stream);
 
+/**
+ * \brief Resumes an audio stream
+ * @param stream the audio stream
+ */
 void binocle_audio_resume_audio_stream(binocle_audio_stream stream);
 
+/**
+ * \brief Returns true if the audio stream is playing
+ * @param stream the audio stream
+ * @return true if the audio stream is playing
+ */
 bool binocle_audio_is_audio_stream_playing(binocle_audio_stream stream);
 
+/**
+ * \brief Stops an audio stream
+ * @param stream the audio stream
+ */
 void binocle_audio_stop_audio_stream(binocle_audio_stream stream);
 
+/**
+ * \brief Sets an audio stream volume
+ * @param stream the audio stream
+ * @param volume the volume [0..1]
+ */
 void binocle_audio_set_audio_stream_volume(binocle_audio_stream stream, float volume);
 
+/**
+ * \brief Sets an audio stream pitch
+ * @param stream the audio stream
+ * @param pitch the pitch
+ */
 void binocle_audio_set_audio_stream_pitch(binocle_audio_stream stream, float pitch);
 
 
