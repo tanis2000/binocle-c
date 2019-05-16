@@ -49,7 +49,7 @@ bool binocle_audio_init(binocle_audio *audio) {
   ma_context_config context_config = ma_context_config_init();
   ma_result result = ma_context_init(NULL, 0, &context_config, &audio->context);
   if (result != MA_SUCCESS) {
-    binocle_log_error("Failed to initialize audio context");
+    binocle_log_error("binocle_audio_init(): Failed to initialize audio context");
     return false;
   }
 
@@ -65,13 +65,13 @@ bool binocle_audio_init(binocle_audio *audio) {
   audio->device_config.pUserData = audio;
 
   if (ma_device_init(NULL, &audio->device_config, &audio->device) != MA_SUCCESS) {
-    binocle_log_error("Failed to open playback device.\n");
+    binocle_log_error("binocle_audio_init(): Failed to open playback device.\n");
     ma_decoder_uninit(&audio->decoder);
     return false;
   }
 
   if (ma_device_start(&audio->device) != MA_SUCCESS) {
-    binocle_log_error("Failed to start playback device.\n");
+    binocle_log_error("binocle_audio_init(): Failed to start playback device.\n");
     ma_device_uninit(&audio->device);
     ma_decoder_uninit(&audio->decoder);
     return false;
@@ -283,7 +283,7 @@ binocle_audio_create_audio_buffer(binocle_audio *audio, ma_format format, ma_uin
   binocle_audio_buffer *audioBuffer = (binocle_audio_buffer *) calloc(
       sizeof(*audioBuffer) + (bufferSizeInFrames * channels * ma_get_bytes_per_sample(format)), 1);
   if (audioBuffer == NULL) {
-    binocle_log_error("CreateAudioBuffer() : Failed to allocate memory for audio buffer");
+    binocle_log_error("binocle_audio_create_audio_buffer() : Failed to allocate memory for audio buffer");
     return NULL;
   }
 
@@ -302,7 +302,7 @@ binocle_audio_create_audio_buffer(binocle_audio *audio, ma_format format, ma_uin
   ma_result result = ma_pcm_converter_init(&dspConfig, &audioBuffer->dsp);
 
   if (result != MA_SUCCESS) {
-    binocle_log_error("CreateAudioBuffer() : Failed to create data conversion pipeline");
+    binocle_log_error("binocle_audio_create_audio_buffer() : Failed to create data conversion pipeline");
     free(audioBuffer);
     return NULL;
   }
@@ -327,7 +327,7 @@ binocle_audio_create_audio_buffer(binocle_audio *audio, ma_format format, ma_uin
 
 void binocle_audio_delete_audio_buffer(binocle_audio *audio, binocle_audio_buffer *audioBuffer) {
   if (audioBuffer == NULL) {
-    binocle_log_error("DeleteAudioBuffer() : No audio buffer");
+    binocle_log_error("binocle_audio_delete_audio_buffer() : No audio buffer");
     return;
   }
 
@@ -337,27 +337,27 @@ void binocle_audio_delete_audio_buffer(binocle_audio *audio, binocle_audio_buffe
 
 bool binocle_audio_is_audio_buffer_playing(binocle_audio_buffer *audio_buffer) {
   if (audio_buffer == NULL) {
-    binocle_log_debug("IsAudioBufferPlaying() : No audio buffer");
+    binocle_log_debug("binocle_audio_is_audio_buffer_playing() : No audio buffer");
     return false;
   }
 
   return audio_buffer->playing && !audio_buffer->paused;
 }
 
-void binocle_audio_play_audio_buffer(binocle_audio_buffer *audioBuffer) {
-  if (audioBuffer == NULL) {
-    binocle_log_error("PlayAudioBuffer() : No audio buffer");
+void binocle_audio_play_audio_buffer(binocle_audio_buffer *audio_buffer) {
+  if (audio_buffer == NULL) {
+    binocle_log_error("binocle_audio_play_audio_buffer() : No audio buffer");
     return;
   }
 
-  audioBuffer->playing = true;
-  audioBuffer->paused = false;
-  audioBuffer->frame_cursor_pos = 0;
+  audio_buffer->playing = true;
+  audio_buffer->paused = false;
+  audio_buffer->frame_cursor_pos = 0;
 }
 
 void binocle_audio_stop_audio_buffer(binocle_audio_buffer *audio_buffer) {
   if (audio_buffer == NULL) {
-    binocle_log_debug("StopAudioBuffer() : No audio buffer");
+    binocle_log_debug("binocle_audio_stop_audio_buffer() : No audio buffer");
     return;
   }
 
@@ -371,47 +371,47 @@ void binocle_audio_stop_audio_buffer(binocle_audio_buffer *audio_buffer) {
   audio_buffer->is_sub_buffer_processed[1] = true;
 }
 
-void binocle_audio_pause_audio_buffer(binocle_audio_buffer *audioBuffer) {
-  if (audioBuffer == NULL) {
-    binocle_log_error("PauseAudioBuffer() : No audio buffer");
+void binocle_audio_pause_audio_buffer(binocle_audio_buffer *audio_buffer) {
+  if (audio_buffer == NULL) {
+    binocle_log_error("binocle_audio_pause_audio_buffer() : No audio buffer");
     return;
   }
 
-  audioBuffer->paused = true;
+  audio_buffer->paused = true;
 }
 
-void binocle_audio_resume_audio_buffer(binocle_audio_buffer *audioBuffer) {
-  if (audioBuffer == NULL) {
-    binocle_log_error("ResumeAudioBuffer() : No audio buffer");
+void binocle_audio_resume_audio_buffer(binocle_audio_buffer *audio_buffer) {
+  if (audio_buffer == NULL) {
+    binocle_log_error("binocle_audio_resume_audio_buffer() : No audio buffer");
     return;
   }
 
-  audioBuffer->paused = false;
+  audio_buffer->paused = false;
 }
 
-void binocle_audio_set_audio_buffer_volume(binocle_audio_buffer *audioBuffer, float volume) {
-  if (audioBuffer == NULL) {
-    binocle_log_error("SetAudioBufferVolume() : No audio buffer");
+void binocle_audio_set_audio_buffer_volume(binocle_audio_buffer *audio_buffer, float volume) {
+  if (audio_buffer == NULL) {
+    binocle_log_error("binocle_audio_set_audio_buffer_volume() : No audio buffer");
     return;
   }
 
-  audioBuffer->volume = volume;
+  audio_buffer->volume = volume;
 }
 
-void binocle_audio_set_audio_buffer_pitch(binocle_audio_buffer *audioBuffer, float pitch) {
-  if (audioBuffer == NULL) {
-    binocle_log_error("SetAudioBufferPitch() : No audio buffer");
+void binocle_audio_set_audio_buffer_pitch(binocle_audio_buffer *audio_buffer, float pitch) {
+  if (audio_buffer == NULL) {
+    binocle_log_error("binocle_audio_set_audio_buffer_pitch() : No audio buffer");
     return;
   }
 
-  float pitchMul = pitch / audioBuffer->pitch;
+  float pitchMul = pitch / audio_buffer->pitch;
 
   // Pitching is just an adjustment of the sample rate. Note that this changes the duration of the sound - higher pitches
   // will make the sound faster; lower pitches make it slower.
-  ma_uint32 newOutputSampleRate = (ma_uint32)((float) audioBuffer->dsp.src.config.sampleRateOut / pitchMul);
-  audioBuffer->pitch *= (float) audioBuffer->dsp.src.config.sampleRateOut / newOutputSampleRate;
+  ma_uint32 newOutputSampleRate = (ma_uint32)((float) audio_buffer->dsp.src.config.sampleRateOut / pitchMul);
+  audio_buffer->pitch *= (float) audio_buffer->dsp.src.config.sampleRateOut / newOutputSampleRate;
 
-  ma_pcm_converter_set_output_sample_rate(&audioBuffer->dsp, newOutputSampleRate);
+  ma_pcm_converter_set_output_sample_rate(&audio_buffer->dsp, newOutputSampleRate);
 }
 
 void binocle_audio_track_audio_buffer(binocle_audio *audio, binocle_audio_buffer *audioBuffer) {
@@ -603,13 +603,13 @@ binocle_audio_sound binocle_audio_load_sound_from_wave(binocle_audio *audio, bin
     ma_uint32 frameCount = (ma_uint32) ma_convert_frames(NULL, BINOCLE_AUDIO_SAMPLE_FORMAT, BINOCLE_AUDIO_CHANNEL_COUNT,
                                                          BINOCLE_AUDIO_SAMPLE_RATE, NULL, formatIn, wave.channels,
                                                          wave.sample_rate, frameCountIn);
-    if (frameCount == 0) binocle_log_warning("LoadSoundFromWave() : Failed to get frame count for format conversion");
+    if (frameCount == 0) binocle_log_warning("binocle_audio_load_sound_from_wave() : Failed to get frame count for format conversion");
 
     binocle_audio_buffer *audioBuffer = binocle_audio_create_audio_buffer(audio, BINOCLE_AUDIO_SAMPLE_FORMAT,
                                                                           BINOCLE_AUDIO_CHANNEL_COUNT,
                                                                           BINOCLE_AUDIO_SAMPLE_RATE, frameCount,
                                                                           BINOCLE_AUDIO_BUFFER_USAGE_STATIC);
-    if (audioBuffer == NULL) binocle_log_warning("LoadSoundFromWave() : Failed to create audio buffer");
+    if (audioBuffer == NULL) binocle_log_warning("binocle_audio_load_sound_from_wave() : Failed to create audio buffer");
 
     if (audioBuffer != NULL) {
       frameCount = (ma_uint32) ma_convert_frames(audioBuffer->buffer,
@@ -617,7 +617,7 @@ binocle_audio_sound binocle_audio_load_sound_from_wave(binocle_audio *audio, bin
                                                  audioBuffer->dsp.formatConverterIn.config.channels,
                                                  audioBuffer->dsp.src.config.sampleRateIn, wave.data, formatIn,
                                                  wave.channels, wave.sample_rate, frameCountIn);
-      if (frameCount == 0) binocle_log_warning("LoadSoundFromWave() : Format conversion failed");
+      if (frameCount == 0) binocle_log_warning("binocle_audio_load_sound_from_wave() : Format conversion failed");
     }
 
     sound.audio_buffer = audioBuffer;
@@ -642,7 +642,7 @@ void binocle_audio_update_sound(binocle_audio_sound sound, const void *data, int
   binocle_audio_buffer *audioBuffer = (binocle_audio_buffer *) sound.audio_buffer;
 
   if (audioBuffer == NULL) {
-    binocle_log_error("UpdateSound() : Invalid sound - no audio buffer");
+    binocle_log_error("binocle_audio_update_sound() : Invalid sound - no audio buffer");
     return;
   }
 
@@ -814,7 +814,7 @@ void binocle_audio_play_music_stream(binocle_audio_music *music) {
     binocle_audio_buffer *audioBuffer = (binocle_audio_buffer *) music->stream.audio_buffer;
 
     if (audioBuffer == NULL) {
-      binocle_log_error("PlayMusicStream() : No audio buffer");
+      binocle_log_error("binocle_audio_play_music_stream() : No audio buffer");
       return;
     }
 
@@ -1014,7 +1014,7 @@ binocle_audio_init_audio_stream(binocle_audio *audio, unsigned int sampleRate, u
                                                                         stream.sample_rate, subBufferSize * 2,
                                                                         BINOCLE_AUDIO_BUFFER_USAGE_STREAM);
   if (audioBuffer == NULL) {
-    binocle_log_error("InitAudioStream() : Failed to create audio buffer");
+    binocle_log_error("binocle_audio_init_audio_stream() : Failed to create audio buffer");
     return stream;
   }
 
@@ -1039,7 +1039,7 @@ void binocle_audio_close_audio_stream(binocle_audio *audio, binocle_audio_stream
 void binocle_audio_update_audio_stream(binocle_audio_stream stream, const void *data, int samplesCount) {
   binocle_audio_buffer *audioBuffer = (binocle_audio_buffer *) stream.audio_buffer;
   if (audioBuffer == NULL) {
-    binocle_log_error("UpdateAudioStream() : No audio buffer");
+    binocle_log_error("binocle_audio_update_audio_stream() : No audio buffer");
     return;
   }
 
@@ -1079,7 +1079,7 @@ void binocle_audio_update_audio_stream(binocle_audio_stream stream, const void *
 
       audioBuffer->is_sub_buffer_processed[subBufferToUpdate] = false;
     } else {
-      binocle_log_error("UpdateAudioStream() : Attempting to write too many frames to buffer");
+      binocle_log_error("binocle_audio_update_audio_stream() : Attempting to write too many frames to buffer");
       return;
     }
   } else {
@@ -1091,7 +1091,7 @@ void binocle_audio_update_audio_stream(binocle_audio_stream stream, const void *
 bool binocle_audio_is_audio_buffer_processed(binocle_audio_stream stream) {
   binocle_audio_buffer *audioBuffer = (binocle_audio_buffer *) stream.audio_buffer;
   if (audioBuffer == NULL) {
-    binocle_log_error("IsAudioBufferProcessed() : No audio buffer");
+    binocle_log_error("binocle_audio_is_audio_buffer_processed() : No audio buffer");
     return false;
   }
 
