@@ -8,6 +8,9 @@
 #include "binocle_log.h"
 #include <stdlib.h>
 
+#define DG_DYNARR_IMPLEMENTATION
+#include <dg/DG_dynarr.h>
+
 kmVec2 binocle_collide_closest_point_on_line(kmVec2 lineA, kmVec2 lineB,
                                              kmVec2 closestTo) {
   kmVec2 v;
@@ -222,6 +225,46 @@ binocle_point_sectors binocle_collide_get_sector_parts_point(float r_x, float r_
 // Spatial hash
 //
 
+binocle_collider binocle_collider_new() {
+  binocle_collider res = {0};
+  res.hitbox = NULL;
+  res.circle = NULL;
+  da_init(res.grid_index);
+  return res;
+}
+
+float binocle_collider_get_absolute_left(binocle_collider *collider) {
+  if (collider->circle != NULL) {
+    return binocle_collider_circle_get_absolute_left(collider->circle);
+  } else {
+    return binocle_collider_hitbox_get_absolute_left(collider->hitbox);
+  }
+}
+
+float binocle_collider_get_absolute_bottom(binocle_collider *collider) {
+  if (collider->circle != NULL) {
+    return binocle_collider_circle_get_absolute_bottom(collider->circle);
+  } else {
+    return binocle_collider_hitbox_get_absolute_bottom(collider->hitbox);
+  }
+}
+
+float binocle_collider_get_absolute_right(binocle_collider *collider) {
+  if (collider->circle != NULL) {
+    return binocle_collider_circle_get_absolute_right(collider->circle);
+  } else {
+    return binocle_collider_hitbox_get_absolute_right(collider->hitbox);
+  }
+}
+
+float binocle_collider_get_absolute_top(binocle_collider *collider) {
+  if (collider->circle != NULL) {
+    return binocle_collider_circle_get_absolute_top(collider->circle);
+  } else {
+    return binocle_collider_hitbox_get_absolute_top(collider->hitbox);
+  }
+}
+
 binocle_spatial_hash binocle_spatial_hash_new(float width, float height, uint32_t cell_size) {
   binocle_spatial_hash res = {0};
   res.cell_size = cell_size;
@@ -234,9 +277,7 @@ binocle_spatial_hash binocle_spatial_hash_new(float width, float height, uint32_
   res.grid = kh_init(spatial_hash_cell_map_t);
   for (int y = 0; y < res.grid_height; y++) {
     for (int x = 0; x < res.grid_width; x++) {
-      kmVec2 key;
-      key.x = x;
-      key.y = y;
+      binocle_spatial_hash_grid_key_t key = binocle_spatial_hash_get_key(x, y);
       int ret;
       khiter_t k = kh_put(spatial_hash_cell_map_t, res.grid, key, &ret);
       kh_value(res.grid, k) = binocle_spatial_hash_cell_new();
@@ -244,22 +285,18 @@ binocle_spatial_hash binocle_spatial_hash_new(float width, float height, uint32_
     }
   }
 
-  res.temp_arr_capacity = 16;
-  res.temp_arr_size = 0;
-  res.temp_arr = malloc(sizeof(uint64_t) * res.temp_arr_capacity);
+  da_init(res.temp_arr);
   return res;
 }
 
 void binocle_spatial_hash_destroy(binocle_spatial_hash *spatial_hash) {
-  free(spatial_hash->temp_arr);
+  da_free(spatial_hash->temp_arr);
   kh_destroy(spatial_hash_cell_map_t, spatial_hash->grid);
 }
 
 binocle_spatial_hash_cell binocle_spatial_hash_cell_new() {
   binocle_spatial_hash_cell res = {0};
-  res.capacity = 16;
-  res.size = 0;
-  res.colliders = malloc(sizeof(binocle_collider) * res.capacity);
+  da_init(res.colliders);
   return res;
 }
 
@@ -270,7 +307,6 @@ kmVec2 binocle_spatial_hash_get_cell_coords(binocle_spatial_hash *spatial_hash, 
   return res;
 }
 
-/*
 void binocle_spatial_hash_add_body(binocle_spatial_hash *spatial_hash, binocle_collider *collider) {
   kmVec2 p1;
   kmVec2 p2;
@@ -313,28 +349,176 @@ void binocle_spatial_hash_add_body(binocle_spatial_hash *spatial_hash, binocle_c
   for (int x = p1.x; x <= p2.x; x++) {
     for (int y = p1.y; y <= p2.y; y++) {
       // make sure we have allocated a cell
-      kmVec2 key;
-      key.x = x;
-      key.y = y;
-      auto c = binocle_spatial_hash_cell_at_position(x, y, true);
-      binocle_spatial_hash_add_index(b, binocle_spatial_hash_get_key(key));
+      binocle_spatial_hash_grid_key_t key = binocle_spatial_hash_get_key(x, y);
+      binocle_spatial_hash_cell *c = binocle_spatial_hash_cell_at_position(spatial_hash, x, y, true);
+      binocle_spatial_hash_add_index(spatial_hash, collider, key);
     }
   }
 }
 
-std::vector<Colliders::Collider *> *SpatialHash::CellAtPosition(int x, int y, bool createCellIfEmpty = false) {
-  std::vector<Colliders::Collider *> *cell = nullptr;
-  glm::vec2 v = GetCellCoords(x, y);
-  if (grid.find(GetKey(v.x, v.y)) != grid.end()) {
+void binocle_spatial_hash_remove_body(binocle_spatial_hash *spatial_hash, binocle_collider *collider) {
+  binocle_spatial_hash_remove_indexes(spatial_hash, collider);
+}
+
+void binocle_spatial_hash_update_body(binocle_spatial_hash *spatial_hash, binocle_collider *collider) {
+  kmVec2 bottom_left;
+  kmVec2 top_right;
+  bottom_left.x = binocle_collider_get_absolute_left(collider);
+  bottom_left.y = binocle_collider_get_absolute_bottom(collider);
+  top_right.x = binocle_collider_get_absolute_right(collider);
+  top_right.y = binocle_collider_get_absolute_top(collider);
+  binocle_spatial_hash_update_indexes(spatial_hash, collider, binocle_spatial_hash_aabb_to_grid(spatial_hash, bottom_left, top_right));
+}
+
+binocle_spatial_hash_cell *binocle_spatial_hash_cell_at_position(binocle_spatial_hash *spatial_hash, int x, int y, bool createCellIfEmpty) {
+  binocle_spatial_hash_cell *cell = NULL;
+  kmVec2 v = binocle_spatial_hash_get_cell_coords(spatial_hash, x, y);
+  binocle_spatial_hash_grid_key_t key = binocle_spatial_hash_get_key(v.x, v.y);
+  khiter_t k = kh_get(spatial_hash_cell_map_t, spatial_hash->grid, key);
+  if (k != kh_end(spatial_hash->grid)) {
     // found
-    cell = &grid.at(GetKey(v.x, v.y));
+    cell = &kh_val(spatial_hash->grid, k);
   }
-  if (cell == nullptr || cell->empty()) {
+  if (cell == NULL || da_count(cell->colliders) == 0) {
     if (createCellIfEmpty) {
-      cell = new std::vector<Colliders::Collider *>();
-      grid[GetKey(v.x, v.y)] = *cell;
+      int ret;
+      k = kh_put(spatial_hash_cell_map_t, spatial_hash->grid, key, &ret);
+      kh_value(spatial_hash->grid, k) = binocle_spatial_hash_cell_new();
+      cell = &kh_val(spatial_hash->grid, k);
     }
   }
   return cell;
 }
-*/
+
+void binocle_spatial_hash_cell_add_collider(binocle_spatial_hash_cell *cell, binocle_collider *collider) {
+  da_push(cell->colliders, collider);
+}
+
+void binocle_collider_add_grid_index(binocle_collider *collider, binocle_spatial_hash_grid_key_t cell_pos) {
+  da_push(collider->grid_index, cell_pos);
+}
+
+void binocle_spatial_hash_add_index(binocle_spatial_hash *spatial_hash, binocle_collider *collider, binocle_spatial_hash_grid_key_t cell_pos) {
+  khiter_t k = kh_get(spatial_hash_cell_map_t, spatial_hash->grid, cell_pos);
+  binocle_spatial_hash_cell *cell = &kh_val(spatial_hash->grid, k);
+  binocle_spatial_hash_cell_add_collider(cell, collider);
+  binocle_collider_add_grid_index(collider, cell_pos);
+}
+
+void binocle_spatial_hash_remove_index(binocle_spatial_hash *spatial_hash, binocle_collider *collider, binocle_spatial_hash_grid_key_t cell_pos) {
+  binocle_spatial_hash_cell *cell = NULL;
+  khiter_t k = kh_get(spatial_hash_cell_map_t, spatial_hash->grid, cell_pos);
+  if (k != kh_end(spatial_hash->grid)) {
+    // found
+    cell = &kh_val(spatial_hash->grid, k);
+    for (int i = da_count(cell->colliders) - 1 ; i > 0 ; i--) {
+      binocle_collider *coll = cell->colliders.p[i];
+      if (coll == collider) {
+        da_delete(cell->colliders, i);
+      }
+    }
+  }
+}
+
+void binocle_spatial_hash_remove_indexes(binocle_spatial_hash *spatial_hash, binocle_collider *collider) {
+  for (int i = 0 ; i < da_count(collider->grid_index) ; i++) {
+    binocle_spatial_hash_grid_key_t key = collider->grid_index.p[i];
+    binocle_spatial_hash_remove_index(spatial_hash, collider, key);
+  }
+  da_clear(collider->grid_index);
+}
+
+void binocle_spatial_hash_update_indexes(binocle_spatial_hash *spatial_hash, binocle_collider *collider, binocle_grid_key_array_t *ar) {
+  for (int i = 0 ; i < da_count(collider->grid_index) ; i++) {
+    binocle_spatial_hash_grid_key_t key = collider->grid_index.p[i];
+    binocle_spatial_hash_remove_index(spatial_hash, collider, key);
+  }
+  da_clear(collider->grid_index);
+
+  for (int i = 0 ; i < da_count(*ar) ; i++) {
+    binocle_spatial_hash_grid_key_t key = ar->p[i];
+    binocle_spatial_hash_add_index(spatial_hash, collider, key);
+  }
+}
+
+binocle_grid_key_array_t *binocle_spatial_hash_aabb_to_grid(binocle_spatial_hash *spatial_hash, kmVec2 min, kmVec2 max) {
+  da_clear(spatial_hash->temp_arr);
+
+  kmVec2 p1 = binocle_spatial_hash_get_cell_coords(spatial_hash, min.x, min.y);
+  kmVec2 p2 = binocle_spatial_hash_get_cell_coords(spatial_hash, max.x, max.y);
+  if (p2.x > spatial_hash->grid_width) {
+    spatial_hash->grid_width = p2.x;
+  }
+  if (p1.x < spatial_hash->grid_x) {
+    spatial_hash->grid_x = p1.x;
+  }
+  if (p2.y > spatial_hash->grid_height) {
+    spatial_hash->grid_height = p2.y;
+  }
+  if (p1.y < spatial_hash->grid_y) {
+    spatial_hash->grid_y = p1.y;
+  }
+  for (int x = p1.x; x <= p2.x; x++) {
+    for (int y = p1.y; y <= p2.y; y++) {
+      // make sure we have allocated a cell
+      binocle_spatial_hash_cell *c = binocle_spatial_hash_cell_at_position(spatial_hash, x, y, true);
+      binocle_spatial_hash_grid_key_t key = binocle_spatial_hash_get_key(x, y);
+      da_push(spatial_hash->temp_arr, key);
+    }
+  }
+
+  return &spatial_hash->temp_arr;
+}
+
+binocle_spatial_hash_grid_key_t binocle_spatial_hash_get_key(int x, int y) {
+  return (uint64_t) x << 32 | (uint64_t) (uint32_t) y;
+}
+
+void binocle_spatial_hash_get_all_bodies_sharing_cells_with_body(binocle_spatial_hash *spatial_hash, binocle_collider *collider, binocle_collider_ptr_array_t *colliding_colliders, int layer_mask) {
+  da_clear(*colliding_colliders);
+
+  for (int i = 0 ; i < da_count(collider->grid_index) ; i++) {
+    binocle_spatial_hash_cell *cell = NULL;
+    khiter_t k = kh_get(spatial_hash_cell_map_t, spatial_hash->grid, collider->grid_index.p[i]);
+    if (k != kh_end(spatial_hash->grid)) {
+      // found
+      cell = &kh_val(spatial_hash->grid, k);
+      if (da_count(cell->colliders) == 0) {
+        continue;
+      }
+      for (int j = 0 ; j < da_count(cell->colliders) ; j++) {
+        binocle_collider *coll = cell->colliders.p[j];
+        if (coll == collider /* || !Flags::IsFlagSet(layerMask, cbd->layer)*/) {
+          continue;
+        }
+        da_push(*colliding_colliders, coll);
+      }
+    } else {
+      continue;
+    }
+  }
+}
+
+bool binocle_spatial_hash_is_body_sharing_any_cell(binocle_spatial_hash *spatial_hash, binocle_collider *collider) {
+  for (int i = 0 ; i < da_count(collider->grid_index) ; i++) {
+    binocle_spatial_hash_cell *cell = NULL;
+    khiter_t k = kh_get(spatial_hash_cell_map_t, spatial_hash->grid, collider->grid_index.p[i]);
+    if (k != kh_end(spatial_hash->grid)) {
+      // found
+      cell = &kh_val(spatial_hash->grid, k);
+      if (da_count(cell->colliders) == 0) {
+        continue;
+      }
+      for (int j = 0 ; j < da_count(cell->colliders) ; j++) {
+        binocle_collider *coll = cell->colliders.p[j];
+        if (coll == collider) {
+          continue;
+        }
+        return true;
+      }
+    } else {
+      continue;
+    }
+  }
+  return false;
+}

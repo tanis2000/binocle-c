@@ -11,6 +11,7 @@
 #include <kazmath/kazmath.h>
 #include <inttypes.h>
 #include <khash/khash.h>
+#include <dg/DG_dynarr.h>
 
 typedef enum binocle_collider_type {
   BINOCLE_COLLIDER_CIRCLE,
@@ -39,20 +40,26 @@ typedef struct binocle_collider_hitbox {
   kmAABB2 aabb;
 } binocle_collider_hitbox;
 
+typedef uint64_t binocle_spatial_hash_grid_key_t;
+
+DA_TYPEDEF(binocle_spatial_hash_grid_key_t, binocle_grid_key_array_t)
+
 typedef struct binocle_collider {
   binocle_collider_circle *circle;
   binocle_collider_hitbox *hitbox;
+  binocle_grid_key_array_t grid_index;
 } binocle_collider;
 
+DA_TYPEDEF(binocle_collider *, binocle_collider_ptr_array_t)
+
 typedef struct binocle_spatial_hash_cell {
-  binocle_collider *colliders;
-  uint32_t size;
-  uint32_t capacity;
+  binocle_collider_ptr_array_t colliders;
 } binocle_spatial_hash_cell;
 
-#define binocle_spatial_hash_get_key(key) (uint64_t)((int64_t)((key).x)<<32 | (uint32_t)((key).y))
-#define binocle_spatial_hash_equal(a, b) ((a).x == (b).x && (a).y == (b).y)
-KHASH_INIT(spatial_hash_cell_map_t, kmVec2, binocle_spatial_hash_cell, 1, binocle_spatial_hash_get_key, binocle_spatial_hash_equal)
+
+#define binocle_spatial_hash_func(key) (binocle_spatial_hash_grid_key_t)(key)
+#define binocle_spatial_hash_equal(a, b) ((a) == (b))
+KHASH_INIT(spatial_hash_cell_map_t, binocle_spatial_hash_grid_key_t, binocle_spatial_hash_cell, 1, binocle_spatial_hash_func, binocle_spatial_hash_equal)
 
 typedef struct binocle_spatial_hash {
   khash_t(spatial_hash_cell_map_t) *grid;
@@ -63,9 +70,7 @@ typedef struct binocle_spatial_hash {
   int32_t grid_x;
   int32_t grid_y;
   float inv_cell_size;
-  uint64_t *temp_arr;
-  uint32_t temp_arr_capacity;
-  uint32_t temp_arr_size;
+  binocle_grid_key_array_t temp_arr;
 } binocle_spatial_hash;
 
 binocle_collider_circle binocle_collider_circle_new(float radius, kmVec2 center);
@@ -99,9 +104,23 @@ bool binocle_collide_circle_to_circle(binocle_collider_circle *circle_a, binocle
 bool binocle_collide_circle_to_hitbox(binocle_collider_circle *circle, binocle_collider_hitbox *hitbox);
 bool binocle_collide_hitbox_to_hitbox(binocle_collider_hitbox *hitbox_a, binocle_collider_hitbox *hitbox_b);
 
+binocle_collider binocle_collider_new();
 binocle_spatial_hash binocle_spatial_hash_new(float width, float height, uint32_t cell_size);
 void binocle_spatial_hash_destroy(binocle_spatial_hash *spatial_hash);
 binocle_spatial_hash_cell binocle_spatial_hash_cell_new();
 kmVec2 binocle_spatial_hash_get_cell_coords(binocle_spatial_hash *spatial_hash, float x, float y);
+binocle_spatial_hash_cell *binocle_spatial_hash_cell_at_position(binocle_spatial_hash *spatial_hash, int x, int y, bool createCellIfEmpty);
+void binocle_spatial_hash_add_body(binocle_spatial_hash *spatial_hash, binocle_collider *collider);
+void binocle_spatial_hash_remove_body(binocle_spatial_hash *spatial_hash, binocle_collider *collider);
+void binocle_spatial_hash_update_body(binocle_spatial_hash *spatial_hash, binocle_collider *collider);
+void binocle_spatial_hash_add_index(binocle_spatial_hash *spatial_hash, binocle_collider *collider, binocle_spatial_hash_grid_key_t cell_pos);
+void binocle_collider_add_grid_index(binocle_collider *collider, binocle_spatial_hash_grid_key_t cell_pos);
+void binocle_spatial_hash_cell_add_collider(binocle_spatial_hash_cell *cell, binocle_collider *collider);
+void binocle_spatial_hash_remove_indexes(binocle_spatial_hash *spatial_hash, binocle_collider *collider);
+void binocle_spatial_hash_update_indexes(binocle_spatial_hash *spatial_hash, binocle_collider *collider, binocle_grid_key_array_t *ar);
+binocle_grid_key_array_t *binocle_spatial_hash_aabb_to_grid(binocle_spatial_hash *spatial_hash, kmVec2 min, kmVec2 max);
+uint64_t binocle_spatial_hash_get_key(int x, int y);
+void binocle_spatial_hash_get_all_bodies_sharing_cells_with_body(binocle_spatial_hash *spatial_hash, binocle_collider *collider, binocle_collider_ptr_array_t *colliding_colliders, int layer_mask);
+bool binocle_spatial_hash_is_body_sharing_any_cell(binocle_spatial_hash *spatial_hash, binocle_collider *collider);
 
 #endif //BINOCLE_COLLISION_H
