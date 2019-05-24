@@ -4,6 +4,7 @@
 // All rights reserved.
 //
 
+#include <string.h>
 #include <kazmath/kazmath.h>
 #include "binocle_input.h"
 #include "binocle_camera.h"

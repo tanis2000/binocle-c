@@ -689,7 +689,7 @@ binocle_audio_music *binocle_audio_load_music_stream(binocle_audio *audio, const
 
   if (binocle_audio_is_file_extension(file_name, ".ogg")) {
     // Open ogg audio stream
-    music->ctx_ogg = stb_vorbis_open_file_name(file_name, NULL, NULL);
+    music->ctx_ogg = stb_vorbis_open_filename(file_name, NULL, NULL);
 
     if (music->ctx_ogg == NULL) musicLoaded = false;
     else {
