@@ -53,6 +53,7 @@ binocle_shader bloom_shader;
 binocle_audio audio;
 binocle_audio_sound sound;
 binocle_audio_music *music;
+char *binocle_data_dir;
 
 #ifdef TWODLOOP
 void main_loop() {
@@ -275,14 +276,36 @@ int main(int argc, char *argv[])
   adapter = binocle_viewport_adapter_new(window, BINOCLE_VIEWPORT_ADAPTER_KIND_SCALING, BINOCLE_VIEWPORT_ADAPTER_SCALING_TYPE_PIXEL_PERFECT, window.original_width, window.original_height, window.original_width, window.original_height);
   camera = binocle_camera_new(&adapter);
   input = binocle_input_new();
+
+#if defined(__EMSCRIPTEN__)
+  binocle_data_dir = malloc(1024);
+  sprintf(binocle_data_dir, "/Users/tanis/Documents/ld43-binocle/data/");
+#elif defined(__WINDOWS__)
+  char *base_path = SDL_GetBasePath();
+  if (base_path) {
+    binocle_data_dir = malloc(strlen(base_path) + 7);
+    sprintf(binocle_data_dir, "%s%s", base_path, "..\\..\\..\\..\\..\\data\\");
+  } else {
+    binocle_data_dir = SDL_strdup("./data");
+  }
+#else
+  char *base_path = SDL_GetBasePath();
+  if (base_path) {
+    binocle_data_dir = base_path;
+  } else {
+    binocle_data_dir = SDL_strdup("./");
+  }
+#endif
+  binocle_log_info("Current base path: %s", binocle_data_dir);
+
   char filename[1024];
-  sprintf(filename, "%s%s", BINOCLE_DATA_DIR, "wabbit_alpha.png");
+  sprintf(filename, "%s%s", binocle_data_dir, "wabbit_alpha.png");
   binocle_image image = binocle_image_load(filename);
   binocle_texture texture = binocle_texture_from_image(image);
   char vert[1024];
-  sprintf(vert, "%s%s", BINOCLE_DATA_DIR, "default.vert");
+  sprintf(vert, "%s%s", binocle_data_dir, "default.vert");
   char frag[1024];
-  sprintf(frag, "%s%s", BINOCLE_DATA_DIR, "default.frag");
+  sprintf(frag, "%s%s", binocle_data_dir, "default.frag");
   binocle_shader shader = binocle_shader_load_from_file(vert, frag);
   binocle_material material = binocle_material_new();
   material.texture = &texture;
@@ -292,36 +315,36 @@ int main(int argc, char *argv[])
   player_pos.y = 50;
 
   // Load the default quad shader
-  sprintf(vert, "%s%s", BINOCLE_DATA_DIR, "screen.vert");
-  sprintf(frag, "%s%s", BINOCLE_DATA_DIR, "screen.frag");
+  sprintf(vert, "%s%s", binocle_data_dir, "screen.vert");
+  sprintf(frag, "%s%s", binocle_data_dir, "screen.frag");
   quad_shader = binocle_shader_load_from_file(vert, frag);
 
   // Load the SDF shader
-  sprintf(vert, "%s%s", BINOCLE_DATA_DIR, "test.vert");
-  sprintf(frag, "%s%s", BINOCLE_DATA_DIR, "test2.frag");
+  sprintf(vert, "%s%s", binocle_data_dir, "test.vert");
+  sprintf(frag, "%s%s", binocle_data_dir, "test2.frag");
   sdf_shader = binocle_shader_load_from_file(vert, frag);
 
   // Load the FXAA shader
-  sprintf(vert, "%s%s", BINOCLE_DATA_DIR, "test.vert");
-  sprintf(frag, "%s%s", BINOCLE_DATA_DIR, "fxaa.frag");
+  sprintf(vert, "%s%s", binocle_data_dir, "test.vert");
+  sprintf(frag, "%s%s", binocle_data_dir, "fxaa.frag");
   fxaa_shader = binocle_shader_load_from_file(vert, frag);
 
   // Load the DOF shader
-  sprintf(vert, "%s%s", BINOCLE_DATA_DIR, "dof.vert");
-  sprintf(frag, "%s%s", BINOCLE_DATA_DIR, "dof.frag");
+  sprintf(vert, "%s%s", binocle_data_dir, "dof.vert");
+  sprintf(frag, "%s%s", binocle_data_dir, "dof.frag");
   dof_shader = binocle_shader_load_from_file(vert, frag);
 
   // Load the bloom shader
-  sprintf(vert, "%s%s", BINOCLE_DATA_DIR, "dof.vert");
-  sprintf(frag, "%s%s", BINOCLE_DATA_DIR, "bloom2.frag");
+  sprintf(vert, "%s%s", binocle_data_dir, "dof.vert");
+  sprintf(frag, "%s%s", binocle_data_dir, "bloom2.frag");
   bloom_shader = binocle_shader_load_from_file(vert, frag);
 
   char font_filename[1024];
-  sprintf(font_filename, "%s%s", BINOCLE_DATA_DIR, "font.fnt");
+  sprintf(font_filename, "%s%s", binocle_data_dir, "font.fnt");
   font = binocle_bitmapfont_from_file(font_filename, true);
 
   char font_image_filename[1024];
-  sprintf(font_image_filename, "%s%s", BINOCLE_DATA_DIR, "font.png");
+  sprintf(font_image_filename, "%s%s", binocle_data_dir, "font.png");
   font_image = binocle_image_load(font_image_filename);
   font_texture = binocle_texture_from_image(font_image);
   font_material = binocle_material_new();
@@ -335,10 +358,10 @@ int main(int argc, char *argv[])
   audio = binocle_audio_new();
   binocle_audio_init(&audio);
   char sound_filename[1024];
-  sprintf(sound_filename, "%s%s", BINOCLE_DATA_DIR, "Jump.wav");
+  sprintf(sound_filename, "%s%s", binocle_data_dir, "Jump.wav");
   sound = binocle_audio_load_sound(&audio, sound_filename);
   char music_filename[1024];
-  sprintf(music_filename, "%s%s", BINOCLE_DATA_DIR, "8bit.ogg");
+  sprintf(music_filename, "%s%s", binocle_data_dir, "8bit.ogg");
   music = binocle_audio_load_music_stream(&audio, music_filename);
   binocle_audio_play_music_stream(music);
 
