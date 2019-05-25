@@ -4,6 +4,8 @@
 // All rights reserved.
 //
 
+#define _USE_MATH_DEFINES // Needed for Windows
+#include <math.h>
 #include "binocle_easing.h"
 #include "binocle_math.h"
 
