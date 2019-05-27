@@ -7,6 +7,9 @@
 #ifndef BINOCLE_COLOR_H
 #define BINOCLE_COLOR_H
 
+/**
+ * \brief A color structure
+ */
 typedef struct binocle_color {
   //! Red, green, blue, alpha (translucency)
   float r;

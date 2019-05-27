@@ -11,7 +11,9 @@
 
 #define BINOCLE_BEZIER_STEPS 256
 
-// curve presets
+/**
+ * Curves presets
+ */
 static struct {
   const char *name;
   float points[4];
@@ -53,8 +55,19 @@ static struct {
     // easeInOutBounce: not a bezier
 };
 
+/**
+ * \brief Initialized a bezier curves table
+ * @param P
+ * @param results
+ */
 void binocle_bezier_table(kmVec2 P[4], kmVec2 results[BINOCLE_BEZIER_STEPS + 1]);
 
+/**
+ * \brief Evaluates the value of a bezier curve at a point in time
+ * @param dt01 the point in time [0..1]
+ * @param P the curve parameters
+ * @return the evaluated value
+ */
 float binocle_bezier_value(float dt01, float P[4]);
 
 #endif //BINOCLE_BEZIER_H

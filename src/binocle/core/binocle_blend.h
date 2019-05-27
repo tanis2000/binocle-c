@@ -37,6 +37,9 @@ typedef enum binocle_blend_equation {
   BINOCLE_BLEND_SUBTRACT ///< Pixel = Src * SrcFactor - Dst * DstFactor
 } binocle_blend_equation;
 
+/**
+ * \brief Represents a blending structure with all the needed values
+ */
 typedef struct binocle_blend {
   binocle_blend_factor color_src_factor; ///< Source blending factor for the color channels
   binocle_blend_factor color_dst_factor; ///< Destination blending factor for the color channels
@@ -46,14 +49,35 @@ typedef struct binocle_blend {
   binocle_blend_equation alpha_equation; ///< Blending equation for the alpha channel
 } binocle_blend;
 
+/**
+ * Initializes a new blending structure
+ * @param color_source_factor
+ * @param color_destination_factor
+ * @param color_blend_equation
+ * @param alpha_source_factor
+ * @param alpha_destination_factor
+ * @param alpha_blend_equation
+ * @return the initialized blending structure
+ */
 binocle_blend binocle_blend_new(binocle_blend_factor color_source_factor, binocle_blend_factor color_destination_factor,
                                 binocle_blend_equation color_blend_equation, binocle_blend_factor alpha_source_factor,
                                 binocle_blend_factor alpha_destination_factor,
                                 binocle_blend_equation alpha_blend_equation);
 
+/**
+ * \brief Helper to initialize a blending structure with basic values
+ * @param source_factor
+ * @param destination_factor
+ * @param blend_equation
+ * @return the initialized blending structure
+ */
 binocle_blend binocle_blend_new_simple(binocle_blend_factor source_factor, binocle_blend_factor destination_factor,
                                        binocle_blend_equation blend_equation);
 
+/**
+ * \brief Returns default values for blending
+ * @return the default values
+ */
 binocle_blend binocle_blend_new_default();
 
 #endif //BINOCLE_BLEND_H
