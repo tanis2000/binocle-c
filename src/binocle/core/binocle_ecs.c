@@ -414,3 +414,252 @@ bool binocle_ecs_get_component_internal(binocle_ecs_t *ecs, binocle_entity_id_t 
 
 	return true;
 }
+
+//
+// Systems
+//
+
+bool binocle_ecs_create_system(binocle_ecs_t *ecs, const char *name,
+  void (*starting)(struct binocle_ecs_t*, void *),
+  void (*process)(struct binocle_ecs_t*, void *, binocle_entity_id_t, float),
+  void (*ending)(struct binocle_ecs_t*, void *),
+  void (*subscribed)(struct binocle_ecs_t*, void *, binocle_entity_id_t),
+  void (*unsubscribed)(struct binocle_ecs_t*, void *, binocle_entity_id_t),
+  void *user_data,
+  uint64_t flags,
+  uint64_t *system_ptr
+) {
+  binocle_system_t s;
+
+  if (ecs->initialized) {
+    return false;
+  }
+
+  memset(&s, 0, sizeof(s));
+  s.name = strdup(name);
+  s.starting = starting;
+  s.process = process;
+  s.ending = ending;
+  s.subscribed = subscribed;
+  s.unsubscribed = unsubscribed;
+  s.user_data = user_data;
+  s.flags = flags;
+
+  void *new_systems = realloc(ecs->systems, sizeof(*ecs->systems) * (ecs->num_systems + 1));
+  if (new_systems == NULL) {
+    free((void *)s.name);
+    return false;
+  }
+  ecs->systems = new_systems;
+  ecs->systems[ecs->num_systems++] = s;
+
+  *system_ptr = ecs->num_systems - 1;
+
+  return true;
+}
+
+bool binocle_ecs_watch(binocle_ecs_t *ecs, binocle_system_id_t system, binocle_component_id_t component) {
+  if (ecs->initialized) {
+    return false;
+  }
+
+  if (system >= ecs->num_systems) {
+    return false;
+  }
+
+  if (component >= ecs->num_components) {
+    return false;
+  }
+
+  binocle_sparse_integer_set_insert(&ecs->systems[system].watch, component);
+
+  return true;
+}
+
+bool binocle_ecs_exclude(binocle_ecs_t *ecs, binocle_system_id_t system, binocle_component_id_t component) {
+  if(ecs->initialized) {
+    return false;
+  }
+
+  if(system >= ecs->num_systems) {
+    return false;
+  }
+
+  if(component >= ecs->num_components) {
+    return false;
+  }
+
+  binocle_sparse_integer_set_insert(&ecs->systems[system].exclude, component);
+
+  return true;
+}
+
+bool binocle_ecs_signal(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_entity_signal_t signal) {
+  bool res = true;
+
+  if(!ecs->initialized) {
+    return false;
+  }
+
+  if((!ecs->processing && entity >= ecs->data_height) || (ecs->processing && entity >= ecs->data_height_capacity + ecs->processing_data_height)) {
+    return false;
+  }
+
+  switch(signal) {
+    case BINOCLE_ENTITY_ADDED:
+      binocle_sparse_integer_set_insert(&ecs->added, entity);
+      binocle_sparse_integer_set_insert(&ecs->enabled, entity);
+      binocle_sparse_integer_set_remove(&ecs->disabled, entity);
+      binocle_sparse_integer_set_remove(&ecs->removed, entity);
+      break;
+    case BINOCLE_ENTITY_ENABLED:
+      binocle_sparse_integer_set_insert(&ecs->enabled, entity);
+      binocle_sparse_integer_set_remove(&ecs->disabled, entity);
+      binocle_sparse_integer_set_remove(&ecs->removed, entity);
+      break;
+    case BINOCLE_ENTITY_DISABLED:
+      binocle_sparse_integer_set_remove(&ecs->enabled, entity);
+      binocle_sparse_integer_set_insert(&ecs->disabled, entity);
+      binocle_sparse_integer_set_remove(&ecs->removed, entity);
+      break;
+    case BINOCLE_ENTITY_REMOVED:
+      binocle_sparse_integer_set_remove(&ecs->added, entity);
+      binocle_sparse_integer_set_remove(&ecs->enabled, entity);
+      binocle_sparse_integer_set_insert(&ecs->disabled, entity);
+      binocle_sparse_integer_set_insert(&ecs->removed, entity);
+      break;
+    default:
+      res = false;
+  }
+
+  return res;
+}
+
+bool binocle_ecs_process(binocle_ecs_t *ecs, float delta) {
+  binocle_entity_id_t entity;
+  uint64_t i;
+  uint64_t j;
+  binocle_system_t *system;
+
+  if(!ecs->initialized) {
+    return false;
+  }
+
+  ecs->processing = true;
+
+  binocle_sparse_integer_set_clear(&ecs->added);
+
+  BINOCLE_FOREACH_SPARSEINTSET(entity, i, &ecs->enabled) {
+    BINOCLE_FOREACH_ARRAY(system, j, ecs->systems, ecs->num_systems) {
+      binocle_ecs_check(ecs, system, entity);
+    }
+    binocle_dense_integer_set_insert(&ecs->active, entity);
+  }
+  binocle_sparse_integer_set_clear(&ecs->enabled);
+
+  BINOCLE_FOREACH_SPARSEINTSET(entity, i, &ecs->disabled) {
+    BINOCLE_FOREACH_ARRAY(system, j, ecs->systems, ecs->num_systems) {
+      binocle_ecs_unsubscribe(ecs, system, entity);
+    }
+    binocle_dense_integer_set_remove(&ecs->active, entity);
+  }
+  binocle_sparse_integer_set_clear(&ecs->disabled);
+
+  BINOCLE_FOREACH_SPARSEINTSET(entity, i, &ecs->removed) {
+    BINOCLE_FOREACH_ARRAY(system, j, ecs->systems, ecs->num_systems) {
+      binocle_ecs_unsubscribe(ecs, system, entity);
+    }
+    for(j = 0; j < ecs->num_components; j++) {
+      binocle_ecs_remove_components(ecs, entity, j);
+    }
+    binocle_sparse_integer_set_insert(&ecs->free_entity_ids, entity);
+  }
+  binocle_sparse_integer_set_clear(&ecs->removed);
+
+  BINOCLE_FOREACH_ARRAY(system, j, ecs->systems, ecs->num_systems) {
+    if(system->flags & BINOCLE_SYSTEM_PASSIVE_BIT) {
+      continue;
+    }
+
+    if(system->starting != NULL) {
+      system->starting(ecs, system->user_data);
+    }
+    BINOCLE_FOREACH_DENSEINTSET(entity, &system->entities) {
+      system->process(ecs, system->user_data, entity, delta);
+    }
+    if(system->ending != NULL) {
+      system->ending(ecs, system->user_data);
+    }
+  }
+
+  ecs->processing = false;
+
+  return binocle_ecs_fix_data(ecs);
+}
+
+bool binocle_ecs_process_system(binocle_ecs_t *ecs, binocle_system_id_t system, float delta) {
+  binocle_system_t *s;
+  binocle_entity_id_t entity;
+
+  if(!ecs->initialized) {
+    return false;
+  }
+
+  if(system >= ecs->num_systems) {
+    return false;
+  }
+
+  s = ecs->systems + system;
+
+  if(s->starting != NULL) {
+    s->starting(ecs, s->user_data);
+  }
+  BINOCLE_FOREACH_DENSEINTSET(entity, &s->entities) {
+    s->process(ecs, s->user_data, entity, delta);
+  }
+  if(s->ending != NULL) {
+    s->ending(ecs, s->user_data);
+  }
+
+  return binocle_ecs_fix_data(ecs);
+}
+
+void binocle_ecs_subscribe(binocle_ecs_t *ecs, binocle_system_t *system, binocle_entity_id_t entity) {
+  int included = binocle_dense_integer_set_insert(&system->entities, entity);
+  if(!included && system->subscribed != NULL) {
+    system->subscribed(ecs, system->user_data, entity);
+  }
+}
+
+void binocle_ecs_unsubscribe(binocle_ecs_t *ecs, binocle_system_t *system, binocle_entity_id_t entity) {
+  int included = binocle_dense_integer_set_remove(&system->entities, entity);
+  if(included && system->unsubscribed != NULL) {
+    system->unsubscribed(ecs, system->user_data, entity);
+  }
+}
+
+void binocle_ecs_check(binocle_ecs_t *ecs, binocle_system_t *system, binocle_entity_id_t entity) {
+  unsigned char *entity_components = binocle_ecs_get_entity_data(ecs, entity);
+  unsigned int component, i;
+  int wanted = 1;
+
+  BINOCLE_FOREACH_SPARSEINTSET(component, i, &system->watch) {
+    if(!(entity_components[component >> 3] & (1 << (component & 7)))) {
+      wanted = 0;
+      break;
+    }
+  }
+
+  BINOCLE_FOREACH_SPARSEINTSET(component, i, &system->exclude) {
+    if((entity_components[component >> 3] & (1 << (component & 7)))) {
+      wanted = 0;
+      break;
+    }
+  }
+
+  if(wanted) {
+    binocle_ecs_subscribe(ecs, system, entity);
+  } else {
+    binocle_ecs_unsubscribe(ecs, system, entity);
+  }
+}

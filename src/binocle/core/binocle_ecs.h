@@ -11,8 +11,22 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+// System flags
+#define BINOCLE_SYSTEM_PASSIVE_BIT 1
+
+#define BINOCLE_SYSTEM_FLAG_NORMAL  0
+#define BINOCLE_SYSTEM_FLAG_PASSIVE BINOCLE_SYSTEM_PASSIVE_BIT
+
+typedef enum binocle_entity_signal_t {
+  BINOCLE_ENTITY_ADDED,
+  BINOCLE_ENTITY_ENABLED,
+  BINOCLE_ENTITY_DISABLED,
+  BINOCLE_ENTITY_REMOVED
+} binocle_entity_signal_t;
+
 typedef uint64_t binocle_entity_id_t;
 typedef uint64_t binocle_component_id_t;
+typedef uint64_t binocle_system_id_t;
 
 // see https://www.computist.xyz/2018/06/sparse-sets.html
 typedef struct binocle_sparse_integer_set_t {
@@ -37,6 +51,22 @@ typedef struct binocle_component_t {
   binocle_sparse_integer_set_t free_data_indexes;
   uint64_t next_data_index;
 } binocle_component_t;
+
+struct binocle_ecs_t;
+
+typedef struct binocle_system_t {
+  const char *name;
+  uint64_t flags;
+  void *user_data;
+  void (*starting)(struct binocle_ecs_t* ecs, void *user_data);
+  void (*process)(struct binocle_ecs_t* ecs, void *user_data, binocle_entity_id_t entity, float delta);
+  void (*ending)(struct binocle_ecs_t* ecs, void *user_data);
+  void (*subscribed)(struct binocle_ecs_t *ecs, void *user_data, binocle_entity_id_t entity);
+  void (*unsubscribed)(struct binocle_ecs_t *ecs, void *user_data, binocle_entity_id_t entity);
+  binocle_sparse_integer_set_t watch;
+  binocle_sparse_integer_set_t exclude;
+  binocle_dense_integer_set_t entities;
+} binocle_system_t;
 
 typedef struct binocle_ecs_t {
   bool initialized;
@@ -67,6 +97,9 @@ typedef struct binocle_ecs_t {
 
   uint64_t num_components;
   binocle_component_t *components;
+
+  uint64_t num_systems;
+  binocle_system_t *systems;
 } binocle_ecs_t;
 
 bool binocle_sparse_integer_set_insert(binocle_sparse_integer_set_t *set, uint64_t i);
@@ -104,5 +137,24 @@ void binocle_ecs_component_free(binocle_ecs_t *ecs, binocle_component_t *compone
 bool binocle_ecs_remove_component_i_internal(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_component_id_t component, uint64_t i);
 bool binocle_ecs_set_component_i_internal(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_component_id_t component, uint64_t i, const void * data);
 bool binocle_ecs_get_component_internal(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_component_id_t component, uint64_t i, void ** ptr);
+
+bool binocle_ecs_create_system(binocle_ecs_t *ecs, const char *name,
+                               void (*starting)(struct binocle_ecs_t*, void *),
+                               void (*process)(struct binocle_ecs_t*, void *, binocle_entity_id_t, float),
+                               void (*ending)(struct binocle_ecs_t*, void *),
+                               void (*subscribed)(struct binocle_ecs_t*, void *, binocle_entity_id_t),
+                               void (*unsubscribed)(struct binocle_ecs_t*, void *, binocle_entity_id_t),
+                               void *user_data,
+                               uint64_t flags,
+                               uint64_t *system_ptr
+);
+bool binocle_ecs_watch(binocle_ecs_t *ecs, binocle_system_id_t system, binocle_component_id_t component);
+bool binocle_ecs_exclude(binocle_ecs_t *ecs, binocle_system_id_t system, binocle_component_id_t component);
+bool binocle_ecs_signal(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_entity_signal_t signal);
+void binocle_ecs_subscribe(binocle_ecs_t *ecs, binocle_system_t *system, binocle_entity_id_t entity);
+void binocle_ecs_unsubscribe(binocle_ecs_t *ecs, binocle_system_t *system, binocle_entity_id_t entity);
+void binocle_ecs_check(binocle_ecs_t *ecs, binocle_system_t *system, binocle_entity_id_t entity);
+bool binocle_ecs_process(binocle_ecs_t *ecs, float delta);
+bool binocle_ecs_process_system(binocle_ecs_t *ecs, binocle_system_id_t system, float delta);
 
 #endif //BINOCLE_ECS_H
