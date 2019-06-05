@@ -319,6 +319,7 @@ bool binocle_ecs_create_entity(binocle_ecs_t *ecs, binocle_entity_id_t *entity_p
     }
   }
 
+  *entity_ptr = r;
   return true;
 }
 
@@ -349,4 +350,67 @@ void binocle_ecs_component_free(binocle_ecs_t *ecs, binocle_component_t *compone
   free(component->data);
   binocle_sparse_integer_set_free(&component->free_data_indexes);
   memset(component, 0, sizeof(*component));
+}
+
+bool binocle_ecs_set_component(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_component_id_t component, const void * data) {
+	if(!ecs->initialized) {
+		return false;
+	}
+
+	if((!ecs->processing && entity >= ecs->data_height) || (ecs->processing && entity >= ecs->data_height_capacity + ecs->processing_data_height)) {
+		return false;
+	}
+
+	if(component >= ecs->num_components) {
+		return false;
+	}
+
+	return binocle_ecs_set_component_i_internal(ecs, entity, component, 0, data);
+}
+
+bool binocle_ecs_set_component_i_internal(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_component_id_t component, uint64_t i, const void * data) {
+	unsigned char *entity_data = binocle_ecs_get_entity_data(ecs, entity);
+	binocle_component_t *c = ecs->components + component;
+	int defined = binocle_bits_set(entity_data, component);
+	void *component_data = NULL;
+
+  component_data = (void *)(entity_data + c->offset);
+
+	if(data != NULL) {
+		memcpy(component_data, data, c->size);
+	}
+
+	return true;
+}
+
+bool binocle_ecs_get_component(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_component_id_t component, void ** ptr) {
+	if(!ecs->initialized) {
+		return false;
+	}
+
+	if((!ecs->processing && entity >= ecs->data_height) || (ecs->processing && entity >= ecs->data_height_capacity + ecs->processing_data_height)) {
+		return false;
+	}
+
+	if(component >= ecs->num_components) {
+		return false;
+	}
+
+	return binocle_ecs_get_component_internal(ecs, entity, component, 0, ptr);
+}
+
+bool binocle_ecs_get_component_internal(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_component_id_t component, uint64_t i, void ** ptr) {
+	unsigned char *entity_data = binocle_ecs_get_entity_data(ecs, entity);
+	binocle_component_t *c = ecs->components + component;
+	void *component_data = NULL;
+
+	if(!binocle_bits_is_set(entity_data, component)) {
+		return false;
+	}
+
+  component_data = (void *)(entity_data + c->offset);
+
+	*ptr = component_data;
+
+	return true;
 }

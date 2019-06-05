@@ -115,6 +115,7 @@ Many of the concepts come from Matt Thorson's Monocle engine (the name of this p
 
 Some of the code has been developed while Prime31 was working on its own C# engine called Nez so there will surely be similarities and lines of code that are almost the same.
 
+The ECS has been inspired by [Artemis](https://github.com/junkdog/artemis-odb) and some parts have been taken from [Diana](https://github.com/discoloda/Diana)
 Other pieces of code have been taken here and there on the web and I can't recall where they come from. If you see some code that looks familiar, please let me know and I'll give full credits.
 
 The logo has been created using the following images:
