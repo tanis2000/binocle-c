@@ -15,17 +15,19 @@
 
 bool binocle_sparse_integer_set_insert(binocle_sparse_integer_set_t *set, uint64_t i) {
   if (i >= set->capacity) {
-    uint64_t new_capacity = (uint64_t)((i + 1) * 1.5f);
+    uint64_t new_capacity = (uint64_t) ((i + 1) * 1.5f);
     void *new_dense = realloc(set->dense, new_capacity * sizeof(uint64_t));
     if (new_dense == NULL) {
       return false;
     }
-      memset(new_dense + (set->capacity * sizeof(uint64_t)), 0, (new_capacity * sizeof(uint64_t)) - (set->capacity * sizeof(uint64_t)));
+    memset(new_dense + (set->capacity * sizeof(uint64_t)), 0,
+           (new_capacity * sizeof(uint64_t)) - (set->capacity * sizeof(uint64_t)));
     void *new_sparse = realloc(set->sparse, new_capacity * sizeof(uint64_t));
     if (new_sparse == NULL) {
       return false;
     }
-      memset(new_sparse + (set->capacity * sizeof(uint64_t)), 0, (new_capacity * sizeof(uint64_t)) - (set->capacity * sizeof(uint64_t)));
+    memset(new_sparse + (set->capacity * sizeof(uint64_t)), 0,
+           (new_capacity * sizeof(uint64_t)) - (set->capacity * sizeof(uint64_t)));
     set->dense = new_dense;
     set->sparse = new_sparse;
     set->capacity = new_capacity;
@@ -73,7 +75,7 @@ bool binocle_sparse_integer_set_is_empty(binocle_sparse_integer_set_t *set) {
 }
 
 uint64_t binocle_sparse_integer_set_pop(binocle_sparse_integer_set_t *set) {
-  if(set->size >= 1) {
+  if (set->size >= 1) {
     return set->dense[--set->size];
   }
   return UINT64_MAX;
@@ -84,8 +86,6 @@ void binocle_sparse_integer_set_free(binocle_sparse_integer_set_t *set) {
   free(set->sparse);
   memset(set, 0, sizeof(*set));
 }
-
-
 
 
 int binocle_bits_set(unsigned char *bytes, unsigned int bit) {
@@ -106,16 +106,16 @@ int binocle_bits_clear(unsigned char *bytes, unsigned int bit) {
 
 
 int binocle_dense_integer_set_contains(binocle_dense_integer_set_t *is, uint64_t i) {
-	return i < is->capacity && binocle_bits_is_set(is->bytes, i);
+  return i < is->capacity && binocle_bits_is_set(is->bytes, i);
 }
 
 uint64_t binocle_dense_integer_set_insert(binocle_dense_integer_set_t *is, uint64_t i) {
   if (i >= is->capacity) {
-    uint64_t new_capacity = (uint64_t)((i + 1) * 1.5f);
-      uint64_t old_size = (is->capacity + 7) >> 3;
-      uint64_t new_size = (new_capacity + 7) >> 3;
+    uint64_t new_capacity = (uint64_t) ((i + 1) * 1.5f);
+    uint64_t old_size = (is->capacity + 7) >> 3;
+    uint64_t new_size = (new_capacity + 7) >> 3;
     is->bytes = realloc(is->bytes, new_size);
-      memset(is->bytes + old_size, 0, new_size - old_size);
+    memset(is->bytes + old_size, 0, new_size - old_size);
     is->capacity = new_capacity;
   }
   return binocle_bits_set(is->bytes, i);
@@ -129,17 +129,17 @@ uint64_t binocle_dense_integer_set_remove(binocle_dense_integer_set_t *is, uint6
 }
 
 void binocle_dense_integer_set_clear(binocle_dense_integer_set_t *is) {
-	memset(is->bytes, 0, (is->capacity + 7) >> 3);
+  memset(is->bytes, 0, (is->capacity + 7) >> 3);
 }
 
 int binocle_dense_integer_set_is_empty(binocle_dense_integer_set_t *is) {
-	uint64_t n = (is->capacity + 7) >> 3, i = 0;
-	for (; i < n; i++) {
-		if (is->bytes[i]) {
-			return 0;
-		}
-	}
-	return 1;
+  uint64_t n = (is->capacity + 7) >> 3, i = 0;
+  for (; i < n; i++) {
+    if (is->bytes[i]) {
+      return 0;
+    }
+  }
+  return 1;
 }
 
 void binocle_dense_integer_set_free(binocle_dense_integer_set_t *is) {
@@ -148,7 +148,7 @@ void binocle_dense_integer_set_free(binocle_dense_integer_set_t *is) {
 }
 
 binocle_ecs_t binocle_ecs_new() {
-  binocle_ecs_t res = { 0 };
+  binocle_ecs_t res = {0};
   return res;
 }
 
@@ -162,8 +162,8 @@ bool binocle_ecs_free(binocle_ecs_t *ecs) {
     return false;
   }
 
-  for (i = 0 ; i < ecs->next_entity_id ; i++) {
-    for (j = 0 ; j < ecs->num_components ; j++) {
+  for (i = 0; i < ecs->next_entity_id; i++) {
+    for (j = 0; j < ecs->num_components; j++) {
       binocle_ecs_remove_components(ecs, i, j);
     }
   }
@@ -222,18 +222,20 @@ bool binocle_ecs_fix_data(binocle_ecs_t *ecs) {
     uint64_t i;
 
     if (new_data_height >= ecs->data_height_capacity) {
-      uint64_t new_data_height_capacity = (uint64_t)((new_data_height + 1) * 1.5f);
-      void * new_data = realloc(ecs->data, ecs->data_width * new_data_height_capacity);
+      uint64_t new_data_height_capacity = (uint64_t) ((new_data_height + 1) * 1.5f);
+      void *new_data = realloc(ecs->data, ecs->data_width * new_data_height_capacity);
       if (new_data == NULL) {
         return false;
       }
-        memset(new_data + ecs->data_height_capacity * ecs->data_width, 0, (ecs->data_width * new_data_height_capacity) - (ecs->data_height_capacity * ecs->data_width));
+      memset(new_data + ecs->data_height_capacity * ecs->data_width, 0,
+             (ecs->data_width * new_data_height_capacity) - (ecs->data_height_capacity * ecs->data_width));
       ecs->data = new_data;
       ecs->data_height_capacity = new_data_height_capacity;
     }
 
     for (uint64_t i = 0; i < ecs->processing_data_height; i++) {
-      memcpy((unsigned char *)ecs->data + (ecs->data_width * (ecs->data_height + i)), ecs->processing_data[i], ecs->data_width);
+      memcpy((unsigned char *) ecs->data + (ecs->data_width * (ecs->data_height + i)), ecs->processing_data[i],
+             ecs->data_width);
       free(ecs->processing_data[i]);
     }
     free(ecs->processing_data);
@@ -246,7 +248,8 @@ bool binocle_ecs_fix_data(binocle_ecs_t *ecs) {
   return true;
 }
 
-bool binocle_ecs_create_component(binocle_ecs_t *ecs, const char *name, uint64_t component_size, binocle_component_id_t *component_ptr) {
+bool binocle_ecs_create_component(binocle_ecs_t *ecs, const char *name, uint64_t component_size,
+                                  binocle_component_id_t *component_ptr) {
   binocle_component_t c;
 
   if (ecs->initialized) {
@@ -269,15 +272,16 @@ bool binocle_ecs_remove_components(binocle_ecs_t *ecs, binocle_entity_id_t entit
   binocle_component_t *c;
   uint64_t i;
 
-  if(!ecs->initialized) {
+  if (!ecs->initialized) {
     return false;
   }
 
-  if((!ecs->processing && entity >= ecs->data_height) || (ecs->processing && entity >= ecs->data_height_capacity + ecs->processing_data_height)) {
+  if ((!ecs->processing && entity >= ecs->data_height) ||
+      (ecs->processing && entity >= ecs->data_height_capacity + ecs->processing_data_height)) {
     return false;
   }
 
-  if(component >= ecs->num_components) {
+  if (component >= ecs->num_components) {
     return false;
   }
 
@@ -308,19 +312,21 @@ bool binocle_ecs_create_entity(binocle_ecs_t *ecs, binocle_entity_id_t *entity_p
       if (entity_data == NULL) {
         return false;
       }
-      void *new_processing_data = realloc(ecs->processing_data, sizeof(ecs->processing_data) * (ecs->processing_data_height + 1));
+      void *new_processing_data = realloc(ecs->processing_data,
+                                          sizeof(ecs->processing_data) * (ecs->processing_data_height + 1));
       if (new_processing_data == NULL) {
         return false;
       }
       ecs->processing_data = new_processing_data;
       ecs->processing_data[ecs->processing_data_height++] = entity_data;
     } else {
-      uint64_t new_data_height_capacity = (uint64_t)(ecs->data_height * 1.5f);
+      uint64_t new_data_height_capacity = (uint64_t) (ecs->data_height * 1.5f);
       void *new_data = realloc(ecs->data, ecs->data_width * new_data_height_capacity);
       if (new_data == NULL) {
         return false;
       }
-        memset(new_data + (ecs->data_width * ecs->data_height_capacity), 0, (ecs->data_width * new_data_height_capacity) - (ecs->data_width * ecs->data_height_capacity));
+      memset(new_data + (ecs->data_width * ecs->data_height_capacity), 0,
+             (ecs->data_width * new_data_height_capacity) - (ecs->data_width * ecs->data_height_capacity));
       ecs->data = new_data;
       ecs->data_height_capacity = new_data_height_capacity;
     }
@@ -331,17 +337,18 @@ bool binocle_ecs_create_entity(binocle_ecs_t *ecs, binocle_entity_id_t *entity_p
 }
 
 unsigned char *binocle_ecs_get_entity_data(binocle_ecs_t *ecs, binocle_entity_id_t entity) {
-  if(entity >= ecs->data_height_capacity) {
+  if (entity >= ecs->data_height_capacity) {
     return ecs->processing_data[entity - ecs->data_height_capacity];
   }
-  return (void *)((unsigned char *)ecs->data + (ecs->data_width * entity));
+  return (void *) ((unsigned char *) ecs->data + (ecs->data_width * entity));
 }
 
-bool binocle_ecs_remove_component_i_internal(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_component_id_t component, uint64_t i) {
+bool binocle_ecs_remove_component_i_internal(binocle_ecs_t *ecs, binocle_entity_id_t entity,
+                                             binocle_component_id_t component, uint64_t i) {
   unsigned char *entity_data = binocle_ecs_get_entity_data(ecs, entity);
   binocle_component_t *c = ecs->components + component;
 
-  if(!binocle_bits_clear(entity_data, component)) {
+  if (!binocle_bits_clear(entity_data, component)) {
     return true;
   }
 
@@ -350,8 +357,8 @@ bool binocle_ecs_remove_component_i_internal(binocle_ecs_t *ecs, binocle_entity_
 
 void binocle_ecs_component_free(binocle_ecs_t *ecs, binocle_component_t *component) {
   uint64_t i = 0;
-  free((void *)component->name);
-  for(i = 0; i < component->next_data_index; i++) {
+  free((void *) component->name);
+  for (i = 0; i < component->next_data_index; i++) {
     free(component->data[i]);
   }
   free(component->data);
@@ -359,67 +366,75 @@ void binocle_ecs_component_free(binocle_ecs_t *ecs, binocle_component_t *compone
   memset(component, 0, sizeof(*component));
 }
 
-bool binocle_ecs_set_component(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_component_id_t component, const void * data) {
-	if(!ecs->initialized) {
-		return false;
-	}
+bool binocle_ecs_set_component(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_component_id_t component,
+                               const void *data) {
+  if (!ecs->initialized) {
+    return false;
+  }
 
-	if((!ecs->processing && entity >= ecs->data_height) || (ecs->processing && entity >= ecs->data_height_capacity + ecs->processing_data_height)) {
-		return false;
-	}
+  if ((!ecs->processing && entity >= ecs->data_height) ||
+      (ecs->processing && entity >= ecs->data_height_capacity + ecs->processing_data_height)) {
+    return false;
+  }
 
-	if(component >= ecs->num_components) {
-		return false;
-	}
+  if (component >= ecs->num_components) {
+    return false;
+  }
 
-	return binocle_ecs_set_component_i_internal(ecs, entity, component, 0, data);
+  return binocle_ecs_set_component_i_internal(ecs, entity, component, 0, data);
 }
 
-bool binocle_ecs_set_component_i_internal(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_component_id_t component, uint64_t i, const void * data) {
-	unsigned char *entity_data = binocle_ecs_get_entity_data(ecs, entity);
-	binocle_component_t *c = ecs->components + component;
-	int defined = binocle_bits_set(entity_data, component);
-	void *component_data = NULL;
+bool
+binocle_ecs_set_component_i_internal(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_component_id_t component,
+                                     uint64_t i, const void *data) {
+  unsigned char *entity_data = binocle_ecs_get_entity_data(ecs, entity);
+  binocle_component_t *c = ecs->components + component;
+  int defined = binocle_bits_set(entity_data, component);
+  void *component_data = NULL;
 
-  component_data = (void *)(entity_data + c->offset);
+  component_data = (void *) (entity_data + c->offset);
 
-	if(data != NULL) {
-		memcpy(component_data, data, c->size);
-	}
+  if (data != NULL) {
+    memcpy(component_data, data, c->size);
+  }
 
-	return true;
+  return true;
 }
 
-bool binocle_ecs_get_component(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_component_id_t component, void ** ptr) {
-	if(!ecs->initialized) {
-		return false;
-	}
+bool binocle_ecs_get_component(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_component_id_t component,
+                               void **ptr) {
+  if (!ecs->initialized) {
+    return false;
+  }
 
-	if((!ecs->processing && entity >= ecs->data_height) || (ecs->processing && entity >= ecs->data_height_capacity + ecs->processing_data_height)) {
-		return false;
-	}
+  if ((!ecs->processing && entity >= ecs->data_height) ||
+      (ecs->processing && entity >= ecs->data_height_capacity + ecs->processing_data_height)) {
+    return false;
+  }
 
-	if(component >= ecs->num_components) {
-		return false;
-	}
+  if (component >= ecs->num_components) {
+    return false;
+  }
 
-	return binocle_ecs_get_component_internal(ecs, entity, component, 0, ptr);
+  return binocle_ecs_get_component_internal(ecs, entity, component, 0, ptr);
 }
 
-bool binocle_ecs_get_component_internal(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_component_id_t component, uint64_t i, void ** ptr) {
-	unsigned char *entity_data = binocle_ecs_get_entity_data(ecs, entity);
-	binocle_component_t *c = ecs->components + component;
-	void *component_data = NULL;
+bool
+binocle_ecs_get_component_internal(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_component_id_t component,
+                                   uint64_t i, void **ptr) {
+  unsigned char *entity_data = binocle_ecs_get_entity_data(ecs, entity);
+  binocle_component_t *c = ecs->components + component;
+  void *component_data = NULL;
 
-	if(!binocle_bits_is_set(entity_data, component)) {
-		return false;
-	}
+  if (!binocle_bits_is_set(entity_data, component)) {
+    return false;
+  }
 
-  component_data = (void *)(entity_data + c->offset);
+  component_data = (void *) (entity_data + c->offset);
 
-	*ptr = component_data;
+  *ptr = component_data;
 
-	return true;
+  return true;
 }
 
 //
@@ -427,14 +442,14 @@ bool binocle_ecs_get_component_internal(binocle_ecs_t *ecs, binocle_entity_id_t 
 //
 
 bool binocle_ecs_create_system(binocle_ecs_t *ecs, const char *name,
-  void (*starting)(struct binocle_ecs_t*, void *),
-  void (*process)(struct binocle_ecs_t*, void *, binocle_entity_id_t, float),
-  void (*ending)(struct binocle_ecs_t*, void *),
-  void (*subscribed)(struct binocle_ecs_t*, void *, binocle_entity_id_t),
-  void (*unsubscribed)(struct binocle_ecs_t*, void *, binocle_entity_id_t),
-  void *user_data,
-  uint64_t flags,
-  uint64_t *system_ptr
+                               void (*starting)(struct binocle_ecs_t *, void *),
+                               void (*process)(struct binocle_ecs_t *, void *, binocle_entity_id_t, float),
+                               void (*ending)(struct binocle_ecs_t *, void *),
+                               void (*subscribed)(struct binocle_ecs_t *, void *, binocle_entity_id_t),
+                               void (*unsubscribed)(struct binocle_ecs_t *, void *, binocle_entity_id_t),
+                               void *user_data,
+                               uint64_t flags,
+                               uint64_t *system_ptr
 ) {
   binocle_system_t s;
 
@@ -454,7 +469,7 @@ bool binocle_ecs_create_system(binocle_ecs_t *ecs, const char *name,
 
   void *new_systems = realloc(ecs->systems, sizeof(*ecs->systems) * (ecs->num_systems + 1));
   if (new_systems == NULL) {
-    free((void *)s.name);
+    free((void *) s.name);
     return false;
   }
   ecs->systems = new_systems;
@@ -484,15 +499,15 @@ bool binocle_ecs_watch(binocle_ecs_t *ecs, binocle_system_id_t system, binocle_c
 }
 
 bool binocle_ecs_exclude(binocle_ecs_t *ecs, binocle_system_id_t system, binocle_component_id_t component) {
-  if(ecs->initialized) {
+  if (ecs->initialized) {
     return false;
   }
 
-  if(system >= ecs->num_systems) {
+  if (system >= ecs->num_systems) {
     return false;
   }
 
-  if(component >= ecs->num_components) {
+  if (component >= ecs->num_components) {
     return false;
   }
 
@@ -504,15 +519,16 @@ bool binocle_ecs_exclude(binocle_ecs_t *ecs, binocle_system_id_t system, binocle
 bool binocle_ecs_signal(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_entity_signal_t signal) {
   bool res = true;
 
-  if(!ecs->initialized) {
+  if (!ecs->initialized) {
     return false;
   }
 
-  if((!ecs->processing && entity >= ecs->data_height) || (ecs->processing && entity >= ecs->data_height_capacity + ecs->processing_data_height)) {
+  if ((!ecs->processing && entity >= ecs->data_height) ||
+      (ecs->processing && entity >= ecs->data_height_capacity + ecs->processing_data_height)) {
     return false;
   }
 
-  switch(signal) {
+  switch (signal) {
     case BINOCLE_ENTITY_ADDED:
       binocle_sparse_integer_set_insert(&ecs->added, entity);
       binocle_sparse_integer_set_insert(&ecs->enabled, entity);
@@ -548,7 +564,7 @@ bool binocle_ecs_process(binocle_ecs_t *ecs, float delta) {
   uint64_t j;
   binocle_system_t *system;
 
-  if(!ecs->initialized) {
+  if (!ecs->initialized) {
     return false;
   }
 
@@ -576,7 +592,7 @@ bool binocle_ecs_process(binocle_ecs_t *ecs, float delta) {
     BINOCLE_FOREACH_ARRAY(system, j, ecs->systems, ecs->num_systems) {
       binocle_ecs_unsubscribe(ecs, system, entity);
     }
-    for(j = 0; j < ecs->num_components; j++) {
+    for (j = 0; j < ecs->num_components; j++) {
       binocle_ecs_remove_components(ecs, entity, j);
     }
     binocle_sparse_integer_set_insert(&ecs->free_entity_ids, entity);
@@ -584,17 +600,17 @@ bool binocle_ecs_process(binocle_ecs_t *ecs, float delta) {
   binocle_sparse_integer_set_clear(&ecs->removed);
 
   BINOCLE_FOREACH_ARRAY(system, j, ecs->systems, ecs->num_systems) {
-    if(system->flags & BINOCLE_SYSTEM_PASSIVE_BIT) {
+    if (system->flags & BINOCLE_SYSTEM_PASSIVE_BIT) {
       continue;
     }
 
-    if(system->starting != NULL) {
+    if (system->starting != NULL) {
       system->starting(ecs, system->user_data);
     }
     BINOCLE_FOREACH_DENSEINTSET(entity, &system->entities) {
-      system->process(ecs, system->user_data, entity, delta);
-    }
-    if(system->ending != NULL) {
+        system->process(ecs, system->user_data, entity, delta);
+      }
+    if (system->ending != NULL) {
       system->ending(ecs, system->user_data);
     }
   }
@@ -608,23 +624,23 @@ bool binocle_ecs_process_system(binocle_ecs_t *ecs, binocle_system_id_t system, 
   binocle_system_t *s;
   binocle_entity_id_t entity;
 
-  if(!ecs->initialized) {
+  if (!ecs->initialized) {
     return false;
   }
 
-  if(system >= ecs->num_systems) {
+  if (system >= ecs->num_systems) {
     return false;
   }
 
   s = ecs->systems + system;
 
-  if(s->starting != NULL) {
+  if (s->starting != NULL) {
     s->starting(ecs, s->user_data);
   }
   BINOCLE_FOREACH_DENSEINTSET(entity, &s->entities) {
-    s->process(ecs, s->user_data, entity, delta);
-  }
-  if(s->ending != NULL) {
+      s->process(ecs, s->user_data, entity, delta);
+    }
+  if (s->ending != NULL) {
     s->ending(ecs, s->user_data);
   }
 
@@ -633,14 +649,14 @@ bool binocle_ecs_process_system(binocle_ecs_t *ecs, binocle_system_id_t system, 
 
 void binocle_ecs_subscribe(binocle_ecs_t *ecs, binocle_system_t *system, binocle_entity_id_t entity) {
   int included = binocle_dense_integer_set_insert(&system->entities, entity);
-  if(!included && system->subscribed != NULL) {
+  if (!included && system->subscribed != NULL) {
     system->subscribed(ecs, system->user_data, entity);
   }
 }
 
 void binocle_ecs_unsubscribe(binocle_ecs_t *ecs, binocle_system_t *system, binocle_entity_id_t entity) {
   int included = binocle_dense_integer_set_remove(&system->entities, entity);
-  if(included && system->unsubscribed != NULL) {
+  if (included && system->unsubscribed != NULL) {
     system->unsubscribed(ecs, system->user_data, entity);
   }
 }
@@ -651,20 +667,20 @@ void binocle_ecs_check(binocle_ecs_t *ecs, binocle_system_t *system, binocle_ent
   int wanted = 1;
 
   BINOCLE_FOREACH_SPARSEINTSET(component, i, &system->watch) {
-    if(!(entity_components[component >> 3] & (1 << (component & 7)))) {
+    if (!(entity_components[component >> 3] & (1 << (component & 7)))) {
       wanted = 0;
       break;
     }
   }
 
   BINOCLE_FOREACH_SPARSEINTSET(component, i, &system->exclude) {
-    if((entity_components[component >> 3] & (1 << (component & 7)))) {
+    if ((entity_components[component >> 3] & (1 << (component & 7)))) {
       wanted = 0;
       break;
     }
   }
 
-  if(wanted) {
+  if (wanted) {
     binocle_ecs_subscribe(ecs, system, entity);
   } else {
     binocle_ecs_unsubscribe(ecs, system, entity);
