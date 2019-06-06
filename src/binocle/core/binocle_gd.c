@@ -467,7 +467,7 @@ void binocle_gd_draw_quad_to_screen(struct binocle_shader shader, binocle_render
   SDL_SysWMinfo info;
   SDL_VERSION(&info.version);
   SDL_GetWindowWMInfo(SDL_GL_GetCurrentWindow(), &info);
-  id = info.info.uikit.framebuffer;
+  GLuint id = info.info.uikit.framebuffer;
   glCheck(glBindFramebuffer(GL_FRAMEBUFFER, id));
 #else
   glCheck(glBindFramebuffer(GL_FRAMEBUFFER, 0));

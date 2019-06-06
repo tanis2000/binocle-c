@@ -120,41 +120,40 @@ file(GLOB_RECURSE HEADERS
 if(APPLE)
 	if(IOS)
 		file(GLOB_RECURSE IOS_SOURCES
-                src/sensor/coremotion/SDL_coremotionsensor.m
-                src/hidapi/ios/hid.m
-            src/thread/pthread/SDL_syscond.c
-            src/thread/pthread/SDL_sysmutex.c
-            src/thread/pthread/SDL_syssem.c
-            src/thread/pthread/SDL_systhread.c
-            src/thread/pthread/SDL_systls.c
-            src/timer/unix/SDL_systimer.c
-
-            src/video/SDL_egl.c
-            src/render/opengles/SDL_render_gles.c
-            src/render/opengles2/SDL_render_gles2.c
-            src/render/opengles2/SDL_shaders_gles2.c
-
-            src/audio/coreaudio/SDL_coreaudio.m
-            src/file/cocoa/SDL_rwopsbundlesupport.m
-            src/filesystem/cocoa/SDL_sysfilesystem.m
-            src/joystick/iphoneos/SDL_sysjoystick.m
-            src/haptic/dummy/SDL_syshaptic.c
-            src/power/uikit/SDL_syspower.m
-			src/video/cocoa/SDL_cocoaopengles.m
-			src/video/cocoa/SDL_cocoavulkan.m
-            src/video/uikit/SDL_uikitappdelegate.m
-            src/video/uikit/SDL_uikitclipboard.m
-            src/video/uikit/SDL_uikitevents.m
-            src/video/uikit/SDL_uikitmessagebox.m
-            src/video/uikit/SDL_uikitmetalview.m
-            src/video/uikit/SDL_uikitmodes.m
-            src/video/uikit/SDL_uikitopengles.m
-            src/video/uikit/SDL_uikitopenglview.m
-            src/video/uikit/SDL_uikitvideo.m
-            src/video/uikit/SDL_uikitview.m
-            src/video/uikit/SDL_uikitviewcontroller.m
-            src/video/uikit/SDL_uikitvulkan.m
-            src/video/uikit/SDL_uikitwindow.m
+				src/audio/coreaudio/SDL_coreaudio.m
+				src/file/cocoa/SDL_rwopsbundlesupport.m
+				src/filesystem/cocoa/SDL_sysfilesystem.m
+				src/joystick/iphoneos/SDL_sysjoystick.m
+				src/haptic/dummy/SDL_syshaptic.c
+				src/hidapi/ios/hid.m
+				src/render/opengles/SDL_render_gles.c
+				src/render/opengles2/SDL_render_gles2.c
+				src/render/opengles2/SDL_shaders_gles2.c
+				src/render/metal/SDL_render_metal.m
+				src/sensor/coremotion/SDL_coremotionsensor.m
+				src/thread/pthread/SDL_syscond.c
+				src/thread/pthread/SDL_sysmutex.c
+				src/thread/pthread/SDL_syssem.c
+				src/thread/pthread/SDL_systhread.c
+				src/thread/pthread/SDL_systls.c
+				src/timer/unix/SDL_systimer.c
+				src/power/uikit/SDL_syspower.m
+				src/video/SDL_egl.c
+				src/video/cocoa/SDL_cocoaopengles.m
+				src/video/cocoa/SDL_cocoavulkan.m
+				src/video/uikit/SDL_uikitappdelegate.m
+				src/video/uikit/SDL_uikitclipboard.m
+				src/video/uikit/SDL_uikitevents.m
+				src/video/uikit/SDL_uikitmessagebox.m
+				src/video/uikit/SDL_uikitmetalview.m
+				src/video/uikit/SDL_uikitmodes.m
+				src/video/uikit/SDL_uikitopengles.m
+				src/video/uikit/SDL_uikitopenglview.m
+				src/video/uikit/SDL_uikitvideo.m
+				src/video/uikit/SDL_uikitview.m
+				src/video/uikit/SDL_uikitviewcontroller.m
+				src/video/uikit/SDL_uikitvulkan.m
+				src/video/uikit/SDL_uikitwindow.m
 
             include/*.h
             include/SDL_config_iphoneos.h

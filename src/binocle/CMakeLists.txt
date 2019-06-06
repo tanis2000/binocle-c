@@ -21,6 +21,7 @@ file(GLOB UNITY_SOURCE core/binocle.c core/binocle.h)
 
 if (APPLE)
     set(PLATFORM_SOURCE core/PlayerPrefs.mm)
+    set(PLATFORM_SOURCE core/binocle_miniaudio.m)
 endif ()
 
 set(SOURCE_FILES
