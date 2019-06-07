@@ -11,12 +11,18 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-// System flags
+/// System bits positions
 #define BINOCLE_SYSTEM_PASSIVE_BIT 1
 
+/// System flags
 #define BINOCLE_SYSTEM_FLAG_NORMAL  0
 #define BINOCLE_SYSTEM_FLAG_PASSIVE BINOCLE_SYSTEM_PASSIVE_BIT
 
+struct binocle_ecs_t;
+
+/**
+ * \brief A signal that can be sent to an entity
+ */
 typedef enum binocle_entity_signal_t {
   BINOCLE_ENTITY_ADDED,
   BINOCLE_ENTITY_ENABLED,
@@ -24,11 +30,17 @@ typedef enum binocle_entity_signal_t {
   BINOCLE_ENTITY_REMOVED
 } binocle_entity_signal_t;
 
+/// The entity itself, actually just an ID
 typedef uint64_t binocle_entity_id_t;
+/// The component itself, actually just an ID
 typedef uint64_t binocle_component_id_t;
+/// The system itself, actually just an ID
 typedef uint64_t binocle_system_id_t;
 
-// see https://www.computist.xyz/2018/06/sparse-sets.html
+/**
+ * \brief A sparse integer set, used to quickly lookup components
+ * \see https://www.computist.xyz/2018/06/sparse-sets.html
+ */
 typedef struct binocle_sparse_integer_set_t {
   uint64_t *dense;
   uint64_t *sparse;
@@ -36,11 +48,17 @@ typedef struct binocle_sparse_integer_set_t {
   uint64_t capacity;
 } binocle_sparse_integer_set_t;
 
+/**
+ * \brief A dense integer set, used to save some memory space to represent the entities in use by a system
+ */
 typedef struct binocle_dense_integer_set_t {
   unsigned char *bytes;
   unsigned int capacity;
 } binocle_dense_integer_set_t;
 
+/**
+ * \brief A component
+ */
 typedef struct binocle_component_t {
   const char *name;
   size_t size;
@@ -52,8 +70,9 @@ typedef struct binocle_component_t {
   uint64_t next_data_index;
 } binocle_component_t;
 
-struct binocle_ecs_t;
-
+/**
+ * \brief A system
+ */
 typedef struct binocle_system_t {
   const char *name;
   uint64_t flags;
@@ -68,6 +87,9 @@ typedef struct binocle_system_t {
   binocle_dense_integer_set_t entities;
 } binocle_system_t;
 
+/**
+ * \brief The ECS container
+ */
 typedef struct binocle_ecs_t {
   bool initialized;
   bool processing;
@@ -102,31 +124,170 @@ typedef struct binocle_ecs_t {
   binocle_system_t *systems;
 } binocle_ecs_t;
 
+/**
+ * \brief Insert an integer in a sparse integer set
+ * @param set the sparse integer set
+ * @param i the integer to insert
+ * @return true if the integer has been inserted
+ */
 bool binocle_sparse_integer_set_insert(binocle_sparse_integer_set_t *set, uint64_t i);
+
+/**
+ * \brief Remove an integer from a sparse integer set
+ * @param set the sparse integer set
+ * @param i the integer to remove
+ * @return true if the integer has been removed
+ */
 bool binocle_sparse_integer_set_remove(binocle_sparse_integer_set_t *set, uint64_t i);
+
+/**
+ * \brief Checks if a sparse integer set contains an integer
+ * @param set the sparse integer set
+ * @param i the integer to check against
+ * @return true if the sparse integer set contains the integer
+ */
 bool binocle_sparse_integer_set_contains(binocle_sparse_integer_set_t *set, uint64_t i);
+
+/**
+ * \brief Clears a sparse integer set
+ * @param set the sparse integer set
+ */
 void binocle_sparse_integer_set_clear(binocle_sparse_integer_set_t *set);
+
+/**
+ * \brief Checks if the sparse integer set is empty
+ * @param set the sparse integer set
+ * @return true if the sparse integer set is empty
+ */
 bool binocle_sparse_integer_set_is_empty(binocle_sparse_integer_set_t *set);
+
+/**
+ * \brief Pops the last element of the sparse integer set
+ * @param set the sparse integer set
+ * @return the last element of the sparse integer set
+ */
 uint64_t binocle_sparse_integer_set_pop(binocle_sparse_integer_set_t *set);
+
+/**
+ * \brief Releases the resources allocated by the sparse integer set
+ * @param set the sparse integer set
+ */
 void binocle_sparse_integer_set_free(binocle_sparse_integer_set_t *set);
 
+/**
+ * \brief Sets a bit in an array of bytes given the bit position
+ * @param bytes the array used as a bit container
+ * @param bit the bit to set
+ * @return the bit set
+ */
 int binocle_bits_set(unsigned char *bytes, unsigned int bit);
+
+/**
+ * \brief Checks whether a given bit is set
+ * @param bytes the array used as a bit container
+ * @param bit the bit to set
+ * @return true if the bit is set
+ */
 int binocle_bits_is_set(unsigned char *bytes, unsigned int bit);
+
+/**
+ * \brief Clears a given bit
+ * @param bytes the array used as a bit cvontainer
+ * @param bit the bit to clear
+ * @return the bit that has been cleared
+ */
 int binocle_bits_clear(unsigned char *bytes, unsigned int bit);
 
-int binocle_dense_integer_set_contains(binocle_dense_integer_set_t *is, uint64_t i);
+/**
+ * \brief Insert an integer in a dense integer set
+ * @param is the dense integer set
+ * @param i the integer to insert
+ * @return the inserted integer bit position
+ */
 uint64_t binocle_dense_integer_set_insert(binocle_dense_integer_set_t *is, uint64_t i);
+
+/**
+ * \brief Remove an integer from a dense integer set
+ * @param is the dense integer set
+ * @param i the integer to remove
+ * @return the position of the bit that has been cleared
+ */
 uint64_t binocle_dense_integer_set_remove(binocle_dense_integer_set_t *is, uint64_t i);
+
+/**
+ * \brief Check if a dense integer set contins an integer
+ * @param is the dense integer set
+ * @param i the integer to check
+ * @return true if the dense integer set contains the integer
+ */
+bool binocle_dense_integer_set_contains(binocle_dense_integer_set_t *is, uint64_t i);
+
+/**
+ * Clear a dense integer set
+ * @param is the dense integer set
+ */
 void binocle_dense_integer_set_clear(binocle_dense_integer_set_t *is);
+
+/**
+ * Check if a dense integer set is empty
+ * @param is the dense integer set
+ * @return true if the dense integer set is empty
+ */
 int binocle_dense_integer_set_is_empty(binocle_dense_integer_set_t *is);
+
+/**
+ * Release all the resources allocated by a dense integer set
+ * @param is the dense integer set
+ */
 void binocle_dense_integer_set_free(binocle_dense_integer_set_t *is);
 
+/**
+ * \brief Creates a new instance of the ECS, leaving it in an uninitialized state
+ * While the ECS isn't initialized you can call \ref binocle_ecs_create_component and \ref binocle_ecs_create_system to
+ * create the components and systems that you will need during program execution.
+ * Once done you have to call \ref binocle_ecs_initialize to actually initialize all the data structures.
+ * \note Once the ECS has been initialized you can no longer define new components and systems.
+ * @return a new ECS instance
+ */
 binocle_ecs_t binocle_ecs_new();
+
+/**
+ * \brief Initializes the data structures of the ECS
+ * \note Once this function has been called you can no longer define new components or systems
+ * @param ecs the ECS instance
+ * @return true if the ECS has been initialized
+ */
 bool binocle_ecs_initialize(binocle_ecs_t *ecs);
+
+/**
+ * \brief Releases the resources allocated by the ECS instance
+ * @param ecs the ECS instance
+ * @return true if the resources have been fred
+ */
 bool binocle_ecs_free(binocle_ecs_t *ecs);
+
+/**
+ * \brief Moves all the entities that have been spawned during the processing of systems to the correct entity
+ * data array. This function is for internal use only and should never be called outside of the ECS itself.
+ * @param ecs the ECS instance
+ * @return true if everything went ok
+ */
 bool binocle_ecs_fix_data(binocle_ecs_t *ecs);
 
+/**
+ * \brief Creates a new entity
+ * @param ecs the ECS instance
+ * @param entity_ptr a pointer to the entity id that will be assigned by this function
+ * @return true if the entity has been spawned
+ */
 bool binocle_ecs_create_entity(binocle_ecs_t *ecs, binocle_entity_id_t *entity_ptr);
+
+/**
+ * \brief Gets the entity data for a given entity
+ * @param ecs the ECS instance
+ * @param entity the entity ID
+ * @return a pointer to the entity's data
+ */
 unsigned char *binocle_ecs_get_entity_data(binocle_ecs_t *ecs, binocle_entity_id_t entity);
 
 bool binocle_ecs_create_component(binocle_ecs_t *ecs, const char *name, uint64_t component_size, binocle_component_id_t *component_ptr);

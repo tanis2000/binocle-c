@@ -60,6 +60,9 @@ elseif(EMSCRIPTEN)
 	include(BinocleWeb)
 endif()
 
+message("Including documentation defines")
+include(BinocleDocs)
+
 add_subdirectory(src)
 add_subdirectory(example)
 

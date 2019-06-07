@@ -105,7 +105,7 @@ int binocle_bits_clear(unsigned char *bytes, unsigned int bit) {
 }
 
 
-int binocle_dense_integer_set_contains(binocle_dense_integer_set_t *is, uint64_t i) {
+bool binocle_dense_integer_set_contains(binocle_dense_integer_set_t *is, uint64_t i) {
   return i < is->capacity && binocle_bits_is_set(is->bytes, i);
 }
 
@@ -219,7 +219,6 @@ bool binocle_ecs_fix_data(binocle_ecs_t *ecs) {
   // Takes care of spawns happening while processing
   if (ecs->processing_data != NULL) {
     uint64_t new_data_height = ecs->data_height + ecs->processing_data_height;
-    uint64_t i;
 
     if (new_data_height >= ecs->data_height_capacity) {
       uint64_t new_data_height_capacity = (uint64_t) ((new_data_height + 1) * 1.5f);
