@@ -14,7 +14,7 @@ set(HEADERS
 
 include_directories(include)
 
-add_library(ogg ${HEADERS} ${SOURCES})
+add_library(ogg OBJECT ${HEADERS} ${SOURCES})
 
 if (IOS)
 	set_target_properties(

@@ -71,4 +71,15 @@ bool binocle_sdl_load_text_file(char *filename, char **buffer, size_t *buffer_le
  */
 bool binocle_sdl_write_text_file(char *filename, char *buffer, size_t size);
 
+/**
+ * \brief Loads a binary file
+ * Loads a binary file and stores it in buffer. This function allocates memory so it's up to the consumer to free
+ * it when done with the content.
+ * @param filename The filename
+ * @param buffer The buffer to write the output to
+ * @param buffer_length The size of the buffer
+ * @return true if everything went ok
+ */
+bool binocle_sdl_load_binary_file(char *filename, char **buffer, size_t *buffer_length);
+
 #endif //BINOCLE_SDL_H

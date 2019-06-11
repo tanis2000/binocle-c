@@ -55,7 +55,7 @@ include_directories(src)
 # Define source files
 set_source_files_properties (${SOURCES} PROPERTIES LANGUAGE C)
 
-add_library(glew ${HEADERS} ${SOURCES})
+add_library(glew OBJECT ${HEADERS} ${SOURCES})
 
 if (IOS)
     set_target_properties(

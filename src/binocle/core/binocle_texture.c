@@ -21,7 +21,7 @@ binocle_texture binocle_texture_from_image_data(unsigned char *image, uint64_t w
   binocle_texture texture = binocle_texture_new();
   texture.width = w;
   texture.height = h;
-#if defined(__IPHONEOS__) || defined(__EMSCRIPTEN__)
+#if defined(__IPHONEOS__) || defined(__EMSCRIPTEN__) || defined(__ANDROID__)
   glCheck(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
   glCheck(glPixelStorei(GL_PACK_ALIGNMENT, 1) );
 #else
@@ -44,7 +44,7 @@ binocle_texture binocle_texture_from_image(binocle_image image) {
   if (image.data != NULL) {
     texture = binocle_texture_from_image_data(image.data, image.width, image.height);
   } else {
-    SDL_Log("Cannot create texture");
+    SDL_Log("Cannot create texture, image.data is NULL");
   }
   return texture;
 }

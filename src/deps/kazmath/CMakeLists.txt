@@ -10,7 +10,7 @@ file(GLOB_RECURSE SOURCES *.c)
 file(GLOB_RECURSE HEADERS *.h)
 
 
-add_library(kazmath ${HEADERS} ${SOURCES})
+add_library(kazmath OBJECT ${HEADERS} ${SOURCES})
 
 if (IOS)
     set_target_properties(

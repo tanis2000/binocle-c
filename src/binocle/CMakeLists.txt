@@ -19,9 +19,10 @@ file(GLOB REMOVE_CORE_SOURCE
 list(REMOVE_ITEM CORE_SOURCE ${REMOVE_CORE_SOURCE})
 file(GLOB UNITY_SOURCE core/binocle.c core/binocle.h)
 
+set(CORE_SOURCE ${CORE_SOURCE} core/binocle_miniaudio.m)
+
 if (APPLE)
     set(PLATFORM_SOURCE core/PlayerPrefs.mm)
-    set(PLATFORM_SOURCE core/binocle_miniaudio.m)
 endif ()
 
 set(SOURCE_FILES
@@ -37,7 +38,7 @@ set(UNITY_FILES
 GroupSources("core")
 
 # Uncomment the following line to avoid unity builds
-add_library(binocle ${SOURCE_FILES})
+add_library(binocle OBJECT ${SOURCE_FILES})
 # Uncomment the following line to use unity builds
 #add_library(binocle ${UNITY_FILES})
 

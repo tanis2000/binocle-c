@@ -20,12 +20,19 @@ binocle_image binocle_image_load(const char *filename) {
   int width = 0;
   int height = 0;
   int bpp = 0;
+  char *buffer;
+  size_t size;
 
   // Flip the y-coordinate because OpenGL expects the 0.0 coordinate on the y-axis to be on the bottom side of the
   // image, but images usually have 0.0 at the top of the y-axis
   stbi_set_flip_vertically_on_load(true);
   // TODO: check the file format
-  res.data = stbi_load(filename, &width, &height, &bpp, STBI_rgb_alpha);
+  if (!binocle_sdl_load_binary_file(filename, &buffer, &size)) {
+    binocle_log_error("Unable to load image file %s", filename);
+    return res;
+  }
+  res.data = stbi_load_from_memory(buffer, size, &width, &height, &bpp, STBI_rgb_alpha);
+  //res.data = stbi_load(filename, &width, &height, &bpp, STBI_rgb_alpha);
   if (res.data == NULL) {
     SDL_Log("Unable to load image %s", filename);
     return res;

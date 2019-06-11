@@ -155,8 +155,8 @@ if(APPLE)
 				src/video/uikit/SDL_uikitvulkan.m
 				src/video/uikit/SDL_uikitwindow.m
 
-            include/*.h
-            include/SDL_config_iphoneos.h
+            #include/*.h
+            #include/SDL_config_iphoneos.h
 			)
  	   	list(APPEND SOURCES ${IOS_SOURCES})
  	   	add_definitions(-DSFML_SYSTEM_IOS)
@@ -252,6 +252,10 @@ if(ANDROID)
             #include/*.h
             include/SDL_config_android.h
 		)
+	file(GLOB_RECURSE CPP_SOURCES
+			src/hidapi/android/hid.cpp
+			)
+
 	list(APPEND SOURCES ${ANDROID_SOURCES})
     add_definitions(-DGL_GLEXT_PROTOTYPES)
     add_definitions(-D__ANDROID__)
@@ -344,10 +348,18 @@ endif()
 
 # Define source files
 set_source_files_properties (${SOURCES} PROPERTIES LANGUAGE C)
+set_source_files_properties (${CPP_SOURCES} PROPERTIES LANGUAGE CXX)
 
-add_library(sdl ${HEADERS} ${SOURCES})
-set_property(TARGET sdl PROPERTY C_STANDARD 11)
+add_library(sdl OBJECT ${SOURCES})
+
+if (ANDROID)
+	add_library(hidapi SHARED ${CPP_SOURCES})
+	target_link_libraries(hidapi log)
+endif(ANDROID)
+
+#set_property(TARGET sdl PROPERTY C_STANDARD 11)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 if (IOS)
     set_target_properties(

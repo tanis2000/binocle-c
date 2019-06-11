@@ -2,7 +2,7 @@ include (BundleUtilities)
 
 add_definitions (-D__APPLE__)
 
-list (APPEND BINOCLE_LINK_LIBRARIES "-l iconv" glew)
+list (APPEND BINOCLE_LINK_LIBRARIES "-l iconv")
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-offsetof -std=gnu++0x")
 

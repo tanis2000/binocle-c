@@ -20,5 +20,5 @@ GroupSources("gameplay")
 add_library(gameplay SHARED ${SOURCE_FILES})
 
 #target_link_libraries(gameplay ${BINOCLE_LINK_LIBRARIES})
-target_link_libraries(gameplay binocle)
+target_link_libraries(gameplay binocle-static)
 

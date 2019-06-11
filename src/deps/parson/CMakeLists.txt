@@ -10,7 +10,7 @@ file(GLOB_RECURSE SOURCES *.c)
 file(GLOB_RECURSE HEADERS *.h)
 
 
-add_library(parson ${HEADERS} ${SOURCES})
+add_library(parson OBJECT ${HEADERS} ${SOURCES})
 
 if (IOS)
     set_target_properties(

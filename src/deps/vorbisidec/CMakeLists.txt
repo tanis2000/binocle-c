@@ -45,7 +45,7 @@ if (APPLE)
 	endif()
 endif()
 
-add_library(vorbisidec ${HEADERS} ${SOURCES})
+add_library(vorbisidec OBJECT ${HEADERS} ${SOURCES})
 
 if (IOS)
 	set_target_properties(

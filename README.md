@@ -83,12 +83,14 @@ cmake -G Xcode -D DEBUG=1 ../../..
 
 ```sh
 cd build/android/gen
-cmake -D DEBUG=1 -D ANDROID_ABI=armeabi -D ANDROID_STL=gnustl_static -D ANDROID_NATIVE_API_LEVEL=android-17 -D CMAKE_TOOLCHAIN_FILE=../../cmake/android.toolchain.cmake ../../..
+cmake -D DEBUG=1 -D ANDROID_ABI=armeabi -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=../../cmake/android.toolchain.cmake ../../..
 make
-cmake -D DEBUG=1 -D ANDROID_ABI=armeabi-v7a -D ANDROID_STL=gnustl_static -D ANDROID_NATIVE_API_LEVEL=android-17 -D CMAKE_TOOLCHAIN_FILE=../../cmake/android.toolchain.cmake ../../..
+cmake -D DEBUG=1 -D ANDROID_ABI=armeabi-v7a -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=../../cmake/android.toolchain.cmake ../../..
+make
+cmake -D DEBUG=1 -D ANDROID_ABI=x86_64 -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=../../cmake/android.toolchain.cmake ../../..
 make
 cd ../android-project
-ant debug install
+./gradlew installDebug
 ```
 
 ### iOS

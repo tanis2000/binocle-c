@@ -279,7 +279,7 @@ int main(int argc, char *argv[])
 
 #if defined(__EMSCRIPTEN__)
   binocle_data_dir = malloc(1024);
-  sprintf(binocle_data_dir, "/Users/tanis/Documents/ld43-binocle/data/");
+  sprintf(binocle_data_dir, "/Users/tanis/Documents/binocle-c/data/");
 #elif defined(__WINDOWS__)
   char *base_path = SDL_GetBasePath();
   if (base_path) {
@@ -288,6 +288,8 @@ int main(int argc, char *argv[])
   } else {
     binocle_data_dir = SDL_strdup("./data");
   }
+#elif defined(__ANDROID__)
+  binocle_data_dir = SDL_strdup("");
 #else
   char *base_path = SDL_GetBasePath();
   if (base_path) {

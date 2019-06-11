@@ -19,7 +19,7 @@ if (NOT WIN32)
 	add_definitions(-DHAVE_ALLOCA_H)
 endif()
 
-add_library(vorbis ${HEADERS} ${SOURCES})
+add_library(vorbis OBJECT ${HEADERS} ${SOURCES})
 
 if (IOS)
     set_target_properties(

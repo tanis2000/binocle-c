@@ -79,6 +79,7 @@ target_link_libraries(ExampleProject ${BINOCLE_LINK_LIBRARIES})
 
 set_property(TARGET ExampleProject PROPERTY C_STANDARD 99)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 
 if (APPLE)
@@ -152,13 +153,17 @@ elseif (APPLE)
 endif ()
 
 if (ANDROID)
-    message("Post build will copy to ${CMAKE_CURRENT_BINARY_DIR}/../../../android-project/libs/${ANDROID_ABI}/libmain.so")
+    message("Post build will copy to ${CMAKE_CURRENT_BINARY_DIR}/../../android-project/app/libs/${ANDROID_ABI}/libmain.so")
     add_custom_command(TARGET ExampleProject
             POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E echo "$<TARGET_FILE:ExampleProject> ${CMAKE_CURRENT_BINARY_DIR}/../../../android-project/libs/${ANDROID_ABI}/libmain.so")
+            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ExampleProject> ${CMAKE_CURRENT_BINARY_DIR}/../../android-project/app/libs/${ANDROID_ABI}/libmain.so)
+    message("Post build will copy to ${CMAKE_CURRENT_BINARY_DIR}/../../android-project/app/libs/${ANDROID_ABI}/libhidapi.so")
     add_custom_command(TARGET ExampleProject
             POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ExampleProject> ${CMAKE_CURRENT_BINARY_DIR}/../../../android-project/libs/${ANDROID_ABI}/libmain.so)
+            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:hidapi> ${CMAKE_CURRENT_BINARY_DIR}/../../android-project/app/libs/${ANDROID_ABI}/libhidapi.so)
+    add_custom_command(TARGET ExampleProject
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy ${ANDROID_NDK}/sources/cxx-stl/llvm-libc++/libs/${ANDROID_ABI}/libc++_shared.so ${CMAKE_CURRENT_BINARY_DIR}/../../android-project/app/libs/${ANDROID_ABI}/libc++_shared.so)
     #	file(RENAME ${CMAKE_CURRENT_BINARY_DIR}/../android-project/libs/${ANDROID_ABI}/lib${PROJECT_NAME}.so ${CMAKE_CURRENT_BINARY_DIR}/../android-project/libs/${ANDROID_ABI}/libmain.so)
 endif ()
 

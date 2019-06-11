@@ -31,7 +31,6 @@
 
 #include "miniaudio/jar_mod.h"
 
-
 binocle_audio binocle_audio_new() {
   binocle_audio res = {0};
   res.paused = false;
