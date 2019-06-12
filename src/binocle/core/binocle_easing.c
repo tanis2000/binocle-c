@@ -6,9 +6,6 @@
 
 #define _USE_MATH_DEFINES // Needed for Windows
 #include <math.h>
-#if defined(__EMSCRIPTEN__)
-#include <cmath>
-#endif
 #include "binocle_easing.h"
 #include "binocle_math.h"
 
