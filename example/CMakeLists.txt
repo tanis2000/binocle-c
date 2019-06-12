@@ -34,32 +34,10 @@ file(GLOB SOURCE_FILES
         *.h
         )
 
-
-if (NOT DEFINED BINOCLE_DATA_DIR)
-    if (APPLE)
-        if (IOS)
-            set(BINOCLE_DATA_DIR "")
-        else ()
-            set(BINOCLE_DATA_DIR "../Resources/")
-        endif ()
-    elseif (WIN32)
-        set(BINOCLE_DATA_DIR "../../../../../../data/")
-    elseif (EMSCRIPTEN)
-        # TODO: make this relative but also make sure that it
-        # becomes relative in BinocleWeb.cmake as they have to be the same
-        set(BINOCLE_DATA_DIR "/Users/tanis/Documents/binocle-c/data/")
-    endif ()
-endif ()
-message("Data dir is ${BINOCLE_DATA_DIR}")
-
-
-CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/example/sys_config.h.cmake ${CMAKE_SOURCE_DIR}/example/sys_config.h)
-SET_SOURCE_FILES_PROPERTIES(${CMAKE_SOURCE_DIR}/example/sys_config.h PROPERTIES GENERATED TRUE)
-
 if (APPLE)
     #if(IOS)
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-    file(GLOB RESOURCES_LIST ${CMAKE_SOURCE_DIR}/data/*)
+    file(GLOB RESOURCES_LIST ${CMAKE_SOURCE_DIR}/assets/*)
     set(RESOURCES
             ${RESOURCES_LIST}
             )
@@ -106,7 +84,7 @@ if (APPLE)
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)
     #set_target_properties(${PROJECT_NAME} PROPERTIES RESOURCE "${RESOURCES}")
     # file(GLOB_RECURSE RESOURCES
-    # 			${CMAKE_SOURCE_DIR}/data/*
+    # 			${CMAKE_SOURCE_DIR}/assets/*
     # )
     # set_source_files_properties(
     # 			${RESOURCES}
@@ -133,7 +111,7 @@ if (APPLE)
         #add_custom_command(
         #    TARGET ${NAME}
         #    POST_BUILD
-        #    COMMAND /Developer/Library/PrivateFrameworks/DevToolsCore.framework/Resources/pbxcp -exclude .DS_Store -exclude CVS -exclude .svn -resolve-src-symlinks ${CMAKE_SOURCE_DIR}/data ${APP_NAME}
+        #    COMMAND /Developer/Library/PrivateFrameworks/DevToolsCore.framework/Resources/pbxcp -exclude .DS_Store -exclude CVS -exclude .svn -resolve-src-symlinks ${CMAKE_SOURCE_DIR}/assets ${APP_NAME}
         #)
     endif ()
 endif ()

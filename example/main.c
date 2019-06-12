@@ -25,7 +25,6 @@
 #include "binocle_log.h"
 #include "binocle_bitmapfont.h"
 #include "binocle_audio.h"
-#include "sys_config.h"
 
 //#define GAMELOOP 1
 //#define DEMOLOOP
