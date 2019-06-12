@@ -1,3 +1,5 @@
+project(sdl)
+
 include_directories(include)
 
 file(GLOB_RECURSE SOURCES 
@@ -126,7 +128,6 @@ if(APPLE)
 				src/joystick/iphoneos/SDL_sysjoystick.m
 				src/haptic/dummy/SDL_syshaptic.c
 				src/hidapi/ios/hid.m
-				src/main/dummy/SDL_dummy_main.c
 				src/render/opengles/SDL_render_gles.c
 				src/render/opengles2/SDL_render_gles2.c
 				src/render/opengles2/SDL_shaders_gles2.c

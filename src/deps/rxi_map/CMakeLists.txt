@@ -1,3 +1,5 @@
+project(rxi_map)
+
 include_directories(.)
 
 file(GLOB_RECURSE SOURCES *.c)

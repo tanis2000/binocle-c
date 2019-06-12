@@ -1,3 +1,4 @@
+project(ogg)
 
 include_directories(.)
 

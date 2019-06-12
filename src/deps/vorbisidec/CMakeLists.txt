@@ -1,3 +1,5 @@
+project(vorbisidec)
+
 add_definitions(-DDHAVE_LIBC)
 
 add_definitions(-DOGG_MUSIC)

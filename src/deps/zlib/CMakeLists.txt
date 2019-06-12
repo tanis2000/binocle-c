@@ -1,3 +1,5 @@
+project(zlib)
+
 include_directories(.)
 
 file(GLOB_RECURSE SOURCES *.c)
@@ -10,7 +12,7 @@ file(GLOB_RECURSE SOURCES *.c)
 file(GLOB_RECURSE HEADERS *.h)
 
 
-add_library(zlib OBJECT ${HEADERS} ${SOURCES})
+add_library(zlib OBJECT ${SOURCES})
 
 if (IOS)
     set_target_properties(

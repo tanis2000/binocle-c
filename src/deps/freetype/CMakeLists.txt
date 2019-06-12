@@ -1,3 +1,5 @@
+project(freetype)
+
 add_definitions(-DFT2_BUILD_LIBRARY)
 
 include_directories(.)

@@ -17,7 +17,11 @@ file(GLOB SOURCE_FILES
 GroupSources("gameplay")
 
 # TODO: make it shared only on the desktop and in debug mode
-add_library(gameplay SHARED ${SOURCE_FILES})
+if(IOS)
+    add_library(gameplay STATIC ${SOURCE_FILES})
+else()
+    add_library(gameplay SHARED ${SOURCE_FILES})
+endif(IOS)
 
 #target_link_libraries(gameplay ${BINOCLE_LINK_LIBRARIES})
 target_link_libraries(gameplay binocle-static)

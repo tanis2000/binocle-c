@@ -1,3 +1,4 @@
+project(vorbis)
 
 include_directories(.)
 
