@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
+#include "binocle_sdl.h"
 
 #define BINOCLE_FOREACH_SPARSEINTSET(I, N, S) for(N = 0, I = (S)->dense ? (S)->dense[N] : 0; N < (S)->size; N++, I = (S)->dense[N])
 #define BINOCLE_FOREACH_DENSEINTSET(I, D) for(I = 0; I < (D)->capacity; I++) if(binocle_bits_is_set((D)->bytes, I))
@@ -256,7 +257,7 @@ bool binocle_ecs_create_component(binocle_ecs_t *ecs, const char *name, uint64_t
   }
 
   memset(&c, 0, sizeof(c));
-  c.name = strdup(name);
+  c.name = SDL_strdup(name);
   c.size = component_size;
   c.offset = ecs->data_width;
   ecs->data_width += component_size;
@@ -457,7 +458,7 @@ bool binocle_ecs_create_system(binocle_ecs_t *ecs, const char *name,
   }
 
   memset(&s, 0, sizeof(s));
-  s.name = strdup(name);
+  s.name = SDL_strdup(name);
   s.starting = starting;
   s.process = process;
   s.ending = ending;
