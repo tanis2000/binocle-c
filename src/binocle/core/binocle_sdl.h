@@ -82,4 +82,12 @@ bool binocle_sdl_write_text_file(char *filename, char *buffer, size_t size);
  */
 bool binocle_sdl_load_binary_file(char *filename, char **buffer, size_t *buffer_length);
 
+/**
+ * \brief Returns the path of the assets folder
+ * The actual path depends on the current platform.
+ * This function allocates the memory for the string and it's up to the caller to free it after use.
+ * @return the pointer to the string with the folder of the assets
+ */
+char *binocle_sdl_assets_dir();
+
 #endif //BINOCLE_SDL_H

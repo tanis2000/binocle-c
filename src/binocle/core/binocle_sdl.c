@@ -161,3 +161,29 @@ bool binocle_sdl_load_binary_file(char *filename, char **buffer, size_t *buffer_
   *buffer_length = res_size;
   return true;
 }
+
+char *binocle_sdl_assets_dir() {
+  char *binocle_assets_dir = NULL;
+#if defined(__EMSCRIPTEN__)
+  binocle_assets_dir = malloc(1024);
+  sprintf(binocle_assets_dir, "/Users/tanis/Documents/binocle-c/data/");
+#elif defined(__WINDOWS__)
+  char *base_path = SDL_GetBasePath();
+  if (base_path) {
+    binocle_assets_dir = malloc(strlen(base_path) + 7);
+    sprintf(binocle_assets_dir, "%s%s", base_path, "assets\\");
+  } else {
+    binocle_assets_dir = SDL_strdup(".\\assets");
+  }
+#elif defined(__ANDROID__)
+  binocle_assets_dir = SDL_strdup("");
+#else
+  char *base_path = SDL_GetBasePath();
+  if (base_path) {
+    binocle_assets_dir = base_path;
+  } else {
+    binocle_assets_dir = SDL_strdup("./");
+  }
+#endif
+  return binocle_assets_dir;
+}
