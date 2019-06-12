@@ -16,13 +16,13 @@
 bool binocle_sparse_integer_set_insert(binocle_sparse_integer_set_t *set, uint64_t i) {
   if (i >= set->capacity) {
     uint64_t new_capacity = (uint64_t) ((i + 1) * 1.5f);
-    void *new_dense = realloc(set->dense, new_capacity * sizeof(uint64_t));
+    uint64_t *new_dense = realloc(set->dense, new_capacity * sizeof(uint64_t));
     if (new_dense == NULL) {
       return false;
     }
     memset(new_dense + (set->capacity * sizeof(uint64_t)), 0,
            (new_capacity * sizeof(uint64_t)) - (set->capacity * sizeof(uint64_t)));
-    void *new_sparse = realloc(set->sparse, new_capacity * sizeof(uint64_t));
+    uint64_t *new_sparse = realloc(set->sparse, new_capacity * sizeof(uint64_t));
     if (new_sparse == NULL) {
       return false;
     }
@@ -222,7 +222,7 @@ bool binocle_ecs_fix_data(binocle_ecs_t *ecs) {
 
     if (new_data_height >= ecs->data_height_capacity) {
       uint64_t new_data_height_capacity = (uint64_t) ((new_data_height + 1) * 1.5f);
-      void *new_data = realloc(ecs->data, ecs->data_width * new_data_height_capacity);
+      char *new_data = realloc(ecs->data, ecs->data_width * new_data_height_capacity);
       if (new_data == NULL) {
         return false;
       }
@@ -320,7 +320,7 @@ bool binocle_ecs_create_entity(binocle_ecs_t *ecs, binocle_entity_id_t *entity_p
       ecs->processing_data[ecs->processing_data_height++] = entity_data;
     } else {
       uint64_t new_data_height_capacity = (uint64_t) (ecs->data_height * 1.5f);
-      void *new_data = realloc(ecs->data, ecs->data_width * new_data_height_capacity);
+      char *new_data = realloc(ecs->data, ecs->data_width * new_data_height_capacity);
       if (new_data == NULL) {
         return false;
       }
