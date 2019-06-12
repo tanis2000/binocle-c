@@ -3,8 +3,8 @@ include (BundleUtilities)
 add_definitions (-DIOS -D__IPHONEOS__)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-offsetof -std=gnu++0x")
 
-#set (CMAKE_OSX_ARCHITECTURES $(ARCHS_STANDARD))
-set (CMAKE_OSX_ARCHITECTURES "arm64 arm64e x86_64")
+set (CMAKE_OSX_ARCHITECTURES $(ARCHS_STANDARD))
+#set (CMAKE_OSX_ARCHITECTURES "arm64 arm64e x86_64")
 set (CMAKE_XCODE_EFFECTIVE_PLATFORMS -iphoneos -iphonesimulator)
 
 # Set Base SDK to "Latest iOS"
