@@ -22,23 +22,13 @@ With `bone` you can initialize a new project and automate the compilation and li
 
 ### Installing `bone`
 
-TODO
+You can grab `bone` from the [GitHub repo](https://github.com/tanis2000/bone).
+I'm still trying to figure out how to make Travis create the release builds so that they can be downloaded as binaries and avoid having to compile the Rust source code.
+For the time being, you're better off cloning the repo and running `cargo build` to compile `bone`.
 
-### Creating a new project
+### Creating, building, running, updating and upgrading a project
 
-TODO
-
-### Updating the build scripts
-
-TODO
-
-### Updating Binocle
-
-TODO
-
-### Building a project
-
-TODO
+Please refer to the [documentation of bone](https://github.com/tanis2000/bone/blob/master/README.md) to setup your first Binocle application.
 
 ## Third party libraries
 
@@ -70,14 +60,18 @@ Right now there are a few areas that could use some help:
 - Adding Linux support
 - More examples
 
-## Compiling the library
+## Manually compiling the library
 
-### Mac OSX
+### macOS
 
 ```sh
 cd build/macosx/gen
 cmake -G Xcode -D DEBUG=1 ../../..
 ```
+
+### Windows
+
+I usually run the CMake GUI tool and select the Visual Studio generator there. That's pretty much all that's needed.
 
 ### Android
 
@@ -100,7 +94,7 @@ cd build/ios/gen
 cmake -G Xcode -D DEBUG=1 -D IOS=1 ../../..
 ```
 
-### Emscripten
+### Emscripten (web)
 
 ```sh
 cd build/emscripten/gen
