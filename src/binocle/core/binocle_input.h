@@ -329,22 +329,69 @@ typedef struct binocle_input {
   char text[SDL_TEXTINPUTEVENT_TEXT_SIZE];
 } binocle_input;
 
+/**
+ * \brief Creates a new input manager
+ * @return the input manager instance
+ */
 binocle_input binocle_input_new();
 
+/**
+ * \brief Updates the input manager.
+ * This function should be called at every frame update as it consumes the SDL events and sets the appropriate values
+ * @param input the input manager instance
+ */
 void binocle_input_update(binocle_input *input);
 
+/**
+ * \brief Checks whether an SDL keycode can be printed as an ASCII character
+ * @param key the SDL keycode
+ * @return true if the keycode is a printable ASCII character
+ */
 bool binocle_input_is_printable(SDL_Keycode key);
 
+/**
+ * \brief Checks if a key has just been pressed
+ * @param input the input manager
+ * @param key the key to check
+ * @return true if the key is being held down at the current frame and wasn't at the previous one.
+ */
 bool binocle_input_is_key_down(binocle_input input, int key);
 
+/**
+ * \brief Checks if a key has just been released
+ * @param input the input manager
+ * @param key the key to check
+ * @return true if the key has been released at the current frame while it was held down at the previous one.
+ */
 bool binocle_input_is_key_up(binocle_input input, int key);
 
+/**
+ * \brief Checks if a key is currently pressed, no matter the previous state
+ * @param input the input manager
+ * @param key the key to check
+ * @return true if the key is pressed at the current frame
+ */
 bool binocle_input_is_key_pressed(binocle_input input, binocle_input_keyboard_key key);
 
+/**
+ * \brief Checks if one of the SHIFT keys is currently pressed, no matter the previous state
+ * @param input the input manager
+ * @return true if one of the SHIFT keys is pressed at the current frame
+ */
 bool binocle_input_shift(binocle_input input);
 
+/**
+ * \brief Checks if one of the CTRL keys is currently pressed, no matter the previous state
+ * @param input the input manager
+ * @return true if one of the CTRL keys is pressed at the current frame
+ */
 bool binocle_input_ctrl(binocle_input input);
 
+/**
+ * \brief Checks if one of the ALT keys is currently pressed, no matter the previous state
+ * @param input the input manager
+ * @return true if one of the ALT keys is pressed at the current frame
+ */
 bool binocle_input_alt(binocle_input input);
 
 bool binocle_input_is_mouse_down(binocle_input input, binocle_input_mouse_button button);
@@ -364,8 +411,6 @@ bool binocle_input_pause_requested(binocle_input input);
 bool binocle_input_is_mouse_inside(binocle_input input, kmAABB2 rectangle);
 
 kmVec2 binocle_input_get_mouse_position(binocle_input input, struct binocle_camera camera);
-
-bool binocle_input_is_printable(SDL_Keycode key);
 
 bool binocle_input_is_printable_key_down(binocle_input input);
 

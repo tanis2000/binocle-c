@@ -290,15 +290,102 @@ bool binocle_ecs_create_entity(binocle_ecs_t *ecs, binocle_entity_id_t *entity_p
  */
 unsigned char *binocle_ecs_get_entity_data(binocle_ecs_t *ecs, binocle_entity_id_t entity);
 
+/**
+ * \brief Defines and creates a new component.
+ * @param ecs the ECS instance
+ * @param name the name of the component
+ * @param component_size the size of the data structure of the component
+ * @param component_ptr a pointer to the component's ID. This function will write the component's ID into that pointer
+ * once it's been setup in the ECS
+ * @return true if the component has been successfully added to the ECS
+ */
 bool binocle_ecs_create_component(binocle_ecs_t *ecs, const char *name, uint64_t component_size, binocle_component_id_t *component_ptr);
+
+/**
+ * \brief Removes all the components of a certain type from an entity
+ * @param ecs the ECS instance
+ * @param entity the entity ID
+ * @param component the component ID
+ * @return true if all the components with that component ID have been removed from the entity
+ */
 bool binocle_ecs_remove_components(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_component_id_t component);
+
+/**
+ * \brief Sets a component for an entity. Adds the component to the entity.
+ * @param ecs the ECS instance
+ * @param entity the entity ID
+ * @param component the component ID
+ * @param data a pointer to the actual component's data structure containing all the values
+ * @return true if the component has been set on the entity
+ */
 bool binocle_ecs_set_component(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_component_id_t component, const void * data);
+
+/**
+ * \brief Gets a component from an entity
+ * @param ecs the ECS instance
+ * @param entity the entity ID
+ * @param component the component ID
+ * @param ptr a pointer to the struct that will contain the data of the component requested
+ * @return true if the component has been found
+ */
 bool binocle_ecs_get_component(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_component_id_t component, void ** ptr);
+
+/**
+ * \brief Releases the resources allocated for a component
+ * @param ecs the ECS instance
+ * @param component the actual component structure
+ */
 void binocle_ecs_component_free(binocle_ecs_t *ecs, binocle_component_t *component);
+
+/**
+ * \brief Removes a component from an entity (Internal use only)
+ * @param ecs the ECS instance
+ * @param entity the entity ID
+ * @param component the component ID
+ * @param i the position of the component. Currently only 0 is accepted as we do not support multiple components of the
+ * same type on the same entity
+ * @return true if the component has been removed
+ */
 bool binocle_ecs_remove_component_i_internal(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_component_id_t component, uint64_t i);
+
+/**
+ * \brief Sets a component on an entity (Internal use only)
+ * @param ecs the ECS instance
+ * @param entity the entity ID
+ * @param component the component ID
+ * @param i the position of the component. Currently only 0 is accepted as we do not support multiple components of the
+ * @param data the pointer to the data structure of the component
+ * @return true if the component has been set
+ */
 bool binocle_ecs_set_component_i_internal(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_component_id_t component, uint64_t i, const void * data);
+
+/**
+ * \brief Gets a component from an entity (Internal use only)
+ * @param ecs the ECS instance
+ * @param entity the entity ID
+ * @param component the component ID
+ * @param i the position of the component. Currently only 0 is accepted as we do not support multiple components of the
+ * @param ptr the pointer that will be filled with the actual data structure of the component
+ * @return true if the component has been found
+ */
 bool binocle_ecs_get_component_internal(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_component_id_t component, uint64_t i, void ** ptr);
 
+/**
+ * \brief Creates a new system
+ * @param ecs the ECS instance
+ * @param name the name of the system
+ * @param starting the callback that will be called once the system is starting up
+ * @param process the callback that will be called at each update of the system
+ * @param ending the callback that will be called when the system is terminated
+ * @param subscribed the callback that will be called once an entity has been subscribed to this system
+ * @param unsubscribed the callback that will be called once an entity has been unsubscribed from this system
+ * @param user_data a pointer to user data that can be stored within the system
+ * @param flags the flags that specify the kind of system. Available values:
+ * BINOCLE_SYSTEM_FLAG_NORMAL for a normal system that will be called at each update
+ * BINOCLE_SYSTEM_FLAG_PASSIVE for a system that should be manually called by the developer
+ * @param system_ptr
+ * @return the pointer to the system that has just been created
+ */
 bool binocle_ecs_create_system(binocle_ecs_t *ecs, const char *name,
                                void (*starting)(struct binocle_ecs_t*, void *),
                                void (*process)(struct binocle_ecs_t*, void *, binocle_entity_id_t, float),
@@ -309,13 +396,79 @@ bool binocle_ecs_create_system(binocle_ecs_t *ecs, const char *name,
                                uint64_t flags,
                                uint64_t *system_ptr
 );
-bool binocle_ecs_watch(binocle_ecs_t *ecs, binocle_system_id_t system, binocle_component_id_t component);
-bool binocle_ecs_exclude(binocle_ecs_t *ecs, binocle_system_id_t system, binocle_component_id_t component);
-bool binocle_ecs_signal(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_entity_signal_t signal);
-void binocle_ecs_subscribe(binocle_ecs_t *ecs, binocle_system_t *system, binocle_entity_id_t entity);
-void binocle_ecs_unsubscribe(binocle_ecs_t *ecs, binocle_system_t *system, binocle_entity_id_t entity);
-void binocle_ecs_check(binocle_ecs_t *ecs, binocle_system_t *system, binocle_entity_id_t entity);
-bool binocle_ecs_process(binocle_ecs_t *ecs, float delta);
+
+/**
+ * \brief Runs a system update
+ * @param ecs the ECS instance
+ * @param system the ID of the system
+ * @param delta the delta time (in seconds) since the last update
+ * @return true if the system has processed its entities successfully
+ */
 bool binocle_ecs_process_system(binocle_ecs_t *ecs, binocle_system_id_t system, float delta);
+
+/**
+ * \brief Sends a signal to an entity
+ * Sending a signal sets up the values needed to let the systems process the entities
+ * @param ecs the ECS instance
+ * @param entity the entity ID
+ * @param signal the signal to send to the entity
+ * Available values:
+ * BINOCLE_ENTITY_ADDED the entity has just been added to the ECS
+ * BINOCLE_ENTITY_ENABLED the entity has been enabled
+ * BINOCLE_ENTITY_DISABLED the entity has been disabled
+ * BINOCLE_ENTITY_REMOVED the entity has been removed from the ECS
+ * @return true if the signal has been sent successfully
+ */
+bool binocle_ecs_signal(binocle_ecs_t *ecs, binocle_entity_id_t entity, binocle_entity_signal_t signal);
+
+/**
+ * \brief Adds a component to the list of watched components of a system
+ * @param ecs the ECS instance
+ * @param system the system ID
+ * @param component the component ID
+ * @return true if the component has been added to the watch list of the system
+ */
+bool binocle_ecs_watch(binocle_ecs_t *ecs, binocle_system_id_t system, binocle_component_id_t component);
+
+/**
+ * \brief Excludes a component from the list of watched components of a system
+ * @param ecs the ECS instance
+ * @param system the system ID
+ * @param component the component ID
+ * @return true if the component has been excluded from the list of watched items of the system
+ */
+bool binocle_ecs_exclude(binocle_ecs_t *ecs, binocle_system_id_t system, binocle_component_id_t component);
+
+/**
+ * \brief Subscribes an entity to a system
+ * @param ecs the ECS instance
+ * @param system the system ID
+ * @param entity the entity ID
+ */
+void binocle_ecs_subscribe(binocle_ecs_t *ecs, binocle_system_t *system, binocle_entity_id_t entity);
+
+/**
+ * \brief Unsubscribes an entity from a system
+ * @param ecs the ECS instance
+ * @param system the system ID
+ * @param entity the entity ID
+ */
+void binocle_ecs_unsubscribe(binocle_ecs_t *ecs, binocle_system_t *system, binocle_entity_id_t entity);
+
+/**
+ * \brief Checks if an entity should be processed by a system (Internal use only)
+ * @param ecs the ECS instance
+ * @param system the system structure
+ * @param entity the entity id
+ */
+void binocle_ecs_check(binocle_ecs_t *ecs, binocle_system_t *system, binocle_entity_id_t entity);
+
+/**
+ * \brief Updates the ECS and runs its associated systems
+ * @param ecs the ECS instance
+ * @param delta the delta time since the last update in seconds
+ * @return true if the processing finished successfully
+ */
+bool binocle_ecs_process(binocle_ecs_t *ecs, float delta);
 
 #endif //BINOCLE_ECS_H

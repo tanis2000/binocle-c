@@ -23,8 +23,7 @@ With `bone` you can initialize a new project and automate the compilation and li
 ### Installing `bone`
 
 You can grab `bone` from the [GitHub repo](https://github.com/tanis2000/bone).
-I'm still trying to figure out how to make Travis create the release builds so that they can be downloaded as binaries and avoid having to compile the Rust source code.
-For the time being, you're better off cloning the repo and running `cargo build` to compile `bone`.
+You can either download the binaries on the [Releases](https://github.com/tanis2000/bone/releases) page or compile it yourself.
 
 ### Creating, building, running, updating and upgrading a project
 
@@ -57,10 +56,13 @@ You're welcome to try Binocle and contribute.
 
 Right now there are a few areas that could use some help:
 
-- Adding Linux support
+- Adding Linux support. It should work almost out of the box once you figure out the CMake scripts.
 - More examples
+- Travis scripts to build static libraries for all the different systems so that we can distribute Binocle as a binary library with just the headers and avoid having to recompile the whole library for every new project.
 
 ## Manually compiling the library
+
+If you want to work on the library itself, just clone this repository and compile it on your own. The following are the build commands for each supported platform.
 
 ### macOS
 
@@ -74,6 +76,8 @@ cmake -G Xcode -D DEBUG=1 ../../..
 I usually run the CMake GUI tool and select the Visual Studio generator there. That's pretty much all that's needed.
 
 ### Android
+
+You will need the Android SDK and NDK and the correct environment variables for this to work.
 
 ```sh
 cd build/android/gen
@@ -89,12 +93,17 @@ cd ../android-project
 
 ### iOS
 
+You will need the latest Xcode and its command line tools.
+
 ```sh
 cd build/ios/gen
 cmake -G Xcode -D DEBUG=1 -D IOS=1 ../../..
 ```
 
 ### Emscripten (web)
+
+You need a recent version of Emscripten installed on your system.
+If you're using macOS, just do a `brew install emscripten` to set it up.
 
 ```sh
 cd build/emscripten/gen
