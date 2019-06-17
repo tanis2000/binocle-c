@@ -15,6 +15,24 @@ Nothing too fancy, but still something I always need when I make 2D or 3D games 
 
 The API is evolving all the time but the core is pretty stable. I keep adding and tweaking stuff based on my needs, so things may change without notice.
 
+## Features
+
+- Cross-platform: macOS, Windows, iOS, Android, Web (Linux planned)
+- OpenGL API (ES 2/3 on mobile platforms)
+- 2D Sprites
+- Spritesheets (TexturePacker format. LibGDX format is in the works)
+- Sprite batching
+- Music and sound effects
+- Bezier paths that can be used for anything
+- BitmapFont fonts
+- 2D Camera
+- 2D Collisions (boxes and circles)
+- Easing functions
+- Entity Component System
+- Timing functions
+- Viewport adapters for 2D pixel perfect images
+- Experimental hot code reloading for game code
+
 ## Installing
 
 The easiest way to work with Binocle is to use the CLI project manager called `bone`.
