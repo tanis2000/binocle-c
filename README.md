@@ -1,6 +1,6 @@
 # Binocle C version
 
-![Binocle Logo](images/binocle-logo-white-bg.png)
+![Binocle Logo](images/binocle-logo-full.png)
 
 Binocle C version is a simple game engine written in pure C.
 
