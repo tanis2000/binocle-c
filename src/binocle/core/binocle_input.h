@@ -394,34 +394,115 @@ bool binocle_input_ctrl(binocle_input input);
  */
 bool binocle_input_alt(binocle_input input);
 
+/**
+ * \brief Checks if a mouse button has just been pressed
+ * @param input the input manager
+ * @param button the button to check, \see binocle_input_mouse_button
+ * @return true if the mouse button is being held down at the current frame and wasn't at the previous one.
+ */
 bool binocle_input_is_mouse_down(binocle_input input, binocle_input_mouse_button button);
 
+/**
+ * \brief Checks if a mouse button has just been released
+ * @param input the input manager
+ * @param button the button to check, \see binocle_input_mouse_button
+ * @return true if the mouse button has been released at the current frame while it was held down at the previous one.
+ */
 bool binocle_input_is_mouse_up(binocle_input input, binocle_input_mouse_button button);
 
+/**
+ * \brief Checks if a mouse button is currently pressed, no matter the previous state
+ * @param input the input manager
+ * @param button the button to check, \see binocle_input_mouse_button
+ * @return true if the mouse button is pressed at the current frame
+ */
 bool binocle_input_is_mouse_pressed(binocle_input input, binocle_input_mouse_button button);
 
+/**
+ * \brief Gets the mouse X position in screen space
+ * @param input the input manager
+ * @return the mouse X position in screen space
+ */
 int binocle_input_get_mouse_x(binocle_input input);
 
+/**
+ * \brief Gets the mouse Y position in screen space
+ * @param input the input manager
+ * @return the mouse Y position in screen space
+ */
 int binocle_input_get_mouse_y(binocle_input input);
 
+/**
+ * \brief Checks if the user requested to quit the application either by pressing the combination of keys or by clicking
+ * on the close window icon
+ * @param input the input manager
+ * @return true if the user requested to terminate the application
+ */
 bool binocle_input_quit_requested(binocle_input input);
 
+/**
+ * \brief Checks if the application is going into pause by losing the window focus
+ * @param input the input manager
+ * @return true if the window has lost focus and the application should go into pause
+ */
 bool binocle_input_pause_requested(binocle_input input);
 
+/**
+ * \brief Checks if the mouse coordinates are inside a bounding box (screen space coordinates)
+ * @param input the input manager
+ * @param rectangle the bounding box
+ * @return true if the mouse is inside the bounding box
+ */
 bool binocle_input_is_mouse_inside(binocle_input input, kmAABB2 rectangle);
 
+/**
+ * \brief Returns a vector with the X and Y coordinates of the mouse cursor in world space
+ * @param input the input manager
+ * @param camera the camera used to offset the mouse position to find the world space coordinates
+ * @return
+ */
 kmVec2 binocle_input_get_mouse_position(binocle_input input, struct binocle_camera camera);
 
+/**
+ * \brief Checks if the current key being held down is a printable ASCII character
+ * @param input the input manager
+ * @return true if the current key held down is a printable ASCII character
+ */
 bool binocle_input_is_printable_key_down(binocle_input input);
 
+/**
+ * \brief Gets the current printable character
+ * @param input the input manager
+ * @return the printable character
+ */
 const char binocle_input_get_cur_printable_key(binocle_input input);
 
+/**
+ * \brief Locks user input
+ * @param input the input manager
+ */
 void binocle_input_lock(binocle_input input);
 
+/**
+ * \brief Unlocks user input
+ * @param input the input manager
+ */
 void binocle_input_unlock(binocle_input input);
 
+/**
+ * \brief Checks if the given finger is being held down on a touch screen
+ * @param input the input manager
+ * @param finger the index of the finger
+ * @return true if the finger is being held down
+ */
 bool binocle_input_is_touch_down(binocle_input input, unsigned int finger);
 
-kmVec2 binocle_input_get_touch_position(unsigned int finger, struct binocle_camera camera);
+/**
+ * \brief Gets the current position of the given finger in world coordinates
+ * @param finger the index of the finger
+ * @param camera the camera used to offset the position to convert to world coordinates
+ * @return the position of the finger in world coordinates
+ */
+kmVec2 binocle_input_get_touch_position(binocle_input input, unsigned int finger, struct binocle_camera camera);
 
 #endif //BINOCLE_INPUT_H

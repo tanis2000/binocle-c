@@ -269,10 +269,9 @@ bool binocle_input_is_touch_down(binocle_input input, unsigned int finger) {
   return false;
 }
 
-kmVec2 binocle_input_get_touch_position(unsigned int finger, binocle_camera camera) {
-  kmVec2 res;
-  return res;
-  //glm::vec2i pos = Touch::getPosition(finger, *window);
-  //glm::vec2f worldPos = window->mapPixelToCoords(pos, camera->view);
-  //return glm::vec2(worldPos.x, worldPos.y);
+kmVec2 binocle_input_get_touch_position(binocle_input input, unsigned int finger, binocle_camera camera) {
+  kmVec2 world_pos;
+  world_pos.x = input.touch.x + camera.origin.x;
+  world_pos.y = input.touch.y + camera.origin.y;
+  return world_pos;
 }
