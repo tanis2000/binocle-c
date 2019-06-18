@@ -148,6 +148,14 @@ The logo has been created using the following images:
 
 The idea of the final logo is from [@h_a_l_e_x](https://twitter.com/h_a_l_e_x)
 
+## Projects using Binocle
+
+![Santa frowns to town screenshot](images/screenshots/ld43-binocle-cover.png)
+[Santa frowns to town](https://tanis.itch.io/santa-frowns-to-town), my entry for Ludum Dare 43
+
+![Binocle Demo Tool screenshot](images/screenshots/binocle-demomaker-001.png)
+Binocle Demo Tool, my personal unreleased demo tool
+
 ## License
 
 The MIT License (MIT)
