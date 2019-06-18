@@ -148,6 +148,10 @@ The logo has been created using the following images:
 
 The idea of the final logo is from [@h_a_l_e_x](https://twitter.com/h_a_l_e_x)
 
+## Examples
+
+Here's an [examples repository](https://github.com/tanis2000/binocle-c-examples) with a few examples to start with.
+
 ## Projects using Binocle
 
 ![Santa frowns to town screenshot](images/screenshots/ld43-binocle-cover.png)
