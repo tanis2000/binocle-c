@@ -36,7 +36,7 @@ SET(VERSION_PATCH "0")
 SET(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 #set(BINOCLE_LINK_LIBRARIES binocle freetype kazmath parson rxi_map)
-set(BINOCLE_LINK_LIBRARIES binocle-static)
+set(BINOCLE_LINK_LIBRARIES binocle-static luajit-5.1)
 
 if (NOT EMSCRIPTEN)
 	#set(BINOCLE_LINK_LIBRARIES ${BINOCLE_LINK_LIBRARIES} sdl ogg vorbis zlib)

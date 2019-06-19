@@ -19,6 +19,7 @@
 #include <binocle_sprite.h>
 #include <binocle_shader.h>
 #include <binocle_material.h>
+#include <binocle_lua.h>
 #define BINOCLE_MATH_IMPL
 #include "binocle_math.h"
 #include "binocle_gd.h"
@@ -314,6 +315,13 @@ int main(int argc, char *argv[])
   player = binocle_sprite_from_material(&material);
   player_pos.x = 50;
   player_pos.y = 50;
+
+  sprintf(filename, "%s%s", binocle_data_dir, "test_simple.lua");
+  lua_test(filename);
+  sprintf(filename, "%s%s", binocle_data_dir, "test_simple2.lua");
+  lua_test2(filename);
+  sprintf(filename, "%s%s", binocle_data_dir, "test_ffi.lua");
+  lua_testffi(filename, &window);
 
   // Load the default quad shader
   sprintf(vert, "%s%s", binocle_data_dir, "screen.vert");

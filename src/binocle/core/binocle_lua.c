@@ -1,0 +1,183 @@
+//
+// Binocle
+// Copyright (c) 2015-2019 Valerio Santinelli
+// All rights reserved.
+//
+
+#include "binocle_lua.h"
+#include "binocle_window.h"
+
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+
+static void close_state(lua_State **L) { lua_close(*L); }
+#define cleanup(x) __attribute__((cleanup(x)))
+#define auto_lclose cleanup(close_state)
+
+int lua_test(const char *arg) {
+  /* Create VM state */
+  auto_lclose lua_State *L = luaL_newstate();
+  if (!L)
+    return 1;
+  luaL_openlibs(L); /* Open standard libraries */
+  /* Load config file */
+  if (arg != NULL) {
+    luaL_loadfile(L, arg); /* (1) */
+    int ret = lua_pcall(L, 0, 0, 0);
+    if (ret != 0) {
+      fprintf(stderr, "%s\n", lua_tostring(L, -1));
+      return 1;
+    }
+  }
+  /* Read out config */
+  lua_getglobal(L, "address"); /* (2) */
+  lua_getglobal(L, "port");
+  printf("address: %s, port: %ld\n", /* (3) */
+         lua_tostring(L, -2), lua_tointeger(L, -1));
+  lua_settop(L, 0); /* (4) */
+}
+
+int lua_test2(const char *arg) {
+  int status, result, i;
+  double sum;
+  lua_State *L;
+
+  /*
+   * All Lua contexts are held in this structure. We work with it almost
+   * all the time.
+   */
+  L = luaL_newstate();
+
+  luaL_openlibs(L); /* Load Lua libraries */
+
+  /* Load the file containing the script we are going to run */
+  status = luaL_loadfile(L, arg);
+  if (status) {
+    /* If something went wrong, error message is at the top of */
+    /* the stack */
+    fprintf(stderr, "Couldn't load file: %s\n", lua_tostring(L, -1));
+    return 1;
+  }
+
+  /*
+   * Ok, now here we go: We pass data to the lua script on the stack.
+   * That is, we first have to prepare Lua's virtual stack the way we
+   * want the script to receive it, then ask Lua to run it.
+   */
+  lua_newtable(L);    /* We will pass a table */
+
+  /*
+   * To put values into the table, we first push the index, then the
+   * value, and then call lua_rawset() with the index of the table in the
+   * stack. Let's see why it's -3: In Lua, the value -1 always refers to
+   * the top of the stack. When you create the table with lua_newtable(),
+   * the table gets pushed into the top of the stack. When you push the
+   * index and then the cell value, the stack looks like:
+   *
+   * <- [stack bottom] -- table, index, value [top]
+   *
+   * So the -1 will refer to the cell value, thus -3 is used to refer to
+   * the table itself. Note that lua_rawset() pops the two last elements
+   * of the stack, so that after it has been called, the table is at the
+   * top of the stack.
+   */
+  for (i = 1; i <= 5; i++) {
+    lua_pushnumber(L, i);   /* Push the table index */
+    lua_pushnumber(L, i*2); /* Push the cell value */
+    lua_rawset(L, -3);      /* Stores the pair in the table */
+  }
+
+  /* By what name is the script going to reference our table? */
+  lua_setglobal(L, "foo");
+
+  /* Ask Lua to run our little script */
+  result = lua_pcall(L, 0, LUA_MULTRET, 0);
+  if (result) {
+    fprintf(stderr, "Failed to run script: %s\n", lua_tostring(L, -1));
+    exit(1);
+  }
+
+  /* Get the returned value at the top of the stack (index -1) */
+  sum = lua_tonumber(L, -1);
+
+  printf("Script returned: %.0f\n", sum);
+
+  lua_pop(L, 1);  /* Take the returned value out of the stack */
+  lua_close(L);   /* Cya, Lua */
+
+  return 0;
+}
+
+void binocle_lua_reg(lua_State *L, const void* key) {
+  if(key==NULL) {
+    lua_pushstring(L, "Trying to register with a NULL key!");
+    lua_error(L);
+  }
+  lua_pushlightuserdata(L, (void*)key); // check if table exists
+  lua_gettable(L, LUA_REGISTRYINDEX);   //
+  if ( lua_isnil(L, -1) ) {
+    lua_pop(L,1);
+    lua_pushlightuserdata(L, (void*)key); // check if table exists
+    lua_newtable(L);
+    lua_settable(L, LUA_REGISTRYINDEX);
+  }
+  else lua_pop(L,1);  // already there
+}
+
+int binocle_lua_store(lua_State* L, const void* key, const char* name, void *data) {
+  int res = 0;
+  lua_pushlightuserdata(L, (void*)key);
+  lua_gettable(L, LUA_REGISTRYINDEX);
+  if ( lua_istable(L, -1) ) {
+    lua_pushlightuserdata(L, data);
+    lua_setfield(L, -2, name);
+    lua_pop(L,1); // pop registry
+    res = 1;
+  }
+  else {
+    printf("** set: couldn't get the associated registry.\n");
+    lua_pushfstring(L, "Can't get associated registry.");
+    lua_error(L);
+    //lua_pop(L,1); // nil
+  }
+  return res;
+}
+
+int lua_testffi(const char *arg, binocle_window *window) {
+  int status, result, i;
+  double sum;
+  lua_State *L;
+
+  /*
+   * All Lua contexts are held in this structure. We work with it almost
+   * all the time.
+   */
+  L = luaL_newstate();
+
+  luaL_openlibs(L); /* Load Lua libraries */
+
+  /* Load the file containing the script we are going to run */
+  status = luaL_loadfile(L, arg);
+  if (status) {
+    /* If something went wrong, error message is at the top of */
+    /* the stack */
+    fprintf(stderr, "Couldn't load file: %s\n", lua_tostring(L, -1));
+    return 1;
+  }
+
+  lua_pushlightuserdata(L, window);
+  lua_setglobal(L, "window");
+  //binocle_lua_store(L, window, "window", window);
+
+  /* Ask Lua to run our little script */
+  result = lua_pcall(L, 0, 0, 0);
+  if (result) {
+    fprintf(stderr, "Failed to run script: %s\n", lua_tostring(L, -1));
+    exit(1);
+  }
+
+  lua_close(L);   /* Cya, Lua */
+
+  return 0;
+}
