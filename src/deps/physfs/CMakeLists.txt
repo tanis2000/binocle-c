@@ -29,10 +29,7 @@ set(SOURCES
 	${SOURCES} 
 )
 
-	
-file(GLOB_RECURSE HEADERS 
-	*.h
-	)
+file(GLOB_RECURSE HEADERS *.h)
 
 if(APPLE)
 	file(GLOB APPLE_SOURCES
@@ -72,7 +69,7 @@ endif()
 # Define source files
 set_source_files_properties (${SOURCES} PROPERTIES LANGUAGE C)
 
-add_library(physfs OBJECT ${SOURCES})
+add_library(physfs OBJECT ${HEADERS} ${SOURCES})
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
 
