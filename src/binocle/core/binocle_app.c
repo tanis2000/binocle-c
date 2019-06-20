@@ -26,10 +26,12 @@ bool binocle_app_init(binocle_app *app) {
 
   binocle_fs_mount(binocle_sdl_assets_dir(), app->assets_mount_path, false);
 
+  binocle_sdl_init();
   return true;
 }
 
 void binocle_app_destroy(binocle_app *app) {
   binocle_fs_destroy(&app->fs);
   free(app->assets_mount_path);
+  binocle_sdl_exit();
 }

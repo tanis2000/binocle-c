@@ -171,9 +171,8 @@ void binocle_sprite_destroy(struct binocle_sprite *sprite);
  * @param scale the scale
  * @param camera the camera to apply
  */
-void binocle_sprite_draw(binocle_sprite sprite, struct binocle_gd *gd,
-                         int64_t x, int64_t y, kmAABB2 viewport, float rotation,
-                         kmVec2 scale, struct binocle_camera *camera);
+void binocle_sprite_draw(binocle_sprite *sprite, struct binocle_gd *gd, int64_t x, int64_t y, kmAABB2 *viewport, float rotation,
+                         kmVec2 *scale, struct binocle_camera *camera);
 
 /**
  * \brief Adds a frame of an animation to a sprite

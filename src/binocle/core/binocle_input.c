@@ -160,31 +160,31 @@ bool binocle_input_is_key_up(binocle_input input, int key) {
   return !input.currentKeys[key] && input.previousKeys[key];
 }
 
-bool binocle_input_is_key_pressed(binocle_input input, binocle_input_keyboard_key key) {
-  if (input.isLocked)
+bool binocle_input_is_key_pressed(binocle_input *input, binocle_input_keyboard_key key) {
+  if (input->isLocked)
     return false;
 
   int sdl_key = (int) (key);
 
-  if (input.currentKeys[sdl_key])
+  if (input->currentKeys[sdl_key])
     return true;
 
   return false;
 }
 
 bool binocle_input_shift(binocle_input input) {
-  return (binocle_input_is_key_pressed(input, KEY_LEFT_SHIFT) ||
-          binocle_input_is_key_pressed(input, KEY_RIGHT_SHIFT));
+  return (binocle_input_is_key_pressed(&input, KEY_LEFT_SHIFT) ||
+          binocle_input_is_key_pressed(&input, KEY_RIGHT_SHIFT));
 }
 
 bool binocle_input_ctrl(binocle_input input) {
-  return (binocle_input_is_key_pressed(input, KEY_LEFT_CTRL) ||
-          binocle_input_is_key_pressed(input, KEY_RIGHT_CTRL));
+  return (binocle_input_is_key_pressed(&input, KEY_LEFT_CTRL) ||
+          binocle_input_is_key_pressed(&input, KEY_RIGHT_CTRL));
 }
 
 bool binocle_input_alt(binocle_input input) {
-  return (binocle_input_is_key_pressed(input, KEY_LEFT_ALT) ||
-          binocle_input_is_key_pressed(input, KEY_RIGHT_ALT));
+  return (binocle_input_is_key_pressed(&input, KEY_LEFT_ALT) ||
+          binocle_input_is_key_pressed(&input, KEY_RIGHT_ALT));
 }
 
 bool binocle_input_is_mouse_down(binocle_input input, binocle_input_mouse_button button) {

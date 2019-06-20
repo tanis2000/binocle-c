@@ -371,7 +371,7 @@ bool binocle_input_is_key_up(binocle_input input, int key);
  * @param key the key to check
  * @return true if the key is pressed at the current frame
  */
-bool binocle_input_is_key_pressed(binocle_input input, binocle_input_keyboard_key key);
+bool binocle_input_is_key_pressed(binocle_input *input, binocle_input_keyboard_key key);
 
 /**
  * \brief Checks if one of the SHIFT keys is currently pressed, no matter the previous state
