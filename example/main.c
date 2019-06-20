@@ -20,6 +20,8 @@
 #include <binocle_shader.h>
 #include <binocle_material.h>
 #include <binocle_lua.h>
+#include <binocle_app.h>
+
 #define BINOCLE_MATH_IMPL
 #include "binocle_math.h"
 #include "binocle_gd.h"
@@ -54,6 +56,7 @@ binocle_audio audio;
 binocle_audio_sound sound;
 binocle_audio_music *music;
 char *binocle_data_dir;
+binocle_app app;
 
 #ifdef TWODLOOP
 void main_loop() {
@@ -270,6 +273,8 @@ void main_loop() {
 
 int main(int argc, char *argv[])
 {
+  app = binocle_app_new();
+  binocle_app_init(&app);
   binocle_sdl_init();
   window = binocle_window_new(320, 240, "Binocle Test Game");
   binocle_window_set_background_color(&window, binocle_color_azure());
@@ -392,6 +397,7 @@ int main(int argc, char *argv[])
   binocle_audio_unload_sound(&audio, sound);
   binocle_audio_unload_music_stream(&audio, music);
   binocle_audio_destroy(&audio);
+  binocle_app_destroy(&app);
   binocle_sdl_exit();
 }
 

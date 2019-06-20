@@ -6,10 +6,77 @@
 
 #include "binocle_lua.h"
 #include "binocle_window.h"
+#include "binocle_log.h"
+#include "binocle_fs.h"
+#include <sokol_time.h>
 
-#include <lua.h>
-#include <lualib.h>
-#include <lauxlib.h>
+binocle_lua binocle_lua_new() {
+  binocle_lua res = {0};
+  return res;
+}
+
+bool binocle_lua_init(binocle_lua *lua) {
+  lua->L = luaL_newstate();
+  if (lua->L == NULL) {
+    binocle_log_error("Cannot initialize Lua environment");
+    return false;
+  }
+
+  // Load the Lua libraries
+  luaL_openlibs(lua->L);
+
+  lua->last_check_time = stm_now();
+
+  return true;
+}
+
+void binocle_lua_destroy(binocle_lua *lua) {
+  if (lua->L != NULL) {
+    lua_close(lua->L);
+  }
+}
+
+bool binocle_lua_run_script(binocle_lua *lua, char *filename) {
+  int status = luaL_loadfile(lua->L, filename);
+  if (status) {
+    binocle_log_error("Couldn't load file: %s\n", lua_tostring(lua->L, -1));
+    return false;
+  }
+
+  // We call the script with 0 arguments and expect 0 results
+  int result = lua_pcall(lua->L, 0, 0, 0);
+  if (result) {
+    binocle_log_error("Failed to run script: %s\n", lua_tostring(lua->L, -1));
+    return false;
+  }
+
+  return true;
+}
+
+int binocle_lua_enumerate_callback(void *user_data, const char *path, const char *filename) {
+  char *search_path;
+  uint64_t mod_time;
+  binocle_lua *lua = (binocle_lua *)user_data;
+  int needed = SDL_snprintf(NULL, 0, "%s/%s", path, filename);
+  search_path = malloc(needed);
+  sprintf(search_path, "%s/%s", path, filename);
+  binocle_fs_get_last_modification_time(search_path, &mod_time);
+  if (mod_time > lua->last_check_time) {
+    binocle_lua_destroy(lua);
+    binocle_lua_init(lua);
+    return 0; // No more files please
+  }
+  return 1; // 1 means get more files
+}
+
+void binocle_lua_check_scripts_modification_time(binocle_lua *lua, char *path) {
+  char *search_path;
+  int needed = SDL_snprintf(NULL, 0, "%s/*.lua", path);
+  search_path = malloc(needed);
+  sprintf(search_path, "%s/*.lua", path);
+  binocle_fs_enumerate(search_path, binocle_lua_enumerate_callback, lua);
+  free(search_path);
+}
 
 static void close_state(lua_State **L) { lua_close(*L); }
 #define cleanup(x) __attribute__((cleanup(x)))
@@ -36,6 +103,7 @@ int lua_test(const char *arg) {
   printf("address: %s, port: %ld\n", /* (3) */
          lua_tostring(L, -2), lua_tointeger(L, -1));
   lua_settop(L, 0); /* (4) */
+  //return 0;
 }
 
 int lua_test2(const char *arg) {

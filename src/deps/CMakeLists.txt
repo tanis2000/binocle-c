@@ -3,6 +3,7 @@ add_subdirectory(freetype)
 add_subdirectory(luajit)
 add_subdirectory(kazmath)
 add_subdirectory(parson)
+add_subdirectory(physfs)
 add_subdirectory(rxi_map)
 add_subdirectory(zlib)
 

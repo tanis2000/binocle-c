@@ -6,12 +6,14 @@ set(BINOCLE_STATIC_LIBS
         $<TARGET_OBJECTS:freetype>
         $<TARGET_OBJECTS:kazmath>
         $<TARGET_OBJECTS:parson>
+        $<TARGET_OBJECTS:physfs>
         $<TARGET_OBJECTS:rxi_map>
         )
 
 
 if (NOT EMSCRIPTEN)
     set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
+            $<TARGET_OBJECTS:luajit-5.1>
             $<TARGET_OBJECTS:sdl>
             $<TARGET_OBJECTS:ogg>
             $<TARGET_OBJECTS:vorbis>

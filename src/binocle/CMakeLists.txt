@@ -11,6 +11,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/src/deps/stb_image
         ${CMAKE_SOURCE_DIR}/src/deps/kazmath
         ${CMAKE_SOURCE_DIR}/src/deps/luajit/src
+        ${CMAKE_SOURCE_DIR}/src/deps/physfs
+        ${CMAKE_SOURCE_DIR}/src/deps/sokol
         )
 
 file(GLOB CORE_SOURCE core/*.c core/*.h)
