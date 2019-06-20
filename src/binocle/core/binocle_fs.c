@@ -30,7 +30,7 @@ bool binocle_fs_mount(char *path, char *mount_point, bool prepend_to_search_path
     binocle_log_error(PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
     return false;
   }
-  binocle_log_info("Mounted %s at %s", path, mount_point);
+  binocle_log_info("Mounted %s at %s", path, PHYSFS_getMountPoint(path));
   return true;
 }
 
@@ -45,5 +45,7 @@ bool binocle_fs_get_last_modification_time(char *filename, uint64_t *modtime) {
 }
 
 void binocle_fs_enumerate(char * path, PHYSFS_EnumerateCallback callback, void *user_data) {
-  PHYSFS_enumerate(path, callback, user_data);
+  if (!PHYSFS_enumerate(path, callback, user_data)) {
+    binocle_log_error(PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+  }
 }

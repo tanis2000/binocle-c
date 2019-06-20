@@ -12,12 +12,14 @@
 #include <lauxlib.h>
 #include <inttypes.h>
 #include <stdbool.h>
+#include <time.h>
 
 struct binocle_window;
 
 typedef struct binocle_lua {
   lua_State *L;
-  uint64_t last_check_time;
+  time_t last_check_time;
+  char *last_script_run;
 } binocle_lua;
 
 
