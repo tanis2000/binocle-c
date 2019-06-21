@@ -21,3 +21,29 @@ if (DOXYGEN_FOUND)
 else (DOXYGEN_FOUND)
   message("Doxygen need to be installed to generate the doxygen documentation")
 endif (DOXYGEN_FOUND)
+
+find_package(Sphinx REQUIRED)
+
+if (SPHINX_FOUND)
+    set(SPHINX_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/docs)
+    set(SPHINX_BUILD ${CMAKE_CURRENT_BINARY_DIR}/doc_sphinx)
+    set(SPHINX_INDEX_FILE ${SPHINX_BUILD}/index.html)
+
+    message("Sphinx build started")
+    add_custom_command(OUTPUT ${SPHINX_INDEX_FILE}
+            COMMAND
+            ${SPHINX_EXECUTABLE} -b html
+            # Tell Breathe where to find the Doxygen output
+            -Dbreathe_projects.Binocle=${CMAKE_CURRENT_BINARY_DIR}/doc_doxygen/xml
+            ${SPHINX_SOURCE} ${SPHINX_BUILD}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            DEPENDS
+            # Other docs files you want to track should go here (or in some variable)
+            ${CMAKE_CURRENT_SOURCE_DIR}/docs/index.rst
+            ${CMAKE_CURRENT_BINARY_DIR}/doc_doxygen/xml/index.xml
+            MAIN_DEPENDENCY ${SPHINX_SOURCE}/conf.py
+            COMMENT "Generating documentation with Sphinx")
+    add_custom_target(doc_sphinx ALL DEPENDS ${SPHINX_INDEX_FILE})
+else (SPHINX_FOUND)
+    message("Sphinx need to be installed to generate the sphinx documentation")
+endif(SPHINX_FOUND)

@@ -1,2 +1,4 @@
 OUTPUT_DIRECTORY       = @CMAKE_CURRENT_BINARY_DIR@/doc_doxygen/
-INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/../src/ @CMAKE_CURRENT_SOURCE_DIR@/../docs
+INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/src/binocle/core @CMAKE_CURRENT_SOURCE_DIR@/docs
+RECURSIVE              = NO
+GENERATE_XML           = YES
