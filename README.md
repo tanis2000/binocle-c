@@ -163,7 +163,8 @@ Here's an [examples repository](https://github.com/tanis2000/binocle-c-examples)
 ## Projects using Binocle
 
 ![Santa frowns to town screenshot](images/screenshots/ld43-binocle-cover.png)
-[Santa frowns to town](https://tanis.itch.io/santa-frowns-to-town), my entry for Ludum Dare 43
+[Santa frowns to town](https://tanis.itch.io/santa-frowns-to-town), my entry for Ludum Dare 43.
+You can get the [source code here](https://github.com/tanis2000/ld43-binocle)
 
 ![Binocle Demo Tool screenshot](images/screenshots/binocle-demomaker-001.png)
 Binocle Demo Tool, my personal unreleased demo tool
