@@ -10,6 +10,8 @@ Welcome to Binocle's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   api
+
 
 
 Indices and tables
@@ -19,8 +21,3 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-Docs
-====
-
-.. doxygenstruct:: binocle_app
-   :members:

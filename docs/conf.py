@@ -45,7 +45,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -54,3 +54,28 @@ html_static_path = ['_static']
 
 # Breathe Configuration
 breathe_default_project = 'Binocle'
+
+# Read the Docs stuff
+import subprocess, os
+
+def configureDoxyfile(input_dir, output_dir):
+    with open('Doxyfile.in', 'r') as file :
+        filedata = file.read()
+
+    filedata = filedata.replace('@CMAKE_CURRENT_SOURCE_DIR@', input_dir)
+    filedata = filedata.replace('@CMAKE_CURRENT_BINARY_DIR@/doc_doxygen/', output_dir)
+
+    with open('Doxyfile', 'w') as file:
+        file.write(filedata)
+
+# Check if we're running on Read the Docs' servers
+read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
+
+breathe_projects = {}
+
+if read_the_docs_build:
+    input_dir = '..'
+    output_dir = 'build'
+    configureDoxyfile(input_dir, output_dir)
+    subprocess.call('doxygen', shell=True)
+    breathe_projects['Binocle'] = output_dir + '/xml'
