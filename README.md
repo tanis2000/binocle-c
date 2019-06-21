@@ -32,6 +32,12 @@ The API is evolving all the time but the core is pretty stable. I keep adding an
 - Timing functions
 - Viewport adapters for 2D pixel perfect images
 - Experimental hot code reloading for game code
+- Lua scripting through LuaJIT on supported platforms
+
+## Documentation
+
+The full documentation is available on [Read the Docs](http://binocle-c.readthedocs.io/)
+Please notice that the documentation is still a work in progress.
 
 ## Installing
 
@@ -63,6 +69,8 @@ The current libraries are the following:
 - Kazmath by Luke Benstead
 - stbimage
 - parson
+- LuaJIT
+- sokol_time
 
 ## Coordinate system
 
