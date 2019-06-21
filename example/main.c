@@ -73,26 +73,26 @@ void main_loop() {
   }
 
 
-  if (binocle_input_is_key_pressed(input, KEY_RIGHT)) {
+  if (binocle_input_is_key_pressed(&input, KEY_RIGHT)) {
     player_pos.x += 50 * (1.0/window.frame_time);
-  } else if (binocle_input_is_key_pressed(input, KEY_LEFT)) {
+  } else if (binocle_input_is_key_pressed(&input, KEY_LEFT)) {
     player_pos.x -= 50 * (1.0/window.frame_time);
   }
 
-  if (binocle_input_is_key_pressed(input, KEY_UP)) {
+  if (binocle_input_is_key_pressed(&input, KEY_UP)) {
     player_pos.y += 50 * (1.0/window.frame_time);
-  } else if (binocle_input_is_key_pressed(input, KEY_DOWN)) {
+  } else if (binocle_input_is_key_pressed(&input, KEY_DOWN)) {
     player_pos.y -= 50 * (1.0/window.frame_time);
   }
 
-  if (binocle_input_is_key_pressed(input, KEY_SPACE)) {
+  if (binocle_input_is_key_pressed(&input, KEY_SPACE)) {
     binocle_audio_play_sound(sound);
   }
 
-  if (binocle_input_is_key_pressed(input, KEY_1)) {
+  if (binocle_input_is_key_pressed(&input, KEY_1)) {
     binocle_audio_set_master_volume(&audio, audio.master_volume-0.2f);
   }
-  if (binocle_input_is_key_pressed(input, KEY_2)) {
+  if (binocle_input_is_key_pressed(&input, KEY_2)) {
     binocle_audio_set_master_volume(&audio, audio.master_volume+0.2f);
   }
 
@@ -100,7 +100,7 @@ void main_loop() {
   kmVec2 scale;
   scale.x = 1.0f;
   scale.y = 1.0f;
-  binocle_sprite_draw(player, &gd, (uint64_t)player_pos.x, (uint64_t)player_pos.y, adapter.viewport, 0, scale, &camera);
+  binocle_sprite_draw(&player, &gd, (uint64_t)player_pos.x, (uint64_t)player_pos.y, &adapter.viewport, 0, &scale, &camera);
   char fps_str[256];
   sprintf(fps_str, "FPS: %llu", binocle_window_get_fps(&window));
   kmMat4 view_matrix;
