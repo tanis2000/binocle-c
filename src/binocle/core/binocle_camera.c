@@ -277,3 +277,77 @@ void binocle_camera_handle_window_resize(binocle_camera camera, kmVec2 old_windo
 kmAABB2 binocle_camera_get_viewport(binocle_camera camera) {
   return binocle_camera_get_viewport_adapter(camera)->viewport;
 }
+
+/*
+ * Camera 3D
+ */
+
+binocle_camera_3d binocle_camera_3d_new(kmVec3 position, kmVec3 rotation, float near, float far, float fov_y) {
+  binocle_camera_3d res = {0};
+  res.fov_y = fov_y;
+  res.near = near;
+  res.far = far;
+  res.position = position;
+  res.rotation = rotation;
+  kmMat4Identity(&res.transform_matrix);
+  kmMat4Identity(&res.inverse_transform_matrix);
+  binocle_camera_3d_update_matrixes(&res);
+  return res;
+}
+
+void binocle_camera_3d_update_matrixes(binocle_camera_3d *camera) {
+  kmMat4 rot_x;
+  kmMat4 rot_y;
+  kmMat4 rot_z;
+
+  kmMat4Translation(&camera->transform_matrix, camera->position.x, camera->position.y, camera->position.z); // position
+  kmMat4RotationX(&rot_x, camera->rotation.x);
+  kmMat4RotationY(&rot_y, camera->rotation.y);
+  kmMat4RotationZ(&rot_z, camera->rotation.z);
+  kmMat4Multiply(&camera->transform_matrix, &camera->transform_matrix, &rot_x);
+  kmMat4Multiply(&camera->transform_matrix, &camera->transform_matrix, &rot_y);
+  kmMat4Multiply(&camera->transform_matrix, &camera->transform_matrix, &rot_z);
+
+  // calculate our inverse as well
+  kmMat4Inverse(&camera->inverse_transform_matrix, &camera->transform_matrix);
+}
+
+void binocle_camera_3d_set_position(binocle_camera_3d *camera, kmVec3 position) {
+  camera->position.x = position.x;
+  camera->position.y = position.y;
+  camera->position.z = position.z;
+  binocle_camera_3d_update_matrixes(camera);
+}
+
+void binocle_camera_3d_set_rotation(binocle_camera_3d *camera, kmVec3 rotation) {
+  camera->rotation.x = rotation.x;
+  camera->rotation.y = rotation.y;
+  camera->rotation.z = rotation.z;
+  binocle_camera_3d_update_matrixes(camera);
+}
+void binocle_camera_3d_set_near(binocle_camera_3d *camera, float near) {
+  camera->near = near;
+  // TODO: we're not taking this into account
+}
+void binocle_camera_3d_set_far(binocle_camera_3d *camera, float far) {
+  camera->far = far;
+  // TODO: we're not taking this into account
+}
+
+kmMat4 *binocle_camera_3d_get_transform_matrix(binocle_camera_3d *camera) {
+  return &camera->transform_matrix;
+}
+
+void binocle_camera_3d_translate(binocle_camera_3d *camera, float x, float y, float z) {
+  camera->position.x += x;
+  camera->position.y += y;
+  camera->position.z += z;
+  binocle_camera_3d_update_matrixes(camera);
+}
+
+void binocle_camera_3d_rotate(binocle_camera_3d *camera, float x, float y, float z) {
+  camera->rotation.x += x;
+  camera->rotation.y += y;
+  camera->rotation.z += z;
+  binocle_camera_3d_update_matrixes(camera);
+}

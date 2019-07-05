@@ -28,4 +28,13 @@ typedef struct binocle_vpct {
  */
 binocle_vpct binocle_vpct_new(kmVec2 pos, binocle_color color, kmVec2 tex);
 
+typedef struct binocle_vpctn {
+  kmVec3 pos;
+  binocle_color color;
+  kmVec2 tex;
+  kmVec3 normal;
+} binocle_vpctn;
+
+binocle_vpctn binocle_vpctn_new(kmVec3 pos, binocle_color color, kmVec2 tex, kmVec3 normal);
+
 #endif //BINOCLE_VPCT_H

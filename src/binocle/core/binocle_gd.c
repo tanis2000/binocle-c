@@ -14,6 +14,7 @@
 #include "binocle_texture.h"
 #include "binocle_camera.h"
 #include "binocle_log.h"
+#include "binocle_model.h"
 
 void binocle_gd_gl_check_error(const char *file, unsigned int line, const char *expression) {
   // Get the last error
@@ -200,6 +201,14 @@ void binocle_gd_apply_gl_states() {
   //glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
   //glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
 
+  glCheck(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+}
+
+
+void binocle_gd_apply_3d_gl_states() {
+  glCheck(glDisable(GL_CULL_FACE));
+  glCheck(glEnable(GL_DEPTH_TEST));
+  glCheck(glEnable(GL_BLEND));
   glCheck(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 }
 
@@ -742,5 +751,188 @@ void binocle_gd_draw_with_state(binocle_gd *gd, const binocle_vpct *vertices, si
   glCheck(glBindTexture(GL_TEXTURE_2D, 0));
   glCheck(glBindBuffer(GL_ARRAY_BUFFER, 0));
 
+}
+
+void binocle_gd_draw_mesh(binocle_gd *gd, const struct binocle_mesh *mesh, kmAABB2 viewport, struct binocle_camera_3d *camera) {
+  if (camera == NULL) {
+    binocle_log_warning("Missing camera for call to binocle_gd_draw_mesh");
+    return;
+  }
+  binocle_gd_apply_3d_gl_states();
+  binocle_gd_apply_viewport(viewport);
+  binocle_gd_apply_blend_mode(mesh->material->blend_mode);
+  binocle_gd_apply_shader(gd, *mesh->material->shader);
+  binocle_gd_apply_texture(*mesh->material->texture);
+
+  kmMat4 projectionMatrix;
+  kmMat4Identity(&projectionMatrix);
+  /*
+  kmMat4 projectionMatrix = binocle_math_create_orthographic_matrix_off_center(viewport.min.x, viewport.max.x,
+                                                                               viewport.min.y, viewport.max.y, -1000.0f,
+                                                                               1000.0f);
+                                                                               */
+
+  kmMat4PerspectiveProjection(&projectionMatrix, camera->fov_y, viewport.max.x / viewport.max.y, camera->near, camera->far);
+
+  /*
+  kmVec3 eye;
+  eye.x = 0;
+  eye.y = 0;
+  eye.z = 0.0f;
+  kmVec3 center;
+  center.x = 0;
+  center.y = 0;
+  center.z = 0;
+  kmVec3 up;
+  up.x = 0;
+  up.y = 1.0f;
+  up.z = 0;
+  kmMat4LookAt(&projectionMatrix, &eye, &center, &up);
+  */
+
+  kmMat4 viewMatrix;
+  kmMat4Identity(&viewMatrix);
+  /*
+  kmMat4 trans;
+  kmMat4Translation(&trans, 0, 0, -500.0f);
+  kmMat4Multiply(&viewMatrix, &viewMatrix, &trans);
+  */
+  kmMat4Multiply(&viewMatrix, &viewMatrix, binocle_camera_3d_get_transform_matrix(camera));
+
+  kmMat4 modelMatrix;
+  modelMatrix = mesh->transform;
+  /*
+  kmMat4Identity(&modelMatrix);
+  kmMat4 rot;
+  kmVec3 axis;
+  axis.x = 1.0f;
+  axis.y = 0;
+  axis.z = 0;
+  kmMat4RotationAxisAngle(&rot, &axis, kmDegreesToRadians(-55.0f));
+  kmMat4Multiply(&modelMatrix, &modelMatrix, &rot);
+   */
+
+  glCheck(glEnableVertexAttribArray(gd->vertex_attribute));
+  glCheck(glEnableVertexAttribArray(gd->color_attribute));
+  glCheck(glEnableVertexAttribArray(gd->tex_coord_attribute));
+
+  glCheck(glBindBuffer(GL_ARRAY_BUFFER, gd->vbo));
+  glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(binocle_vpctn) * mesh->vertex_count, mesh->vertices, GL_STATIC_DRAW));
+
+  glCheck(glVertexAttribPointer(gd->vertex_attribute, 3, GL_FLOAT, GL_FALSE, sizeof(binocle_vpctn), 0));
+  glCheck(glVertexAttribPointer(gd->color_attribute, 4, GL_FLOAT, GL_FALSE, sizeof(binocle_vpctn),
+                                (void *) (3 * sizeof(GLfloat))));
+  glCheck(glVertexAttribPointer(gd->tex_coord_attribute, 2, GL_FLOAT, GL_FALSE, sizeof(binocle_vpctn),
+                                (void *) (4 * sizeof(GLfloat) + 3 * sizeof(GLfloat))));
+
+  //kmMat4 finalMatrix = Matrix4::mul(state.transform,projectionMatrix);
+  //kmMat4 inverseMatrix: Matrix4<f32> = Matrix4::from_nonuniform_scale(1.0, 1.0, 1.0);
+
+  glCheck(glUniformMatrix4fv(gd->projection_matrix_uniform, 1, GL_FALSE, projectionMatrix.mat));
+  //glCheck(glUniformMatrix4fv(gd->model_view_matrix_uniform, 1, GL_FALSE, modelViewMatrix.mat));
+  glCheck(glUniformMatrix4fv(gd->view_matrix_uniform, 1, GL_FALSE, viewMatrix.mat));
+  glCheck(glUniformMatrix4fv(gd->model_matrix_uniform, 1, GL_FALSE, modelMatrix.mat));
+
+  glCheck(glUniform1i(gd->image_uniform, 0));
+
+  glCheck(glDrawArrays(GL_TRIANGLES, 0, mesh->vertex_count));
+
+  //GLuint quad_indexbuffer;
+  //glCheck(glGenBuffers(1, &quad_indexbuffer));
+  //glCheck(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quad_indexbuffer));
+  //glCheck(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * mesh->triangle_count * 3, mesh->indices, GL_STATIC_DRAW));
+  //glCheck(glDrawElements(GL_TRIANGLES, mesh->triangle_count * 3, GL_UNSIGNED_INT, 0));
+
+
+  glCheck(glDisableVertexAttribArray(gd->vertex_attribute));
+  glCheck(glDisableVertexAttribArray(gd->color_attribute));
+  glCheck(glDisableVertexAttribArray(gd->tex_coord_attribute));
+  glCheck(glUseProgram(GL_ZERO));
+
+  glCheck(glBindTexture(GL_TEXTURE_2D, 0));
+  glCheck(glBindBuffer(GL_ARRAY_BUFFER, 0));
+
+  //glCheck(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+  //glCheck(glDeleteBuffers(1, &quad_indexbuffer));
+
+
+}
+
+void binocle_gd_draw_test_triangle(struct binocle_shader shader) {
+  static const GLfloat g_quad_vertex_buffer_data[] = {
+    -0.5f, -0.5f, 0.0f,
+    0.5f, -0.5f, 0.0f,
+    0.0f, 0.5f, 0.0f
+  };
+
+  GLuint quad_vertexbuffer;
+  glCheck(glGenBuffers(1, &quad_vertexbuffer));
+  glCheck(glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer));
+  glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW));
+  GLint pos_id;
+  glCheck(pos_id = glGetAttribLocation(shader.program_id, "vertexPosition"));
+  glCheck(glVertexAttribPointer(pos_id, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, 0));
+  glCheck(glEnableVertexAttribArray(pos_id));
+  glCheck(glDrawArrays(GL_TRIANGLES, 0, 3));
+
+  glCheck(glDisableVertexAttribArray(pos_id));
+  glCheck(glBindBuffer(GL_ARRAY_BUFFER, 0));
+  glCheck(glDeleteBuffers(1, &quad_vertexbuffer));
+}
+
+void binocle_gd_draw_test_cube(struct binocle_shader shader) {
+  static GLfloat g_quad_vertex_buffer_data[] = {
+    0.5f, -0.5f, -0.5f,
+    0.5f, -0.5f, 0.5f,
+    -0.5f, -0.5f, 0.5f,
+    -0.5f, -0.5f, -0.5f,
+    0.5f, 0.5f, -0.5f,
+    0.5f, 0.5f, 0.5f,
+    -0.5f, 0.5f, 0.5f,
+    -0.5f, 0.5f, -0.5f
+  };
+
+  static const GLuint index_buffer_data[] = {
+    0, 1, 2,
+    0, 2, 3,
+    4, 7, 6,
+    4, 6, 5,
+    0, 4, 5,
+    0, 5, 1,
+    1, 5, 6,
+    1, 6, 2,
+    2, 6, 7,
+    2, 7, 3,
+    4, 0, 3,
+    4, 3, 7
+  };
+
+  /*
+  for (int i = 0 ; i < sizeof(g_quad_vertex_buffer_data) ; i++) {
+    g_quad_vertex_buffer_data[i] /= 2;
+  }
+   */
+
+  GLuint quad_vertexbuffer;
+  glCheck(glGenBuffers(1, &quad_vertexbuffer));
+  glCheck(glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer));
+  glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW));
+  GLint pos_id;
+  glCheck(pos_id = glGetAttribLocation(shader.program_id, "vertexPosition"));
+  glCheck(glVertexAttribPointer(pos_id, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, 0));
+  glCheck(glEnableVertexAttribArray(pos_id));
+  //glCheck(glDrawArrays(GL_TRIANGLES, 0, 8));
+
+  GLuint quad_indexbuffer;
+  glCheck(glGenBuffers(1, &quad_indexbuffer));
+  glCheck(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quad_indexbuffer));
+  glCheck(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(index_buffer_data), index_buffer_data, GL_STATIC_DRAW));
+  glCheck(glDrawElements(GL_TRIANGLES, 12*3, GL_UNSIGNED_INT, 0));
+
+  glCheck(glDisableVertexAttribArray(pos_id));
+  glCheck(glBindBuffer(GL_ARRAY_BUFFER, 0));
+  glCheck(glDeleteBuffers(1, &quad_vertexbuffer));
+  glCheck(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+  glCheck(glDeleteBuffers(1, &quad_indexbuffer));
 }
 

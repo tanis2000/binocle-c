@@ -76,8 +76,8 @@ void binocle_window_resize(binocle_window *win, char *title, uint32_t width, uin
   binocle_window_destroy(win);
 #if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN)
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 #endif
 
   int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN;

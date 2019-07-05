@@ -18,6 +18,8 @@ struct binocle_render_state;
 struct binocle_shader;
 struct binocle_texture;
 struct binocle_vpct;
+struct binocle_mesh;
+struct binocle_camera_3d;
 
 enum binocle_blend_factor;
 enum binocle_blend_equation;
@@ -307,5 +309,10 @@ void binocle_gd_draw_circle(binocle_gd *gd, kmVec2 center, float radius, struct 
  */
 void binocle_gd_draw_with_state(binocle_gd *gd, const struct binocle_vpct *vertices, size_t vertex_count,
                                 struct binocle_render_state *render_state);
+
+void binocle_gd_draw_mesh(binocle_gd *gd, const struct binocle_mesh *mesh, kmAABB2 viewport, struct binocle_camera_3d *camera);
+void binocle_gd_draw_test_triangle(struct binocle_shader shader);
+void binocle_gd_draw_test_cube(struct binocle_shader shader);
+void binocle_gd_apply_3d_gl_states();
 
 #endif // BINOCLE_GD_H

@@ -13,21 +13,24 @@
 
 struct binocle_viewport_adapter;
 
+/**
+ * 2D Camera
+ */
 typedef struct binocle_camera {
-  kmMat4 transform_matrix;
-  kmMat4 inverse_transform_matrix;
-  kmVec2 position;
-  kmVec2 origin;
-  float rotation;
-  float zoom;
-  float min_zoom;
-  float max_zoom;
-  bool are_matrixes_dirty;
-  bool are_bounds_dirty;
-  kmAABB2 bounds;
-  struct binocle_viewport_adapter *viewport_adapter;
-  float near_distance;
-  float far_distance;
+  kmMat4 transform_matrix; // the matrix representing the camera
+  kmMat4 inverse_transform_matrix; // the inverse of the camera transform matrix
+  kmVec2 position; // the position of the camera
+  kmVec2 origin; // the origin of the camera
+  float rotation; // the rotation
+  float zoom; // the zoom level
+  float min_zoom; // the minimum zoom level
+  float max_zoom; // the maximum zoom level
+  bool are_matrixes_dirty; // true if matrices need to be updates
+  bool are_bounds_dirty; // true if bounds have changed and need to be adjusted
+  kmAABB2 bounds; // the camera bounds
+  struct binocle_viewport_adapter *viewport_adapter; // the viewport adapter
+  float near_distance; // the near distance
+  float far_distance; // the far distance
 } binocle_camera;
 
 /**
@@ -112,5 +115,25 @@ kmMat4 binocle_camera_get_projection_matrix(binocle_camera camera);
  * @return The view projection matrix
  */
 kmMat4 binocle_camera_get_view_projection_matrix(binocle_camera camera);
+
+typedef struct binocle_camera_3d {
+  kmMat4 transform_matrix;
+  kmMat4 inverse_transform_matrix;
+  kmVec3 position;
+  kmVec3 rotation;
+  float fov_y;
+  float near;
+  float far;
+} binocle_camera_3d;
+
+binocle_camera_3d binocle_camera_3d_new(kmVec3 position, kmVec3 rotation, float near, float far, float fov_y);
+void binocle_camera_3d_update_matrixes(binocle_camera_3d *camera);
+void binocle_camera_3d_set_position(binocle_camera_3d *camera, kmVec3 position);
+void binocle_camera_3d_set_rotation(binocle_camera_3d *camera, kmVec3 rotation);
+void binocle_camera_3d_set_near(binocle_camera_3d *camera, float near);
+void binocle_camera_3d_set_far(binocle_camera_3d *camera, float far);
+kmMat4 *binocle_camera_3d_get_transform_matrix(binocle_camera_3d *camera);
+void binocle_camera_3d_translate(binocle_camera_3d *camera, float x, float y, float z);
+void binocle_camera_3d_rotate(binocle_camera_3d *camera, float x, float y, float z);
 
 #endif //BINOCLE_CAMERA_H

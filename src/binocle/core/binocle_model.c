@@ -11,6 +11,7 @@
 #include "binocle_texture.h"
 #include "binocle_image.h"
 #include "binocle_shader.h"
+#include "binocle_vpct.h"
 
 #define TINYOBJ_LOADER_C_IMPLEMENTATION
 #include <tiniobj_loader_c/tinyobj_loader_c.h>
@@ -39,7 +40,7 @@ binocle_model binocle_model_load_obj(char *filename) {
     binocle_log_info("Loaded model data for %s: %i meshes and %i materials", filename, mesh_count, material_count);
   }
 
-  model.mesh_count = mesh_count;
+  model.mesh_count = 1; //mesh_count;
   model.meshes = malloc(model.mesh_count * sizeof(binocle_mesh));
   memset(model.meshes, 0, model.mesh_count * sizeof(binocle_model));
   model.material_count = material_count;
@@ -51,96 +52,110 @@ binocle_model binocle_model_load_obj(char *filename) {
   for (int i = 0 ; i < model.mesh_count; i++) {
     binocle_mesh mesh = {0};
     memset(&mesh, 0, sizeof(binocle_mesh));
-    mesh.vertex_count = attrib.num_faces * 3; // they are triangles
-    mesh.triangle_count = attrib.num_faces;
-    mesh.vertices = malloc(mesh.vertex_count * 3 * sizeof(float)); // XYZ
-    memset(mesh.vertices, 0, mesh.vertex_count * 3 * sizeof(float));
-    mesh.texture_coords = malloc(mesh.vertex_count * 2 * sizeof(float)); // UV
-    memset(mesh.texture_coords, 0, mesh.vertex_count * 2 * sizeof(float));
-    mesh.normals = malloc(mesh.vertex_count * 3 * sizeof(float)); // XYZ
-    memset(mesh.normals, 0, mesh.vertex_count * 3 * sizeof(float));
+    kmMat4Identity(&mesh.transform);
+    mesh.triangle_count = attrib.num_face_num_verts;
+    mesh.vertex_count = attrib.num_face_num_verts * 3;
+    mesh.vertices = malloc(mesh.vertex_count * sizeof(binocle_vpctn));
+    memset(mesh.vertices, 0, mesh.vertex_count * sizeof(binocle_vpctn));
+    mesh.indices = malloc(mesh.triangle_count * 3 * sizeof(uint32_t));
+    memset(mesh.indices, 0, mesh.triangle_count * 3 * sizeof(uint32_t));
 
-    int v_count = 0;
-    int vt_count = 0;
-    int vn_count = 0;
-    size_t face_offset = 0;
+    /*
+    for (int j = 0 ; j < mesh.vertex_count ; j++) {
+      mesh.vertices[j].pos.x = attrib.vertices[j * 3 + 0];
+      mesh.vertices[j].pos.y = attrib.vertices[j * 3 + 1];
+      mesh.vertices[j].pos.z = attrib.vertices[j * 3 + 2];
+    }
+     */
+
+    /*
+    for (int j = 0 ; j < attrib.num_normals ; j++) {
+      mesh.vertices[j].normal.x = attrib.normals[j * 3 + 0];
+      mesh.vertices[j].normal.y = attrib.normals[j * 3 + 1];
+      mesh.vertices[j].normal.z = attrib.normals[j * 3 + 2];
+    }
+
+    for (int j = 0 ; j < attrib.num_texcoords ; j++) {
+      mesh.vertices[j].tex.x = attrib.texcoords[j * 2 + 0];
+      mesh.vertices[j].tex.y = attrib.texcoords[j * 2 + 1];
+    }
+     */
+
+
 
     for (int j = 0 ; j < attrib.num_face_num_verts ; j++) {
-      assert(attrib.face_num_verts[i] % 3 == 0); // assume it's all triangle faces
-      for (int f = 0 ; f < attrib.face_num_verts[i] / 3 ; f++) {
-        tinyobj_vertex_index_t idx0 = attrib.faces[face_offset + f * 3 + 0];
-        tinyobj_vertex_index_t idx1 = attrib.faces[face_offset + f * 3 + 1];
-        tinyobj_vertex_index_t idx2 = attrib.faces[face_offset + f * 3 + 2];
+      tinyobj_vertex_index_t idx_0 = attrib.faces[j * 3 + 0];
+      tinyobj_vertex_index_t idx_1 = attrib.faces[j * 3 + 1];
+      tinyobj_vertex_index_t idx_2 = attrib.faces[j * 3 + 2];
 
-        assert(idx0.v_idx >= 0);
-        assert(idx1.v_idx >= 0);
-        assert(idx2.v_idx >= 0);
+      mesh.vertices[j * 3 + 0].pos.x = attrib.vertices[idx_0.v_idx * 3 + 0];
+      mesh.vertices[j * 3 + 0].pos.y = attrib.vertices[idx_0.v_idx * 3 + 1];
+      mesh.vertices[j * 3 + 0].pos.z = attrib.vertices[idx_0.v_idx * 3 + 2];
 
+      mesh.vertices[j * 3 + 1].pos.x = attrib.vertices[idx_1.v_idx * 3 + 0];
+      mesh.vertices[j * 3 + 1].pos.y = attrib.vertices[idx_1.v_idx * 3 + 1];
+      mesh.vertices[j * 3 + 1].pos.z = attrib.vertices[idx_1.v_idx * 3 + 2];
 
-        // vertices
-        for (int k = 0 ; k < 3 ; k++) {
-          mesh.vertices[v_count + k] = attrib.vertices[idx0.v_idx * 3 + k];
-        }
-        v_count += 3;
+      mesh.vertices[j * 3 + 2].pos.x = attrib.vertices[idx_2.v_idx * 3 + 0];
+      mesh.vertices[j * 3 + 2].pos.y = attrib.vertices[idx_2.v_idx * 3 + 1];
+      mesh.vertices[j * 3 + 2].pos.z = attrib.vertices[idx_2.v_idx * 3 + 2];
 
-        for (int k = 0 ; k < 3 ; k++) {
-          mesh.vertices[v_count + k] = attrib.vertices[idx1.v_idx * 3 + k];
-        }
-        v_count += 3;
+      //mesh.indices[j * 3 + 0] = idx_0.v_idx;
+      //mesh.indices[j * 3 + 1] = idx_1.v_idx;
+      //mesh.indices[j * 3 + 2] = idx_2.v_idx;
 
-        for (int k = 0 ; k < 3 ; k++) {
-          mesh.vertices[v_count + k] = attrib.vertices[idx2.v_idx * 3 + k];
-        }
-        v_count += 3;
+      binocle_log_info("Face %i index: v %i/%i/%i . vt %i/%i/%i . vn %i/%i/%i\n", j, idx_0.v_idx, idx_1.v_idx, idx_2.v_idx, idx_0.vt_idx, idx_1.vt_idx, idx_2.vt_idx, idx_0.vn_idx, idx_1.vn_idx, idx_2.vn_idx);
 
-
-
-        // texture coords
-        // we flip Y
-        if (attrib.num_texcoords > 0) {
-          mesh.texture_coords[vt_count + 0] = attrib.texcoords[idx0.vt_idx*2 + 0];
-          mesh.texture_coords[vt_count + 1] = 1.0f - attrib.texcoords[idx0.vt_idx*2 + 1];
-          vt_count += 2;
-
-          mesh.texture_coords[vt_count + 0] = attrib.texcoords[idx1.vt_idx*2 + 0];
-          mesh.texture_coords[vt_count + 1] = 1.0f - attrib.texcoords[idx1.vt_idx*2 + 1];
-          vt_count += 2;
-
-          mesh.texture_coords[vt_count + 0] = attrib.texcoords[idx2.vt_idx*2 + 0];
-          mesh.texture_coords[vt_count + 1] = 1.0f - attrib.texcoords[idx2.vt_idx*2 + 1];
-          vt_count += 2;
-        }
-
-        // normals
-        if (attrib.num_normals > 0) {
-          if (idx0.vn_idx >= 0 && idx1.vn_idx >= 0 && idx2.vn_idx >= 0) {
-            assert(idx0.vn_idx < attrib.num_normals);
-            assert(idx1.vn_idx < attrib.num_normals);
-            assert(idx2.vn_idx < attrib.num_normals);
-            for (int k = 0; k < 3; k++) {
-              mesh.normals[vn_count + k] = attrib.normals[idx0.vn_idx*3 + k];
-            }
-            vn_count +=3;
-            for (int k = 0; k < 3; k++) {
-              mesh.normals[vn_count + k] = attrib.normals[idx1.vn_idx*3 + k];
-            }
-            vn_count +=3;
-            for (int k = 0; k < 3; k++) {
-              mesh.normals[vn_count + k] = attrib.normals[idx2.vn_idx*3 + k];
-            }
-            vn_count +=3;
-          } else {
-            // TODO: compute the normals for this face by hand
-            vn_count +=3;
-          }
-        } else {
-          // TODO: compute normals by hand
-        }
-
+      if (idx_0.vt_idx >= 0) {
+        mesh.vertices[j * 3 + 0].tex.x = attrib.texcoords[idx_0.vt_idx * 2 + 0];
+        mesh.vertices[j * 3 + 0].tex.y = attrib.texcoords[idx_0.vt_idx * 2 + 1];
+        binocle_log_info("Face %i vert %i tex coords: %f %f", j, j * 3 + 0, mesh.vertices[j * 3 + 0].tex.x, mesh.vertices[j * 3 + 0].tex.y);
       }
-      face_offset += (size_t)attrib.face_num_verts[i];
+      if (idx_1.vt_idx >= 0) {
+        mesh.vertices[j * 3 + 1].tex.x = attrib.texcoords[idx_1.vt_idx * 2 + 0];
+        mesh.vertices[j * 3 + 1].tex.y = attrib.texcoords[idx_1.vt_idx * 2 + 1];
+        binocle_log_info("Face %i vert %i tex coords: %f %f", j, j * 3 + 1, mesh.vertices[j * 3 + 1].tex.x, mesh.vertices[j * 3 + 1].tex.y);
+      }
+      if (idx_2.vt_idx >= 0) {
+        mesh.vertices[j * 3 + 2].tex.x = attrib.texcoords[idx_2.vt_idx * 2 + 0];
+        mesh.vertices[j * 3 + 2].tex.y = attrib.texcoords[idx_2.vt_idx * 2 + 1];
+        binocle_log_info("Face %i vert %i tex coords: %f %f", j, j * 3 + 2, mesh.vertices[j * 3 + 2].tex.x, mesh.vertices[j * 3 + 2].tex.y);
+      }
 
+      /*
+      if (attrib.num_normals > 0) {
+        if (idx_0.vn_idx >= 0) {
+          mesh.vertices[idx_0.v_idx].normal.x = attrib.normals[idx_0.vn_idx * 3 + 0];
+          mesh.vertices[idx_0.v_idx].normal.y = attrib.normals[idx_0.vn_idx * 3 + 1];
+          mesh.vertices[idx_0.v_idx].normal.z = attrib.normals[idx_0.vn_idx * 3 + 2];
+        }
+        if (idx_1.vn_idx >= 0) {
+          mesh.vertices[idx_1.v_idx].normal.x = attrib.normals[idx_1.vn_idx * 3 + 0];
+          mesh.vertices[idx_1.v_idx].normal.y = attrib.normals[idx_1.vn_idx * 3 + 1];
+          mesh.vertices[idx_1.v_idx].normal.z = attrib.normals[idx_1.vn_idx * 3 + 2];
+        }
+        if (idx_2.vn_idx >= 0) {
+          mesh.vertices[idx_2.v_idx].normal.x = attrib.normals[idx_2.vn_idx * 3 + 0];
+          mesh.vertices[idx_2.v_idx].normal.y = attrib.normals[idx_2.vn_idx * 3 + 1];
+          mesh.vertices[idx_2.v_idx].normal.z = attrib.normals[idx_2.vn_idx * 3 + 2];
+        }
+      }
+      */
     }
+
+    for (int j = 0 ; j < mesh.vertex_count ; j++) {
+      mesh.vertices[j].color.a = 1.0f;
+      mesh.vertices[j].color.r = 1.0f;
+      mesh.vertices[j].color.g = 1.0f;
+      mesh.vertices[j].color.b = 1.0f;
+    }
+
+
+    binocle_material mesh_default_material = binocle_material_new();
+    mesh_default_material.shader = &binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT];
+    //mesh.material = &mesh_default_material;
+    mesh.material = malloc(sizeof(binocle_material));
+    memcpy(mesh.material, &mesh_default_material, sizeof(binocle_material));
     model.meshes[i] = mesh;
     model.mesh_materials[i] = attrib.material_ids[i];
   }
@@ -166,4 +181,30 @@ binocle_model binocle_model_load_obj(char *filename) {
   binocle_log_info("Model %s loaded successfully", filename);
 
   return model;
+}
+
+void binocle_model_compute_normal(float N[3], float v0[3], float v1[3], float v2[3]) {
+  float v10[3];
+  float v20[3];
+  float len2;
+
+  v10[0] = v1[0] - v0[0];
+  v10[1] = v1[1] - v0[1];
+  v10[2] = v1[2] - v0[2];
+
+  v20[0] = v2[0] - v0[0];
+  v20[1] = v2[1] - v0[1];
+  v20[2] = v2[2] - v0[2];
+
+  N[0] = v20[1] * v10[2] - v20[2] * v10[1];
+  N[1] = v20[2] * v10[0] - v20[0] * v10[2];
+  N[2] = v20[0] * v10[1] - v20[1] * v10[0];
+
+  len2 = N[0] * N[0] + N[1] * N[1] + N[2] * N[2];
+  if (len2 > 0.0f) {
+    float len = (float)sqrt((double)len2);
+
+    N[0] /= len;
+    N[1] /= len;
+  }
 }

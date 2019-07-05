@@ -128,7 +128,7 @@ extern void tinyobj_materials_free(tinyobj_material_t *materials,
 #define TINYOBJ_FREE free
 #endif
 
-#define TINYOBJ_MAX_FACES_PER_F_LINE (16)
+#define TINYOBJ_MAX_FACES_PER_F_LINE (100)
 
 #define IS_SPACE(x) (((x) == ' ') || ((x) == '\t'))
 #define IS_DIGIT(x) ((unsigned int)((x) - '0') < (unsigned int)(10))
