@@ -104,22 +104,22 @@ binocle_model binocle_model_load_obj(char *filename) {
       //mesh.indices[j * 3 + 1] = idx_1.v_idx;
       //mesh.indices[j * 3 + 2] = idx_2.v_idx;
 
-      binocle_log_info("Face %i index: v %i/%i/%i . vt %i/%i/%i . vn %i/%i/%i\n", j, idx_0.v_idx, idx_1.v_idx, idx_2.v_idx, idx_0.vt_idx, idx_1.vt_idx, idx_2.vt_idx, idx_0.vn_idx, idx_1.vn_idx, idx_2.vn_idx);
+      //binocle_log_info("Face %i index: v %i/%i/%i . vt %i/%i/%i . vn %i/%i/%i\n", j, idx_0.v_idx, idx_1.v_idx, idx_2.v_idx, idx_0.vt_idx, idx_1.vt_idx, idx_2.vt_idx, idx_0.vn_idx, idx_1.vn_idx, idx_2.vn_idx);
 
       if (idx_0.vt_idx >= 0) {
         mesh.vertices[j * 3 + 0].tex.x = attrib.texcoords[idx_0.vt_idx * 2 + 0];
         mesh.vertices[j * 3 + 0].tex.y = attrib.texcoords[idx_0.vt_idx * 2 + 1];
-        binocle_log_info("Face %i vert %i tex coords: %f %f", j, j * 3 + 0, mesh.vertices[j * 3 + 0].tex.x, mesh.vertices[j * 3 + 0].tex.y);
+        //binocle_log_info("Face %i vert %i tex coords: %f %f", j, j * 3 + 0, mesh.vertices[j * 3 + 0].tex.x, mesh.vertices[j * 3 + 0].tex.y);
       }
       if (idx_1.vt_idx >= 0) {
         mesh.vertices[j * 3 + 1].tex.x = attrib.texcoords[idx_1.vt_idx * 2 + 0];
         mesh.vertices[j * 3 + 1].tex.y = attrib.texcoords[idx_1.vt_idx * 2 + 1];
-        binocle_log_info("Face %i vert %i tex coords: %f %f", j, j * 3 + 1, mesh.vertices[j * 3 + 1].tex.x, mesh.vertices[j * 3 + 1].tex.y);
+        //binocle_log_info("Face %i vert %i tex coords: %f %f", j, j * 3 + 1, mesh.vertices[j * 3 + 1].tex.x, mesh.vertices[j * 3 + 1].tex.y);
       }
       if (idx_2.vt_idx >= 0) {
         mesh.vertices[j * 3 + 2].tex.x = attrib.texcoords[idx_2.vt_idx * 2 + 0];
         mesh.vertices[j * 3 + 2].tex.y = attrib.texcoords[idx_2.vt_idx * 2 + 1];
-        binocle_log_info("Face %i vert %i tex coords: %f %f", j, j * 3 + 2, mesh.vertices[j * 3 + 2].tex.x, mesh.vertices[j * 3 + 2].tex.y);
+        //binocle_log_info("Face %i vert %i tex coords: %f %f", j, j * 3 + 2, mesh.vertices[j * 3 + 2].tex.x, mesh.vertices[j * 3 + 2].tex.y);
       }
 
       /*

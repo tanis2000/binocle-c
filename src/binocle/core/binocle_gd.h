@@ -246,6 +246,14 @@ void binocle_gd_set_uniform_render_target_as_texture(
     binocle_render_target render_target);
 
 /**
+ * \brief Sets a uniform vec3 value
+ * @param shader the shader
+ * @param name the name of the uniform
+ * @param vec the vec3 value
+ */
+void binocle_gd_set_uniform_vec3(struct binocle_shader shader, const char *name, kmVec3 vec);
+
+/**
  * \brief Sets a uniform mat4 value
  * @param shader the shader
  * @param name the name of the uniform

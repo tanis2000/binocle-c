@@ -239,6 +239,8 @@ void binocle_gd_apply_shader(binocle_gd *gd, binocle_shader shader) {
 void binocle_gd_apply_texture(binocle_texture texture) {
   glCheck(glActiveTexture(GL_TEXTURE0));
   glCheck(glBindTexture(GL_TEXTURE_2D, texture.tex_id));
+  glCheck(glActiveTexture(GL_TEXTURE1));
+  glCheck(glBindTexture(GL_TEXTURE_2D, texture.tex_id));
   glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
   glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
   glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
@@ -401,6 +403,16 @@ void binocle_gd_set_uniform_render_target_as_texture(struct binocle_shader shade
   glCheck(glUniform1i(id, 0));
   glCheck(glActiveTexture(GL_TEXTURE0));
   glCheck(glBindTexture(GL_TEXTURE_2D, render_target.texture));
+}
+
+void binocle_gd_set_uniform_vec3(struct binocle_shader shader, const char *name, kmVec3 vec) {
+  GLint id = 0;
+  glCheck(id = glGetUniformLocation(shader.program_id, name));
+  if (id == -1) {
+    binocle_log_error("Cannot find uniform called %s", name);
+    return;
+  }
+  glCheck(glUniform3fv(id, 1, (GLfloat *)&vec));
 }
 
 void binocle_gd_set_uniform_mat4(struct binocle_shader shader, const char *name, kmMat4 mat) {
