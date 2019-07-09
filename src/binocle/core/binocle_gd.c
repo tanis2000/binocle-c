@@ -206,7 +206,7 @@ void binocle_gd_apply_gl_states() {
 
 
 void binocle_gd_apply_3d_gl_states() {
-  glCheck(glDisable(GL_CULL_FACE));
+  glCheck(glEnable(GL_CULL_FACE));
   glCheck(glEnable(GL_DEPTH_TEST));
   glCheck(glEnable(GL_BLEND));
   glCheck(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
@@ -239,8 +239,18 @@ void binocle_gd_apply_shader(binocle_gd *gd, binocle_shader shader) {
 void binocle_gd_apply_texture(binocle_texture texture) {
   glCheck(glActiveTexture(GL_TEXTURE0));
   glCheck(glBindTexture(GL_TEXTURE_2D, texture.tex_id));
+  glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+  glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+  glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+}
+
+void binocle_gd_apply_3d_texture(binocle_material *material) {
+  // Diffuse texture
+  glCheck(glActiveTexture(GL_TEXTURE0));
+  glCheck(glBindTexture(GL_TEXTURE_2D, material->texture->tex_id));
+  // Specular texture
   glCheck(glActiveTexture(GL_TEXTURE1));
-  glCheck(glBindTexture(GL_TEXTURE_2D, texture.tex_id));
+  glCheck(glBindTexture(GL_TEXTURE_2D, material->specular_texture->tex_id));
   glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
   glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
   glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
@@ -774,7 +784,7 @@ void binocle_gd_draw_mesh(binocle_gd *gd, const struct binocle_mesh *mesh, kmAAB
   binocle_gd_apply_viewport(viewport);
   binocle_gd_apply_blend_mode(mesh->material->blend_mode);
   binocle_gd_apply_shader(gd, *mesh->material->shader);
-  binocle_gd_apply_texture(*mesh->material->texture);
+  binocle_gd_apply_3d_texture(mesh->material);
 
   kmMat4 projectionMatrix;
   kmMat4Identity(&projectionMatrix);
@@ -784,7 +794,7 @@ void binocle_gd_draw_mesh(binocle_gd *gd, const struct binocle_mesh *mesh, kmAAB
                                                                                1000.0f);
                                                                                */
 
-  kmMat4PerspectiveProjection(&projectionMatrix, camera->fov_y, viewport.max.x / viewport.max.y, camera->near, camera->far);
+  kmMat4PerspectiveProjection(&projectionMatrix, camera->fov_y, viewport.max.x / viewport.max.y, camera->near /*camera->near + camera->position.z*/, camera->far /*camera->position.z + camera->far*/);
 
   /*
   kmVec3 eye;
@@ -827,6 +837,7 @@ void binocle_gd_draw_mesh(binocle_gd *gd, const struct binocle_mesh *mesh, kmAAB
   glCheck(glEnableVertexAttribArray(gd->vertex_attribute));
   glCheck(glEnableVertexAttribArray(gd->color_attribute));
   glCheck(glEnableVertexAttribArray(gd->tex_coord_attribute));
+  glCheck(glEnableVertexAttribArray(gd->normal_attribute));
 
   glCheck(glBindBuffer(GL_ARRAY_BUFFER, gd->vbo));
   glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(binocle_vpctn) * mesh->vertex_count, mesh->vertices, GL_STATIC_DRAW));
@@ -836,6 +847,8 @@ void binocle_gd_draw_mesh(binocle_gd *gd, const struct binocle_mesh *mesh, kmAAB
                                 (void *) (3 * sizeof(GLfloat))));
   glCheck(glVertexAttribPointer(gd->tex_coord_attribute, 2, GL_FLOAT, GL_FALSE, sizeof(binocle_vpctn),
                                 (void *) (4 * sizeof(GLfloat) + 3 * sizeof(GLfloat))));
+  glCheck(glVertexAttribPointer(gd->normal_attribute, 3, GL_FLOAT, GL_FALSE, sizeof(binocle_vpctn),
+                                (void *) (4 * sizeof(GLfloat) + 3 * sizeof(GLfloat) + 2 * sizeof(GLfloat))));
 
   //kmMat4 finalMatrix = Matrix4::mul(state.transform,projectionMatrix);
   //kmMat4 inverseMatrix: Matrix4<f32> = Matrix4::from_nonuniform_scale(1.0, 1.0, 1.0);
@@ -859,6 +872,7 @@ void binocle_gd_draw_mesh(binocle_gd *gd, const struct binocle_mesh *mesh, kmAAB
   glCheck(glDisableVertexAttribArray(gd->vertex_attribute));
   glCheck(glDisableVertexAttribArray(gd->color_attribute));
   glCheck(glDisableVertexAttribArray(gd->tex_coord_attribute));
+  glCheck(glDisableVertexAttribArray(gd->normal_attribute));
   glCheck(glUseProgram(GL_ZERO));
 
   glCheck(glBindTexture(GL_TEXTURE_2D, 0));

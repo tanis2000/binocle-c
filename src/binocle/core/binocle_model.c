@@ -122,25 +122,22 @@ binocle_model binocle_model_load_obj(char *filename) {
         //binocle_log_info("Face %i vert %i tex coords: %f %f", j, j * 3 + 2, mesh.vertices[j * 3 + 2].tex.x, mesh.vertices[j * 3 + 2].tex.y);
       }
 
-      /*
-      if (attrib.num_normals > 0) {
-        if (idx_0.vn_idx >= 0) {
-          mesh.vertices[idx_0.v_idx].normal.x = attrib.normals[idx_0.vn_idx * 3 + 0];
-          mesh.vertices[idx_0.v_idx].normal.y = attrib.normals[idx_0.vn_idx * 3 + 1];
-          mesh.vertices[idx_0.v_idx].normal.z = attrib.normals[idx_0.vn_idx * 3 + 2];
-        }
-        if (idx_1.vn_idx >= 0) {
-          mesh.vertices[idx_1.v_idx].normal.x = attrib.normals[idx_1.vn_idx * 3 + 0];
-          mesh.vertices[idx_1.v_idx].normal.y = attrib.normals[idx_1.vn_idx * 3 + 1];
-          mesh.vertices[idx_1.v_idx].normal.z = attrib.normals[idx_1.vn_idx * 3 + 2];
-        }
-        if (idx_2.vn_idx >= 0) {
-          mesh.vertices[idx_2.v_idx].normal.x = attrib.normals[idx_2.vn_idx * 3 + 0];
-          mesh.vertices[idx_2.v_idx].normal.y = attrib.normals[idx_2.vn_idx * 3 + 1];
-          mesh.vertices[idx_2.v_idx].normal.z = attrib.normals[idx_2.vn_idx * 3 + 2];
-        }
+      if (idx_0.vn_idx >= 0) {
+        mesh.vertices[j * 3 + 0].normal.x = attrib.normals[idx_0.vn_idx * 3 + 0];
+        mesh.vertices[j * 3 + 0].normal.y = attrib.normals[idx_0.vn_idx * 3 + 1];
+        mesh.vertices[j * 3 + 0].normal.z = attrib.normals[idx_0.vn_idx * 3 + 2];
       }
-      */
+      if (idx_1.vn_idx >= 0) {
+        mesh.vertices[j * 3 + 1].normal.x = attrib.normals[idx_1.vn_idx * 3 + 0];
+        mesh.vertices[j * 3 + 1].normal.y = attrib.normals[idx_1.vn_idx * 3 + 1];
+        mesh.vertices[j * 3 + 1].normal.z = attrib.normals[idx_1.vn_idx * 3 + 2];
+      }
+      if (idx_2.vn_idx >= 0) {
+        mesh.vertices[j * 3 + 2].normal.x = attrib.normals[idx_2.vn_idx * 3 + 0];
+        mesh.vertices[j * 3 + 2].normal.y = attrib.normals[idx_2.vn_idx * 3 + 1];
+        mesh.vertices[j * 3 + 2].normal.z = attrib.normals[idx_2.vn_idx * 3 + 2];
+      }
+
     }
 
     for (int j = 0 ; j < mesh.vertex_count ; j++) {
