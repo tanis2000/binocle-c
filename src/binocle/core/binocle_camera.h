@@ -117,23 +117,29 @@ kmMat4 binocle_camera_get_projection_matrix(binocle_camera camera);
 kmMat4 binocle_camera_get_view_projection_matrix(binocle_camera camera);
 
 typedef struct binocle_camera_3d {
-  kmMat4 transform_matrix;
-  kmMat4 inverse_transform_matrix;
+  kmMat4 transform_matrix; // cached view matrix
+  kmMat4 inverse_transform_matrix; // cached inverse view matrix
   kmVec3 position;
-  kmVec3 rotation;
+  kmVec3 front;
+  kmVec3 up;
+  kmVec3 right;
+  kmVec3 world_up;
+  float yaw;
+  float pitch;
   float fov_y;
   float near;
   float far;
 } binocle_camera_3d;
 
-binocle_camera_3d binocle_camera_3d_new(kmVec3 position, kmVec3 rotation, float near, float far, float fov_y);
+binocle_camera_3d binocle_camera_3d_new(kmVec3 position, float near, float far, float fov_y);
 void binocle_camera_3d_update_matrixes(binocle_camera_3d *camera);
 void binocle_camera_3d_set_position(binocle_camera_3d *camera, kmVec3 position);
-void binocle_camera_3d_set_rotation(binocle_camera_3d *camera, kmVec3 rotation);
+void binocle_camera_3d_set_rotation(binocle_camera_3d *camera, float pitch, float yaw, float roll);
 void binocle_camera_3d_set_near(binocle_camera_3d *camera, float near);
 void binocle_camera_3d_set_far(binocle_camera_3d *camera, float far);
 kmMat4 *binocle_camera_3d_get_transform_matrix(binocle_camera_3d *camera);
 void binocle_camera_3d_translate(binocle_camera_3d *camera, float x, float y, float z);
-void binocle_camera_3d_rotate(binocle_camera_3d *camera, float x, float y, float z);
+void binocle_camera_3d_rotate(binocle_camera_3d *camera, float pitch, float yaw, float roll);
+kmMat4 *binocle_camera_3d_get_inverse_transform_matrix(binocle_camera_3d *camera);
 
 #endif //BINOCLE_CAMERA_H

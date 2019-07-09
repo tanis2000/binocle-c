@@ -282,13 +282,23 @@ kmAABB2 binocle_camera_get_viewport(binocle_camera camera) {
  * Camera 3D
  */
 
-binocle_camera_3d binocle_camera_3d_new(kmVec3 position, kmVec3 rotation, float near, float far, float fov_y) {
+binocle_camera_3d binocle_camera_3d_new(kmVec3 position, float near, float far, float fov_y) {
   binocle_camera_3d res = {0};
   res.fov_y = fov_y;
   res.near = near;
   res.far = far;
+  res.yaw = -90.0f;
+  res.pitch = 0.0f;
   res.position = position;
-  res.rotation = rotation;
+  res.up.x = 0.0f;
+  res.up.y = 1.0f;
+  res.up.z = 0.0f;
+  res.front.x = 0.0f;
+  res.front.y = 0.0f;
+  res.front.z = -1.0f;
+  res.world_up.x = res.up.x;
+  res.world_up.y = res.up.y;
+  res.world_up.z = res.up.z;
   kmMat4Identity(&res.transform_matrix);
   kmMat4Identity(&res.inverse_transform_matrix);
   binocle_camera_3d_update_matrixes(&res);
@@ -296,19 +306,23 @@ binocle_camera_3d binocle_camera_3d_new(kmVec3 position, kmVec3 rotation, float 
 }
 
 void binocle_camera_3d_update_matrixes(binocle_camera_3d *camera) {
-  kmMat4 rot_x;
-  kmMat4 rot_y;
-  kmMat4 rot_z;
+  kmVec3 front = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
+  front.x = cosf(kmDegreesToRadians(camera->yaw)) * cosf(kmDegreesToRadians(camera->pitch));
+  front.y = sinf(kmDegreesToRadians(camera->pitch));
+  front.z = sinf(kmDegreesToRadians(camera->yaw)) * cosf(kmDegreesToRadians(camera->pitch));
+  kmVec3Normalize(&camera->front, &front);
 
-  kmMat4Translation(&camera->transform_matrix, camera->position.x, camera->position.y, camera->position.z); // position
-  kmMat4RotationX(&rot_x, camera->rotation.x);
-  kmMat4RotationY(&rot_y, camera->rotation.y);
-  kmMat4RotationZ(&rot_z, camera->rotation.z);
-  kmMat4Multiply(&camera->transform_matrix, &camera->transform_matrix, &rot_x);
-  kmMat4Multiply(&camera->transform_matrix, &camera->transform_matrix, &rot_y);
-  kmMat4Multiply(&camera->transform_matrix, &camera->transform_matrix, &rot_z);
+  kmVec3 right = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
+  kmVec3Cross(&right, &camera->front, &camera->world_up);
+  kmVec3Normalize(&camera->right, &right);
 
-  // calculate our inverse as well
+  kmVec3 up = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
+  kmVec3Cross(&up, &camera->right, &camera->front);
+  kmVec3Normalize(&camera->up, &up);
+
+  kmVec3 direction;
+  kmVec3Add(&direction, &camera->position, &camera->front);
+  kmMat4LookAt(&camera->transform_matrix, &camera->position, &direction, &camera->up);
   kmMat4Inverse(&camera->inverse_transform_matrix, &camera->transform_matrix);
 }
 
@@ -319,10 +333,9 @@ void binocle_camera_3d_set_position(binocle_camera_3d *camera, kmVec3 position) 
   binocle_camera_3d_update_matrixes(camera);
 }
 
-void binocle_camera_3d_set_rotation(binocle_camera_3d *camera, kmVec3 rotation) {
-  camera->rotation.x = rotation.x;
-  camera->rotation.y = rotation.y;
-  camera->rotation.z = rotation.z;
+void binocle_camera_3d_set_rotation(binocle_camera_3d *camera, float pitch, float yaw, float roll) {
+  camera->yaw = yaw;
+  camera->pitch = pitch;
   binocle_camera_3d_update_matrixes(camera);
 }
 void binocle_camera_3d_set_near(binocle_camera_3d *camera, float near) {
@@ -338,6 +351,10 @@ kmMat4 *binocle_camera_3d_get_transform_matrix(binocle_camera_3d *camera) {
   return &camera->transform_matrix;
 }
 
+kmMat4 *binocle_camera_3d_get_inverse_transform_matrix(binocle_camera_3d *camera) {
+  return &camera->inverse_transform_matrix;
+}
+
 void binocle_camera_3d_translate(binocle_camera_3d *camera, float x, float y, float z) {
   camera->position.x += x;
   camera->position.y += y;
@@ -345,9 +362,9 @@ void binocle_camera_3d_translate(binocle_camera_3d *camera, float x, float y, fl
   binocle_camera_3d_update_matrixes(camera);
 }
 
-void binocle_camera_3d_rotate(binocle_camera_3d *camera, float x, float y, float z) {
-  camera->rotation.x += x;
-  camera->rotation.y += y;
-  camera->rotation.z += z;
+void binocle_camera_3d_rotate(binocle_camera_3d *camera, float pitch, float yaw, float roll) {
+  camera->yaw += yaw;
+  camera->pitch += pitch;
+  //camera->roll += roll;
   binocle_camera_3d_update_matrixes(camera);
 }
