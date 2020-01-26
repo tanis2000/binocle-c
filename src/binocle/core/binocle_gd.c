@@ -445,6 +445,11 @@ void binocle_gd_set_render_target(binocle_render_target render_target) {
   glCheck(glBindRenderbuffer(GL_RENDERBUFFER, render_target.render_buffer));
 }
 
+void binocle_gd_clear_render_target() {
+  glCheck(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+  glCheck(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+}
+
 void binocle_gd_draw_quad(struct binocle_shader shader) {
   static const GLfloat g_quad_vertex_buffer_data[] = {
       -1.0f, -1.0f,
