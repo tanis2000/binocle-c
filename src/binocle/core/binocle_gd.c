@@ -440,14 +440,14 @@ void binocle_gd_clear(struct binocle_color color) {
   glCheck(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 }
 
-void binocle_gd_set_render_target(binocle_render_target render_target) {
-  glCheck(glBindFramebuffer(GL_FRAMEBUFFER, render_target.frame_buffer));
-  glCheck(glBindRenderbuffer(GL_RENDERBUFFER, render_target.render_buffer));
-}
-
-void binocle_gd_clear_render_target() {
-  glCheck(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-  glCheck(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+void binocle_gd_set_render_target(binocle_render_target *render_target) {
+  if (render_target == NULL) {
+    glCheck(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+    glCheck(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+  } else {
+    glCheck(glBindFramebuffer(GL_FRAMEBUFFER, render_target->frame_buffer));
+    glCheck(glBindRenderbuffer(GL_RENDERBUFFER, render_target->render_buffer));
+  }
 }
 
 void binocle_gd_draw_quad(struct binocle_shader shader) {

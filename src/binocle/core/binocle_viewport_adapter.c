@@ -25,6 +25,8 @@ binocle_viewport_adapter binocle_viewport_adapter_new(
   res.virtual_height = virtual_height;
   res.kind = kind;
   res.scaling_type = scaling_type;
+  res.multiplier = 0;
+  res.inverse_multiplier = 0;
 
   kmVec2 old_size = {window.original_width, window.original_height};
   kmVec2 new_size = {window.width, window.height};
@@ -112,6 +114,8 @@ void binocle_viewport_adapter_reset(binocle_viewport_adapter *adapter, kmVec2 ol
       kmMat4Identity(&sc_matrix);
       kmMat4Scaling(&sc_matrix, matMulX, matMulY, 1.0f);
       kmMat4Multiply(&adapter->scale_matrix, &trans_matrix, &sc_matrix);
+      adapter->multiplier = (float)multiplier;
+      adapter->inverse_multiplier = 1.0f / (float)multiplier;
     } else if (adapter->scaling_type == BINOCLE_VIEWPORT_ADAPTER_SCALING_TYPE_BOXING) {
       int HorizontalBleed = 16;
       int VerticalBleed = 16;

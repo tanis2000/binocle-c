@@ -33,6 +33,8 @@ typedef struct binocle_viewport_adapter {
   uint32_t virtual_height;
   binocle_viewport_adapter_kind kind;
   binocle_viewport_adapter_scaling_type scaling_type;
+  float multiplier;
+  float inverse_multiplier;
 } binocle_viewport_adapter;
 
 binocle_viewport_adapter binocle_viewport_adapter_new(struct binocle_window window, binocle_viewport_adapter_kind kind,

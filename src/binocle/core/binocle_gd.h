@@ -217,15 +217,9 @@ void binocle_gd_clear(struct binocle_color color);
 
 /**
  * \brief Binds the frame buffer and the render buffer of a render target
- * @param render_target the render target
+ * @param render_target the render target. If NULL, it sets both the frame buffer and render buffer to 0.
  */
-void binocle_gd_set_render_target(binocle_render_target render_target);
-
-/**
- * \brief Reset the render target by binding both the frame buffer and the render buffer
- * to the screen (0)
- */
-void binocle_gd_clear_render_target();
+void binocle_gd_set_render_target(binocle_render_target *render_target);
 
 /**
  * \brief Draws a quad to the current buffer using the given shader
