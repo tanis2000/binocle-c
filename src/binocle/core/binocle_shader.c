@@ -360,3 +360,7 @@ void binocle_shader_init_defaults() {
   }
 }
 
+void binocle_shader_destroy(binocle_shader *shader) {
+  free(shader);
+  shader = NULL;
+}

@@ -27,4 +27,10 @@ typedef struct binocle_image {
  */
 binocle_image *binocle_image_load(const char *filename);
 
+/**
+ * \brief Frees the memory allocated for the image
+ * @param image the image to destroy
+ */
+void binocle_image_destroy(binocle_image *image);
+
 #endif //BINOCLE_IMAGE_H

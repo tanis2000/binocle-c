@@ -17,3 +17,8 @@ binocle_material *binocle_material_new() {
   res->shader = NULL;
   return res;
 }
+
+void binocle_material_destroy(binocle_material *material) {
+  free(material);
+  material = NULL;
+}

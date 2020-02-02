@@ -71,4 +71,10 @@ char *str_replace(char *orig, char *rep, char *with);
  */
 void binocle_shader_init_defaults();
 
+/**
+ * \brief Frees the memory allocated by the shader (does nothing on the GPU)
+ * @param shader the shader to destroy
+ */
+void binocle_shader_destroy(binocle_shader *shader);
+
 #endif //BINOCLE_SHADER_H

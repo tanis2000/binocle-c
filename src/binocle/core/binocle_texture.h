@@ -42,4 +42,10 @@ binocle_texture *binocle_texture_from_image_data(unsigned char *image, uint64_t 
  */
 binocle_texture *binocle_texture_from_image(struct binocle_image *image);
 
+/**
+ * \brief Frees the memory allocated for the texture. At the moment it does nothing on the GPU level.
+ * @param texture the texture to destroy
+ */
+void binocle_texture_destroy(binocle_texture *texture);
+
 #endif //BINOCLE_TEXTURE_H

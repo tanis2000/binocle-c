@@ -45,3 +45,8 @@ binocle_texture *binocle_texture_from_image(binocle_image *image) {
   }
   return texture;
 }
+
+void binocle_texture_destroy(binocle_texture *texture) {
+  free(texture);
+  texture = NULL;
+}

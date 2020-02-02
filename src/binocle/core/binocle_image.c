@@ -46,3 +46,9 @@ binocle_image *binocle_image_load(const char *filename) {
   binocle_log_info("Texture size: %" PRIu64 "x%" PRIu64", BPP: %d", res->width, res->height, bpp);
   return res;
 }
+
+void binocle_image_destroy(binocle_image *image) {
+  free(image->data);
+  free(image);
+  image = NULL;
+}

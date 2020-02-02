@@ -32,4 +32,10 @@ typedef struct binocle_material {
  */
 binocle_material *binocle_material_new();
 
+/**
+ * \brief Frees the memory of the material
+ * @param material the material to destroy
+ */
+void binocle_material_destroy(binocle_material *material);
+
 #endif //BINOCLE_MATERIAL_H
