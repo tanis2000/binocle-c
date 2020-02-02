@@ -187,3 +187,4 @@ char *binocle_sdl_assets_dir() {
 #endif
   return binocle_assets_dir;
 }
+

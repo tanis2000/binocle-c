@@ -28,7 +28,7 @@ binocle_shader binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_MAX];
  * \brief Creates a new shader
  * @return a new shader
  */
-binocle_shader binocle_shader_new();
+binocle_shader *binocle_shader_new();
 
 /**
  * \brief Loads a shader from filesystem
@@ -36,7 +36,7 @@ binocle_shader binocle_shader_new();
  * @param frag_filename fragment shader filename
  * @return the compiled and linked shader
  */
-binocle_shader binocle_shader_load_from_file(char *vert_filename, char *frag_filename);
+binocle_shader *binocle_shader_load_from_file(char *vert_filename, char *frag_filename);
 
 /**
  * \brief Compiles a shader

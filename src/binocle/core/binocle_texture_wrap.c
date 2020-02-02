@@ -1,0 +1,32 @@
+//
+// Created by Valerio Santinelli on 02/02/2020.
+//
+
+#include "binocle_image_wrap.h"
+#include "binocle_texture_wrap.h"
+#include "binocle_lua.h"
+#include "binocle_image.h"
+#include "binocle_texture.h"
+#include "binocle_sdl.h"
+
+int l_binocle_texture_from_image(lua_State *L) {
+  l_binocle_image_t *image = luaL_checkudata(L, 1, "binocle_image");
+  l_binocle_texture_t *texture = lua_newuserdata(L, sizeof(l_binocle_texture_t));
+  luaL_setmetatable(L, "binocle_texture");
+  SDL_memset(texture, 0, sizeof(*texture));
+  binocle_texture *tex = binocle_texture_from_image(image->img);
+  texture->texture = tex;
+  return 1;
+}
+
+static const struct luaL_Reg texture [] = {
+  {"from_image", l_binocle_texture_from_image},
+  {NULL, NULL}
+};
+
+int luaopen_texture(lua_State *L) {
+  luaL_newlib(L, texture);
+  lua_setglobal(L, "texture");
+  luaL_newmetatable(L, "binocle_texture");
+  return 1;
+}

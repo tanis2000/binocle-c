@@ -14,8 +14,9 @@
 #include "binocle_sdl.h"
 #include "binocle_log.h"
 
-binocle_image binocle_image_load(const char *filename) {
-  binocle_image res = {0};
+binocle_image *binocle_image_load(const char *filename) {
+  binocle_image *res = malloc(sizeof(binocle_image));
+  memset(res, 0, sizeof(*res));
 
   int width = 0;
   int height = 0;
@@ -31,17 +32,17 @@ binocle_image binocle_image_load(const char *filename) {
     binocle_log_error("Unable to load image file %s", filename);
     return res;
   }
-  res.data = stbi_load_from_memory(buffer, size, &width, &height, &bpp, STBI_rgb_alpha);
+  res->data = stbi_load_from_memory(buffer, size, &width, &height, &bpp, STBI_rgb_alpha);
   //res.data = stbi_load(filename, &width, &height, &bpp, STBI_rgb_alpha);
-  if (res.data == NULL) {
+  if (res->data == NULL) {
     SDL_Log("Unable to load image %s", filename);
     return res;
   }
 
   //Get image dimensions
-  res.width = width;
-  res.height = height;
+  res->width = width;
+  res->height = height;
 
-  binocle_log_info("Texture size: %" PRIu64 "x%" PRIu64", BPP: %d", res.width, res.height, bpp);
+  binocle_log_info("Texture size: %" PRIu64 "x%" PRIu64", BPP: %d", res->width, res->height, bpp);
   return res;
 }

@@ -30,6 +30,6 @@ typedef struct binocle_material {
  * \brief Instantiates a new material
  * @return The new material
  */
-binocle_material binocle_material_new();
+binocle_material *binocle_material_new();
 
 #endif //BINOCLE_MATERIAL_H

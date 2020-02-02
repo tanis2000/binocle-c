@@ -23,37 +23,39 @@ KSORT_INIT(sort_sprite_batch_item, binocle_sprite_batch_item, batch_item_lt)
 KSORT_INIT_GENERIC(float)
 
 
-binocle_sprite binocle_sprite_from_material(binocle_material *material) {
-  binocle_sprite res = {0};
-  res.animations =
+binocle_sprite *binocle_sprite_from_material(binocle_material *material) {
+  binocle_sprite *res = malloc(sizeof(binocle_sprite));
+  memset(res, 0, sizeof(*res));
+  res->animations =
       malloc(sizeof(binocle_sprite_animation) * BINOCLE_SPRITE_MAX_ANIMATIONS);
-  res.frames =
+  res->frames =
       malloc(sizeof(binocle_sprite_frame) * BINOCLE_SPRITE_MAX_FRAMES);
   // Default origin to bottom-left
-  res.origin.x = 0;
-  res.origin.y = 0;
-  res.material = material;
+  res->origin.x = 0;
+  res->origin.y = 0;
+  res->material = material;
   // Default to use the whole texture
-  res.subtexture = binocle_subtexture_with_texture(material->texture, 0, 0, material->texture->width,
+  res->subtexture = binocle_subtexture_with_texture(material->texture, 0, 0, material->texture->width,
                                                    material->texture->height);
   for (int i = 0; i < BINOCLE_SPRITE_MAX_ANIMATIONS; i++) {
-    res.animations[i].enabled = false;
+    res->animations[i].enabled = false;
   }
-  res.frames_number = 0;
-  res.playing = false;
-  res.finished = false;
-  res.rate = 1;
-  res.timer = 0;
-  res.current_frame = 0;
-  res.current_animation = NULL;
-  res.current_animation_frame = 0;
-  res.current_animation_id = 0;
+  res->frames_number = 0;
+  res->playing = false;
+  res->finished = false;
+  res->rate = 1;
+  res->timer = 0;
+  res->current_frame = 0;
+  res->current_animation = NULL;
+  res->current_animation_frame = 0;
+  res->current_animation_id = 0;
   return res;
 }
 
 void binocle_sprite_destroy(struct binocle_sprite *sprite) {
   free(sprite->animations);
   free(sprite->frames);
+  free(sprite);
   sprite = NULL;
 }
 

@@ -24,7 +24,7 @@ typedef struct binocle_texture {
  * \brief Creates a new texture
  * @return the new texture
  */
-binocle_texture binocle_texture_new();
+binocle_texture *binocle_texture_new();
 
 /**
  * \brief Creates a texture from image data and size
@@ -33,13 +33,13 @@ binocle_texture binocle_texture_new();
  * @param h the height of the image
  * @return the texture
  */
-binocle_texture binocle_texture_from_image_data(unsigned char *image, uint64_t w, uint64_t h);
+binocle_texture *binocle_texture_from_image_data(unsigned char *image, uint64_t w, uint64_t h);
 
 /**
  * \brief Creates a texture from a Binocle image
  * @param image the image
  * @return the texture
  */
-binocle_texture binocle_texture_from_image(struct binocle_image image);
+binocle_texture *binocle_texture_from_image(struct binocle_image *image);
 
 #endif //BINOCLE_TEXTURE_H

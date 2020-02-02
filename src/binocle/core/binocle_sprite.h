@@ -151,7 +151,7 @@ typedef struct binocle_sprite_batch {
  * @param material the material
  * @return the sprite
  */
-binocle_sprite binocle_sprite_from_material(struct binocle_material *material);
+binocle_sprite *binocle_sprite_from_material(struct binocle_material *material);
 
 /**
  * \brief Releases all the resources of a sprite

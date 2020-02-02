@@ -25,6 +25,6 @@ typedef struct binocle_image {
  * @param filename the full filename of the image we want to load
  * @return the actual image data
  */
-binocle_image binocle_image_load(const char *filename);
+binocle_image *binocle_image_load(const char *filename);
 
 #endif //BINOCLE_IMAGE_H

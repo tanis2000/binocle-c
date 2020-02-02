@@ -9,6 +9,13 @@
 #include "binocle_log.h"
 #include "binocle_fs.h"
 #include <sokol_time.h>
+#include "binocle_sdl_wrap.h"
+#include "binocle_image_wrap.h"
+#include "binocle_texture_wrap.h"
+#include "binocle_shader_wrap.h"
+#include "binocle_material_wrap.h"
+#include "binocle_sprite_wrap.h"
+#include "binocle_input_wrap.h"
 
 binocle_lua binocle_lua_new() {
   binocle_lua res = {0};
@@ -24,6 +31,14 @@ bool binocle_lua_init(binocle_lua *lua) {
 
   // Load the Lua libraries
   luaL_openlibs(lua->L);
+
+  luaopen_sdl(lua->L);
+  luaopen_image(lua->L);
+  luaopen_texture(lua->L);
+  luaopen_shader(lua->L);
+  luaopen_material(lua->L);
+  luaopen_sprite(lua->L);
+  luaopen_input(lua->L);
 
   //lua->last_check_time = stm_now();
   time_t t = time(NULL);

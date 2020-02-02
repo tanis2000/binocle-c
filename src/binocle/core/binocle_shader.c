@@ -46,20 +46,20 @@ void main(void)\
 \0";
 
 
-binocle_shader binocle_shader_new() {
-  binocle_shader res = {0};
-
+binocle_shader *binocle_shader_new() {
+  binocle_shader *res = malloc(sizeof(binocle_shader));
+  memset(res, 0, sizeof(*res));
   return res;
 }
 
-binocle_shader binocle_shader_load_from_file(char *vert_filename,
+binocle_shader *binocle_shader_load_from_file(char *vert_filename,
                                              char *frag_filename) {
   char info[1024];
   sprintf(info, "Loading vertex shader %s", vert_filename);
   binocle_log_info(info);
   char opengles_precision[128];
   strcpy(opengles_precision, "precision mediump float;\n\0");
-  binocle_shader shader = binocle_shader_new();
+  binocle_shader *shader = binocle_shader_new();
 
   SDL_RWops *vert_file = SDL_RWFromFile(vert_filename, "rb");
   if (vert_file != NULL) {
@@ -79,13 +79,13 @@ binocle_shader binocle_shader_load_from_file(char *vert_filename,
       SDL_free(tmp);
     } else {
       tmp[nb_read_total] = '\0';
-      shader.vert_src =
+      shader->vert_src =
           (char *) SDL_malloc(res_size + 1 + sizeof(opengles_precision));
 #if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
       strcpy(shader.vert_src, opengles_precision);
       strcat(shader.vert_src, tmp);
 #else
-      strcpy(shader.vert_src, tmp);
+      strcpy(shader->vert_src, tmp);
 #endif
     }
   }
@@ -151,33 +151,33 @@ binocle_shader binocle_shader_load_from_file(char *vert_filename,
       SDL_free(tmp);
     } else {
       tmp[nb_read_total] = '\0';
-      shader.frag_src =
+      shader->frag_src =
           (char *) SDL_malloc(res_size + 1 + sizeof(opengles_precision));
 #if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
       strcpy(shader.frag_src, opengles_precision);
       strcat(shader.frag_src, tmp);
 #else
-      strcpy(shader.frag_src, tmp);
+      strcpy(shader->frag_src, tmp);
 #endif
-      shader.frag_src = str_replace(
-          shader.frag_src, "#include \"primitives.frag\"", include_src);
+      shader->frag_src = str_replace(
+          shader->frag_src, "#include \"primitives.frag\"", include_src);
     }
   }
 
-  if (shader.vert_src != NULL) {
+  if (shader->vert_src != NULL) {
     sprintf(info, "Compiling vertex shader %s", vert_filename);
     binocle_log_info(info);
-    if (!binocle_shader_compile(shader.vert_src, GL_VERTEX_SHADER, &shader.vert_id)) {
+    if (!binocle_shader_compile(shader->vert_src, GL_VERTEX_SHADER, &shader->vert_id)) {
       binocle_log_error("Error compiling vertex shader %s", vert_filename);
     }
   } else {
     binocle_log_warning("Vertex shader not found");
   }
 
-  if (shader.frag_src != NULL) {
+  if (shader->frag_src != NULL) {
     sprintf(info, "Compiling fragment shader %s", frag_filename);
     binocle_log_info(info);
-    if (!binocle_shader_compile(shader.frag_src, GL_FRAGMENT_SHADER, &shader.frag_id)) {
+    if (!binocle_shader_compile(shader->frag_src, GL_FRAGMENT_SHADER, &shader->frag_id)) {
       binocle_log_error("Error compiling fragment shader %s", frag_filename);
     }
   } else {
@@ -187,7 +187,7 @@ binocle_shader binocle_shader_load_from_file(char *vert_filename,
   sprintf(info, "Linking vertex shader %s and fragment shader %s",
           vert_filename, frag_filename);
   binocle_log_info(info);
-  if (!binocle_shader_link(shader.vert_id, shader.frag_id, &shader.program_id)) {
+  if (!binocle_shader_link(shader->vert_id, shader->frag_id, &shader->program_id)) {
     binocle_log_error("Error linking shader with vertex %s and fragment %s", vert_filename, frag_filename);
   }
 

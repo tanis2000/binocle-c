@@ -148,8 +148,8 @@ binocle_model binocle_model_load_obj(char *filename) {
     }
 
 
-    binocle_material mesh_default_material = binocle_material_new();
-    mesh_default_material.shader = &binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT];
+    binocle_material *mesh_default_material = binocle_material_new();
+    mesh_default_material->shader = &binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT];
     //mesh.material = &mesh_default_material;
     mesh.material = malloc(sizeof(binocle_material));
     memcpy(mesh.material, &mesh_default_material, sizeof(binocle_material));
@@ -159,13 +159,13 @@ binocle_model binocle_model_load_obj(char *filename) {
 
 
   for (int i = 0 ; i < material_count ; i++) {
-    model.materials[i] = binocle_material_new();
+    model.materials[i] = *binocle_material_new();
     // We use diffuse only atm
     if (materials[i].diffuse_texname != NULL) {
-      binocle_image image = binocle_image_load(materials[i].diffuse_texname);
-      binocle_texture texture = binocle_texture_from_image(image);
+      binocle_image *image = binocle_image_load(materials[i].diffuse_texname);
+      binocle_texture *texture = binocle_texture_from_image(image);
       model.materials[i].texture = malloc(sizeof(binocle_texture));
-      model.materials[i].texture = &texture;
+      model.materials[i].texture = texture;
       //memcpy(model.materials[i].texture, &texture, sizeof(binocle_texture));
       model.materials[i].shader = &binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT];
     }
