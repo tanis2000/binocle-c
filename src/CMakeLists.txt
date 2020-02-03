@@ -19,6 +19,10 @@ if (NOT EMSCRIPTEN)
             $<TARGET_OBJECTS:vorbis>
             $<TARGET_OBJECTS:zlib>
             )
+else()
+    set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
+            $<TARGET_OBJECTS:lua>
+            )
 endif()
 
 if (APPLE AND NOT IOS)

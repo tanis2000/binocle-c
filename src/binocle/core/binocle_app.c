@@ -4,6 +4,7 @@
 // All rights reserved.
 //
 
+#include <stdlib.h>
 #include "binocle_app.h"
 #include "binocle_sdl.h"
 

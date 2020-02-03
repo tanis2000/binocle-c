@@ -12,7 +12,8 @@
 int l_binocle_texture_from_image(lua_State *L) {
   l_binocle_image_t *image = luaL_checkudata(L, 1, "binocle_image");
   l_binocle_texture_t *texture = lua_newuserdata(L, sizeof(l_binocle_texture_t));
-  luaL_setmetatable(L, "binocle_texture");
+  lua_getfield(L, LUA_REGISTRYINDEX, "binocle_texture");
+  lua_setmetatable(L, -2);
   SDL_memset(texture, 0, sizeof(*texture));
   binocle_texture *tex = binocle_texture_from_image(image->img);
   texture->texture = tex;

@@ -17,11 +17,11 @@ file(GLOB_RECURSE SOURCES
 		physfs_archiver_wad.c
 		physfs_archiver_zip.c
 		physfs_byteorder.c
-		physfs_platform_posix.c
-		physfs_platform_unix.c
-		physfs_platform_windows.c
-		physfs_platform_os2.c
-		physfs_platform_qnx.c
+		#physfs_platform_posix.c
+		#physfs_platform_unix.c
+		#physfs_platform_windows.c
+		#physfs_platform_os2.c
+		#physfs_platform_qnx.c
 		physfs_unicode.c
 )
 
@@ -33,6 +33,7 @@ file(GLOB_RECURSE HEADERS *.h)
 
 if(APPLE)
 	file(GLOB APPLE_SOURCES
+		physfs_platform_posix.c
 		physfs_platform_apple.m
 	)
 	list(APPEND SOURCES ${APPLE_SOURCES})
@@ -41,6 +42,7 @@ endif()
 if(ANDROID)
 	file(GLOB ANDROID_SOURCES
 			physfs_platform_posix.c
+			physfs_platform_unix.c
 			)
 	list(APPEND SOURCES ${ANDROID_SOURCES})
 endif()
@@ -61,6 +63,7 @@ endif()
 
 if(EMSCRIPTEN)
 	file(GLOB EMSCRIPTEN_SOURCES
+			physfs_platform_posix.c
 			physfs_platform_unix.c
 			)
 	list(APPEND SOURCES ${EMSCRIPTEN_SOURCES})
@@ -71,7 +74,7 @@ set_source_files_properties (${SOURCES} PROPERTIES LANGUAGE C)
 
 add_library(physfs OBJECT ${HEADERS} ${SOURCES})
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
 
 if (IOS)
     set_target_properties(

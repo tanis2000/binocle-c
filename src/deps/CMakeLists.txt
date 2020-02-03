@@ -1,6 +1,5 @@
 
 add_subdirectory(freetype)
-add_subdirectory(luajit)
 add_subdirectory(kazmath)
 add_subdirectory(parson)
 add_subdirectory(physfs)
@@ -11,6 +10,9 @@ if (NOT EMSCRIPTEN)
 	add_subdirectory(sdl)
     add_subdirectory(vorbis)
     add_subdirectory(ogg)
+    add_subdirectory(luajit)
+else()
+    add_subdirectory(lua)
 endif()
 
 #if (NOT ANDROID)

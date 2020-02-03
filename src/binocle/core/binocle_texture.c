@@ -4,6 +4,8 @@
 // All rights reserved.
 //
 
+#include <stdlib.h>
+#include <string.h>
 #include "binocle_texture.h"
 #include "binocle_image.h"
 #include "binocle_gd.h"

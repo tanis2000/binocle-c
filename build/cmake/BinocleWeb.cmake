@@ -9,12 +9,13 @@ set (CMAKE_EXECUTABLE_SUFFIX ".html")
 if (DEBUG)
     message("Compiling for EMSCRIPTEN in Debug mode")
     #it might be worth disabling WASM for debugging (-s WASM=0) but I'm not even sure it can be of any help today
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g4 -s BINARYEN_TRAP_MODE='clamp' -s ASSERTIONS=2 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"png\"]' -s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_VORBIS=1 -s USE_OGG=1 -s TOTAL_MEMORY=1073741824 -s DISABLE_EXCEPTION_CATCHING=0 -s NO_EXIT_RUNTIME=1 --preload-file /Users/tanis/Documents/binocle-c/assets --use-preload-plugins -Wno-invalid-offsetof -std=gnu++0x")
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g4 -s BINARYEN_TRAP_MODE='clamp' -s ASSERTIONS=2 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"png\"]' -s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_VORBIS=1 -s USE_OGG=1 -s TOTAL_MEMORY=1073741824 -s DISABLE_EXCEPTION_CATCHING=0 -s NO_EXIT_RUNTIME=1 --preload-file /Users/tanis/Documents/binocle-c/assets --use-preload-plugins")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g4 -s BINARYEN_TRAP_MODE='clamp' -s ASSERTIONS=2 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"png\"]' -s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_VORBIS=1 -s USE_OGG=1 -s TOTAL_MEMORY=1073741824 -s DISABLE_EXCEPTION_CATCHING=0 -s NO_EXIT_RUNTIME=1 --preload-file ${BINOCLE_DATA_DIR}@/assets/ --use-preload-plugins -Wno-invalid-offsetof -std=gnu++0x")
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g4 -s BINARYEN_TRAP_MODE='clamp' -s ASSERTIONS=2 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"png\"]' -s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_VORBIS=1 -s USE_OGG=1 -s TOTAL_MEMORY=1073741824 -s DISABLE_EXCEPTION_CATCHING=0 -s NO_EXIT_RUNTIME=1 --preload-file ${BINOCLE_DATA_DIR}@/assets/ --use-preload-plugins")
 else()
     message("Compiling for EMSCRIPTEN in Release mode")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O -s BINARYEN_TRAP_MODE='clamp' -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"png\"]' -s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_VORBIS=1 -s USE_OGG=1 -s TOTAL_MEMORY=1073741824 -s DISABLE_EXCEPTION_CATCHING=0 -s NO_EXIT_RUNTIME=1 --preload-file /Users/tanis/Documents/binocle-c/assets --use-preload-plugins -Wno-invalid-offsetof -std=gnu++0x")
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O -s BINARYEN_TRAP_MODE='clamp' -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"png\"]' -s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_VORBIS=1 -s USE_OGG=1 -s TOTAL_MEMORY=1073741824 -s DISABLE_EXCEPTION_CATCHING=0 -s NO_EXIT_RUNTIME=1 --preload-file /Users/tanis/Documents/binocle-c/assets --use-preload-plugins")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O -s BINARYEN_TRAP_MODE='clamp' -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"png\"]' -s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_VORBIS=1 -s USE_OGG=1 -s TOTAL_MEMORY=1073741824 -s DISABLE_EXCEPTION_CATCHING=0 -s NO_EXIT_RUNTIME=1 --preload-file ${BINOCLE_DATA_DIR}@/assets/ --use-preload-plugins -Wno-invalid-offsetof -std=gnu++0x")
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O -s BINARYEN_TRAP_MODE='clamp' -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[\"png\"]' -s USE_ZLIB=1 -s USE_LIBPNG=1 -s USE_VORBIS=1 -s USE_OGG=1 -s TOTAL_MEMORY=1073741824 -s DISABLE_EXCEPTION_CATCHING=0 -s NO_EXIT_RUNTIME=1 --preload-file ${BINOCLE_DATA_DIR}@/assets/ --use-preload-plugins")
+    message("EMCC settings: ${CMAKE_C_FLAGS}")
 endif ()
 
 

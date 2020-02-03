@@ -13,7 +13,8 @@
 int l_binocle_sprite_from_material(lua_State *L) {
   l_binocle_material_t *material = luaL_checkudata(L, 1, "binocle_material");
   l_binocle_sprite_t *sprite = lua_newuserdata(L, sizeof(l_binocle_sprite_t));
-  luaL_setmetatable(L, "binocle_sprite");
+  lua_getfield(L, LUA_REGISTRYINDEX, "binocle_sprite");
+  lua_setmetatable(L, -2);
   SDL_memset(sprite, 0, sizeof(*sprite));
   binocle_sprite *s = binocle_sprite_from_material(material->material);
   sprite->sprite = s;

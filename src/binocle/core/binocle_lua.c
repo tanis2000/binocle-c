@@ -4,6 +4,7 @@
 // All rights reserved.
 //
 
+#include <stdlib.h>
 #include "binocle_lua.h"
 #include "binocle_window.h"
 #include "binocle_log.h"

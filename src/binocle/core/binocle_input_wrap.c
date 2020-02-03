@@ -2,6 +2,7 @@
 // Created by Valerio Santinelli on 02/02/2020.
 //
 
+#include <string.h>
 #include "binocle_input_wrap.h"
 #include "binocle_lua.h"
 #include "binocle_input.h"

@@ -166,7 +166,7 @@ char *binocle_sdl_assets_dir() {
   char *binocle_assets_dir = NULL;
 #if defined(__EMSCRIPTEN__)
   binocle_assets_dir = malloc(1024);
-  sprintf(binocle_assets_dir, "/Users/tanis/Documents/binocle-c/data/");
+  sprintf(binocle_assets_dir, "/assets/");
 #elif defined(__WINDOWS__)
   char *base_path = SDL_GetBasePath();
   if (base_path) {

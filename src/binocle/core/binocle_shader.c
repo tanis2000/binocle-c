@@ -82,8 +82,8 @@ binocle_shader *binocle_shader_load_from_file(char *vert_filename,
       shader->vert_src =
           (char *) SDL_malloc(res_size + 1 + sizeof(opengles_precision));
 #if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
-      strcpy(shader.vert_src, opengles_precision);
-      strcat(shader.vert_src, tmp);
+      strcpy(shader->vert_src, opengles_precision);
+      strcat(shader->vert_src, tmp);
 #else
       strcpy(shader->vert_src, tmp);
 #endif
@@ -154,8 +154,8 @@ binocle_shader *binocle_shader_load_from_file(char *vert_filename,
       shader->frag_src =
           (char *) SDL_malloc(res_size + 1 + sizeof(opengles_precision));
 #if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
-      strcpy(shader.frag_src, opengles_precision);
-      strcat(shader.frag_src, tmp);
+      strcpy(shader->frag_src, opengles_precision);
+      strcat(shader->frag_src, tmp);
 #else
       strcpy(shader->frag_src, tmp);
 #endif

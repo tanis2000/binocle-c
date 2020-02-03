@@ -11,7 +11,8 @@
 
 int l_binocle_material_new(lua_State *L) {
   l_binocle_material_t *material = lua_newuserdata(L, sizeof(l_binocle_material_t));
-  luaL_setmetatable(L, "binocle_material");
+  lua_getfield(L, LUA_REGISTRYINDEX, "binocle_material");
+  lua_setmetatable(L, -2);
   SDL_memset(material, 0, sizeof(*material));
   binocle_material *mtl = binocle_material_new();
   material->material = mtl;
