@@ -3,13 +3,13 @@ include_directories(
         ${CMAKE_SOURCE_DIR}/src/deps
         ${CMAKE_SOURCE_DIR}/src/deps/sdl/include
         ${CMAKE_SOURCE_DIR}/src/deps/sdl_mixer
-        ${CMAKE_SOURCE_DIR}/src/deps/luajit/src
         ${CMAKE_SOURCE_DIR}/src/deps/physfs
         ${CMAKE_SOURCE_DIR}/src/binocle/core
         ${CMAKE_SOURCE_DIR}/src/example/gameplay
 )
 
 if (APPLE)
+    include_directories(${PROJECT_SOURCE_DIR}/src/deps/luajit/src)
     if (IOS)
         include_directories(${CMAKE_SOURCE_DIR}/src/deps/sdl/include/configs/default)
     else ()
@@ -19,15 +19,18 @@ if (APPLE)
 endif ()
 
 if (ANDROID)
+    include_directories(${PROJECT_SOURCE_DIR}/src/deps/luajit/src)
     include_directories(${CMAKE_SOURCE_DIR}/src/deps/sdl/include/configs/default)
 endif ()
 
 if (WIN32)
+    include_directories(${PROJECT_SOURCE_DIR}/src/deps/luajit/src)
     include_directories(${CMAKE_SOURCE_DIR}/src/deps/sdl/include/configs/windows)
     include_directories(${CMAKE_SOURCE_DIR}/src/deps/glew/include)
 endif ()
 
 if (EMSCRIPTEN)
+    include_directories(${PROJECT_SOURCE_DIR}/src/deps/lua/src)
     include_directories(${CMAKE_SOURCE_DIR}/src/deps/sdl/include/configs/default)
 endif ()
 

@@ -37,21 +37,21 @@ binocle_window window;
 binocle_input input;
 binocle_viewport_adapter adapter;
 binocle_camera camera;
-binocle_sprite player;
+binocle_sprite *player;
 kmVec2 player_pos;
 binocle_gd gd;
 binocle_bitmapfont *font;
-binocle_image font_image;
-binocle_texture font_texture;
-binocle_material font_material;
-binocle_sprite font_sprite;
+binocle_image *font_image;
+binocle_texture *font_texture;
+binocle_material *font_material;
+binocle_sprite *font_sprite;
 kmVec2 font_sprite_pos;
 float running_time;
-binocle_shader quad_shader;
-binocle_shader sdf_shader;
-binocle_shader fxaa_shader;
-binocle_shader dof_shader;
-binocle_shader bloom_shader;
+binocle_shader *quad_shader;
+binocle_shader *sdf_shader;
+binocle_shader *fxaa_shader;
+binocle_shader *dof_shader;
+binocle_shader *bloom_shader;
 binocle_audio audio;
 binocle_audio_sound sound;
 binocle_audio_music *music;
@@ -100,7 +100,7 @@ void main_loop() {
   kmVec2 scale;
   scale.x = 1.0f;
   scale.y = 1.0f;
-  binocle_sprite_draw(&player, &gd, (uint64_t)player_pos.x, (uint64_t)player_pos.y, &adapter.viewport, 0, &scale, &camera);
+  binocle_sprite_draw(player, &gd, (uint64_t)player_pos.x, (uint64_t)player_pos.y, &adapter.viewport, 0, &scale, &camera);
   char fps_str[256];
   sprintf(fps_str, "FPS: %llu", binocle_window_get_fps(&window));
   kmMat4 view_matrix;
@@ -282,42 +282,22 @@ int main(int argc, char *argv[])
   camera = binocle_camera_new(&adapter);
   input = binocle_input_new();
 
-#if defined(__EMSCRIPTEN__)
-  binocle_data_dir = malloc(1024);
-  sprintf(binocle_data_dir, "/Users/tanis/Documents/binocle-c/data/");
-#elif defined(__WINDOWS__)
-  char *base_path = SDL_GetBasePath();
-  if (base_path) {
-    binocle_data_dir = malloc(strlen(base_path) + 7);
-    sprintf(binocle_data_dir, "%s%s", base_path, "..\\..\\..\\..\\..\\data\\");
-  } else {
-    binocle_data_dir = SDL_strdup("./data");
-  }
-#elif defined(__ANDROID__)
-  binocle_data_dir = SDL_strdup("");
-#else
-  char *base_path = SDL_GetBasePath();
-  if (base_path) {
-    binocle_data_dir = base_path;
-  } else {
-    binocle_data_dir = SDL_strdup("./");
-  }
-#endif
+  binocle_data_dir = binocle_sdl_assets_dir();
   binocle_log_info("Current base path: %s", binocle_data_dir);
 
   char filename[1024];
   sprintf(filename, "%s%s", binocle_data_dir, "wabbit_alpha.png");
-  binocle_image image = binocle_image_load(filename);
-  binocle_texture texture = binocle_texture_from_image(image);
+  binocle_image *image = binocle_image_load(filename);
+  binocle_texture *texture = binocle_texture_from_image(image);
   char vert[1024];
   sprintf(vert, "%s%s", binocle_data_dir, "default.vert");
   char frag[1024];
   sprintf(frag, "%s%s", binocle_data_dir, "default.frag");
-  binocle_shader shader = binocle_shader_load_from_file(vert, frag);
-  binocle_material material = binocle_material_new();
-  material.texture = &texture;
-  material.shader = &shader;
-  player = binocle_sprite_from_material(&material);
+  binocle_shader *shader = binocle_shader_load_from_file(vert, frag);
+  binocle_material *material = binocle_material_new();
+  material->texture = texture;
+  material->shader = shader;
+  player = binocle_sprite_from_material(material);
   player_pos.x = 50;
   player_pos.y = 50;
 
@@ -326,7 +306,7 @@ int main(int argc, char *argv[])
   sprintf(filename, "%s%s", binocle_data_dir, "test_simple2.lua");
   lua_test2(filename);
   sprintf(filename, "%s%s", binocle_data_dir, "test_ffi.lua");
-  lua_testffi(filename, &window);
+  //lua_testffi(filename, &window);
 
   // Load the default quad shader
   sprintf(vert, "%s%s", binocle_data_dir, "screen.vert");
@@ -362,10 +342,10 @@ int main(int argc, char *argv[])
   font_image = binocle_image_load(font_image_filename);
   font_texture = binocle_texture_from_image(font_image);
   font_material = binocle_material_new();
-  font_material.texture = &font_texture;
-  font_material.shader = &shader;
-  font->material = &font_material;
-  font_sprite = binocle_sprite_from_material(&font_material);
+  font_material->texture = font_texture;
+  font_material->shader = shader;
+  font->material = font_material;
+  font_sprite = binocle_sprite_from_material(font_material);
   font_sprite_pos.x = 0;
   font_sprite_pos.y = -256;
 
