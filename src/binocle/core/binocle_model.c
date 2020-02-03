@@ -16,7 +16,7 @@
 #define TINYOBJ_LOADER_C_IMPLEMENTATION
 #include <tiniobj_loader_c/tinyobj_loader_c.h>
 
-binocle_model binocle_model_load_obj(char *filename) {
+binocle_model binocle_model_load_obj(char *filename, char *mtl_filename) {
   binocle_model model = {0};
   char *buffer = NULL;
   size_t buffer_length = 0;
@@ -40,12 +40,21 @@ binocle_model binocle_model_load_obj(char *filename) {
     binocle_log_info("Loaded model data for %s: %i meshes and %i materials", filename, mesh_count, material_count);
   }
 
+  res = tinyobj_parse_mtl_file(&materials, &material_count, mtl_filename);
+  if (res != TINYOBJ_SUCCESS) {
+    binocle_log_warning("Cannot load material data for %s", mtl_filename);
+  } else {
+    binocle_log_info("Loaded material data for %s: %i materials", mtl_filename, material_count);
+  }
+
   model.mesh_count = 1; //mesh_count;
   model.meshes = malloc(model.mesh_count * sizeof(binocle_mesh));
   memset(model.meshes, 0, model.mesh_count * sizeof(binocle_model));
   model.material_count = material_count;
-  model.materials = malloc(model.material_count * sizeof(binocle_material));
-  memset(model.materials, 0, model.material_count * sizeof(binocle_material));
+  //model.materials = malloc(model.material_count * sizeof(binocle_material));
+  //memset(model.materials, 0, model.material_count * sizeof(binocle_material));
+  model.materials = malloc(model.material_count * sizeof(binocle_material *));
+  memset(model.materials, 0, model.material_count * sizeof(binocle_material *));
   model.mesh_materials = malloc(model.mesh_count * sizeof(uint64_t));
   memset(model.mesh_materials, 0, model.mesh_count * sizeof(uint64_t));
 
@@ -152,22 +161,23 @@ binocle_model binocle_model_load_obj(char *filename) {
     mesh_default_material->shader = &binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT];
     //mesh.material = &mesh_default_material;
     mesh.material = malloc(sizeof(binocle_material));
-    memcpy(mesh.material, &mesh_default_material, sizeof(binocle_material));
+    memcpy(mesh.material, mesh_default_material, sizeof(binocle_material));
     model.meshes[i] = mesh;
     model.mesh_materials[i] = attrib.material_ids[i];
   }
 
 
   for (int i = 0 ; i < material_count ; i++) {
-    model.materials[i] = *binocle_material_new();
+    binocle_material *mat = binocle_material_new();
+    model.materials[i] = mat;
     // We use diffuse only atm
     if (materials[i].diffuse_texname != NULL) {
       binocle_image *image = binocle_image_load(materials[i].diffuse_texname);
       binocle_texture *texture = binocle_texture_from_image(image);
-      model.materials[i].texture = malloc(sizeof(binocle_texture));
-      model.materials[i].texture = texture;
+      model.materials[i]->texture = malloc(sizeof(binocle_texture));
+      model.materials[i]->texture = texture;
       //memcpy(model.materials[i].texture, &texture, sizeof(binocle_texture));
-      model.materials[i].shader = &binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT];
+      model.materials[i]->shader = &binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT];
     }
   }
 
