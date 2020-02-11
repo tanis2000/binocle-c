@@ -9,12 +9,13 @@ include_directories(
 )
 
 if (APPLE)
-    include_directories(${PROJECT_SOURCE_DIR}/src/deps/luajit/src)
     if (IOS)
         include_directories(${CMAKE_SOURCE_DIR}/src/deps/sdl/include/configs/default)
+        include_directories(${PROJECT_SOURCE_DIR}/src/deps/lua/src)
     else ()
         include_directories(${CMAKE_SOURCE_DIR}/src/deps/sdl/include/configs/mac)
         include_directories(${CMAKE_SOURCE_DIR}/src/deps/glew/include)
+        include_directories(${PROJECT_SOURCE_DIR}/src/deps/luajit/src)
     endif ()
 endif ()
 

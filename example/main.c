@@ -21,6 +21,7 @@
 #include <binocle_material.h>
 #include <binocle_lua.h>
 #include <binocle_app.h>
+#include <binocle_wren.h>
 
 #define BINOCLE_MATH_IMPL
 #include "binocle_math.h"
@@ -57,6 +58,7 @@ binocle_audio_sound sound;
 binocle_audio_music *music;
 char *binocle_data_dir;
 binocle_app app;
+struct binocle_wren_t *wren;
 
 #ifdef TWODLOOP
 void main_loop() {
@@ -307,6 +309,9 @@ int main(int argc, char *argv[])
   lua_test2(filename);
   sprintf(filename, "%s%s", binocle_data_dir, "test_ffi.lua");
   //lua_testffi(filename, &window);
+
+  wren = binocle_wren_new();
+  binocle_wren_init(wren);
 
   // Load the default quad shader
   sprintf(vert, "%s%s", binocle_data_dir, "screen.vert");
