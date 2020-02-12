@@ -59,10 +59,21 @@ binocle_audio_music *music;
 char *binocle_data_dir;
 binocle_app app;
 struct binocle_wren_t *wren;
+WrenHandle* gameClass;
+WrenHandle* method;
+
+void wren_update(float dt) {
+  wrenEnsureSlots(wren->vm, 2);
+  wrenSetSlotHandle(wren->vm, 0, gameClass);
+  wrenSetSlotDouble(wren->vm, 1, dt);
+  WrenInterpretResult result = wrenCall(wren->vm, method);
+}
 
 #ifdef TWODLOOP
 void main_loop() {
   binocle_window_begin_frame(&window);
+  float dt = binocle_window_get_frame_time(&window) / 1000.0f;
+
   binocle_input_update(&input);
   binocle_audio_update_music_stream(music);
 
@@ -99,6 +110,9 @@ void main_loop() {
   }
 
   binocle_window_clear(&window);
+
+  wren_update(dt);
+
   kmVec2 scale;
   scale.x = 1.0f;
   scale.y = 1.0f;
@@ -312,6 +326,14 @@ int main(int argc, char *argv[])
 
   wren = binocle_wren_new();
   binocle_wren_init(wren);
+  char main_wren[1024];
+  sprintf(main_wren, "%s%s", binocle_data_dir, "main.wren");
+  binocle_wren_run_script(wren, main_wren);
+
+  wrenEnsureSlots(wren->vm, 1);
+  wrenGetVariable(wren->vm, "main", "Game", 0);
+  gameClass = wrenGetSlotHandle(wren->vm, 0);
+  method = wrenMakeCallHandle(wren->vm, "update(_)");
 
   // Load the default quad shader
   sprintf(vert, "%s%s", binocle_data_dir, "screen.vert");

@@ -111,7 +111,7 @@ static void close_state(lua_State **L) { lua_close(*L); }
 
 int lua_test(const char *arg) {
   /* Create VM state */
-  auto_lclose lua_State *L = luaL_newstate();
+  lua_State *L = luaL_newstate();
   if (!L)
     return 1;
   luaL_openlibs(L); /* Open standard libraries */
@@ -131,6 +131,7 @@ int lua_test(const char *arg) {
          lua_tostring(L, -2), lua_tointeger(L, -1));
   lua_settop(L, 0); /* (4) */
   //return 0;
+  lua_close(L);
 }
 
 int lua_test2(const char *arg) {
@@ -143,6 +144,10 @@ int lua_test2(const char *arg) {
    * all the time.
    */
   L = luaL_newstate();
+
+  if (L == NULL) {
+    return 1;
+  }
 
   luaL_openlibs(L); /* Load Lua libraries */
 

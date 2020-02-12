@@ -12,6 +12,7 @@
 typedef struct binocle_wren_t {
   WrenConfiguration config;
   WrenVM* vm;
+  char *last_script_run;
 } binocle_wren_t;
 
 binocle_wren_t *binocle_wren_new();
@@ -21,5 +22,6 @@ void binocle_wren_error(WrenVM *vm, WrenErrorType type,
                         const char* module,
                         int line,
                         const char* message);
+bool binocle_wren_run_script(binocle_wren_t *wren, char *filename);
 
 #endif //BINOCLE_WREN_H
