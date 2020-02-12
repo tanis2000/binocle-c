@@ -1,6 +1,11 @@
 project(kazmath)
 
 include_directories(.)
+if (IOS OR EMSCRIPTEN)
+    include_directories(../lua/src)
+else()
+    include_directories(../luajit/src)
+endif()
 
 file(GLOB_RECURSE SOURCES *.c)
 #file(GLOB_RECURSE REMOVE_SOURCES  
