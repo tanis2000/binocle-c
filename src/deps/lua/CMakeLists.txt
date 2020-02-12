@@ -1,6 +1,7 @@
 project(lua)
 
 include_directories(.)
+include_directories(src)
 
 file(GLOB_RECURSE SOURCES src/*.c)
 file(GLOB_RECURSE REMOVE_SOURCES
@@ -11,6 +12,9 @@ list(REMOVE_ITEM SOURCES ${REMOVE_SOURCES})
 #message(${SOURCES})
 file(GLOB_RECURSE HEADERS src/*.h)
 
+if (IOS)
+    add_definitions(-DLUA_USE_MKSTEMP)
+endif()
 
 add_library(lua OBJECT ${HEADERS} ${SOURCES})
 

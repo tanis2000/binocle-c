@@ -35,16 +35,27 @@ SET(VERSION_MINOR "1")
 SET(VERSION_PATCH "0")
 SET(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
-#set(BINOCLE_LINK_LIBRARIES binocle freetype kazmath parson rxi_map)
-if (NOT EMSCRIPTEN)
-	set(BINOCLE_LINK_LIBRARIES binocle-static luajit-5.1)
-else()
-	set(BINOCLE_LINK_LIBRARIES binocle-static lua)
-endif()
+set(BINOCLE_LINK_LIBRARIES binocle-static)
 
-if (NOT EMSCRIPTEN)
-	#set(BINOCLE_LINK_LIBRARIES ${BINOCLE_LINK_LIBRARIES} sdl ogg vorbis zlib)
-endif()
+#if (EMSCRIPTEN)
+#	set(BINOCLE_LINK_LIBRARIES binocle-static lua)
+#endif()
+#
+#if (APPLE AND NOT IOS)
+#	set(BINOCLE_LINK_LIBRARIES binocle-static luajit-5.1)
+#endif()
+#
+#if (IOS)
+#	set(BINOCLE_LINK_LIBRARIES binocle-static lua)
+#endif()
+#
+#if (ANDROID)
+#	set(BINOCLE_LINK_LIBRARIES binocle-static luajit-5.1)
+#endif()
+#
+#if (MSVC)
+#	set(BINOCLE_LINK_LIBRARIES binocle-static luajit-5.1)
+#endif()
 
 if (MSVC)
 	message("Including Windows defines")

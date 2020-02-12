@@ -12,6 +12,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/src/deps/kazmath
         ${CMAKE_SOURCE_DIR}/src/deps/physfs
         ${CMAKE_SOURCE_DIR}/src/deps/sokol
+        ${CMAKE_SOURCE_DIR}/src/deps/libuv
+        ${CMAKE_SOURCE_DIR}/src/deps/wren
         )
 
 if (NOT EMSCRIPTEN)

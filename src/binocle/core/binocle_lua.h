@@ -7,9 +7,16 @@
 #ifndef BINOCLE_LUA_H
 #define BINOCLE_LUA_H
 
+#if defined(__IPHONEOS__) || defined(__EMSCRIPTEN__)
+#include <lua/src/lua.h>
+#include <lua/src/lualib.h>
+#include <lua/src/lauxlib.h>
+#else
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
+#endif
+
 #include <inttypes.h>
 #include <stdbool.h>
 #include <time.h>
