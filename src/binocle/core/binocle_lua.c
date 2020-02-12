@@ -17,6 +17,7 @@
 #include "binocle_material_wrap.h"
 #include "binocle_sprite_wrap.h"
 #include "binocle_input_wrap.h"
+#include "lkazmath.h"
 
 binocle_lua binocle_lua_new() {
   binocle_lua res = {0};
@@ -32,6 +33,9 @@ bool binocle_lua_init(binocle_lua *lua) {
 
   // Load the Lua libraries
   luaL_openlibs(lua->L);
+
+  // Kazmath
+  luaopen_lkazmath(lua->L);
 
   luaopen_sdl(lua->L);
   luaopen_image(lua->L);
