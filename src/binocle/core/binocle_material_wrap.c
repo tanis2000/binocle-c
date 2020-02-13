@@ -22,7 +22,7 @@ int l_binocle_material_new(lua_State *L) {
 int l_binocle_material_set_texture(lua_State *L) {
   l_binocle_material_t *material = luaL_checkudata(L, 1, "binocle_material");
   l_binocle_texture_t *texture = luaL_checkudata(L, 2, "binocle_texture");
-  material->material->texture = texture->texture;
+  material->material->albedo_texture = texture->texture;
   return 0;
 }
 

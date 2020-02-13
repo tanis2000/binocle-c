@@ -18,10 +18,16 @@ struct binocle_shader;
 typedef struct binocle_material {
   /// The blending mode
   binocle_blend blend_mode;
-  /// The diffuse texture
-  struct binocle_texture *texture;
-  /// The specular texture
-  struct binocle_texture *specular_texture;
+  /// The albedo/diffuse texture
+  struct binocle_texture *albedo_texture;
+  /// The normal/specular texture
+  struct binocle_texture *normal_texture;
+  /// The metallic texture
+  struct binocle_texture *metallic_texture;
+  /// The roughness texture
+  struct binocle_texture *roughness_texture;
+  /// The ambient occlusion texture
+  struct binocle_texture *ao_texture;
   /// The shader (couple of VS/FS)
   struct binocle_shader *shader;
 } binocle_material;

@@ -35,8 +35,8 @@ binocle_sprite *binocle_sprite_from_material(binocle_material *material) {
   res->origin.y = 0;
   res->material = material;
   // Default to use the whole texture
-  res->subtexture = binocle_subtexture_with_texture(material->texture, 0, 0, material->texture->width,
-                                                   material->texture->height);
+  res->subtexture = binocle_subtexture_with_texture(material->albedo_texture, 0, 0, material->albedo_texture->width,
+                                                   material->albedo_texture->height);
   for (int i = 0; i < BINOCLE_SPRITE_MAX_ANIMATIONS; i++) {
     res->animations[i].enabled = false;
   }
@@ -81,44 +81,44 @@ void binocle_sprite_draw(binocle_sprite *sprite, binocle_gd *gd, int64_t x, int6
   vertices[0].pos.y =
       (-sprite->origin.y * scale->y + h * scale->y) * cosf(rotation) - sprite->origin.x * scale->x * sinf(rotation) + y;
   vertices[0].color = binocle_color_white();
-  vertices[0].tex.x = s->rect.min.x / sprite->material->texture->width;
-  vertices[0].tex.y = (s->rect.min.y + s->rect.max.y) / sprite->material->texture->height;
+  vertices[0].tex.x = s->rect.min.x / sprite->material->albedo_texture->width;
+  vertices[0].tex.y = (s->rect.min.y + s->rect.max.y) / sprite->material->albedo_texture->height;
   // TR
   vertices[1].pos.x = (-sprite->origin.x * scale->x + w * scale->x) * cosf(rotation) -
                       (-sprite->origin.y * scale->y + h * scale->y) * sinf(rotation) + x;
   vertices[1].pos.y = (-sprite->origin.y * scale->y + h * scale->y) * cosf(rotation) +
                       (-sprite->origin.x * scale->x + w * scale->x) * sinf(rotation) + y;
   vertices[1].color = binocle_color_white();
-  vertices[1].tex.x = (s->rect.min.x + s->rect.max.x) / sprite->material->texture->width;
-  vertices[1].tex.y = (s->rect.min.y + s->rect.max.y) / sprite->material->texture->height;
+  vertices[1].tex.x = (s->rect.min.x + s->rect.max.x) / sprite->material->albedo_texture->width;
+  vertices[1].tex.y = (s->rect.min.y + s->rect.max.y) / sprite->material->albedo_texture->height;
   // BL
   vertices[2].pos.x = -sprite->origin.x * scale->x * cosf(rotation) + sprite->origin.y * scale->y * sinf(rotation) + x;
   vertices[2].pos.y = -sprite->origin.y * scale->y * cosf(rotation) - sprite->origin.x * scale->x * sinf(rotation) + y;
   vertices[2].color = binocle_color_white();
-  vertices[2].tex.x = s->rect.min.x / sprite->material->texture->width;
-  vertices[2].tex.y = s->rect.min.y / sprite->material->texture->height;
+  vertices[2].tex.x = s->rect.min.x / sprite->material->albedo_texture->width;
+  vertices[2].tex.y = s->rect.min.y / sprite->material->albedo_texture->height;
   // TR
   vertices[3].pos.x = (-sprite->origin.x * scale->x + w * scale->x) * cosf(rotation) -
                       (-sprite->origin.y * scale->y + h * scale->y) * sinf(rotation) + x;
   vertices[3].pos.y = (-sprite->origin.y * scale->y + h * scale->y) * cosf(rotation) +
                       (-sprite->origin.x * scale->x + w * scale->x) * sinf(rotation) + y;
   vertices[3].color = binocle_color_white();
-  vertices[3].tex.x = (s->rect.min.x + s->rect.max.x) / sprite->material->texture->width;
-  vertices[3].tex.y = (s->rect.min.y + s->rect.max.y) / sprite->material->texture->height;
+  vertices[3].tex.x = (s->rect.min.x + s->rect.max.x) / sprite->material->albedo_texture->width;
+  vertices[3].tex.y = (s->rect.min.y + s->rect.max.y) / sprite->material->albedo_texture->height;
   // BR
   vertices[4].pos.x =
       (-sprite->origin.x * scale->x + w * scale->x) * cosf(rotation) + sprite->origin.y * scale->y * sinf(rotation) + x;
   vertices[4].pos.y =
       -sprite->origin.y * scale->y * cosf(rotation) + (-sprite->origin.x * scale->x + w * scale->x) * sinf(rotation) + y;
   vertices[4].color = binocle_color_white();
-  vertices[4].tex.x = (s->rect.min.x + s->rect.max.x) / sprite->material->texture->width;
-  vertices[4].tex.y = s->rect.min.y / sprite->material->texture->height;
+  vertices[4].tex.x = (s->rect.min.x + s->rect.max.x) / sprite->material->albedo_texture->width;
+  vertices[4].tex.y = s->rect.min.y / sprite->material->albedo_texture->height;
   // BL
   vertices[5].pos.x = -sprite->origin.x * scale->x * cosf(rotation) + sprite->origin.y * scale->y * sinf(rotation) + x;
   vertices[5].pos.y = -sprite->origin.y * scale->y * cosf(rotation) - sprite->origin.x * scale->x * sinf(rotation) + y;
   vertices[5].color = binocle_color_white();
-  vertices[5].tex.x = s->rect.min.x / sprite->material->texture->width;
-  vertices[5].tex.y = s->rect.min.y / sprite->material->texture->height;
+  vertices[5].tex.x = s->rect.min.x / sprite->material->albedo_texture->width;
+  vertices[5].tex.y = s->rect.min.y / sprite->material->albedo_texture->height;
 
   binocle_gd_draw(gd, vertices, BINOCLE_SPRITE_VERTEX_COUNT, *sprite->material, *viewport, camera);
 }

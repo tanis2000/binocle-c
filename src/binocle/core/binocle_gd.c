@@ -97,7 +97,7 @@ void binocle_gd_draw(binocle_gd *gd, const binocle_vpct *vertices, size_t vertex
   binocle_gd_apply_viewport(viewport);
   binocle_gd_apply_blend_mode(material.blend_mode);
   binocle_gd_apply_shader(gd, *material.shader);
-  binocle_gd_apply_texture(*material.texture);
+  binocle_gd_apply_texture(*material.albedo_texture);
 
   kmMat4 projectionMatrix = binocle_math_create_orthographic_matrix_off_center(viewport.min.x, viewport.max.x,
                                                                                viewport.min.y, viewport.max.y, -1000.0f,
@@ -247,10 +247,10 @@ void binocle_gd_apply_texture(binocle_texture texture) {
 void binocle_gd_apply_3d_texture(binocle_material *material) {
   // Diffuse texture
   glCheck(glActiveTexture(GL_TEXTURE0));
-  glCheck(glBindTexture(GL_TEXTURE_2D, material->texture->tex_id));
+  glCheck(glBindTexture(GL_TEXTURE_2D, material->albedo_texture->tex_id));
   // Specular texture
   glCheck(glActiveTexture(GL_TEXTURE1));
-  glCheck(glBindTexture(GL_TEXTURE_2D, material->specular_texture->tex_id));
+  glCheck(glBindTexture(GL_TEXTURE_2D, material->normal_texture->tex_id));
   glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
   glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
   glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
@@ -415,9 +415,9 @@ void binocle_gd_set_uniform_render_target_as_texture(struct binocle_shader shade
   glCheck(glBindTexture(GL_TEXTURE_2D, render_target.texture));
 }
 
-void binocle_gd_set_uniform_vec3(struct binocle_shader shader, const char *name, kmVec3 vec) {
+void binocle_gd_set_uniform_vec3(struct binocle_shader *shader, const char *name, kmVec3 vec) {
   GLint id = 0;
-  glCheck(id = glGetUniformLocation(shader.program_id, name));
+  glCheck(id = glGetUniformLocation(shader->program_id, name));
   if (id == -1) {
     binocle_log_error("Cannot find uniform called %s", name);
     return;
