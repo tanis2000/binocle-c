@@ -9,6 +9,7 @@
 #include <string.h>
 #include "binocle_log.h"
 #include "binocle_sdl.h"
+#include "binocle_input.h"
 
 binocle_wren_t *binocle_wren_new() {
   binocle_wren_t *res = malloc(sizeof(binocle_wren_t));
@@ -20,11 +21,9 @@ void binocle_wren_init(struct binocle_wren_t *wren) {
   wrenInitConfiguration(&wren->config);
   wren->config.writeFn = binocle_wren_log;
   wren->config.errorFn = binocle_wren_error;
+  wren->config.bindForeignMethodFn = binocle_wren_bind_foreign_method_fn;
+  wren->config.bindForeignClassFn = binocle_wren_bind_foreign_class_fn;
   wren->vm = wrenNewVM(&wren->config);
-  WrenInterpretResult result = wrenInterpret(
-      wren->vm,
-      "my_module",
-      "System.print(\"I am running in a VM!\")");
 }
 
 void binocle_wren_log(WrenVM *vm, const char* text) {
@@ -62,4 +61,57 @@ bool binocle_wren_run_script(binocle_wren_t *wren, char *filename) {
   wren->last_script_run = malloc(strlen(filename)+1);
   strcpy(wren->last_script_run, filename);
   return true;
+}
+
+void binocle_wren_input_is_key_pressed(WrenVM *vm) {
+  binocle_input *input = (binocle_input *)wrenGetUserData(vm);
+  bool res = binocle_input_is_key_pressed(input, KEY_A);
+  wrenSetSlotBool(vm, 0, res);
+}
+
+void binocle_wren_wrap_input(binocle_wren_t *wren, struct binocle_input *input) {
+  wrenSetUserData(wren->vm, input);
+}
+
+void binocle_wren_input_instance(WrenVM *vm) {
+  binocle_input *input = (binocle_input *)wrenGetUserData(vm);
+  binocle_input *new_input = (binocle_input*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(binocle_input));
+  memcpy(new_input, input, sizeof(binocle_input));
+}
+
+WrenForeignMethodFn binocle_wren_bind_foreign_method_fn(
+    WrenVM* vm,
+    const char* module,
+    const char* className,
+    bool isStatic,
+    const char* signature) {
+  if (strcmp(module, "main") == 0)
+  {
+    if (strcmp(className, "Input") == 0)
+    {
+      if (!isStatic && strcmp(signature, "is_key_pressed()") == 0)
+      {
+        return binocle_wren_input_is_key_pressed; // C function for Math.add(_,_).
+      }
+      // Other foreign methods on Math...
+    }
+    // Other classes in main...
+  }
+}
+
+WrenForeignClassMethods binocle_wren_bind_foreign_class_fn(
+    WrenVM* vm, const char* module, const char* className) {
+  WrenForeignClassMethods methods = { NULL, NULL };
+
+
+  if (strcmp(module, "main") == 0)
+  {
+    if (strcmp(className, "Input") == 0)
+    {
+      methods.allocate = binocle_wren_input_instance;
+      return methods; // C function for Math.add(_,_).
+      // Other foreign methods on Math...
+    }
+    // Other classes in main...
+  }
 }

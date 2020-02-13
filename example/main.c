@@ -326,12 +326,14 @@ int main(int argc, char *argv[])
 
   wren = binocle_wren_new();
   binocle_wren_init(wren);
+  binocle_wren_wrap_input(wren, &input);
+
   char main_wren[1024];
   sprintf(main_wren, "%s%s", binocle_data_dir, "main.wren");
   binocle_wren_run_script(wren, main_wren);
 
   wrenEnsureSlots(wren->vm, 1);
-  wrenGetVariable(wren->vm, "main", "Game", 0);
+  wrenGetVariable(wren->vm, "main", "game", 0);
   gameClass = wrenGetSlotHandle(wren->vm, 0);
   method = wrenMakeCallHandle(wren->vm, "update(_)");
 

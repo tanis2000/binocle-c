@@ -9,6 +9,8 @@
 
 #include "wren/src/include/wren.h"
 
+struct binocle_input;
+
 typedef struct binocle_wren_t {
   WrenConfiguration config;
   WrenVM* vm;
@@ -23,5 +25,14 @@ void binocle_wren_error(WrenVM *vm, WrenErrorType type,
                         int line,
                         const char* message);
 bool binocle_wren_run_script(binocle_wren_t *wren, char *filename);
+WrenForeignMethodFn binocle_wren_bind_foreign_method_fn(
+    WrenVM* vm,
+    const char* module,
+    const char* className,
+    bool isStatic,
+    const char* signature);
+WrenForeignClassMethods binocle_wren_bind_foreign_class_fn(
+    WrenVM* vm, const char* module, const char* className);
+void binocle_wren_wrap_input(binocle_wren_t *wren, struct binocle_input *input);
 
 #endif //BINOCLE_WREN_H
