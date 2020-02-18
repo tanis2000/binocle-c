@@ -47,6 +47,10 @@ binocle_model binocle_model_load_obj(char *filename, char *mtl_filename) {
     binocle_log_info("Loaded material data for %s: %i materials", mtl_filename, material_count);
   }
 
+  binocle_log_info("# of vertices = %d", attrib.num_vertices);
+  binocle_log_info("# of normals = %d", attrib.num_normals);
+  binocle_log_info("# of texcoords = %d", attrib.num_texcoords);
+
   model.mesh_count = 1; //mesh_count;
   model.meshes = malloc(model.mesh_count * sizeof(binocle_mesh));
   memset(model.meshes, 0, model.mesh_count * sizeof(binocle_model));
@@ -68,6 +72,7 @@ binocle_model binocle_model_load_obj(char *filename, char *mtl_filename) {
     memset(mesh.vertices, 0, mesh.vertex_count * sizeof(binocle_vpctn));
     mesh.indices = malloc(mesh.triangle_count * 3 * sizeof(uint32_t));
     memset(mesh.indices, 0, mesh.triangle_count * 3 * sizeof(uint32_t));
+
 
     /*
     for (int j = 0 ; j < mesh.vertex_count ; j++) {
@@ -131,21 +136,81 @@ binocle_model binocle_model_load_obj(char *filename, char *mtl_filename) {
         //binocle_log_info("Face %i vert %i tex coords: %f %f", j, j * 3 + 2, mesh.vertices[j * 3 + 2].tex.x, mesh.vertices[j * 3 + 2].tex.y);
       }
 
-      if (idx_0.vn_idx >= 0) {
-        mesh.vertices[j * 3 + 0].normal.x = attrib.normals[idx_0.vn_idx * 3 + 0];
-        mesh.vertices[j * 3 + 0].normal.y = attrib.normals[idx_0.vn_idx * 3 + 1];
-        mesh.vertices[j * 3 + 0].normal.z = attrib.normals[idx_0.vn_idx * 3 + 2];
+//#define FAKE_NORMALS
+#ifdef FAKE_NORMALS
+      mesh.vertices[j * 3 + 0].normal.x = mesh.vertices[j * 3 + 0].pos.x;
+      mesh.vertices[j * 3 + 0].normal.y = mesh.vertices[j * 3 + 0].pos.y;
+      mesh.vertices[j * 3 + 0].normal.z = mesh.vertices[j * 3 + 0].pos.z;
+      mesh.vertices[j * 3 + 1].normal.x = mesh.vertices[j * 3 + 1].pos.x;
+      mesh.vertices[j * 3 + 1].normal.y = mesh.vertices[j * 3 + 1].pos.y;
+      mesh.vertices[j * 3 + 1].normal.z = mesh.vertices[j * 3 + 1].pos.z;
+      mesh.vertices[j * 3 + 2].normal.x = mesh.vertices[j * 3 + 2].pos.x;
+      mesh.vertices[j * 3 + 2].normal.y = mesh.vertices[j * 3 + 2].pos.y;
+      mesh.vertices[j * 3 + 2].normal.z = mesh.vertices[j * 3 + 2].pos.z;
+#else
+      if (attrib.num_normals > 0) {
+        if (idx_0.vn_idx >= 0 && idx_1.vn_idx >= 0 && idx_2.vn_idx >= 0) {
+          mesh.vertices[j * 3 + 0].normal.x = attrib.normals[idx_0.vn_idx * 3 + 0];
+          mesh.vertices[j * 3 + 0].normal.y = attrib.normals[idx_0.vn_idx * 3 + 1];
+          mesh.vertices[j * 3 + 0].normal.z = attrib.normals[idx_0.vn_idx * 3 + 2];
+
+          mesh.vertices[j * 3 + 1].normal.x = attrib.normals[idx_1.vn_idx * 3 + 0];
+          mesh.vertices[j * 3 + 1].normal.y = attrib.normals[idx_1.vn_idx * 3 + 1];
+          mesh.vertices[j * 3 + 1].normal.z = attrib.normals[idx_1.vn_idx * 3 + 2];
+
+          mesh.vertices[j * 3 + 2].normal.x = attrib.normals[idx_2.vn_idx * 3 + 0];
+          mesh.vertices[j * 3 + 2].normal.y = attrib.normals[idx_2.vn_idx * 3 + 1];
+          mesh.vertices[j * 3 + 2].normal.z = attrib.normals[idx_2.vn_idx * 3 + 2];
+        } else {
+          float v[3][3];
+          float n[3][3];
+          v[0][0] = mesh.vertices[j * 3 + 0].pos.x;
+          v[0][1] = mesh.vertices[j * 3 + 0].pos.y;
+          v[0][2] = mesh.vertices[j * 3 + 0].pos.z;
+          v[1][0] = mesh.vertices[j * 3 + 1].pos.x;
+          v[1][1] = mesh.vertices[j * 3 + 1].pos.y;
+          v[1][2] = mesh.vertices[j * 3 + 1].pos.z;
+          v[2][0] = mesh.vertices[j * 3 + 2].pos.x;
+          v[2][1] = mesh.vertices[j * 3 + 2].pos.y;
+          v[2][2] = mesh.vertices[j * 3 + 2].pos.z;
+          binocle_model_compute_normal(n[0], v[0], v[1], v[2]);
+          mesh.vertices[j * 3 + 0].normal.x = n[0][0];
+          mesh.vertices[j * 3 + 0].normal.y = n[0][1];
+          mesh.vertices[j * 3 + 0].normal.z = n[0][2];
+          mesh.vertices[j * 3 + 1].normal.x = n[0][0];
+          mesh.vertices[j * 3 + 1].normal.y = n[0][1];
+          mesh.vertices[j * 3 + 1].normal.z = n[0][2];
+          mesh.vertices[j * 3 + 2].normal.x = n[0][0];
+          mesh.vertices[j * 3 + 2].normal.y = n[0][1];
+          mesh.vertices[j * 3 + 2].normal.z = n[0][2];
+        }
+      } else {
+        float v[3][3];
+        float n[3][3];
+        v[0][0] = mesh.vertices[j * 3 + 0].pos.x;
+        v[0][1] = mesh.vertices[j * 3 + 0].pos.y;
+        v[0][2] = mesh.vertices[j * 3 + 0].pos.z;
+        v[1][0] = mesh.vertices[j * 3 + 1].pos.x;
+        v[1][1] = mesh.vertices[j * 3 + 1].pos.y;
+        v[1][2] = mesh.vertices[j * 3 + 1].pos.z;
+        v[2][0] = mesh.vertices[j * 3 + 2].pos.x;
+        v[2][1] = mesh.vertices[j * 3 + 2].pos.y;
+        v[2][2] = mesh.vertices[j * 3 + 2].pos.z;
+        binocle_model_compute_normal(n[0], v[0], v[1], v[2]);
+        mesh.vertices[j * 3 + 0].normal.x = n[0][0];
+        mesh.vertices[j * 3 + 0].normal.y = n[0][1];
+        mesh.vertices[j * 3 + 0].normal.z = n[0][2];
+        mesh.vertices[j * 3 + 1].normal.x = n[0][0];
+        mesh.vertices[j * 3 + 1].normal.y = n[0][1];
+        mesh.vertices[j * 3 + 1].normal.z = n[0][2];
+        mesh.vertices[j * 3 + 2].normal.x = n[0][0];
+        mesh.vertices[j * 3 + 2].normal.y = n[0][1];
+        mesh.vertices[j * 3 + 2].normal.z = n[0][2];
       }
-      if (idx_1.vn_idx >= 0) {
-        mesh.vertices[j * 3 + 1].normal.x = attrib.normals[idx_1.vn_idx * 3 + 0];
-        mesh.vertices[j * 3 + 1].normal.y = attrib.normals[idx_1.vn_idx * 3 + 1];
-        mesh.vertices[j * 3 + 1].normal.z = attrib.normals[idx_1.vn_idx * 3 + 2];
-      }
-      if (idx_2.vn_idx >= 0) {
-        mesh.vertices[j * 3 + 2].normal.x = attrib.normals[idx_2.vn_idx * 3 + 0];
-        mesh.vertices[j * 3 + 2].normal.y = attrib.normals[idx_2.vn_idx * 3 + 1];
-        mesh.vertices[j * 3 + 2].normal.z = attrib.normals[idx_2.vn_idx * 3 + 2];
-      }
+#endif
+
+
+
 
     }
 
