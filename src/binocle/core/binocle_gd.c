@@ -96,7 +96,7 @@ void binocle_gd_draw(binocle_gd *gd, const binocle_vpct *vertices, size_t vertex
   binocle_gd_apply_gl_states();
   binocle_gd_apply_viewport(viewport);
   binocle_gd_apply_blend_mode(material.blend_mode);
-  binocle_gd_apply_shader(gd, *material.shader);
+  binocle_gd_apply_shader(gd, material.shader);
   binocle_gd_apply_texture(*material.albedo_texture);
 
   kmMat4 projectionMatrix = binocle_math_create_orthographic_matrix_off_center(viewport.min.x, viewport.max.x,
@@ -223,17 +223,17 @@ void binocle_gd_apply_blend_mode(const binocle_blend blend_mode) {
   glCheck(glBlendEquation(binocle_gd_equation_to_gl_constant(blend_mode.color_equation)));
 }
 
-void binocle_gd_apply_shader(binocle_gd *gd, binocle_shader shader) {
-  gd->vertex_attribute = glGetAttribLocation(shader.program_id, "vertexPosition");
-  gd->tex_coord_attribute = glGetAttribLocation(shader.program_id, "vertexTCoord");
-  gd->color_attribute = glGetAttribLocation(shader.program_id, "vertexColor");
-  gd->normal_attribute = glGetAttribLocation(shader.program_id, "vertexNormal");
-  gd->projection_matrix_uniform = glGetUniformLocation(shader.program_id, "projectionMatrix");
-  //gd->model_view_matrix_uniform = glGetUniformLocation(shader.program_id, "modelViewMatrix");
-  gd->view_matrix_uniform = glGetUniformLocation(shader.program_id, "viewMatrix");
-  gd->model_matrix_uniform = glGetUniformLocation(shader.program_id, "modelMatrix");
-  gd->image_uniform = glGetUniformLocation(shader.program_id, "tex0");
-  glCheck(glUseProgram(shader.program_id));
+void binocle_gd_apply_shader(binocle_gd *gd, binocle_shader *shader) {
+  gd->vertex_attribute = glGetAttribLocation(shader->program_id, "vertexPosition");
+  gd->tex_coord_attribute = glGetAttribLocation(shader->program_id, "vertexTCoord");
+  gd->color_attribute = glGetAttribLocation(shader->program_id, "vertexColor");
+  gd->normal_attribute = glGetAttribLocation(shader->program_id, "vertexNormal");
+  gd->projection_matrix_uniform = glGetUniformLocation(shader->program_id, "projectionMatrix");
+  //gd->model_view_matrix_uniform = glGetUniformLocation(shader->program_id, "modelViewMatrix");
+  gd->view_matrix_uniform = glGetUniformLocation(shader->program_id, "viewMatrix");
+  gd->model_matrix_uniform = glGetUniformLocation(shader->program_id, "modelMatrix");
+  gd->image_uniform = glGetUniformLocation(shader->program_id, "tex0");
+  glCheck(glUseProgram(shader->program_id));
 }
 
 void binocle_gd_apply_texture(binocle_texture texture) {
@@ -359,9 +359,9 @@ void binocle_gd_destroy_render_target(binocle_render_target *render_target) {
   render_target->frame_buffer = GL_NONE;
 }
 
-void binocle_gd_set_uniform_float(struct binocle_shader shader, const char *name, float value) {
+void binocle_gd_set_uniform_float(struct binocle_shader *shader, const char *name, float value) {
   GLint id = 0;
-  glCheck(id = glGetUniformLocation(shader.program_id, name));
+  glCheck(id = glGetUniformLocation(shader->program_id, name));
   if (id == -1) {
     binocle_log_error("Cannot find uniform called %s", name);
     return;
@@ -369,9 +369,9 @@ void binocle_gd_set_uniform_float(struct binocle_shader shader, const char *name
   glCheck(glUniform1f(id, value));
 }
 
-void binocle_gd_set_uniform_float2(struct binocle_shader shader, const char *name, float value1, float value2) {
+void binocle_gd_set_uniform_float2(struct binocle_shader *shader, const char *name, float value1, float value2) {
   GLint id = 0;
-  glCheck(id = glGetUniformLocation(shader.program_id, name));
+  glCheck(id = glGetUniformLocation(shader->program_id, name));
   if (id == -1) {
     binocle_log_error("Cannot find uniform called %s", name);
     return;
@@ -379,10 +379,10 @@ void binocle_gd_set_uniform_float2(struct binocle_shader shader, const char *nam
   glCheck(glUniform2f(id, value1, value2));
 }
 
-void binocle_gd_set_uniform_float3(struct binocle_shader shader, const char *name, float value1, float value2,
+void binocle_gd_set_uniform_float3(struct binocle_shader *shader, const char *name, float value1, float value2,
                                    float value3) {
   GLint id = 0;
-  glCheck(id = glGetUniformLocation(shader.program_id, name));
+  glCheck(id = glGetUniformLocation(shader->program_id, name));
   if (id == -1) {
     binocle_log_error("Cannot find uniform called %s", name);
     return;
@@ -391,10 +391,10 @@ void binocle_gd_set_uniform_float3(struct binocle_shader shader, const char *nam
 }
 
 void
-binocle_gd_set_uniform_float4(struct binocle_shader shader, const char *name, float value1, float value2, float value3,
+binocle_gd_set_uniform_float4(struct binocle_shader *shader, const char *name, float value1, float value2, float value3,
                               float value4) {
   GLint id = 0;
-  glCheck(id = glGetUniformLocation(shader.program_id, name));
+  glCheck(id = glGetUniformLocation(shader->program_id, name));
   if (id == -1) {
     binocle_log_error("Cannot find uniform called %s", name);
     return;
@@ -402,10 +402,10 @@ binocle_gd_set_uniform_float4(struct binocle_shader shader, const char *name, fl
   glCheck(glUniform4f(id, value1, value2, value3, value4));
 }
 
-void binocle_gd_set_uniform_render_target_as_texture(struct binocle_shader shader, const char *name,
+void binocle_gd_set_uniform_render_target_as_texture(struct binocle_shader *shader, const char *name,
                                                      binocle_render_target render_target) {
   GLint id = 0;
-  glCheck(id = glGetUniformLocation(shader.program_id, name));
+  glCheck(id = glGetUniformLocation(shader->program_id, name));
   if (id == -1) {
     binocle_log_error("Cannot find uniform called %s", name);
     return;
@@ -425,9 +425,9 @@ void binocle_gd_set_uniform_vec3(struct binocle_shader *shader, const char *name
   glCheck(glUniform3fv(id, 1, (GLfloat *)&vec));
 }
 
-void binocle_gd_set_uniform_mat4(struct binocle_shader shader, const char *name, kmMat4 mat) {
+void binocle_gd_set_uniform_mat4(struct binocle_shader *shader, const char *name, kmMat4 mat) {
   GLint id = 0;
-  glCheck(id = glGetUniformLocation(shader.program_id, name));
+  glCheck(id = glGetUniformLocation(shader->program_id, name));
   if (id == -1) {
     binocle_log_error("Cannot find uniform called %s", name);
     return;
@@ -450,7 +450,7 @@ void binocle_gd_set_render_target(binocle_render_target *render_target) {
   }
 }
 
-void binocle_gd_draw_quad(struct binocle_shader shader) {
+void binocle_gd_draw_quad(struct binocle_shader *shader) {
   static const GLfloat g_quad_vertex_buffer_data[] = {
       -1.0f, -1.0f,
       1.0f, -1.0f,
@@ -465,7 +465,7 @@ void binocle_gd_draw_quad(struct binocle_shader shader) {
   glCheck(glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer));
   glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW));
   GLint pos_id;
-  glCheck(pos_id = glGetAttribLocation(shader.program_id, "position"));
+  glCheck(pos_id = glGetAttribLocation(shader->program_id, "position"));
   glCheck(glVertexAttribPointer(pos_id, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 2, 0));
   glCheck(glEnableVertexAttribArray(pos_id));
   glCheck(glDrawArrays(GL_TRIANGLES, 0, 6));
@@ -475,7 +475,7 @@ void binocle_gd_draw_quad(struct binocle_shader shader) {
   glCheck(glDeleteBuffers(1, &quad_vertexbuffer));
 }
 
-void binocle_gd_draw_quad_to_screen(struct binocle_shader shader, binocle_render_target render_target) {
+void binocle_gd_draw_quad_to_screen(struct binocle_shader *shader, binocle_render_target render_target) {
   static const GLfloat g_quad_vertex_buffer_data[] = {
       -1.0f, -1.0f,
       1.0f, -1.0f,
@@ -490,11 +490,11 @@ void binocle_gd_draw_quad_to_screen(struct binocle_shader shader, binocle_render
   glCheck(glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer));
   glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW));
   GLint pos_id;
-  glCheck(pos_id = glGetAttribLocation(shader.program_id, "position"));
+  glCheck(pos_id = glGetAttribLocation(shader->program_id, "position"));
   glCheck(glVertexAttribPointer(pos_id, 2, GL_FLOAT, false, 0, 0));
   glCheck(glEnableVertexAttribArray(pos_id));
   GLint tex_id;
-  glCheck(tex_id = glGetUniformLocation(shader.program_id, "texture"));
+  glCheck(tex_id = glGetUniformLocation(shader->program_id, "texture"));
   glCheck(glUniform1i(tex_id, 0));
   glCheck(glActiveTexture(GL_TEXTURE0));
   glCheck(glBindTexture(GL_TEXTURE_2D, render_target.texture));
@@ -730,7 +730,7 @@ void binocle_gd_draw_with_state(binocle_gd *gd, const binocle_vpct *vertices, si
   binocle_gd_apply_gl_states();
   binocle_gd_apply_viewport(render_state->viewport);
   binocle_gd_apply_blend_mode(render_state->blend_mode);
-  binocle_gd_apply_shader(gd, *render_state->shader);
+  binocle_gd_apply_shader(gd, render_state->shader);
   binocle_gd_apply_texture(*render_state->texture);
 
   kmMat4 projectionMatrix = binocle_math_create_orthographic_matrix_off_center(render_state->viewport.min.x, render_state->viewport.max.x,
@@ -788,7 +788,7 @@ void binocle_gd_draw_mesh(binocle_gd *gd, const struct binocle_mesh *mesh, kmAAB
   binocle_gd_apply_3d_gl_states();
   binocle_gd_apply_viewport(viewport);
   binocle_gd_apply_blend_mode(mesh->material->blend_mode);
-  binocle_gd_apply_shader(gd, *mesh->material->shader);
+  binocle_gd_apply_shader(gd, mesh->material->shader);
   binocle_gd_apply_3d_texture(mesh->material);
 
   kmMat4 projectionMatrix;
@@ -889,7 +889,7 @@ void binocle_gd_draw_mesh(binocle_gd *gd, const struct binocle_mesh *mesh, kmAAB
 
 }
 
-void binocle_gd_draw_test_triangle(struct binocle_shader shader) {
+void binocle_gd_draw_test_triangle(struct binocle_shader *shader) {
   static const GLfloat g_quad_vertex_buffer_data[] = {
     -0.5f, -0.5f, 0.0f,
     0.5f, -0.5f, 0.0f,
@@ -901,7 +901,7 @@ void binocle_gd_draw_test_triangle(struct binocle_shader shader) {
   glCheck(glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer));
   glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW));
   GLint pos_id;
-  glCheck(pos_id = glGetAttribLocation(shader.program_id, "vertexPosition"));
+  glCheck(pos_id = glGetAttribLocation(shader->program_id, "vertexPosition"));
   glCheck(glVertexAttribPointer(pos_id, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, 0));
   glCheck(glEnableVertexAttribArray(pos_id));
   glCheck(glDrawArrays(GL_TRIANGLES, 0, 3));
@@ -911,7 +911,7 @@ void binocle_gd_draw_test_triangle(struct binocle_shader shader) {
   glCheck(glDeleteBuffers(1, &quad_vertexbuffer));
 }
 
-void binocle_gd_draw_test_cube(struct binocle_shader shader) {
+void binocle_gd_draw_test_cube(struct binocle_shader *shader) {
   static GLfloat g_quad_vertex_buffer_data[] = {
     0.5f, -0.5f, -0.5f,
     0.5f, -0.5f, 0.5f,
@@ -949,7 +949,7 @@ void binocle_gd_draw_test_cube(struct binocle_shader shader) {
   glCheck(glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer));
   glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW));
   GLint pos_id;
-  glCheck(pos_id = glGetAttribLocation(shader.program_id, "vertexPosition"));
+  glCheck(pos_id = glGetAttribLocation(shader->program_id, "vertexPosition"));
   glCheck(glVertexAttribPointer(pos_id, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, 0));
   glCheck(glEnableVertexAttribArray(pos_id));
   //glCheck(glDrawArrays(GL_TRIANGLES, 0, 8));

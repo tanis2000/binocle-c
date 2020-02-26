@@ -69,6 +69,9 @@ if (APPLE)
 			src/unix/darwin.c
 			src/unix/darwin-proctitle.c
 			src/unix/fsevents.c
+			src/unix/kqueue.c
+			src/unix/pthread-barrier.c
+			src/unix/pthread-fixes.c
 			)
 	list(APPEND SOURCES ${APPLE_SOURCES})
 	include_directories(src/unix)

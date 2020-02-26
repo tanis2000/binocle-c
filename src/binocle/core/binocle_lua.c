@@ -17,7 +17,7 @@
 #include "binocle_material_wrap.h"
 #include "binocle_sprite_wrap.h"
 #include "binocle_input_wrap.h"
-#include "lkazmath.h"
+#include "kazmath/lkazmath.h"
 
 binocle_lua binocle_lua_new() {
   binocle_lua res = {0};
