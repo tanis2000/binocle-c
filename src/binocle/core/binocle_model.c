@@ -4,6 +4,9 @@
 // All rights reserved.
 //
 
+#define TINYOBJ_LOADER_C_IMPLEMENTATION
+#include <tiniobj_loader_c/tinyobj_loader_c.h>
+
 #include "binocle_model.h"
 #include "binocle_sdl.h"
 #include "binocle_log.h"
@@ -13,8 +16,6 @@
 #include "binocle_shader.h"
 #include "binocle_vpct.h"
 
-#define TINYOBJ_LOADER_C_IMPLEMENTATION
-#include <tiniobj_loader_c/tinyobj_loader_c.h>
 
 binocle_model binocle_model_load_obj(char *filename, char *mtl_filename) {
   binocle_model model = {0};
@@ -26,6 +27,9 @@ binocle_model binocle_model_load_obj(char *filename, char *mtl_filename) {
   tinyobj_material_t *materials = NULL;
   size_t material_count = 0;
   uint64_t flags = TINYOBJ_FLAG_TRIANGULATE;
+  khash_t(spatial_binocle_smooth_vertex_t) *smooth_vertex_normals;
+
+  smooth_vertex_normals = kh_init(spatial_binocle_smooth_vertex_t);
 
   if (!binocle_sdl_load_binary_file(filename, &buffer, &buffer_length)) {
     binocle_log_error("Cannot open OBJ file %s", filename);
@@ -95,6 +99,7 @@ binocle_model binocle_model_load_obj(char *filename, char *mtl_filename) {
     }
      */
 
+    binocle_model_compute_smoothing_normals(&attrib, &meshes[i], smooth_vertex_normals);
 
 
     for (int j = 0 ; j < attrib.num_face_num_verts ; j++) {
@@ -137,7 +142,9 @@ binocle_model binocle_model_load_obj(char *filename, char *mtl_filename) {
       }
 
 //#define FAKE_NORMALS
-#ifdef FAKE_NORMALS
+#define USE_NORMALS
+
+#if defined(FAKE_NORMALS)
       mesh.vertices[j * 3 + 0].normal.x = mesh.vertices[j * 3 + 0].pos.x;
       mesh.vertices[j * 3 + 0].normal.y = mesh.vertices[j * 3 + 0].pos.y;
       mesh.vertices[j * 3 + 0].normal.z = mesh.vertices[j * 3 + 0].pos.z;
@@ -148,6 +155,7 @@ binocle_model binocle_model_load_obj(char *filename, char *mtl_filename) {
       mesh.vertices[j * 3 + 2].normal.y = mesh.vertices[j * 3 + 2].pos.y;
       mesh.vertices[j * 3 + 2].normal.z = mesh.vertices[j * 3 + 2].pos.z;
 #else
+#if defined(USE_NORMALS)
       if (attrib.num_normals > 0) {
         if (idx_0.vn_idx >= 0 && idx_1.vn_idx >= 0 && idx_2.vn_idx >= 0) {
           mesh.vertices[j * 3 + 0].normal.x = attrib.normals[idx_0.vn_idx * 3 + 0];
@@ -207,7 +215,50 @@ binocle_model binocle_model_load_obj(char *filename, char *mtl_filename) {
         mesh.vertices[j * 3 + 2].normal.y = n[0][1];
         mesh.vertices[j * 3 + 2].normal.z = n[0][2];
       }
-#endif
+#else
+      // Use smoothing normals
+      int f0 = idx_0.v_idx;
+      int f1 = idx_1.v_idx;
+      int f2 = idx_2.v_idx;
+
+      if (f0 >= 0 && f1 >= 0 && f2 >= 0) {
+        khiter_t iter = kh_get(spatial_binocle_smooth_vertex_t, smooth_vertex_normals, f0);
+        if (iter != kh_end(smooth_vertex_normals)) {
+          // found
+          kmVec3 item = kh_val(smooth_vertex_normals, iter);
+          mesh.vertices[j * 3 + 0].normal.x = item.x;
+          mesh.vertices[j * 3 + 0].normal.x = item.y;
+          mesh.vertices[j * 3 + 0].normal.x = item.z;
+        } else {
+          binocle_log_error("Missing smoothed normal for index %d and face %d", j, f0);
+        }
+
+        iter = kh_get(spatial_binocle_smooth_vertex_t, smooth_vertex_normals, f1);
+        if (iter != kh_end(smooth_vertex_normals)) {
+          // found
+          kmVec3 item = kh_val(smooth_vertex_normals, iter);
+          mesh.vertices[j * 3 + 1].normal.x = item.x;
+          mesh.vertices[j * 3 + 1].normal.x = item.y;
+          mesh.vertices[j * 3 + 1].normal.x = item.z;
+        } else {
+          binocle_log_error("Missing smoothed normal for index %d and face %d", j, f1);
+        }
+
+        iter = kh_get(spatial_binocle_smooth_vertex_t, smooth_vertex_normals, f2);
+        if (iter != kh_end(smooth_vertex_normals)) {
+          // found
+          kmVec3 item = kh_val(smooth_vertex_normals, iter);
+          mesh.vertices[j * 3 + 2].normal.x = item.x;
+          mesh.vertices[j * 3 + 2].normal.x = item.y;
+          mesh.vertices[j * 3 + 2].normal.x = item.z;
+        } else {
+          binocle_log_error("Missing smoothed normal for index %d and face %d", j, f2);
+        }
+      } else {
+        binocle_log_error("Missing face index for smoothed normal for index %d", j);
+      }
+#endif //defined(USE_NORMALS)
+#endif //defined(FAKE_NORMALS)
 
 
 
@@ -220,7 +271,6 @@ binocle_model binocle_model_load_obj(char *filename, char *mtl_filename) {
       mesh.vertices[j].color.g = 1.0f;
       mesh.vertices[j].color.b = 1.0f;
     }
-
 
     binocle_material *mesh_default_material = binocle_material_new();
     mesh_default_material->shader = &binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT];
@@ -274,9 +324,72 @@ void binocle_model_compute_normal(float N[3], float v0[3], float v1[3], float v2
 
   len2 = N[0] * N[0] + N[1] * N[1] + N[2] * N[2];
   if (len2 > 0.0f) {
-    float len = (float)sqrt((double)len2);
+    float len = sqrtf(len2);
 
     N[0] /= len;
     N[1] /= len;
+    N[2] /= len;
+  }
+}
+
+void binocle_model_compute_smoothing_normals(tinyobj_attrib_t *attrib, tinyobj_shape_t *shape, khash_t(spatial_binocle_smooth_vertex_t) *smooth_vertex_normals) {
+  kh_clear(spatial_binocle_smooth_vertex_t, smooth_vertex_normals);
+
+  for (int j = 0 ; j < attrib->num_face_num_verts ; j++) {
+    tinyobj_vertex_index_t idx_0 = attrib->faces[j * 3 + 0];
+    tinyobj_vertex_index_t idx_1 = attrib->faces[j * 3 + 1];
+    tinyobj_vertex_index_t idx_2 = attrib->faces[j * 3 + 2];
+
+    int vi[3]; // indexes
+    float v[3][3]; // coordinates
+
+    for (int k = 0; k < 3; k++) {
+      vi[0] = idx_0.v_idx;
+      vi[1] = idx_1.v_idx;
+      vi[2] = idx_2.v_idx;
+      assert(vi[0] >= 0);
+      assert(vi[1] >= 0);
+      assert(vi[2] >= 0);
+
+      v[0][k] = attrib->vertices[3 * vi[0] + k];
+      v[1][k] = attrib->vertices[3 * vi[1] + k];
+      v[2][k] = attrib->vertices[3 * vi[2] + k];
+    }
+
+    // Compute the normal of the face
+    float normal[3];
+    binocle_model_compute_normal(normal, v[0], v[1], v[2]);
+
+    // Add the normal to the three vertexes
+    for (size_t i = 0; i < 3; ++i) {
+      khiter_t iter = kh_get(spatial_binocle_smooth_vertex_t, smooth_vertex_normals, vi[i]);
+      if (iter != kh_end(smooth_vertex_normals)) {
+        // found
+        kmVec3 item = kh_val(smooth_vertex_normals, iter);
+        item.x += normal[0];
+        item.y += normal[1];
+        item.z += normal[2];
+        kh_value(smooth_vertex_normals, iter).x = item.x;
+        kh_value(smooth_vertex_normals, iter).y = item.y;
+        kh_value(smooth_vertex_normals, iter).z = item.z;
+      } else {
+        // not found
+        int ret;
+        khiter_t k = kh_put(spatial_binocle_smooth_vertex_t, smooth_vertex_normals, vi[i], &ret);
+        kh_value(smooth_vertex_normals, k).x = normal[0];
+        kh_value(smooth_vertex_normals, k).y = normal[1];
+        kh_value(smooth_vertex_normals, k).z = normal[2];
+      }
+    }
+  }
+
+  // Normalize the normals, that is, make them unit vectors
+  khiter_t iter;
+  for (iter = 0 ; iter < kh_end(smooth_vertex_normals); ++iter) {
+    kmVec3 item = kh_val(smooth_vertex_normals, iter);
+    kmVec3Normalize(&item, &item);
+    kh_value(smooth_vertex_normals, iter).x = item.x;
+    kh_value(smooth_vertex_normals, iter).y = item.y;
+    kh_value(smooth_vertex_normals, iter).z = item.z;
   }
 }

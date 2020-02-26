@@ -9,6 +9,8 @@
 
 #include <stdint.h>
 #include <kazmath/kazmath.h>
+#include <khash/khash.h>
+#include <tiniobj_loader_c/tinyobj_loader_c.h>
 
 struct binocle_material;
 
@@ -34,7 +36,13 @@ typedef struct binocle_model {
   uint64_t *mesh_materials; // mesh materials
 } binocle_model;
 
+typedef uint64_t binocle_model_smooth_vertex_key_t;
+#define binocle_model_smooth_vertex_hash_func(key) (binocle_model_smooth_vertex_key_t)(key)
+#define binocle_model_smooth_vertex_equal(a, b) ((a) == (b))
+KHASH_INIT(spatial_binocle_smooth_vertex_t, binocle_model_smooth_vertex_key_t, kmVec3, 1, binocle_model_smooth_vertex_hash_func, binocle_model_smooth_vertex_equal)
+
 binocle_model binocle_model_load_obj(char *filename, char *mtl_filename);
 void binocle_model_compute_normal(float N[3], float v0[3], float v1[3], float v2[3]);
+void binocle_model_compute_smoothing_normals(tinyobj_attrib_t *attrib, tinyobj_shape_t *shape, khash_t(spatial_binocle_smooth_vertex_t) *smooth_vertex_normals);
 
 #endif //BINOCLE_MODEL_H
