@@ -9,7 +9,7 @@ if("${CMAKE_VERSION}" VERSION_GREATER 3.1)
 endif()
 
 # cmake modules directory
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/build/cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/build/cmake")
 
 # Enables CMake database for YCM
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
