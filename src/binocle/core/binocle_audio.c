@@ -859,6 +859,31 @@ void binocle_audio_stop_music_stream(binocle_audio_music *music) {
   music->samples_left = music->total_samples;
 }
 
+void binocle_audio_seek_music_stream(binocle_audio_music *music, unsigned int frame) {
+  if (music == NULL) return;
+
+  // Seek the music context
+  switch (music->ctx_type) {
+    case BINOCLE_AUDIO_MUSIC_AUDIO_OGG:
+      stb_vorbis_seek(music->ctx_ogg, frame);
+      break;
+    case BINOCLE_AUDIO_MUSIC_AUDIO_FLAC:
+      drflac_seek_to_pcm_frame(music->ctx_flac, frame);
+      break;
+    case BINOCLE_AUDIO_MUSIC_AUDIO_MP3:
+      drmp3_seek_to_pcm_frame(&music->ctx_mp3, frame);
+      break;
+    case BINOCLE_AUDIO_MUSIC_MODULE_XM: /* TODO: seek to sample of XM */ break;
+    case BINOCLE_AUDIO_MUSIC_MODULE_MOD:
+      /* TODO seek to sample of mod */
+      break;
+    default:
+      break;
+  }
+
+  music->samples_left = music->total_samples - frame;
+}
+
 void binocle_audio_update_music_stream(binocle_audio_music *music) {
   if (music == NULL) return;
 
@@ -1120,6 +1145,13 @@ void binocle_audio_set_audio_stream_pitch(binocle_audio_stream stream, float pit
   binocle_audio_set_audio_buffer_pitch((binocle_audio_buffer *) stream.audio_buffer, pitch);
 }
 
+uint32_t binocle_audio_convert_time_to_sample(float time_in_seconds, uint32_t sample_rate) {
+  return time_in_seconds * sample_rate;
+}
+
+uint32_t binocle_audio_convert_beat_to_sample(uint32_t beat, uint32_t bpm, uint32_t sample_rate) {
+  return (float)beat * ((60.0f / (float)bpm) * (float)sample_rate);
+}
 
 /*
 

@@ -455,6 +455,13 @@ void binocle_audio_resume_music_stream(binocle_audio_music *music);
 void binocle_audio_stop_music_stream(binocle_audio_music *music);
 
 /**
+ * \brief Seeks a music stream
+ * @param music the music stream
+ * @param frame the frame to seek to
+ */
+void binocle_audio_seek_music_stream(binocle_audio_music *music, unsigned int frame);
+
+/**
  * \brief Updates a music stream
  * @param music the music stream
  */
@@ -582,5 +589,21 @@ void binocle_audio_set_audio_stream_volume(binocle_audio_stream stream, float vo
  */
 void binocle_audio_set_audio_stream_pitch(binocle_audio_stream stream, float pitch);
 
+/**
+ * \brief Converts time in seconds to the number of samples
+ * @param time_in_seconds the time expressed in seconds
+ * @param sample_rate the sample rate
+ * @return the sample number
+ */
+uint32_t binocle_audio_convert_time_to_sample(float time_in_seconds, uint32_t sample_rate);
+
+/**
+ * \brief Converts a beat to the number of samples
+ * @param beat the beat
+ * @param bpm the BPM
+ * @param sample_rate the sample rate
+ * @return the sample number
+ */
+uint32_t binocle_audio_convert_beat_to_sample(uint32_t beat, uint32_t bpm, uint32_t sample_rate);
 
 #endif //BINOCLE_AUDIO_H
