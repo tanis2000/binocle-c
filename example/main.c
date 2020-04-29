@@ -311,7 +311,7 @@ int main(int argc, char *argv[])
   sprintf(frag, "%s%s", binocle_data_dir, "default.frag");
   binocle_shader *shader = binocle_shader_load_from_file(vert, frag);
   binocle_material *material = binocle_material_new();
-  material->texture = texture;
+  material->albedo_texture = texture;
   material->shader = shader;
   player = binocle_sprite_from_material(material);
   player_pos.x = 50;
@@ -371,7 +371,7 @@ int main(int argc, char *argv[])
   font_image = binocle_image_load(font_image_filename);
   font_texture = binocle_texture_from_image(font_image);
   font_material = binocle_material_new();
-  font_material->texture = font_texture;
+  font_material->albedo_texture = font_texture;
   font_material->shader = shader;
   font->material = font_material;
   font_sprite = binocle_sprite_from_material(font_material);
