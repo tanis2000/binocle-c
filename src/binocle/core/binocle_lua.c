@@ -36,6 +36,8 @@ bool binocle_lua_init(binocle_lua *lua) {
 
   // Kazmath
   luaopen_lkazmath(lua->L);
+  lua_setglobal(lua->L, "lkazmath");
+
 
   luaopen_sdl(lua->L);
   luaopen_image(lua->L);
