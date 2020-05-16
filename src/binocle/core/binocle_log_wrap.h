@@ -2,15 +2,14 @@
 // Created by Valerio Santinelli on 02/02/2020.
 //
 
-#ifndef LUA_BINOCLE_INPUT_WRAP_H
-#define LUA_BINOCLE_INPUT_WRAP_H
+#ifndef LUA_BINOCLE_LOG_WRAP_H
+#define LUA_BINOCLE_LOG_WRAP_H
 
 #include "binocle_lua.h"
 
-typedef struct l_binocle_input_t {
-  struct binocle_input *input;
-} l_binocle_input_t;
+typedef struct l_binocle_log_t {
+} l_binocle_log_t;
 
-int luaopen_input(lua_State *L);
+int luaopen_log(lua_State *L);
 
-#endif //LUA_BINOCLE_INPUT_WRAP_H
+#endif //LUA_BINOCLE_LOG_WRAP_H

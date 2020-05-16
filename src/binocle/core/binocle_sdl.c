@@ -32,6 +32,10 @@ bool binocle_sdl_init() {
   //SDL_SetHint(SDL_HINT_ORIENTATIONS, "Portrait");
 #endif
 
+#ifdef DEBUG
+  SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);
+#endif
+
   if (SDL_Init(0) < 0) {
     binocle_log_error("SDL_Init: Couldn't start SDL");
     binocle_log_error(SDL_GetError());

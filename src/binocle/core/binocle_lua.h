@@ -21,6 +21,10 @@
 #include <stdbool.h>
 #include <time.h>
 
+#if (LUA_VERSION_NUM < 502 && !defined(luaL_newlib))
+#  define luaL_newlib(L,l) (lua_newtable(L), luaL_register(L,NULL,l))
+#endif
+
 struct binocle_window;
 
 typedef struct binocle_lua {

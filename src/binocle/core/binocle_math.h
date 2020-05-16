@@ -33,6 +33,14 @@
 #define SIGNOF(value) ((value >= 0) ? 1 : -1)
 #endif
 
+#ifndef M_PI
+#define M_PI        3.14159265358979323846264338327950288   /* pi             */
+#endif
+
+#ifndef M_PI_2
+#define M_PI_2      1.57079632679489661923132169163975144   /* pi/2           */
+#endif
+
 static kmMat4 binocle_math_create_orthographic_matrix_off_center(float left, float right, float bottom, float top, float z_near_plane, float z_far_plane);
 
 //#ifdef BINOCLE_MATH_IMPL

@@ -17,6 +17,7 @@
 #include "binocle_material_wrap.h"
 #include "binocle_sprite_wrap.h"
 #include "binocle_input_wrap.h"
+#include "binocle_log_wrap.h"
 #include "kazmath/lkazmath.h"
 
 binocle_lua binocle_lua_new() {
@@ -46,6 +47,7 @@ bool binocle_lua_init(binocle_lua *lua) {
   luaopen_material(lua->L);
   luaopen_sprite(lua->L);
   luaopen_input(lua->L);
+  luaopen_log(lua->L);
 
   //lua->last_check_time = stm_now();
   time_t t = time(NULL);
@@ -132,8 +134,8 @@ int lua_test(const char *arg) {
   printf("address: %s, port: %ld\n", /* (3) */
          lua_tostring(L, -2), lua_tointeger(L, -1));
   lua_settop(L, 0); /* (4) */
-  //return 0;
   lua_close(L);
+  return 0;
 }
 
 int lua_test2(const char *arg) {

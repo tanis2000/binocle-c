@@ -13,7 +13,7 @@
 
 binocle_app binocle_app_new() {
   binocle_app res = {0};
-  res.assets_mount_path = strdup("/assets");
+  res.assets_mount_path = SDL_strdup("/assets");
   return res;
 }
 
