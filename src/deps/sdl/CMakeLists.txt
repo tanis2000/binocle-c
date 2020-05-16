@@ -340,7 +340,7 @@ if(EMSCRIPTEN)
             src/filesystem/emscripten/SDL_sysfilesystem.c
             src/audio/emscripten/SDL_emscriptenaudio.c
 
-            include/*.h
+            #include/*.h
         )
     list(APPEND SOURCES ${EMSCRIPTEN_SOURCES})
     add_definitions(-D__EMSCRIPTEN__)
