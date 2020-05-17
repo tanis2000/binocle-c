@@ -35,6 +35,7 @@ bool binocle_sparse_integer_set_insert(binocle_sparse_integer_set_t *set, uint64
       new_sparse = realloc(set->sparse, new_capacity * sizeof(uint64_t));
     }
     if (new_sparse == NULL) {
+      free(new_dense);
       return false;
     }
     memset((unsigned char *)(new_sparse) + (set->capacity * sizeof(uint64_t)), 0,
@@ -329,6 +330,7 @@ bool binocle_ecs_create_entity(binocle_ecs_t *ecs, binocle_entity_id_t *entity_p
       void *new_processing_data = realloc(ecs->processing_data,
                                           sizeof(ecs->processing_data) * (ecs->processing_data_height + 1));
       if (new_processing_data == NULL) {
+        free(entity_data);
         return false;
       }
       ecs->processing_data = new_processing_data;
