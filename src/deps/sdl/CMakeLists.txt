@@ -1,6 +1,9 @@
+# SDL 2.0.12
+# TODO: check iOS, Android, Windows, Emscripten changes from previous version
 project(sdl)
 
 include_directories(include)
+include_directories(src/hidapi/hidapi)
 
 file(GLOB_RECURSE SOURCES 
         src/SDL.c
@@ -33,11 +36,15 @@ file(GLOB_RECURSE SOURCES
         src/haptic/SDL_haptic.c
         src/joystick/SDL_gamecontroller.c
         src/joystick/SDL_joystick.c
-        src/joystick/hidapi/SDL_hidapijoystick.c
+        src/joystick/hidapi/SDL_hidapi_gamecube.c
         src/joystick/hidapi/SDL_hidapi_ps4.c
+        src/joystick/hidapi/SDL_hidapi_rumble.c
+        src/joystick/hidapi/SDL_hidapi_steam.c
         src/joystick/hidapi/SDL_hidapi_switch.c
         src/joystick/hidapi/SDL_hidapi_xbox360.c
+        src/joystick/hidapi/SDL_hidapi_xbox360w.c
         src/joystick/hidapi/SDL_hidapi_xboxone.c
+		src/joystick/hidapi/SDL_hidapijoystick.c
         src/joystick/steam/SDL_steamcontroller.c
         src/libm/e_atan2.c
         src/libm/e_exp.c
@@ -70,6 +77,7 @@ file(GLOB_RECURSE SOURCES
         src/stdlib/SDL_qsort.c
         src/stdlib/SDL_stdlib.c
         src/stdlib/SDL_string.c
+		src/stdlib/SDL_strtokr.c
         src/thread/SDL_thread.c
         src/timer/SDL_timer.c
         src/video/SDL_RLEaccel.c
@@ -171,8 +179,9 @@ if(APPLE)
         include_directories(include/configs/default)
 	else()
 		file(GLOB MAC_SOURCES
+				src/core/unix/SDL_poll.c
                 src/sensor/coremotion/SDL_coremotionsensor.m
-                src/hidapi/mac/hid.c
+                #src/hidapi/mac/hid.c
             src/thread/pthread/SDL_syscond.c
             src/thread/pthread/SDL_sysmutex.c
             src/thread/pthread/SDL_syssem.c
@@ -183,6 +192,8 @@ if(APPLE)
             src/audio/coreaudio/SDL_coreaudio.m
             src/joystick/darwin/SDL_sysjoystick.c
             src/haptic/darwin/SDL_syshaptic.c
+				#src/hidapi/SDL_hidapi.c
+            src/hidapi/mac/hid.c
             src/power/macosx/SDL_syspower.c
             src/file/cocoa/SDL_rwopsbundlesupport.m
             src/filesystem/cocoa/SDL_sysfilesystem.m
@@ -200,13 +211,19 @@ if(APPLE)
             src/video/cocoa/SDL_cocoavulkan.m
             src/video/cocoa/SDL_cocoawindow.m
 
-            #include/configs/mac/*.h
+            #include/SDL_config_macosx.h
 			)
  	   	list(APPEND SOURCES ${MAC_SOURCES})
  	   	#add_definitions(-DUSING_GENERATED_CONFIG_H)
         add_definitions(-DTARGET_API_MAC_CARBON)
         add_definitions(-DTARGET_API_MAC_OSX)
         add_definitions(-D_THREAD_SAFE)
+		add_definitions(-DSDL_VIDEO_RENDER_METAL=0)
+		add_definitions(-DSDL_VIDEO_RENDER_OGL_ES2=0)
+		add_definitions(-DSDL_VIDEO_METAL=0)
+		add_definitions(-DSDL_VIDEO_VULKAN=0)
+		add_definitions(-DSDL_VIDEO_OPENGL_ES2=0)
+		add_definitions(-DSDL_VIDEO_OPENGL_EGL=0)
         add_definitions(-mmmx)
         add_definitions(-msse)
         add_definitions(-msse2)

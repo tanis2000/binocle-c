@@ -8,7 +8,7 @@
 #include "binocle_input.h"
 #include "binocle_sdl.h"
 
-#define L_BINOCLE_INPUT_MAX_KEY 4
+#define L_BINOCLE_INPUT_MAX_KEY 5
 
 typedef struct l_key_t {
   char *key_str;
@@ -26,6 +26,8 @@ void l_binocle_input_build_key_map() {
   key_map[2].key = KEY_UP;
   key_map[3].key_str = "KEY_DOWN";
   key_map[3].key = KEY_DOWN;
+  key_map[4].key_str = "KEY_SPACE";
+  key_map[4].key = KEY_SPACE;
 }
 
 int l_binocle_input_is_key_pressed(lua_State *L) {
@@ -66,6 +68,9 @@ int luaopen_input(lua_State *L) {
   lua_settable(L, -3);
   lua_pushstring(L, "KEY_DOWN");
   lua_pushstring(L, "KEY_DOWN");
+  lua_settable(L, -3);
+  lua_pushstring(L, "KEY_SPACE");
+  lua_pushstring(L, "KEY_SPACE");
   lua_settable(L, -3);
   lua_setglobal(L, "key");
   return 1;

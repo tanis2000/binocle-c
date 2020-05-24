@@ -18,7 +18,9 @@ endif()
 
 if (APPLE AND NOT IOS)
     add_subdirectory(glew)
-    add_subdirectory(luajit)
+    # we're using lua instead of luajit on macos to be able to test with valgrind
+    #add_subdirectory(luajit)
+    add_subdirectory(lua)
 endif()
 
 if (ANDROID)
