@@ -16,11 +16,27 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/src/deps/wren
         )
 
-if (NOT EMSCRIPTEN)
-    include_directories(${CMAKE_SOURCE_DIR}/src/deps/luajit/src)
-else()
+if (EMSCRIPTEN)
     include_directories(${CMAKE_SOURCE_DIR}/src/deps/lua/src)
 endif()
+
+if (APPLE)
+    if (IOS)
+        include_directories(${CMAKE_SOURCE_DIR}/src/deps/lua/src)
+    else()
+        include_directories(${CMAKE_SOURCE_DIR}/src/deps/lua/src)
+    endif()
+endif()
+
+if (ANDROID)
+    include_directories(${CMAKE_SOURCE_DIR}/src/deps/lua/src)
+endif()
+
+if (WIN32)
+    include_directories(${CMAKE_SOURCE_DIR}/src/deps/luajit/src)
+endif()
+
+
 
 file(GLOB CORE_SOURCE core/*.c core/*.h)
 file(GLOB REMOVE_CORE_SOURCE

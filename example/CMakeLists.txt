@@ -15,7 +15,9 @@ if (APPLE)
     else ()
         include_directories(${CMAKE_SOURCE_DIR}/src/deps/sdl/include/configs/mac)
         include_directories(${CMAKE_SOURCE_DIR}/src/deps/glew/include)
-        include_directories(${PROJECT_SOURCE_DIR}/src/deps/luajit/src)
+        # we're using lua instead of luajit on macos to be able to test with valgrind
+        #include_directories(${CMAKE_SOURCE_DIR}/src/deps/luajit/src)
+        include_directories(${CMAKE_SOURCE_DIR}/src/deps/lua/src)
     endif ()
 endif ()
 
