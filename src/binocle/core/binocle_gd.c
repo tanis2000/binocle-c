@@ -296,34 +296,34 @@ GLuint binocle_gd_equation_to_gl_constant(binocle_blend_equation blend_equation)
   return GL_FUNC_ADD;
 }
 
-binocle_render_target binocle_gd_create_render_target(uint32_t width, uint32_t height, bool use_depth, GLenum format) {
+binocle_render_target *binocle_gd_create_render_target(uint32_t width, uint32_t height, bool use_depth, GLenum format) {
   /*
    * glGenBuffers creates regular buffers for vertex data, etc.
    * glGenFrameBuffers creates a framebuffer object primarily used as render targets for offscreen rendering.
    * glGenRenderBuffers creates a renderbuffer object that are specifically used with framebuffer objects for any depth-testing required.
    */
 
-  binocle_render_target res = {0};
+  binocle_render_target *res = SDL_malloc(sizeof(binocle_render_target));
 
   GLuint fb[1];
   glCheck(glGenFramebuffers(1, fb));
-  res.frame_buffer = fb[0];
+  res->frame_buffer = fb[0];
 
   GLuint rb[1];
   glCheck(glGenRenderbuffers(1, rb));
-  res.render_buffer = rb[0];
+  res->render_buffer = rb[0];
 
   GLuint t[1];
   glCheck(glGenTextures(1, t));
-  res.texture = t[0];
+  res->texture = t[0];
 
   // set up framebuffer
 
   // bind the framebuffer
-  glCheck(glBindFramebuffer(GL_FRAMEBUFFER, res.frame_buffer));
+  glCheck(glBindFramebuffer(GL_FRAMEBUFFER, res->frame_buffer));
 
   // bind the newly created texture: all future texture functions will modify this texture
-  glCheck(glBindTexture(GL_TEXTURE_2D, res.texture));
+  glCheck(glBindTexture(GL_TEXTURE_2D, res->texture));
   // Give an empty image to OpenGL ( the last "0" )
   glCheck(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
   // filtering
@@ -332,12 +332,12 @@ binocle_render_target binocle_gd_create_render_target(uint32_t width, uint32_t h
   glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
   glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
   // attach the texture to the bound framebuffer object
-  glCheck(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, res.texture, 0));
+  glCheck(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, res->texture, 0));
 
   // set up renderbuffer (depth buffer)
-  glCheck(glBindRenderbuffer(GL_RENDERBUFFER, res.render_buffer));
+  glCheck(glBindRenderbuffer(GL_RENDERBUFFER, res->render_buffer));
   glCheck(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height));
-  glCheck(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, res.render_buffer));
+  glCheck(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, res->render_buffer));
 
   // clean up
   glCheck(glBindTexture(GL_TEXTURE_2D, 0));
@@ -357,6 +357,7 @@ void binocle_gd_destroy_render_target(binocle_render_target *render_target) {
   render_target->render_buffer = GL_NONE;
   glCheck(glDeleteFramebuffers(1, &render_target->frame_buffer));
   render_target->frame_buffer = GL_NONE;
+  SDL_free(render_target);
 }
 
 void binocle_gd_set_uniform_float(struct binocle_shader *shader, const char *name, float value) {

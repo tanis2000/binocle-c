@@ -48,7 +48,7 @@ typedef struct binocle_window {
  * @param title the title of the window
  * @return a window instance
  */
-binocle_window binocle_window_new(uint32_t width, uint32_t height, char *title);
+binocle_window *binocle_window_new(uint32_t width, uint32_t height, char *title);
 
 /**
  * \brief Resizes a window and resets the title

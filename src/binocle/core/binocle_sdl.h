@@ -90,4 +90,12 @@ bool binocle_sdl_load_binary_file(char *filename, char **buffer, size_t *buffer_
  */
 char *binocle_sdl_assets_dir();
 
+/**
+ * \brief Returns whether a filename ends with a certain suffix
+ * @param str the filename
+ * @param suffix the suffix
+ * @return true if the filename ends with the provided suffix
+ */
+bool binocle_sdl_filename_ends_with(const char *str, const char *suffix);
+
 #endif //BINOCLE_SDL_H

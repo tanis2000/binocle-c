@@ -18,6 +18,9 @@
 #include "binocle_sprite_wrap.h"
 #include "binocle_input_wrap.h"
 #include "binocle_log_wrap.h"
+#include "binocle_gd_wrap.h"
+#include "binocle_window_wrap.h"
+#include "binocle_color_wrap.h"
 #include "kazmath/lkazmath.h"
 
 binocle_lua binocle_lua_new() {
@@ -48,6 +51,9 @@ bool binocle_lua_init(binocle_lua *lua) {
   luaopen_sprite(lua->L);
   luaopen_input(lua->L);
   luaopen_log(lua->L);
+  luaopen_gd(lua->L);
+  luaopen_window(lua->L);
+  luaopen_color(lua->L);
 
   //lua->last_check_time = stm_now();
   time_t t = time(NULL);
@@ -82,9 +88,12 @@ bool binocle_lua_run_script(binocle_lua *lua, char *filename) {
 }
 
 int binocle_lua_enumerate_callback(void *user_data, const char *path, const char *filename) {
-  char *search_path;
+  char *search_path = NULL;
   uint64_t mod_time;
   binocle_lua *lua = (binocle_lua *)user_data;
+  if (!binocle_sdl_filename_ends_with(filename, ".lua")) {
+    return 1;
+  }
   int needed = SDL_snprintf(NULL, 0, "%s/%s", path, filename);
   search_path = malloc(needed);
   sprintf(search_path, "%s/%s", path, filename);
@@ -95,9 +104,11 @@ int binocle_lua_enumerate_callback(void *user_data, const char *path, const char
     if (lua->last_script_run != NULL){
       binocle_lua_run_script(lua, lua->last_script_run);
     }
-    return 0; // No more files please
+    free(search_path);
+    return 1; // No more files please
   }
-  return 1; // 1 means get more files
+  free(search_path);
+  return 1; // 1 means get more files, 0 means no more files please
 }
 
 void binocle_lua_check_scripts_modification_time(binocle_lua *lua, char *path) {

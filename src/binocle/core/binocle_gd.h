@@ -150,7 +150,7 @@ binocle_gd_equation_to_gl_constant(enum binocle_blend_equation blend_equation);
  * @param format the texture format
  * @return
  */
-binocle_render_target binocle_gd_create_render_target(uint32_t width,
+binocle_render_target *binocle_gd_create_render_target(uint32_t width,
                                                       uint32_t height,
                                                       bool use_depth,
                                                       GLenum format);

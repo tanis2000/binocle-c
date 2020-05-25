@@ -192,3 +192,14 @@ char *binocle_sdl_assets_dir() {
   return binocle_assets_dir;
 }
 
+bool binocle_sdl_filename_ends_with(const char *str, const char *suffix) {
+  if (!str || !suffix) {
+    return false;
+  }
+  size_t lenstr = SDL_strlen(str);
+  size_t lensuffix = SDL_strlen(suffix);
+  if (lensuffix >  lenstr) {
+    return false;
+  }
+  return SDL_strncmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
+}

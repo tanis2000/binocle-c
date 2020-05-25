@@ -10,30 +10,32 @@
 #include "binocle_window.h"
 #include "binocle_log.h"
 
-binocle_window binocle_window_new(uint32_t width, uint32_t height, char *title) {
-  binocle_window res = {0};
-  res.width = width;
-  res.height = height;
-  res.title = title;
-  res.original_width = width;
-  res.original_height = height;
-  res.is_fullscreen = false;
-  res.current_frame_delta = 0;
-  res.framerate_timer = binocle_timer_new();
+binocle_window *binocle_window_new(uint32_t width, uint32_t height, char *title) {
+  binocle_window *res = SDL_malloc(sizeof(binocle_window));
+  SDL_memset(res, 0, sizeof(*res));
+
+  res->width = width;
+  res->height = height;
+  res->title = SDL_strdup(title);
+  res->original_width = width;
+  res->original_height = height;
+  res->is_fullscreen = false;
+  res->current_frame_delta = 0;
+  res->framerate_timer = binocle_timer_new();
 
   // Default to 60 FPS
-  binocle_window_set_target_fps(&res, 60);
+  binocle_window_set_target_fps(res, 60);
 
-  binocle_window_resize(&res, title, width, height);
-  if (res.window == 0) {
+  binocle_window_resize(res, title, width, height);
+  if (res->window == 0) {
     binocle_log_error("binocle_window_new(): Couldn't create Window");
     binocle_sdl_exit();
   }
 
-  binocle_timer_start(&res.framerate_timer);
+  binocle_timer_start(&res->framerate_timer);
 
-  binocle_window_clear(&res);
-  binocle_window_refresh(&res);
+  binocle_window_clear(res);
+  binocle_window_refresh(res);
   return res;
 }
 
@@ -68,6 +70,12 @@ void binocle_window_destroy(binocle_window *win) {
     SDL_DestroyWindow(win->window);
     win->window = 0;
   }
+
+  if (win->title) {
+    SDL_free(win->title);
+    win->title = NULL;
+  }
+  free(win);
 }
 
 
