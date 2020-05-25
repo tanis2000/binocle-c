@@ -43,7 +43,7 @@ void binocle_input_update(binocle_input *input) {
   input->mouseWheelY = 0;
 
   // Get key events from the OS
-  SDL_Event event;
+  SDL_Event event = {0};
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
       case SDL_QUIT:

@@ -51,13 +51,13 @@ typedef struct binocle_window {
 binocle_window *binocle_window_new(uint32_t width, uint32_t height, char *title);
 
 /**
- * \brief Resizes a window and resets the title
+ * \brief Create a window and sets the title
  * @param win the original window
  * @param title the new title
  * @param width the new width
  * @param height the new height
  */
-void binocle_window_resize(binocle_window *win, char *title, uint32_t width, uint32_t height);
+void binocle_window_create(binocle_window *win, char *title, uint32_t width, uint32_t height);
 
 /**
  * \brief Sets the background color of the window

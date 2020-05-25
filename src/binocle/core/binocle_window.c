@@ -26,7 +26,7 @@ binocle_window *binocle_window_new(uint32_t width, uint32_t height, char *title)
   // Default to 60 FPS
   binocle_window_set_target_fps(res, 60);
 
-  binocle_window_resize(res, title, width, height);
+  binocle_window_create(res, title, width, height);
   if (res->window == 0) {
     binocle_log_error("binocle_window_new(): Couldn't create Window");
     binocle_sdl_exit();
@@ -79,9 +79,7 @@ void binocle_window_destroy(binocle_window *win) {
 }
 
 
-void binocle_window_resize(binocle_window *win, char *title, uint32_t width, uint32_t height) {
-  // Just in case we already have a window
-  binocle_window_destroy(win);
+void binocle_window_create(binocle_window *win, char *title, uint32_t width, uint32_t height) {
 #if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN)
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
