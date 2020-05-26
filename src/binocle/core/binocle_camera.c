@@ -16,10 +16,10 @@ binocle_camera binocle_camera_new(struct binocle_viewport_adapter *adapter) {
   res.position.y = 0;
   res.origin.x = 0;
   res.origin.y = 0;
-  res.rotation = 0.0;
-  res.zoom = 1.0;
-  res.min_zoom = 1.0;
-  res.max_zoom = 1.0;
+  res.rotation = 0.0f;
+  res.zoom = 1.0f;
+  res.min_zoom = 1.0f;
+  res.max_zoom = 1.0f;
   res.are_matrixes_dirty = true;
   res.are_bounds_dirty = true;
   res.bounds.min.x = 0;
@@ -27,8 +27,8 @@ binocle_camera binocle_camera_new(struct binocle_viewport_adapter *adapter) {
   res.bounds.max.x = 0;
   res.bounds.max.y = 0;
   res.viewport_adapter = adapter;
-  res.near_distance = -10.0;
-  res.far_distance = 10.0;
+  res.near_distance = -10.0f;
+  res.far_distance = 10.0f;
 
   return res;
 }

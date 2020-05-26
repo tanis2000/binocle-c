@@ -7,33 +7,39 @@
 #include "binocle_viewport_adapter.h"
 #include "binocle_window.h"
 
-binocle_viewport_adapter binocle_viewport_adapter_new(
-    binocle_window window, binocle_viewport_adapter_kind kind, binocle_viewport_adapter_scaling_type scaling_type,
+binocle_viewport_adapter *binocle_viewport_adapter_new(
+    binocle_window *window, binocle_viewport_adapter_kind kind, binocle_viewport_adapter_scaling_type scaling_type,
     uint32_t width, uint32_t height, uint32_t virtual_width, uint32_t virtual_height
 ) {
-  binocle_viewport_adapter res = {0};
-  kmMat4Identity(&res.scale_matrix);
-  res.original_viewport.min.x = 0;
-  res.original_viewport.min.y = 0;
-  res.original_viewport.max.x = width;
-  res.original_viewport.max.y = height;
-  res.viewport.min.x = 0;
-  res.viewport.min.y = 0;
-  res.viewport.max.x = width;
-  res.viewport.max.y = height;
-  res.virtual_width = virtual_width;
-  res.virtual_height = virtual_height;
-  res.kind = kind;
-  res.scaling_type = scaling_type;
-  res.multiplier = 0;
-  res.inverse_multiplier = 0;
+  binocle_viewport_adapter *res = SDL_malloc(sizeof(binocle_viewport_adapter));
+  SDL_memset(res, 0, sizeof(*res));
+  kmMat4Identity(&res->scale_matrix);
+  res->original_viewport.min.x = 0;
+  res->original_viewport.min.y = 0;
+  res->original_viewport.max.x = width;
+  res->original_viewport.max.y = height;
+  res->viewport.min.x = 0;
+  res->viewport.min.y = 0;
+  res->viewport.max.x = width;
+  res->viewport.max.y = height;
+  res->virtual_width = virtual_width;
+  res->virtual_height = virtual_height;
+  res->kind = kind;
+  res->scaling_type = scaling_type;
+  res->multiplier = 0;
+  res->inverse_multiplier = 0;
 
-  kmVec2 old_size = {window.original_width, window.original_height};
-  kmVec2 new_size = {window.width, window.height};
+  kmVec2 old_size = {window->original_width, window->original_height};
+  kmVec2 new_size = {window->width, window->height};
 
-  binocle_viewport_adapter_reset(&res, old_size, new_size);
+  binocle_viewport_adapter_reset(res, old_size, new_size);
 
   return res;
+}
+
+void binocle_viewport_adapter_destroy(binocle_viewport_adapter *va) {
+  SDL_free(va);
+  va = NULL;
 }
 
 uint32_t binocle_viewport_adapter_get_virtual_width(binocle_viewport_adapter adapter) {

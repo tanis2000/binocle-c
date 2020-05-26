@@ -37,10 +37,12 @@ typedef struct binocle_viewport_adapter {
   float inverse_multiplier;
 } binocle_viewport_adapter;
 
-binocle_viewport_adapter binocle_viewport_adapter_new(struct binocle_window window, binocle_viewport_adapter_kind kind,
+binocle_viewport_adapter *binocle_viewport_adapter_new(struct binocle_window *window, binocle_viewport_adapter_kind kind,
                                                       binocle_viewport_adapter_scaling_type scaling_type,
                                                       uint32_t width, uint32_t height, uint32_t virtual_width,
                                                       uint32_t virtual_height);
+
+void binocle_viewport_adapter_destroy(binocle_viewport_adapter *va);
 
 uint32_t binocle_viewport_adapter_get_virtual_width(binocle_viewport_adapter adapter);
 

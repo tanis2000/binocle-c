@@ -224,7 +224,9 @@ void binocle_gd_apply_blend_mode(const binocle_blend blend_mode) {
 }
 
 void binocle_gd_apply_shader(binocle_gd *gd, binocle_shader *shader) {
-  gd->vertex_attribute = glGetAttribLocation(shader->program_id, "vertexPosition");
+  GLint id;
+  glCheck(id = glGetAttribLocation(shader->program_id, "vertexPosition"));
+  gd->vertex_attribute = id;
   gd->tex_coord_attribute = glGetAttribLocation(shader->program_id, "vertexTCoord");
   gd->color_attribute = glGetAttribLocation(shader->program_id, "vertexColor");
   gd->normal_attribute = glGetAttribLocation(shader->program_id, "vertexNormal");
