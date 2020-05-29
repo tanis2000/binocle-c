@@ -509,8 +509,16 @@ int l_binocle_input_is_key_pressed(lua_State *L) {
   return 1;
 }
 
+int l_binocle_input_set_quit_requested(lua_State *L) {
+  binocle_input *input = lua_touserdata(L, 1);
+  bool v = lua_toboolean(L, 2);
+  input->quit_requested = v;
+  return 0;
+}
+
 static const struct luaL_Reg input [] = {
   {"is_key_pressed", l_binocle_input_is_key_pressed},
+  {"set_quit_requested", l_binocle_input_set_quit_requested},
   {NULL, NULL}
 };
 
