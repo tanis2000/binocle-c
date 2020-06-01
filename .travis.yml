@@ -7,6 +7,6 @@ matrix:
 compiler:
   - clang
 script:
-  - brew install doxygen sphinx
+  - if [ $TRAVIS_OS_NAME == osx ]; then brew install doxygen sphinx graphviz; fi
   - cd build && mkdir gen && cd gen
   - cmake ../..  
