@@ -22,6 +22,8 @@
 #include "binocle_window_wrap.h"
 #include "binocle_color_wrap.h"
 #include "binocle_viewport_adapter_wrap.h"
+#include "binocle_subtexture_wrap.h"
+#include "binocle_camera_wrap.h"
 #include "kazmath/lkazmath.h"
 
 binocle_lua binocle_lua_new() {
@@ -56,6 +58,8 @@ bool binocle_lua_init(binocle_lua *lua) {
   luaopen_window(lua->L);
   luaopen_color(lua->L);
   luaopen_viewport_adapter(lua->L);
+  luaopen_subtexture(lua->L);
+  luaopen_camera(lua->L);
 
   //lua->last_check_time = stm_now();
   time_t t = time(NULL);
