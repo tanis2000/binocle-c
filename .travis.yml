@@ -1,0 +1,12 @@
+language: cpp
+matrix:
+  include:
+    - os: osx
+      osx_image: xcode11.5
+    - os: windows
+compiler:
+  - clang
+script:
+  - brew install doxygen sphinx
+  - cd build && mkdir gen && cd gen
+  - cmake ../..  
