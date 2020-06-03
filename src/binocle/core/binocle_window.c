@@ -39,6 +39,24 @@ binocle_window *binocle_window_new(uint32_t width, uint32_t height, char *title)
   return res;
 }
 
+void binocle_window_destroy(binocle_window *win) {
+  if (win->gl_context != NULL) {
+    SDL_GL_DeleteContext(win->gl_context);
+    win->gl_context = NULL;
+  }
+
+  if (win->window != NULL) {
+    SDL_DestroyWindow(win->window);
+    win->window = NULL;
+  }
+
+  if (win->title != NULL) {
+    SDL_free(win->title);
+    win->title = NULL;
+  }
+  free(win);
+}
+
 void binocle_window_fill(binocle_color color) {
   glClearColor(color.r, color.g, color.b, color.a);
   glClear(GL_COLOR_BUFFER_BIT);
@@ -59,25 +77,6 @@ void binocle_window_refresh(binocle_window *win) {
 #endif
   SDL_GL_SwapWindow(win->window);
 }
-
-void binocle_window_destroy(binocle_window *win) {
-  if (win->gl_context) {
-    SDL_GL_DeleteContext(win->gl_context);
-    win->gl_context = 0;
-  }
-
-  if (win->window) {
-    SDL_DestroyWindow(win->window);
-    win->window = 0;
-  }
-
-  if (win->title) {
-    SDL_free(win->title);
-    win->title = NULL;
-  }
-  free(win);
-}
-
 
 void binocle_window_create(binocle_window *win, char *title, uint32_t width, uint32_t height) {
 #if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN)

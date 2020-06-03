@@ -51,6 +51,12 @@ typedef struct binocle_window {
 binocle_window *binocle_window_new(uint32_t width, uint32_t height, char *title);
 
 /**
+ * \brief Destroys an initialized window
+ * @param win the window to destroy
+ */
+void binocle_window_destroy(binocle_window *win);
+
+/**
  * \brief Create a window and sets the title
  * @param win the original window
  * @param title the new title
