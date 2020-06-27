@@ -1,6 +1,7 @@
 
 add_subdirectory(freetype)
 add_subdirectory(kazmath)
+add_subdirectory(newton)
 add_subdirectory(parson)
 add_subdirectory(physfs)
 add_subdirectory(rxi_map)

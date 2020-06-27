@@ -4,6 +4,7 @@ include_directories(
         ${CMAKE_SOURCE_DIR}/src/deps/sdl/include
         ${CMAKE_SOURCE_DIR}/src/deps/sdl_mixer
         ${CMAKE_SOURCE_DIR}/src/deps/physfs
+        ${CMAKE_SOURCE_DIR}/src/deps/newton
         ${CMAKE_SOURCE_DIR}/src/binocle/core
         ${CMAKE_SOURCE_DIR}/src/example/gameplay
 )
