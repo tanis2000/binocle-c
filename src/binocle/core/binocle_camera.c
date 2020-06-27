@@ -240,13 +240,13 @@ kmVec2 binocle_camera_world_to_screen_point(binocle_camera camera, kmVec2 world_
   kmVec3MultiplyMat4(&pos, &pos, &camera.transform_matrix);
   kmVec2 pos2 = {pos.x, pos.y};
 
-  kmVec2 p = binocle_viewport_adapter_screen_to_virtual_viewport(*camera.viewport_adapter, pos2);
+  kmVec2 p = binocle_viewport_adapter_point_to_virtual_viewport(*camera.viewport_adapter, pos2);
   return p;
 }
 
 kmVec2 binocle_camera_screen_to_world_point(binocle_camera camera, kmVec2 screen_position) {
   kmVec2 pos2;
-  pos2 = binocle_viewport_adapter_point_to_virtual_viewport(*camera.viewport_adapter, screen_position);
+  pos2 = binocle_viewport_adapter_screen_to_virtual_viewport(*camera.viewport_adapter, screen_position);
   kmVec3 pos = {pos2.x, pos2.y, 0};
   kmVec3 res;
   kmVec3MultiplyMat4(&res, &pos, &camera.inverse_transform_matrix);
