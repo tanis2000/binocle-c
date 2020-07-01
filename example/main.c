@@ -640,7 +640,7 @@ int main(int argc, char *argv[])
 
   setup_world();
 
-  render_target = binocle_gd_create_render_target(DESIGN_WIDTH, DESIGN_HEIGHT, true, GL_RGBA8);
+  render_target = binocle_gd_create_render_target(DESIGN_WIDTH, DESIGN_HEIGHT, true, GL_RGBA);
 
   gd = binocle_gd_new();
   binocle_gd_init(&gd);
