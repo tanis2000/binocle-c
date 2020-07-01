@@ -97,3 +97,4 @@ if(MSVC)
 		add_definitions(-D_WIN_32_VER)
 	endif (BUILD_64)
 endif(MSVC)
+
