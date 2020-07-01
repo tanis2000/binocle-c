@@ -34,6 +34,7 @@ The API is evolving all the time but the core is pretty stable. I keep adding an
 - Experimental hot code reloading for game code
 - Lua scripting through LuaJIT on supported platforms and fallback to Lua where LuaJIT is not available
 - Initial Wren scripting support
+- 3D physics through Newton Dynamics (desktop platforms only)
 
 ## Documentation
 
@@ -75,6 +76,7 @@ The current libraries are the following:
 - Lua
 - libuv (Wren's dependency)
 - Wren
+- Newton Dynamics
 
 ## Coordinate system
 
