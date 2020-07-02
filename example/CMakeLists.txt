@@ -159,4 +159,6 @@ if (ANDROID)
     #	file(RENAME ${CMAKE_CURRENT_BINARY_DIR}/../android-project/libs/${ANDROID_ABI}/lib${PROJECT_NAME}.so ${CMAKE_CURRENT_BINARY_DIR}/../android-project/libs/${ANDROID_ABI}/libmain.so)
 endif ()
 
-add_subdirectory(gameplay)
+if(NOT MSVC)
+    add_subdirectory(gameplay)
+endif(MSVC)
