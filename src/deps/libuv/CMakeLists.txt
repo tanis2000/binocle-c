@@ -23,6 +23,7 @@ file(GLOB_RECURSE HEADERS
 if(MSVC)
 	file(GLOB_RECURSE WIN32_SOURCES
 			src/win/async.c
+			src/win/atomicops-inl.h
 			src/win/core.c
 			src/win/detect-wakeup.c
 			src/win/dl.c
@@ -32,9 +33,32 @@ if(MSVC)
 			src/win/getaddrinfo.c
 			src/win/getnameinfo.c
 			src/win/handle.c
-		)
+			src/win/handle-inl.h
+			src/win/internal.h
+			src/win/loop-watcher.c
+			src/win/pipe.c
+			src/win/poll.c
+			src/win/process-stdio.c
+			src/win/process.c
+			src/win/req.c
+			src/win/req-inl.h
+			src/win/signal.c
+			src/win/stream.c
+			src/win/stream-inl.h
+			src/win/tcp.c
+			src/win/thread.c
+			src/win/timer.c
+			src/win/tty.c
+			src/win/udp.c
+			src/win/util.c
+			src/win/winapi.c
+			src/win/winapi.h
+			src/win/winsock.c
+			src/win/winsock.h
+
+	)
 	list(APPEND SOURCES ${WIN32_SOURCES})
-        include_directories(src/win)
+	#include_directories(src/win)
 else()
 	file(GLOB_RECURSE UNIX_SOURCES
 			src/unix/async.c

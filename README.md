@@ -148,6 +148,10 @@ python -m SimpleHTTPServer 8000
 open http://localhost:8000/ExampleProject.html
 ```
 
+### Generating the documentation
+
+To generate the documentation just add the `-DBUILD_DOC=ON` option when running cmake.
+
 ## Credits
 
 Many of the concepts come from Matt Thorson's Monocle engine (the name of this project is a kind of joke around Matt's engine name as you can guess).
