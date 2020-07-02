@@ -35,7 +35,8 @@ endif()
 
 if (MSVC)
     add_subdirectory(glew)
-    add_subdirectory(luajit)
-    add_subdirectory(newton)
+    # we're using lua instead of luajit on macos to be able to test with valgrind
+    #add_subdirectory(luajit)
+    add_subdirectory(lua)
 endif()
 

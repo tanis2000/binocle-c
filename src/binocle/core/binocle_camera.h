@@ -127,8 +127,8 @@ typedef struct binocle_camera_3d {
   float yaw;
   float pitch;
   float fov_y;
-  float near;
-  float far;
+  float near_distance;
+  float far_distance;
 } binocle_camera_3d;
 
 binocle_camera_3d binocle_camera_3d_new(kmVec3 position, float near, float far, float fov_y);

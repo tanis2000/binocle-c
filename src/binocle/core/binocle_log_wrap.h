@@ -8,6 +8,7 @@
 #include "binocle_lua.h"
 
 typedef struct l_binocle_log_t {
+  int dummy; // needed to MSVC (no empty structs)
 } l_binocle_log_t;
 
 int luaopen_log(lua_State *L);

@@ -29,7 +29,6 @@ file(GLOB_RECURSE SOURCES
 		dgCore/*.cpp
 		dgNewton/*.cpp
 		dgPhysics/*.cpp
-
 		)
 
 file(GLOB_RECURSE REMOVE_SOURCES
@@ -96,5 +95,54 @@ if(MSVC)
 	else (BUILD_64)
 		add_definitions(-D_WIN_32_VER)
 	endif (BUILD_64)
+
+	set(CMAKE_C_FLAGS_DEBUG "/MTd")
+	set(CMAKE_C_FLAGS_RELWITHDEBINFO "/MT")
+	set(CMAKE_C_FLAGS_RELEASE "/MT")
+	set(CMAKE_CXX_FLAGS_DEBUG "/MTd")
+	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MT")
+	set(CMAKE_CXX_FLAGS_RELEASE "/MT")
+
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zi /W4 /Od")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi /GS- /W4 /Ox /Oi /Ot /Ob2 /fp:fast")
+
+	#	set_target_properties(newton
+#			PROPERTIES
+#			COMPILE_FLAGS "/YudAnimationStdAfx.h"
+#			COMPILE_FLAGS "/YudContainersStdAfx.h"
+#			COMPILE_FLAGS "/YudStdAfxMath.h"
+#			COMPILE_FLAGS "/YudModelStdAfx.h"
+#			COMPILE_FLAGS "/YudStdafxVehicle.h"
+#			COMPILE_FLAGS "/YudCustomJointLibraryStdAfx.h"
+#			COMPILE_FLAGS "/YudgStdAfx.h"
+#			COMPILE_FLAGS "/YuNewtonStdAfx.h"
+#			COMPILE_FLAGS "/YudgPhysicsStdafx.h"
+#			)
+	#set_source_files_properties(dAnimation/dAnimationStdAfx.cpp PROPERTIES COMPILE_FLAGS "/YcdAnimationStdAfx.h")
+
+	#set_target_properties(newton PROPERTIES COMPILE_FLAGS "/YudContainersStdAfx.h")
+	#set_source_files_properties(dContainers/dContainersStdAfx.cpp PROPERTIES COMPILE_FLAGS "/YcdContainersStdAfx.h")
+
+	#set_target_properties(newton PROPERTIES COMPILE_FLAGS "/YudStdAfxMath.h")
+	#set_source_files_properties(dMath/dStdAfxMath.cpp PROPERTIES COMPILE_FLAGS "/YcdStdAfxMath.h")
+
+	#set_target_properties(newton PROPERTIES COMPILE_FLAGS "/YudModelStdAfx.h")
+	#set_source_files_properties(dModel/dModelStdAfx.cpp PROPERTIES COMPILE_FLAGS "/YcdModelStdAfx.h")
+
+	#set_target_properties(newton PROPERTIES COMPILE_FLAGS "/YudStdafxVehicle.h")
+	#set_source_files_properties(dVehicle/dStdafxVehicle.cpp PROPERTIES COMPILE_FLAGS "/YcdStdafxVehicle.h")
+
+	#set_target_properties(newton PROPERTIES COMPILE_FLAGS "/YudCustomJointLibraryStdAfx.h")
+	#set_source_files_properties(dCustomJoints/dCustomJointLibraryStdAfx.cpp PROPERTIES COMPILE_FLAGS "/YcdCustomJointLibraryStdAfx.h")
+
+	#set_target_properties(newton PROPERTIES COMPILE_FLAGS "/YudgStdAfx.h")
+	#set_source_files_properties(dgCore/dgTypes.cpp PROPERTIES COMPILE_FLAGS "/YcdgStdAfx.h")
+
+	#set_target_properties(newton PROPERTIES COMPILE_FLAGS "/YuNewtonStdAfx.h")
+	#set_source_files_properties(dNewton/NewtonClass.cpp PROPERTIES COMPILE_FLAGS "/YcNewtonStdAfx.h")
+
+	#set_target_properties(newton PROPERTIES COMPILE_FLAGS "/YudgPhysicsStdafx.h")
+	#set_source_files_properties(dgPhysics/dgWorld.cpp PROPERTIES COMPILE_FLAGS "/YcdgPhysicsStdafx.h")
+
 endif(MSVC)
 

@@ -30,8 +30,6 @@
 #include "binocle_bitmapfont.h"
 #include "binocle_audio.h"
 
-#include <dgNewton/Newton.h>
-
 //#define GAMELOOP 1
 //#define DEMOLOOP
 #define TWODLOOP
@@ -68,144 +66,13 @@ WrenHandle* method;
 binocle_render_target *render_target;
 binocle_shader *screen_shader;
 
-NewtonWorld *world;
-NewtonBody *background_body;
-NewtonBody *ball_body;
-binocle_sprite *ball_sprite;
-bool dragging_ball;
-kmVec2 mouse_prev_pos;
+#if defined(__APPLE__) && !defined(__IPHONEOS__)
+#define WITH_PHYSICS
+#endif
 
-void create_barriers() {
-  kmMat4 identity;
-  kmMat4Identity(&identity);
-
-  kmMat4 bottom_offset;
-  kmMat4Translation(&bottom_offset, DESIGN_WIDTH/2, -50, 0);
-  NewtonCollision *coll_bottom = NewtonCreateBox(world, DESIGN_WIDTH, 100, 100, 0, &identity.mat[0]);
-
-  kmMat4 top_offset;
-  kmMat4Translation(&top_offset, DESIGN_WIDTH/2, DESIGN_HEIGHT + 50, 0);
-  NewtonCollision *coll_top = NewtonCreateBox(world, DESIGN_WIDTH, 100, 100, 0, &identity.mat[0]);
-
-  kmMat4 left_offset;
-  kmMat4Translation(&left_offset, -50, DESIGN_HEIGHT/2, 0);
-  NewtonCollision *coll_left = NewtonCreateBox(world, 100, DESIGN_HEIGHT, 100, 0, &identity.mat[0]);
-
-  kmMat4 right_offset;
-  kmMat4Translation(&right_offset, DESIGN_WIDTH + 50, DESIGN_HEIGHT/2, 0);
-  NewtonCollision *coll_right = NewtonCreateBox(world, 100, DESIGN_HEIGHT, 100, 0, &identity.mat[0]);
-
-  NewtonCreateDynamicBody(world, coll_bottom, &bottom_offset.mat[0]);
-  NewtonCreateDynamicBody(world, coll_top, &top_offset.mat[0]);
-  NewtonCreateDynamicBody(world, coll_left, &left_offset.mat[0]);
-  NewtonCreateDynamicBody(world, coll_right, &right_offset.mat[0]);
-
-  NewtonDestroyCollision(coll_bottom);
-  NewtonDestroyCollision(coll_top);
-  NewtonDestroyCollision(coll_left);
-  NewtonDestroyCollision(coll_right);
-}
-
-NewtonBody *create_background() {
-  dFloat points[4][3] =
-    {
-      {-100.0f, 0.0f,  100.0f},
-      { 420.0f, 0.0f,  100.0f},
-      { 420.0f, 0.0f, -100.0f},
-      {-100.0f, 0.0f, -100.0f},
-    };
-
-  // crate a collision tree
-  NewtonCollision* const collision = NewtonCreateTreeCollision (world, 0);
-
-  // start building the collision mesh
-  NewtonTreeCollisionBeginBuild (collision);
-
-  // add the face one at a time
-  NewtonTreeCollisionAddFace (collision, 4, &points[0][0], 3 * sizeof (dFloat), 0);
-
-  // finish building the collision
-  NewtonTreeCollisionEndBuild (collision, 1);
-
-  // create a body with a collision and locate at the identity matrix position
-  kmMat4 matrix;
-  kmMat4Identity(&matrix);
-  NewtonBody *body = NewtonCreateDynamicBody(world, collision, &matrix.mat[0]);
-
-  // do no forget to destroy the collision after you not longer need it
-  NewtonDestroyCollision(collision);
-  return body;
-}
-
-static void apply_gravity (const NewtonBody* const body, dFloat timestep, int threadIndex)
-{
-  // apply gravity force to the body
-  dFloat mass;
-  dFloat Ixx;
-  dFloat Iyy;
-  dFloat Izz;
-
-  NewtonBodyGetMass(body, &mass, &Ixx, &Iyy, &Izz);
-  float gravityForce[4] = {0, -9.8f * mass, 0.0f, 0.0f};
-  NewtonBodySetForce(body, &gravityForce[0]);
-  //float torque[4] = {0, -9.8f * mass, 0.0f, 0.0f};
-  //NewtonBodySetTorque(body, &torque[0]);
-}
-
-NewtonBody* create_ball()
-{
-  kmMat4 offset;
-  kmMat4Translation(&offset, 8, 8, 0);
-  // crate a collision sphere
-  NewtonCollision* const collision = NewtonCreateBox(world, 16.0f, 16.0f, 16.0f, 0, &offset.mat[0]);
-
-  // create a dynamic body with a sphere shape, and
-  kmMat4 matrix;
-  kmMat4Identity(&matrix);
-  kmMat4 trans;
-  kmMat4Translation(&trans, 160, 50, 0);
-  kmMat4Multiply(&matrix, &trans, &matrix);
-  //matrix.m_posit.m_y = 50.0f;
-  NewtonBody* const body = NewtonCreateDynamicBody(world, collision, &matrix.mat[0]);
-
-  // set the force callback for applying the force and torque
-  NewtonBodySetForceAndTorqueCallback(body, apply_gravity);
-
-  // set the mass for this body
-  dFloat mass = 1.0f;
-  NewtonBodySetMassProperties(body, mass, collision);
-
-  // set the linear damping to zero
-  NewtonBodySetLinearDamping (body, 0.1f);
-
-  // do no forget to destroy the collision after you not longer need it
-  NewtonDestroyCollision(collision);
-  return body;
-}
-
-void setup_world() {
-  world = NewtonCreate();
-  //background_body = create_background();
-  create_barriers();
-  ball_body = create_ball();
-  NewtonInvalidateCache(world);
-}
-
-void destroy_world() {
-  NewtonDestroyAllBodies(world);
-  NewtonDestroy(world);
-}
-
-void advance_simulation(float dt) {
-  if (dt <= 0) return;
-
-  NewtonUpdate(world, dt);
-  kmMat4 matrix;
-  NewtonBodyGetMatrix(ball_body, matrix.mat);
-  kmVec3 pos;
-  kmMat4ExtractTranslationVec3(&matrix, &pos);
-  binocle_log_info("ball x:%f y:%f z:%f", pos.x, pos.y, pos.z);
-}
+#ifdef WITH_PHYSICS
+#include "physics.c"
+#endif
 
 void wren_update(float dt) {
   wrenEnsureSlots(wren->vm, 2);
@@ -262,6 +129,7 @@ void main_loop() {
   mouse_pos.y = (float)input.mouseY;
   kmVec2 mouse_world_pos = binocle_camera_screen_to_world_point(camera, mouse_pos);
 
+#ifdef WITH_PHYSICS
   kmMat4 matrix;
   NewtonBodyGetMatrix(ball_body, matrix.mat);
   kmVec3 pos;
@@ -299,6 +167,8 @@ void main_loop() {
   if (binocle_input_is_mouse_up(input, MOUSE_LEFT)) {
     dragging_ball = false;
   }
+#endif
+
 
   // Set the render target we will draw to
   binocle_gd_set_render_target(render_target);
@@ -314,24 +184,28 @@ void main_loop() {
   viewport.max.y = DESIGN_HEIGHT;
 
   wren_update(dt);
+#ifdef WITH_PHYSICS
   advance_simulation(dt);
+#endif
 
   kmVec2 scale;
   scale.x = 1.0f;
   scale.y = 1.0f;
   binocle_sprite_draw(player, &gd, (uint64_t)player_pos.x, (uint64_t)player_pos.y, &viewport, 0, &scale, &camera);
 
-  binocle_sprite_draw(ball_sprite, &gd, (uint64_t)pos.x, (uint64_t)pos.y, &viewport, 0, &scale, &camera);
+  kmMat4 view_matrix;
+  kmMat4Identity(&view_matrix);
 
+#ifdef WITH_PHYSICS
+  binocle_sprite_draw(ball_sprite, &gd, (uint64_t)pos.x, (uint64_t)pos.y, &viewport, 0, &scale, &camera);
+  char mouse_str[256];
+  sprintf(mouse_str, "x: %.0f y:%.0f %d", mouse_world_pos.x, mouse_world_pos.y, dragging_ball);
+  binocle_bitmapfont_draw_string(font, mouse_str, 32, &gd, 0, DESIGN_HEIGHT - 70, viewport, binocle_color_white(), view_matrix);
+#endif
 
   char fps_str[256];
   sprintf(fps_str, "FPS: %llu", binocle_window_get_fps(window));
-  char mouse_str[256];
-  sprintf(mouse_str, "x: %.0f y:%.0f %d", mouse_world_pos.x, mouse_world_pos.y, dragging_ball);
-  kmMat4 view_matrix;
-  kmMat4Identity(&view_matrix);
   binocle_bitmapfont_draw_string(font, fps_str, 32, &gd, 0, DESIGN_HEIGHT - 32, viewport, binocle_color_white(), view_matrix);
-  binocle_bitmapfont_draw_string(font, mouse_str, 32, &gd, 0, DESIGN_HEIGHT - 70, viewport, binocle_color_white(), view_matrix);
   //binocle_sprite_draw(font_sprite, &gd, (uint64_t)font_sprite_pos.x, (uint64_t)font_sprite_pos.y, adapter.viewport);
 
   // Gets the viewport calculated by the adapter
@@ -355,7 +229,9 @@ void main_loop() {
   binocle_window_end_frame(window);
   //binocle_log_info("FPS: %d", binocle_window_get_fps(&window));
 
+#ifdef WITH_PHYSICS
   mouse_prev_pos = mouse_world_pos;
+#endif
 }
 #endif
 
@@ -560,11 +436,12 @@ int main(int argc, char *argv[])
   player_pos.x = 50;
   player_pos.y = 50;
 
+#ifdef WITH_PHYSICS
   binocle_material *ball_material = binocle_material_new();
   ball_material->albedo_texture = ball_texture;
   ball_material->shader = shader;
   ball_sprite = binocle_sprite_from_material(ball_material);
-
+#endif
 
   sprintf(filename, "%s%s", binocle_data_dir, "test_simple.lua");
   lua_test(filename);
@@ -638,7 +515,9 @@ int main(int argc, char *argv[])
   binocle_audio_play_music_stream(music);
   binocle_audio_set_music_volume(music, 0.01f);
 
+#ifdef WITH_PHYSICS
   setup_world();
+#endif
 
   render_target = binocle_gd_create_render_target(DESIGN_WIDTH, DESIGN_HEIGHT, true, GL_RGBA);
 
@@ -660,7 +539,9 @@ int main(int argc, char *argv[])
   binocle_audio_unload_sound(&audio, sound);
   binocle_audio_unload_music_stream(&audio, music);
   binocle_audio_destroy(&audio);
+#ifdef WITH_PHYSICS
   destroy_world();
+#endif
   binocle_app_destroy(&app);
   binocle_sdl_exit();
 }

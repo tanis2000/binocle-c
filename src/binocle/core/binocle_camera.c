@@ -285,8 +285,8 @@ kmAABB2 binocle_camera_get_viewport(binocle_camera camera) {
 binocle_camera_3d binocle_camera_3d_new(kmVec3 position, float near, float far, float fov_y) {
   binocle_camera_3d res = {0};
   res.fov_y = fov_y;
-  res.near = near;
-  res.far = far;
+  res.near_distance = near;
+  res.far_distance = far;
   res.yaw = -90.0f;
   res.pitch = 0.0f;
   res.position = position;
@@ -339,11 +339,11 @@ void binocle_camera_3d_set_rotation(binocle_camera_3d *camera, float pitch, floa
   binocle_camera_3d_update_matrixes(camera);
 }
 void binocle_camera_3d_set_near(binocle_camera_3d *camera, float near) {
-  camera->near = near;
+  camera->near_distance = near;
   // TODO: we're not taking this into account
 }
 void binocle_camera_3d_set_far(binocle_camera_3d *camera, float far) {
-  camera->far = far;
+  camera->far_distance = far;
   // TODO: we're not taking this into account
 }
 

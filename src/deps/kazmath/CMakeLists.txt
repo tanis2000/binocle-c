@@ -1,7 +1,7 @@
 project(kazmath)
 
 include_directories(.)
-if (IOS OR EMSCRIPTEN OR APPLE)
+if (IOS OR EMSCRIPTEN OR APPLE OR MSVC)
     include_directories(../lua/src)
 else()
     include_directories(../luajit/src)
