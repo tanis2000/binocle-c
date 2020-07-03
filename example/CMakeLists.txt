@@ -18,6 +18,7 @@ if (APPLE)
         # we're using lua instead of luajit on macos to be able to test with valgrind
         #include_directories(${CMAKE_SOURCE_DIR}/src/deps/luajit/src)
         include_directories(${CMAKE_SOURCE_DIR}/src/deps/lua/src)
+        include_directories(${CMAKE_SOURCE_DIR}/src/deps/newton)
     endif ()
 endif ()
 
@@ -27,7 +28,9 @@ if (ANDROID)
 endif ()
 
 if (WIN32)
-    include_directories(${PROJECT_SOURCE_DIR}/src/deps/luajit/src)
+    # we're using lua instead of luajit on macos to be able to test with valgrind
+    #include_directories(${PROJECT_SOURCE_DIR}/src/deps/luajit/src)
+    include_directories(${CMAKE_SOURCE_DIR}/src/deps/lua/src)
     include_directories(${CMAKE_SOURCE_DIR}/src/deps/sdl/include/configs/windows)
     include_directories(${CMAKE_SOURCE_DIR}/src/deps/glew/include)
 endif ()
@@ -156,4 +159,6 @@ if (ANDROID)
     #	file(RENAME ${CMAKE_CURRENT_BINARY_DIR}/../android-project/libs/${ANDROID_ABI}/lib${PROJECT_NAME}.so ${CMAKE_CURRENT_BINARY_DIR}/../android-project/libs/${ANDROID_ABI}/libmain.so)
 endif ()
 
-add_subdirectory(gameplay)
+if(NOT MSVC)
+    add_subdirectory(gameplay)
+endif(NOT MSVC)

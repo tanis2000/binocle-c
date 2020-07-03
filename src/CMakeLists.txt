@@ -32,6 +32,7 @@ if (APPLE AND NOT IOS)
             # we're using lua instead of luajit on macos to be able to test with valgrind
             #$<TARGET_OBJECTS:luajit-5.1>
             $<TARGET_OBJECTS:lua>
+            $<TARGET_OBJECTS:newton>
             )
 endif()
 
@@ -51,7 +52,9 @@ endif()
 if (MSVC)
     set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
             $<TARGET_OBJECTS:glew>
-            $<TARGET_OBJECTS:luajit-5.1>
+            # we're using lua instead of luajit on macos to be able to test with valgrind
+            #$<TARGET_OBJECTS:luajit-5.1>
+            $<TARGET_OBJECTS:lua>
             )
 endif()
 

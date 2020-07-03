@@ -7,7 +7,7 @@
 #ifndef BINOCLE_LUA_H
 #define BINOCLE_LUA_H
 
-#if defined(__IPHONEOS__) || defined(__EMSCRIPTEN__)
+#if defined(__IPHONEOS__) || defined(__EMSCRIPTEN__) || defined(_WIN32)
 #include <lua/src/lua.h>
 #include <lua/src/lualib.h>
 #include <lua/src/lauxlib.h>

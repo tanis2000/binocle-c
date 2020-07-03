@@ -14,6 +14,10 @@ file(GLOB_RECURSE HEADERS src/*.h)
 
 if (IOS)
     add_definitions(-DLUA_USE_MKSTEMP)
+#    file(GLOB_RECURSE REMOVE_SOURCES
+#            "src/loslib.c"
+#            )
+#    list(REMOVE_ITEM SOURCES ${REMOVE_SOURCES})
 endif()
 
 add_library(lua OBJECT ${HEADERS} ${SOURCES})

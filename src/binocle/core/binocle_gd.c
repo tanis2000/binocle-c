@@ -802,7 +802,7 @@ void binocle_gd_draw_mesh(binocle_gd *gd, const struct binocle_mesh *mesh, kmAAB
                                                                                1000.0f);
                                                                                */
 
-  kmMat4PerspectiveProjection(&projectionMatrix, camera->fov_y, viewport.max.x / viewport.max.y, camera->near /*camera->near + camera->position.z*/, camera->far /*camera->position.z + camera->far*/);
+  kmMat4PerspectiveProjection(&projectionMatrix, camera->fov_y, viewport.max.x / viewport.max.y, camera->near_distance /*camera->near + camera->position.z*/, camera->far_distance /*camera->position.z + camera->far*/);
 
   /*
   kmVec3 eye;

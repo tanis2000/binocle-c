@@ -33,7 +33,7 @@ if (ANDROID)
 endif()
 
 if (WIN32)
-    include_directories(${CMAKE_SOURCE_DIR}/src/deps/luajit/src)
+    include_directories(${CMAKE_SOURCE_DIR}/src/deps/lua/src)
 endif()
 
 

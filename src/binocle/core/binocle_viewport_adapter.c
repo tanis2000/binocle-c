@@ -59,11 +59,15 @@ uint32_t binocle_viewport_adapter_get_viewport_height(binocle_viewport_adapter a
 }
 
 kmVec2 binocle_viewport_adapter_point_to_virtual_viewport(binocle_viewport_adapter adapter, kmVec2 point) {
+  point.x = point.x - adapter.viewport.min.x;
+  point.y = point.y - adapter.viewport.min.y;
   return point;
 }
 
 
 kmVec2 binocle_viewport_adapter_screen_to_virtual_viewport(binocle_viewport_adapter adapter, kmVec2 point) {
+  point.x = point.x - adapter.viewport.min.x;
+  point.y = adapter.viewport.max.y - (point.y - adapter.viewport.min.y);
   return point;
 }
 

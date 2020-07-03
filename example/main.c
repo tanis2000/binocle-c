@@ -33,10 +33,12 @@
 //#define GAMELOOP 1
 //#define DEMOLOOP
 #define TWODLOOP
+#define DESIGN_WIDTH 320
+#define DESIGN_HEIGHT 240
 
-binocle_window window;
+binocle_window *window;
 binocle_input input;
-binocle_viewport_adapter adapter;
+binocle_viewport_adapter *adapter;
 binocle_camera camera;
 binocle_sprite *player;
 kmVec2 player_pos;
@@ -61,6 +63,16 @@ binocle_app app;
 struct binocle_wren_t *wren;
 WrenHandle* gameClass;
 WrenHandle* method;
+binocle_render_target *render_target;
+binocle_shader *screen_shader;
+
+#if defined(__APPLE__) && !defined(__IPHONEOS__)
+#define WITH_PHYSICS
+#endif
+
+#ifdef WITH_PHYSICS
+#include "physics.c"
+#endif
 
 void wren_update(float dt) {
   wrenEnsureSlots(wren->vm, 2);
@@ -71,31 +83,34 @@ void wren_update(float dt) {
 
 #ifdef TWODLOOP
 void main_loop() {
-  binocle_window_begin_frame(&window);
-  float dt = binocle_window_get_frame_time(&window) / 1000.0f;
+  binocle_window_begin_frame(window);
+  float dt = binocle_window_get_frame_time(window) / 1000.0f;
 
   binocle_input_update(&input);
   binocle_audio_update_music_stream(music);
 
   if (input.resized) {
-    kmVec2 oldWindowSize = {.x = window.width, .y = window.height};
-    window.width = input.newWindowSize.x;
-    window.height = input.newWindowSize.y;
-    binocle_viewport_adapter_reset(&adapter, oldWindowSize, input.newWindowSize);
+    kmVec2 oldWindowSize;
+    oldWindowSize.x = window->width;
+    oldWindowSize.y = window->height;
+    window->width = input.newWindowSize.x;
+    window->height = input.newWindowSize.y;
+    // Update the pixel-perfect rescaling viewport adapter
+    binocle_viewport_adapter_reset(camera.viewport_adapter, oldWindowSize, input.newWindowSize);
     input.resized = false;
   }
 
 
   if (binocle_input_is_key_pressed(&input, KEY_RIGHT)) {
-    player_pos.x += 50 * (1.0/window.frame_time);
+    player_pos.x += 50 * (1.0/window->frame_time);
   } else if (binocle_input_is_key_pressed(&input, KEY_LEFT)) {
-    player_pos.x -= 50 * (1.0/window.frame_time);
+    player_pos.x -= 50 * (1.0/window->frame_time);
   }
 
   if (binocle_input_is_key_pressed(&input, KEY_UP)) {
-    player_pos.y += 50 * (1.0/window.frame_time);
+    player_pos.y += 50 * (1.0/window->frame_time);
   } else if (binocle_input_is_key_pressed(&input, KEY_DOWN)) {
-    player_pos.y -= 50 * (1.0/window.frame_time);
+    player_pos.y -= 50 * (1.0/window->frame_time);
   }
 
   if (binocle_input_is_key_pressed(&input, KEY_SPACE)) {
@@ -109,23 +124,114 @@ void main_loop() {
     binocle_audio_set_master_volume(&audio, audio.master_volume+0.2f);
   }
 
-  binocle_window_clear(&window);
+  kmVec2 mouse_pos;
+  mouse_pos.x = (float)input.mouseX;
+  mouse_pos.y = (float)input.mouseY;
+  kmVec2 mouse_world_pos = binocle_camera_screen_to_world_point(camera, mouse_pos);
+
+#ifdef WITH_PHYSICS
+  kmMat4 matrix;
+  NewtonBodyGetMatrix(ball_body, matrix.mat);
+  kmVec3 pos;
+  kmMat4ExtractTranslationVec3(&matrix, &pos);
+
+  kmAABB2 ball_bounds;
+  ball_bounds.min.x = pos.x;
+  ball_bounds.min.y = pos.y;
+  ball_bounds.max.x = pos.x + 32;
+  ball_bounds.max.y = pos.y + 32;
+  if (kmAABB2ContainsPoint(&ball_bounds, &mouse_world_pos) && binocle_input_is_mouse_down(input, MOUSE_LEFT)) {
+    dragging_ball = true;
+  }
+
+  if (dragging_ball && binocle_input_is_mouse_pressed(input, MOUSE_LEFT)) {
+    // set position
+    kmMat4 identity;
+    kmMat4Identity(&identity);
+    kmMat4 trans;
+    kmMat4Translation(&trans, mouse_world_pos.x, mouse_world_pos.y, pos.z);
+    kmMat4Multiply(&identity, &identity, &trans);
+    NewtonBodySetMatrix(ball_body, &identity.mat[0]);
+
+    // apply force
+    dFloat mass;
+    dFloat Ixx;
+    dFloat Iyy;
+    dFloat Izz;
+
+    NewtonBodyGetMass(ball_body, &mass, &Ixx, &Iyy, &Izz);
+    float gravityForce[4] = {10 * (mouse_world_pos.x - mouse_prev_pos.x), 0.0f, 0.0f, 0.0f};
+    NewtonBodySetVelocity(ball_body, &gravityForce[0]);
+  }
+
+  if (binocle_input_is_mouse_up(input, MOUSE_LEFT)) {
+    dragging_ball = false;
+  }
+#endif
+
+
+  // Set the render target we will draw to
+  binocle_gd_set_render_target(render_target);
+
+  // Clear the render target
+  binocle_window_clear(window);
+
+  // Create a viewport that corresponds to the size of our render target
+  kmAABB2 viewport;
+  viewport.min.x = 0;
+  viewport.min.y = 0;
+  viewport.max.x = DESIGN_WIDTH;
+  viewport.max.y = DESIGN_HEIGHT;
 
   wren_update(dt);
+#ifdef WITH_PHYSICS
+  advance_simulation(dt);
+#endif
 
   kmVec2 scale;
   scale.x = 1.0f;
   scale.y = 1.0f;
-  binocle_sprite_draw(player, &gd, (uint64_t)player_pos.x, (uint64_t)player_pos.y, &adapter.viewport, 0, &scale, &camera);
-  char fps_str[256];
-  sprintf(fps_str, "FPS: %llu", binocle_window_get_fps(&window));
+  binocle_sprite_draw(player, &gd, (uint64_t)player_pos.x, (uint64_t)player_pos.y, &viewport, 0, &scale, &camera);
+
   kmMat4 view_matrix;
   kmMat4Identity(&view_matrix);
-  binocle_bitmapfont_draw_string(font, fps_str, 32, &gd, 0, window.height - 32, adapter.viewport, binocle_color_white(), view_matrix);
+
+#ifdef WITH_PHYSICS
+  binocle_sprite_draw(ball_sprite, &gd, (uint64_t)pos.x, (uint64_t)pos.y, &viewport, 0, &scale, &camera);
+  char mouse_str[256];
+  sprintf(mouse_str, "x: %.0f y:%.0f %d", mouse_world_pos.x, mouse_world_pos.y, dragging_ball);
+  binocle_bitmapfont_draw_string(font, mouse_str, 32, &gd, 0, DESIGN_HEIGHT - 70, viewport, binocle_color_white(), view_matrix);
+#endif
+
+  char fps_str[256];
+  sprintf(fps_str, "FPS: %llu", binocle_window_get_fps(window));
+  binocle_bitmapfont_draw_string(font, fps_str, 32, &gd, 0, DESIGN_HEIGHT - 32, viewport, binocle_color_white(), view_matrix);
   //binocle_sprite_draw(font_sprite, &gd, (uint64_t)font_sprite_pos.x, (uint64_t)font_sprite_pos.y, adapter.viewport);
-  binocle_window_refresh(&window);
-  binocle_window_end_frame(&window);
+
+  // Gets the viewport calculated by the adapter
+  kmAABB2 vp = binocle_viewport_adapter_get_viewport(*adapter);
+  float vp_x = vp.min.x;
+  float vp_y = vp.min.y;
+  // Reset the render target to the screen
+  binocle_gd_set_render_target(NULL);
+  // Clear the screen with an azure
+  binocle_gd_clear(binocle_color_black());
+  binocle_gd_apply_viewport(vp);
+  binocle_gd_apply_shader(&gd, screen_shader);
+  binocle_gd_set_uniform_float2(screen_shader, "resolution", DESIGN_WIDTH,
+                                DESIGN_HEIGHT);
+  binocle_gd_set_uniform_mat4(screen_shader, "transform", view_matrix);
+  binocle_gd_set_uniform_float2(screen_shader, "scale", adapter->inverse_multiplier, adapter->inverse_multiplier);
+  binocle_gd_set_uniform_float2(screen_shader, "viewport", vp_x, vp_y);
+  binocle_gd_draw_quad_to_screen(screen_shader, *render_target);
+
+  binocle_window_refresh(window);
+  binocle_window_end_frame(window);
   //binocle_log_info("FPS: %d", binocle_window_get_fps(&window));
+
+#ifdef WITH_PHYSICS
+  mouse_prev_pos = mouse_world_pos;
+#endif
 }
 #endif
 
@@ -292,10 +398,11 @@ int main(int argc, char *argv[])
   app = binocle_app_new();
   binocle_app_init(&app);
   binocle_sdl_init();
-  window = binocle_window_new(320, 240, "Binocle Test Game");
-  binocle_window_set_background_color(&window, binocle_color_azure());
-  adapter = binocle_viewport_adapter_new(window, BINOCLE_VIEWPORT_ADAPTER_KIND_SCALING, BINOCLE_VIEWPORT_ADAPTER_SCALING_TYPE_PIXEL_PERFECT, window.original_width, window.original_height, window.original_width, window.original_height);
-  camera = binocle_camera_new(&adapter);
+  window = binocle_window_new(DESIGN_WIDTH, DESIGN_HEIGHT, "Binocle Test Game");
+  binocle_window_set_background_color(window, binocle_color_azure());
+  binocle_window_set_minimum_size(window, DESIGN_WIDTH, DESIGN_HEIGHT);
+  adapter = binocle_viewport_adapter_new(window, BINOCLE_VIEWPORT_ADAPTER_KIND_SCALING, BINOCLE_VIEWPORT_ADAPTER_SCALING_TYPE_PIXEL_PERFECT, window->original_width, window->original_height, window->original_width, window->original_height);
+  camera = binocle_camera_new(adapter);
   input = binocle_input_new();
 
   binocle_data_dir = binocle_sdl_assets_dir();
@@ -305,17 +412,36 @@ int main(int argc, char *argv[])
   sprintf(filename, "%s%s", binocle_data_dir, "wabbit_alpha.png");
   binocle_image *image = binocle_image_load(filename);
   binocle_texture *texture = binocle_texture_from_image(image);
+
+  sprintf(filename, "%s%s", binocle_data_dir, "player.png");
+  binocle_image *ball_image = binocle_image_load(filename);
+  binocle_texture *ball_texture = binocle_texture_from_image(ball_image);
+
+  // Default shader
   char vert[1024];
   sprintf(vert, "%s%s", binocle_data_dir, "default.vert");
   char frag[1024];
   sprintf(frag, "%s%s", binocle_data_dir, "default.frag");
   binocle_shader *shader = binocle_shader_load_from_file(vert, frag);
+
+  // Screen shader
+  sprintf(vert, "%s%s", binocle_data_dir, "screen.vert");
+  sprintf(frag, "%s%s", binocle_data_dir, "screen.frag");
+  screen_shader = binocle_shader_load_from_file(vert, frag);
+
   binocle_material *material = binocle_material_new();
   material->albedo_texture = texture;
   material->shader = shader;
   player = binocle_sprite_from_material(material);
   player_pos.x = 50;
   player_pos.y = 50;
+
+#ifdef WITH_PHYSICS
+  binocle_material *ball_material = binocle_material_new();
+  ball_material->albedo_texture = ball_texture;
+  ball_material->shader = shader;
+  ball_sprite = binocle_sprite_from_material(ball_material);
+#endif
 
   sprintf(filename, "%s%s", binocle_data_dir, "test_simple.lua");
   lua_test(filename);
@@ -387,6 +513,13 @@ int main(int argc, char *argv[])
   sprintf(music_filename, "%s%s", binocle_data_dir, "8bit.ogg");
   music = binocle_audio_load_music_stream(&audio, music_filename);
   binocle_audio_play_music_stream(music);
+  binocle_audio_set_music_volume(music, 0.01f);
+
+#ifdef WITH_PHYSICS
+  setup_world();
+#endif
+
+  render_target = binocle_gd_create_render_target(DESIGN_WIDTH, DESIGN_HEIGHT, true, GL_RGBA);
 
   gd = binocle_gd_new();
   binocle_gd_init(&gd);
@@ -406,6 +539,9 @@ int main(int argc, char *argv[])
   binocle_audio_unload_sound(&audio, sound);
   binocle_audio_unload_music_stream(&audio, music);
   binocle_audio_destroy(&audio);
+#ifdef WITH_PHYSICS
+  destroy_world();
+#endif
   binocle_app_destroy(&app);
   binocle_sdl_exit();
 }
