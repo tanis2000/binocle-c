@@ -161,4 +161,4 @@ endif ()
 
 if(NOT MSVC)
     add_subdirectory(gameplay)
-endif(MSVC)
+endif(NOT MSVC)

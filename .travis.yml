@@ -9,7 +9,7 @@ jobs:
         - GENERATOR="Unix Makefiles"
     - os: windows
       env:
-        - GENERATOR="Visual Studio 15 2017"
+        - GENERATOR="Visual Studio 15 2017 Win64"
 script:
   - if [ $TRAVIS_OS_NAME == osx ]; then brew install doxygen sphinx-doc graphviz; fi
   - if [ $TRAVIS_OS_NAME == osx ]; then pip3 install sphinx; fi
