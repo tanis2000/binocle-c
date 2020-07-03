@@ -3,14 +3,18 @@ matrix:
   include:
     - os: osx
       osx_image: xcode11.5
+      compiler:
+        - clang
+      env:
+        - GENERATOR="Unix Makefiles"
     - os: windows
-compiler:
-  - clang
+      env:
+        - GENERATOR="Visual Studio 16 2019 Win64"
 script:
   - if [ $TRAVIS_OS_NAME == osx ]; then brew install doxygen sphinx-doc graphviz; fi
   - if [ $TRAVIS_OS_NAME == osx ]; then pip3 install sphinx; fi
   - if [ $TRAVIS_OS_NAME == windows ]; then choco install doxygen.install graphviz python; fi
 #  - if [ $TRAVIS_OS_NAME == windows ]; then pip install sphinx; fi
   - cd build && mkdir gen && cd gen
-  - cmake ../..  
+  - cmake ../.. -G "${GENERATOR}"
   - cmake --build . -j8
