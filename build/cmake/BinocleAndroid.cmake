@@ -1,4 +1,4 @@
-include (BundleUtilities)
+#include (BundleUtilities)
 
 add_definitions (-D__ANDROID__)
 

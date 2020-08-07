@@ -1,4 +1,4 @@
-include (BundleUtilities)
+#include (BundleUtilities)
 
 set (CMAKE_SYSTEM_NAME iOS)
 

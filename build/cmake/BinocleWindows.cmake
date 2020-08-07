@@ -1,4 +1,4 @@
-include (BundleUtilities)
+#include (BundleUtilities)
 
 add_definitions (-D__WINDOWS__) # min and max definitions are clashing with glm
 add_definitions (-DNOMINMAX) # min and max definitions are clashing with glm
