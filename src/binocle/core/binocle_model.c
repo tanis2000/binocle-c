@@ -393,3 +393,32 @@ void binocle_model_compute_smoothing_normals(tinyobj_attrib_t *attrib, tinyobj_s
     kh_value(smooth_vertex_normals, iter).z = item.z;
   }
 }
+
+void binocle_model_calculate_mesh_bounding_box(const struct binocle_mesh *mesh, kmVec3 *aabb_min, kmVec3 *aabb_max) {
+  float min_x, min_y, min_z, max_x, max_y, max_z;
+
+  min_x = mesh->vertices[0].pos.x;
+  min_y = mesh->vertices[0].pos.y;
+  min_z = mesh->vertices[0].pos.z;
+
+  for(int i = 0; i < mesh->vertex_count; i++) {
+    // x-axis
+    if(mesh->vertices[i].pos.x < min_x)
+      min_x = mesh->vertices[i].pos.x;
+    if(mesh->vertices[i].pos.x > max_x)
+      max_x = mesh->vertices[i].pos.x;
+    // y-axis
+    if(mesh->vertices[i].pos.y < min_y)
+      min_y = mesh->vertices[i].pos.y;
+    if(mesh->vertices[i].pos.y > max_y)
+      max_y = mesh->vertices[i].pos.y;
+    // z-axis
+    if(mesh->vertices[i].pos.z < min_z)
+      min_z = mesh->vertices[i].pos.z;
+    if(mesh->vertices[i].pos.z > max_z)
+      max_z = mesh->vertices[i].pos.z;
+  }
+
+  kmVec3Fill(aabb_min, min_x, min_y, min_z);
+  kmVec3Fill(aabb_max, max_x, max_y, max_z);
+}

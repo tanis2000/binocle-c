@@ -45,4 +45,12 @@ binocle_model binocle_model_load_obj(char *filename, char *mtl_filename);
 void binocle_model_compute_normal(float N[3], float v0[3], float v1[3], float v2[3]);
 void binocle_model_compute_smoothing_normals(tinyobj_attrib_t *attrib, tinyobj_shape_t *shape, khash_t(spatial_binocle_smooth_vertex_t) *smooth_vertex_normals);
 
+/**
+ * Calculates the bounding box of the given mesh (in model space)
+ * @param mesh the mesh
+ * @param aabb_min minimum vertex of the bounding box
+ * @param aabb_max maximum vertex of the bounding box
+ */
+void binocle_model_calculate_mesh_bounding_box(const struct binocle_mesh *mesh, kmVec3 *aabb_min, kmVec3 *aabb_max);
+
 #endif //BINOCLE_MODEL_H
