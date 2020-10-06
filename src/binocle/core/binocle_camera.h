@@ -131,15 +131,82 @@ typedef struct binocle_camera_3d {
   float far_distance;
 } binocle_camera_3d;
 
+/**
+ * \brief Creates a new 3D camera instance
+ * @param position the position of the camera in world coordinates
+ * @param near the near plane distance
+ * @param far the far plane distance
+ * @param fov_y the vertical field of view
+ * @return an instance of binocle_camera_3d
+ */
 binocle_camera_3d binocle_camera_3d_new(kmVec3 position, float near, float far, float fov_y);
+
+/**
+ * \brief Updates the transform and inverse_transform matrices
+ * @param camera the instance of binocle_camera_3d to update
+ */
 void binocle_camera_3d_update_matrixes(binocle_camera_3d *camera);
+
+/**
+ * \brief Sets the camera position in world coordinates and updates the underlying matrices
+ * @param camera the instance of binocle_camera_3d
+ * @param position the position in world coordinates
+ */
 void binocle_camera_3d_set_position(binocle_camera_3d *camera, kmVec3 position);
+
+/**
+ * \brief Sets the orientation of the camera and updates the underlying matrices
+ * @param camera the instance of the binocle_camera_3d
+ * @param pitch the pitch in degrees
+ * @param yaw the yaw in degrees
+ * @param roll the roll in degrees
+ */
 void binocle_camera_3d_set_rotation(binocle_camera_3d *camera, float pitch, float yaw, float roll);
+
+/**
+ * \brief Sets the camera near plane distance
+ * @param camera the instance of the binocle_camera_3d
+ * @param near the distance of the near plane
+ */
 void binocle_camera_3d_set_near(binocle_camera_3d *camera, float near);
+
+/**
+ * \brief Sets the camera far plane distance
+ * @param camera the instance of the binocle_camera_3d
+ * @param far the distance of the far plane
+ */
 void binocle_camera_3d_set_far(binocle_camera_3d *camera, float far);
+
+/**
+ * \brief Returns the transform matrix of the camera
+ * @param camera the instance of the binocle_camera_3d
+ * @return the transform matrix of the camera
+ */
 kmMat4 *binocle_camera_3d_get_transform_matrix(binocle_camera_3d *camera);
+
+/**
+ * \brief Translates the camera in the world
+ * @param camera the instance of the binocle_camera_3d
+ * @param x the amount to move on the X direction (positive is right)
+ * @param y the amount to move on the Y direction (positive is up)
+ * @param z the amount to move on the Z direction (positive is into the scene)
+ */
 void binocle_camera_3d_translate(binocle_camera_3d *camera, float x, float y, float z);
+
+/**
+ * \brief Rotates the camera by the given amount on the different axes
+ * @param camera the instance of binocle_camera_3d
+ * @param pitch the pitch in degrees
+ * @param yaw the yaw in degrees
+ * @param roll the roll in degrees
+ */
 void binocle_camera_3d_rotate(binocle_camera_3d *camera, float pitch, float yaw, float roll);
+
+/**
+ * \brief Returns the inverse transform matrix
+ * @param camera the instance of binocle_camera_3d
+ * @return the inverse transform matrix
+ */
 kmMat4 *binocle_camera_3d_get_inverse_transform_matrix(binocle_camera_3d *camera);
 
 #endif //BINOCLE_CAMERA_H
