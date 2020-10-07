@@ -368,3 +368,57 @@ void binocle_camera_3d_rotate(binocle_camera_3d *camera, float pitch, float yaw,
   //camera->roll += roll;
   binocle_camera_3d_update_matrixes(camera);
 }
+
+void binocle_camera_3d_screen_to_world_ray_internal(
+  int mouse_x,
+  int mouse_y,
+  int screen_width,
+  int screen_height,
+  kmMat4 view_matrix,
+  kmMat4 projection_matrix,
+  kmVec3 *out_direction
+){
+  float x = (2.0f * (float)mouse_x) / (float)screen_width - 1.0f;
+  float y = 1.0f - (2.0f * (float)mouse_y) / (float)screen_height;
+  float z = 1.0f;
+  kmVec3 ray_nds;
+  kmVec3Fill(&ray_nds, x, y, z);
+
+  kmVec4 ray_clip;
+  kmVec4Fill(&ray_clip, ray_nds.x, ray_nds.y, -1.0f, 1.0f);
+
+  kmVec4 ray_eye;
+  kmMat4 invProj;
+  kmMat4Inverse(&invProj, &projection_matrix);
+  kmVec4MultiplyMat4(&ray_eye, &ray_clip, &invProj);
+
+  kmVec4Fill(&ray_eye, ray_eye.x, ray_eye.y, -1.0f, 0.0f);
+
+  kmVec3 ray_wor;
+  kmMat4 invView;
+  kmMat4Inverse(&invView, &view_matrix);
+  kmVec4 tmp;
+  kmVec4MultiplyMat4(&tmp, &ray_eye, &invView);
+  kmVec3Fill(&ray_wor, tmp.x, tmp.y, tmp.z);
+  kmVec3Normalize(&ray_wor, &ray_wor);
+
+  kmVec3Fill(out_direction, ray_wor.x, ray_wor.y, ray_wor.z);
+}
+
+void binocle_camera_3d_screen_to_world_ray(
+  binocle_camera_3d *camera,
+  int mouse_x,
+  int mouse_y,
+  kmAABB2 viewport,
+  kmVec3 *out_direction
+){
+  kmMat4 projectionMatrix;
+  kmMat4Identity(&projectionMatrix);
+  kmMat4PerspectiveProjection(&projectionMatrix, camera->fov_y, viewport.max.x / viewport.max.y, camera->near_distance /*camera->near + camera->position.z*/, camera->far_distance /*camera->position.z + camera->far*/);
+
+  kmMat4 viewMatrix;
+  kmMat4Identity(&viewMatrix);
+  kmMat4Multiply(&viewMatrix, &viewMatrix, binocle_camera_3d_get_transform_matrix(camera));
+
+  binocle_camera_3d_screen_to_world_ray_internal(mouse_x, mouse_y, viewport.max.x, viewport.max.y, viewMatrix, projectionMatrix, out_direction);
+}

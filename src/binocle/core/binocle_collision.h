@@ -123,4 +123,22 @@ uint64_t binocle_spatial_hash_get_key(int x, int y);
 void binocle_spatial_hash_get_all_bodies_sharing_cells_with_body(binocle_spatial_hash *spatial_hash, binocle_collider *collider, binocle_collider_ptr_array_t *colliding_colliders, int layer_mask);
 bool binocle_spatial_hash_is_body_sharing_any_cell(binocle_spatial_hash *spatial_hash, binocle_collider *collider);
 
+/**
+ *
+ * @param ray_origin the ray origin in world space
+ * @param ray_direction the ray direction in world space. This must be normalized
+ * @param aabb_min minimum X,Y,Z coordinates of the mesh when not transformed at all
+ * @param aabb_max maximum X,Y,Z coordinates of the mesh when not transformed at all
+ * @param model_matrix the transformation applied to the mesh. It will be applied to the bounding box, too
+ * @param intersection_distance the distance between ray_origin and the intersection with the OBB
+ * @return
+ */
+bool binocle_collision_ray_cast_obb(
+  kmVec3 ray_origin,
+  kmVec3 ray_direction,
+  kmVec3 aabb_min,
+  kmVec3 aabb_max,
+  kmMat4 model_matrix,
+  float *intersection_distance);
+
 #endif //BINOCLE_COLLISION_H

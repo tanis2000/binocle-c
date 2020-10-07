@@ -209,4 +209,41 @@ void binocle_camera_3d_rotate(binocle_camera_3d *camera, float pitch, float yaw,
  */
 kmMat4 *binocle_camera_3d_get_inverse_transform_matrix(binocle_camera_3d *camera);
 
+/**
+ * \brief Internal function to transform an X,Y screen space coordinate to world space and get the
+ * direction ray from it
+ * @param mouse_x the X coordinate in screen space
+ * @param mouse_y the Y coordinate in screen space
+ * @param screen_width the window width in pixels
+ * @param screen_height the window height in pixels
+ * @param view_matrix camera position and orientation
+ * @param projection_matrix camera parameters (ratio, field of view, near and far plane)
+ * @param out_direction the direction, in world space, of the ray that goes "through" the mouse position
+ */
+void binocle_camera_3d_screen_to_world_ray_internal(
+  int mouse_x,
+  int mouse_y,
+  int screen_width,
+  int screen_height,
+  kmMat4 view_matrix,
+  kmMat4 projection_matrix,
+  kmVec3 *out_direction
+);
+
+/**
+ * \brief Transforms an X,Y screen space coordinate into a direction ray in world space
+ * @param camera an instance of binocle_camera_3d
+ * @param mouse_x the X coordinate in screen space
+ * @param mouse_y the Y coordinate in screen space
+ * @param viewport the camera/window viewport
+ * @param out_direction the direction, in world space, of the ray that goes "through" the mouse position
+ */
+void binocle_camera_3d_screen_to_world_ray(
+  binocle_camera_3d *camera,
+  int mouse_x,
+  int mouse_y,
+  kmAABB2 viewport,
+  kmVec3 *out_direction
+);
+
 #endif //BINOCLE_CAMERA_H

@@ -522,3 +522,124 @@ bool binocle_spatial_hash_is_body_sharing_any_cell(binocle_spatial_hash *spatial
   }
   return false;
 }
+
+bool binocle_collision_ray_cast_obb(
+  kmVec3 ray_origin,
+  kmVec3 ray_direction,
+  kmVec3 aabb_min,
+  kmVec3 aabb_max,
+  kmMat4 model_matrix,
+  float *intersection_distance
+){
+
+// Intersection method from Real-Time Rendering and Essential Mathematics for Games
+
+  float tMin = 0.0f;
+  float tMax = 100000.0f;
+
+  kmVec3 OBBposition_worldspace;
+  kmMat4ExtractTranslationVec3(&model_matrix, &OBBposition_worldspace);
+
+  kmVec3 delta;
+  kmVec3Subtract(&delta, &OBBposition_worldspace, &ray_origin);
+
+  // Test intersection with the 2 planes perpendicular to the OBB's X axis
+  {
+    kmVec3 xaxis;
+    kmVec3Fill(&xaxis, model_matrix.mat[0 * 4], model_matrix.mat[0 * 4 + 1], model_matrix.mat[0 * 4 + 2]);
+    float e = kmVec3Dot(&xaxis, &delta);
+    float f = kmVec3Dot(&ray_direction, &xaxis);
+
+    if ( fabsf(f) > 0.001f ){ // Standard case
+
+      float t1 = (e+aabb_min.x)/f; // Intersection with the "left" plane
+      float t2 = (e+aabb_max.x)/f; // Intersection with the "right" plane
+      // t1 and t2 now contain distances betwen ray origin and ray-plane intersections
+
+      // We want t1 to represent the nearest intersection,
+      // so if it's not the case, invert t1 and t2
+      if (t1>t2){
+        float w=t1;t1=t2;t2=w; // swap t1 and t2
+      }
+
+      // tMax is the nearest "far" intersection (amongst the X,Y and Z planes pairs)
+      if ( t2 < tMax )
+        tMax = t2;
+      // tMin is the farthest "near" intersection (amongst the X,Y and Z planes pairs)
+      if ( t1 > tMin )
+        tMin = t1;
+
+      // And here's the trick :
+      // If "far" is closer than "near", then there is NO intersection.
+      // See the images in the tutorials for the visual explanation.
+      if (tMax < tMin )
+        return false;
+
+    }else{ // Rare case : the ray is almost parallel to the planes, so they don't have any "intersection"
+      if(-e+aabb_min.x > 0.0f || -e+aabb_max.x < 0.0f)
+        return false;
+    }
+  }
+
+
+  // Test intersection with the 2 planes perpendicular to the OBB's Y axis
+  // Exactly the same thing than above.
+  {
+    kmVec3 yaxis;
+    kmVec3Fill(&yaxis, model_matrix.mat[1 * 4], model_matrix.mat[1 * 4 + 1], model_matrix.mat[1 * 4 + 2]);
+    float e = kmVec3Dot(&yaxis, &delta);
+    float f = kmVec3Dot(&ray_direction, &yaxis);
+
+    if ( fabsf(f) > 0.001f ){
+
+      float t1 = (e+aabb_min.y)/f;
+      float t2 = (e+aabb_max.y)/f;
+
+      if (t1>t2){float w=t1;t1=t2;t2=w;}
+
+      if ( t2 < tMax )
+        tMax = t2;
+      if ( t1 > tMin )
+        tMin = t1;
+      if (tMin > tMax)
+        return false;
+
+    }else{
+      if(-e+aabb_min.y > 0.0f || -e+aabb_max.y < 0.0f)
+        return false;
+    }
+  }
+
+
+  // Test intersection with the 2 planes perpendicular to the OBB's Z axis
+  // Exactly the same thing than above.
+  {
+    kmVec3 zaxis;
+    kmVec3Fill(&zaxis, model_matrix.mat[2 * 4], model_matrix.mat[2 * 4 + 1], model_matrix.mat[2 * 4 + 2]);
+    float e = kmVec3Dot(&zaxis, &delta);
+    float f = kmVec3Dot(&ray_direction, &zaxis);
+
+    if ( fabsf(f) > 0.001f ){
+
+      float t1 = (e+aabb_min.z)/f;
+      float t2 = (e+aabb_max.z)/f;
+
+      if (t1>t2){float w=t1;t1=t2;t2=w;}
+
+      if ( t2 < tMax )
+        tMax = t2;
+      if ( t1 > tMin )
+        tMin = t1;
+      if (tMin > tMax)
+        return false;
+
+    }else{
+      if(-e+aabb_min.z > 0.0f || -e+aabb_max.z < 0.0f)
+        return false;
+    }
+  }
+
+  *intersection_distance = tMin;
+  return true;
+
+}
