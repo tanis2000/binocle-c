@@ -69,11 +69,25 @@ int l_binocle_viewport_adapter_get_viewport_min_y(lua_State *L) {
   return 1;
 }
 
+int l_binocle_viewport_adapter_get_multiplier(lua_State *L) {
+  l_binocle_viewport_adapter_t *adapter = luaL_checkudata(L, 1, "binocle_viewport_adapter");
+  lua_pushnumber(L, adapter->viewport_adapter->multiplier);
+  return 1;
+}
+
+int l_binocle_viewport_adapter_get_inverse_multiplier(lua_State *L) {
+  l_binocle_viewport_adapter_t *adapter = luaL_checkudata(L, 1, "binocle_viewport_adapter");
+  lua_pushnumber(L, adapter->viewport_adapter->inverse_multiplier);
+  return 1;
+}
+
 static const struct luaL_Reg viewport_adapter [] = {
   {"new", l_binocle_viewport_adapter_new},
   {"get_viewport", l_binocle_viewport_adapter_get_viewport},
   {"get_viewport_min_x", l_binocle_viewport_adapter_get_viewport_min_x},
   {"get_viewport_min_y", l_binocle_viewport_adapter_get_viewport_min_y},
+  {"get_multiplier", l_binocle_viewport_adapter_get_multiplier},
+  {"get_inverse_multiplier", l_binocle_viewport_adapter_get_inverse_multiplier},
   {NULL, NULL}
 };
 
