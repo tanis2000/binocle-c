@@ -8,6 +8,23 @@
 #include "binocle_shader.h"
 #include "binocle_color.h"
 
+int l_binocle_gd_new(lua_State *L) {
+  l_binocle_gd_t *gd = lua_newuserdata(L, sizeof(l_binocle_gd_t));
+  lua_getfield(L, LUA_REGISTRYINDEX, "binocle_gd");
+  lua_setmetatable(L, -2);
+  SDL_memset(gd, 0, sizeof(*gd));
+  binocle_gd gdi = binocle_gd_new();
+  gd->gd = SDL_malloc(sizeof(binocle_gd));
+  SDL_memcpy(gd->gd, &gdi, sizeof(binocle_gd));
+  return 1;
+}
+
+int l_binocle_gd_init(lua_State *L) {
+  l_binocle_gd_t *gd = lua_touserdata(L, 1);
+  binocle_gd_init(gd->gd);
+  return 0;
+}
+
 int l_binocle_gd_create_render_target(lua_State *L) {
   int width = luaL_checkint(L, 1);
   int height = luaL_checkint(L, 2);
@@ -77,6 +94,8 @@ int l_binocle_gd_clear(lua_State *L) {
 }
 
 static const struct luaL_Reg gd [] = {
+  {"new", l_binocle_gd_new},
+  {"init", l_binocle_gd_init},
   {"create_render_target", l_binocle_gd_create_render_target},
   {"set_render_target", l_binocle_gd_set_render_target},
   {"apply_viewport", l_binocle_gd_apply_viewport},

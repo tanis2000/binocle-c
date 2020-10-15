@@ -43,7 +43,7 @@ int l_binocle_sprite_set_subtexture(lua_State *L) {
   return 1;
 }
 
-static const struct luaL_Reg texture [] = {
+static const struct luaL_Reg sprite [] = {
   {"from_material", l_binocle_sprite_from_material},
   {"draw", l_binocle_sprite_draw},
   {"set_subtexture", l_binocle_sprite_set_subtexture},
@@ -51,8 +51,31 @@ static const struct luaL_Reg texture [] = {
 };
 
 int luaopen_sprite(lua_State *L) {
-  luaL_newlib(L, texture);
+  luaL_newlib(L, sprite);
   lua_setglobal(L, "sprite");
   luaL_newmetatable(L, "binocle_sprite");
+  return 1;
+}
+
+int l_binocle_sprite_batch_new(lua_State *L) {
+  l_binocle_sprite_batch_t *sprite_batch = lua_newuserdata(L, sizeof(l_binocle_sprite_batch_t));
+  lua_getfield(L, LUA_REGISTRYINDEX, "binocle_sprite_batch");
+  lua_setmetatable(L, -2);
+  SDL_memset(sprite_batch, 0, sizeof(*sprite_batch));
+  binocle_sprite_batch sb = binocle_sprite_batch_new();
+  sprite_batch->sprite_batch = SDL_malloc(sizeof(binocle_sprite_batch));
+  SDL_memcpy(sprite_batch->sprite_batch, &sb, sizeof(binocle_sprite_batch));
+  return 1;
+}
+
+static const struct luaL_Reg sprite_batch [] = {
+  {"new", l_binocle_sprite_batch_new},
+  {NULL, NULL}
+};
+
+int luaopen_sprite_batch(lua_State *L) {
+  luaL_newlib(L, sprite_batch);
+  lua_setglobal(L, "sprite_batch");
+  luaL_newmetatable(L, "binocle_sprite_batch");
   return 1;
 }

@@ -52,6 +52,7 @@ bool binocle_lua_init(binocle_lua *lua) {
   luaopen_shader(lua->L);
   luaopen_material(lua->L);
   luaopen_sprite(lua->L);
+  luaopen_sprite_batch(lua->L);
   luaopen_input(lua->L);
   luaopen_log(lua->L);
   luaopen_gd(lua->L);

@@ -512,18 +512,18 @@ int l_binocle_input_new(lua_State *L) {
 }
 
 int l_binocle_input_is_key_pressed(lua_State *L) {
-  binocle_input **input = lua_touserdata(L, 1);
+  l_binocle_input_t *input = lua_touserdata(L, 1);
   int key_int = luaL_checkoption(L, 2, "KEY_UNKNOWN", binocle_input_keyboard_key_str);
   binocle_input_keyboard_key key = binocle_input_keyboard_key_val[key_int];
-  bool res = binocle_input_is_key_pressed(*input, key);
+  bool res = binocle_input_is_key_pressed(input->input, key);
   lua_pushboolean(L, res);
   return 1;
 }
 
 int l_binocle_input_set_quit_requested(lua_State *L) {
-  binocle_input *input = lua_touserdata(L, 1);
+  l_binocle_input_t *input = lua_touserdata(L, 1);
   bool v = lua_toboolean(L, 2);
-  input->quit_requested = v;
+  input->input->quit_requested = v;
   return 0;
 }
 
