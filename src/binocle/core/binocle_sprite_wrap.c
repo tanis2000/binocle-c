@@ -11,6 +11,7 @@
 #include "binocle_gd.h"
 #include "binocle_camera.h"
 #include "binocle_camera_wrap.h"
+#include "binocle_gd_wrap.h"
 
 int l_binocle_sprite_from_material(lua_State *L) {
   l_binocle_material_t *material = luaL_checkudata(L, 1, "binocle_material");
@@ -68,8 +69,16 @@ int l_binocle_sprite_batch_new(lua_State *L) {
   return 1;
 }
 
+int l_binocle_sprite_batch_set_gd(lua_State *L) {
+  l_binocle_sprite_batch_t *sprite_batch = luaL_checkudata(L, 1, "binocle_sprite_batch");
+  l_binocle_gd_t *gd = luaL_checkudata(L, 2, "binocle_gd");
+  sprite_batch->sprite_batch->gd = gd->gd;
+  return 1;
+}
+
 static const struct luaL_Reg sprite_batch [] = {
   {"new", l_binocle_sprite_batch_new},
+  {"set_gd", l_binocle_sprite_batch_set_gd},
   {NULL, NULL}
 };
 
