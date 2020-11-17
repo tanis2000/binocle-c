@@ -89,6 +89,7 @@ binocle_gd binocle_gd_new() {
 void binocle_gd_init(binocle_gd *gd) {
   // Create a new vertex buffer object
   glCheck(glGenBuffers(1, &gd->vbo));
+  binocle_backend_init();
 }
 
 void binocle_gd_draw(binocle_gd *gd, const binocle_vpct *vertices, size_t vertex_count, binocle_material material,

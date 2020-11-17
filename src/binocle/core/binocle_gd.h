@@ -9,6 +9,7 @@
 
 #include "binocle_sdl.h"
 #include <kazmath/kazmath.h>
+#include "backend/binocle_backend.h"
 
 struct binocle_blend;
 struct binocle_camera;

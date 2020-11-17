@@ -1,5 +1,6 @@
 add_subdirectory(deps)
 add_subdirectory(binocle)
+add_subdirectory(binocle/core/backend)
 
 set(BINOCLE_STATIC_LIBS
         $<TARGET_OBJECTS:binocle>

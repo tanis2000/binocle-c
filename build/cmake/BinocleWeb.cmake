@@ -1,4 +1,5 @@
 add_definitions(-Wno-warn-absolute-paths)
+add_definitions (-DBINOCLE_GL)
 
 # -std=gnu++0x
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu99")
