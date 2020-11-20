@@ -11,6 +11,12 @@
 #include <kazmath/kazmath.h>
 #include "backend/binocle_backend.h"
 
+//#if defined(BINOCLE_GL)
+//#include "backend/binocle_backend_gl.h"
+//#elif defined(BINOCLE_METAL)
+//#include "backend/binocle_backend_metal.h"
+//#endif
+
 struct binocle_blend;
 struct binocle_camera;
 struct binocle_color;
@@ -29,43 +35,16 @@ enum binocle_blend_equation;
  * \brief a graphic device used to perform OpenGL calls and store the needed state
  */
 typedef struct binocle_gd {
-  GLuint vbo;
-  GLuint vertex_attribute;
-  GLuint color_attribute;
-  GLuint tex_coord_attribute;
-  GLuint normal_attribute;
-  GLint image_uniform;
-  GLint projection_matrix_uniform;
-  // GLint model_view_matrix_uniform;
-  GLint view_matrix_uniform;
-  GLint model_matrix_uniform;
+//  GLuint vbo;
+//  GLuint vertex_attribute;
+//  GLuint color_attribute;
+//  GLuint tex_coord_attribute;
+//  GLuint normal_attribute;
+//  GLint image_uniform;
+//  GLint projection_matrix_uniform;
+//  GLint view_matrix_uniform;
+//  GLint model_matrix_uniform;
 } binocle_gd;
-
-/**
- * \brief a render target
- */
-typedef struct binocle_render_target {
-  GLuint frame_buffer;
-  GLuint render_buffer; // used for depth
-  GLuint texture;
-} binocle_render_target;
-
-#ifdef DEBUG
-// In debug mode, perform a test on every OpenGL call
-// The do-while loop is needed so that glCheck can be used as a single statement
-// in if/else branches
-#define glCheck(expr)                                                          \
-  do {                                                                         \
-    expr;                                                                      \
-    binocle_gd_gl_check_error(__FILE__, __LINE__, #expr);                      \
-  } while (false)
-#else
-// Else, we don't add any overhead
-#define glCheck(expr) (expr)
-#endif
-
-void binocle_gd_gl_check_error(const char *file, unsigned int line,
-                               const char *expression);
 
 /**
  * \brief Creates a new graphic device
@@ -151,7 +130,7 @@ binocle_gd_equation_to_gl_constant(enum binocle_blend_equation blend_equation);
  * @param format the texture format
  * @return
  */
-binocle_render_target *binocle_gd_create_render_target(uint32_t width,
+binocle_render_target binocle_gd_create_render_target(uint32_t width,
                                                       uint32_t height,
                                                       bool use_depth,
                                                       GLenum format);
@@ -160,7 +139,7 @@ binocle_render_target *binocle_gd_create_render_target(uint32_t width,
  * \brief Destroys a render target and releases all its resources
  * @param render_target the render target
  */
-void binocle_gd_destroy_render_target(binocle_render_target *render_target);
+void binocle_gd_destroy_render_target(binocle_render_target render_target);
 
 /**
  * \brief Sets a uniform float value for the given shader
@@ -234,7 +213,7 @@ void binocle_gd_draw_quad(struct binocle_shader *shader);
  * @param render_target the render target to use as source
  */
 void binocle_gd_draw_quad_to_screen(struct binocle_shader *shader,
-                                    binocle_render_target render_target);
+                                    binocle_render_target *render_target);
 
 /**
  * \brief Sets a render target as the texture for a given uniform

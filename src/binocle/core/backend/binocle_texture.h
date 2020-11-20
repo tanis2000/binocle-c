@@ -7,7 +7,7 @@
 #ifndef BINOCLE_TEXTURE_H
 #define BINOCLE_TEXTURE_H
 
-#include "binocle_sdl.h"
+#include "../binocle_sdl.h"
 
 struct binocle_image;
 

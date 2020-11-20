@@ -10,10 +10,10 @@
 #include "binocle_model.h"
 #include "binocle_sdl.h"
 #include "binocle_log.h"
-#include "binocle_material.h"
-#include "binocle_texture.h"
+#include "backend/binocle_material.h"
+#include "backend/binocle_texture.h"
 #include "binocle_image.h"
-#include "binocle_shader.h"
+#include "backend/binocle_shader.h"
 #include "binocle_vpct.h"
 
 

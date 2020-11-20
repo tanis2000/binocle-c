@@ -18,9 +18,12 @@
 
 #elif defined(__APPLE__)
 
+#if defined(BINOCLE_GL)
 //#include <SDL_opengl.h>
 #include <OpenGL/gl.h>
-
+#elif defined(BINOCLE_METAL)
+#include <OpenGL/gl.h>
+#endif
 #endif
 
 #if defined(__WINDOWS__)

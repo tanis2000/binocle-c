@@ -38,7 +38,7 @@ endif()
 
 
 
-file(GLOB CORE_SOURCE core/*.c core/*.h)
+file(GLOB CORE_SOURCE core/*.c core/*.h core/backend/*.m  core/backend/*.c core/backend/*.h)
 file(GLOB REMOVE_CORE_SOURCE
         "core/binocle.c"
         )

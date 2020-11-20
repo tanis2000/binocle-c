@@ -7,9 +7,9 @@
 #include <string.h>
 #include <limits.h>
 #include "binocle_sprite.h"
-#include "binocle_texture.h"
+#include "backend/binocle_texture.h"
 #include "binocle_subtexture.h"
-#include "binocle_material.h"
+#include "backend/binocle_material.h"
 #include "binocle_gd.h"
 #include "binocle_vpct.h"
 #include "binocle_log.h"

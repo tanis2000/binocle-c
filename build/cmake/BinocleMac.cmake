@@ -1,7 +1,8 @@
 #include (BundleUtilities)
 
 add_definitions (-D__APPLE__)
-add_definitions (-DBINOCLE_METAL)
+#add_definitions (-DBINOCLE_METAL)
+add_definitions (-DBINOCLE_GL)
 
 list (APPEND BINOCLE_LINK_LIBRARIES "-l iconv")
 

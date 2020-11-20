@@ -7,7 +7,7 @@
 #ifndef BINOCLE_SHADER_H
 #define BINOCLE_SHADER_H
 
-#include "binocle_sdl.h"
+#include "../binocle_sdl.h"
 
 typedef struct binocle_shader {
   GLuint vert_id;

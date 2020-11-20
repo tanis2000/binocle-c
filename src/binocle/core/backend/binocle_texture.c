@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "binocle_texture.h"
-#include "binocle_image.h"
-#include "binocle_gd.h"
+#include "../binocle_image.h"
+#include "binocle_backend_gl.h"
 
 binocle_texture *binocle_texture_new() {
   binocle_texture *res = malloc(sizeof(binocle_texture));

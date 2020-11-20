@@ -7,7 +7,7 @@
 #ifndef BINOCLE_RENDER_STATE_H
 #define BINOCLE_RENDER_STATE_H
 
-#include "binocle_blend.h"
+#include "backend/binocle_blend.h"
 #include <kazmath/kazmath.h>
 
 struct binocle_texture;

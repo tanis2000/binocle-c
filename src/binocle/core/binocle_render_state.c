@@ -5,8 +5,8 @@
 //
 
 #include "binocle_render_state.h"
-#include "binocle_texture.h"
-#include "binocle_shader.h"
+#include "backend/binocle_texture.h"
+#include "backend/binocle_shader.h"
 
 binocle_render_state binocle_render_state_new(binocle_texture *texture, binocle_shader *shader) {
   binocle_render_state res = {0};

@@ -15,10 +15,10 @@
 #include "binocle_camera.h"
 #include <binocle_input.h>
 #include <binocle_image.h>
-#include <binocle_texture.h>
+#include <backend/binocle_texture.h>
 #include <binocle_sprite.h>
-#include <binocle_shader.h>
-#include <binocle_material.h>
+#include <backend/binocle_shader.h>
+#include <backend/binocle_material.h>
 #include <binocle_lua.h>
 #include <binocle_app.h>
 #include <binocle_wren.h>
@@ -63,7 +63,7 @@ binocle_app app;
 struct binocle_wren_t *wren;
 WrenHandle* gameClass;
 WrenHandle* method;
-binocle_render_target *render_target;
+binocle_render_target render_target;
 binocle_shader *screen_shader;
 
 #if defined(__APPLE__) && !defined(__IPHONEOS__)
@@ -171,7 +171,7 @@ void main_loop() {
 
 
   // Set the render target we will draw to
-  binocle_gd_set_render_target(render_target);
+  binocle_gd_set_render_target(&render_target);
 
   // Clear the render target
   binocle_window_clear(window);
@@ -223,7 +223,7 @@ void main_loop() {
   binocle_gd_set_uniform_mat4(screen_shader, "transform", view_matrix);
   binocle_gd_set_uniform_float2(screen_shader, "scale", adapter->inverse_multiplier, adapter->inverse_multiplier);
   binocle_gd_set_uniform_float2(screen_shader, "viewport", vp_x, vp_y);
-  binocle_gd_draw_quad_to_screen(screen_shader, *render_target);
+  binocle_gd_draw_quad_to_screen(screen_shader, &render_target);
 
   binocle_window_refresh(window);
   binocle_window_end_frame(window);
@@ -519,10 +519,11 @@ int main(int argc, char *argv[])
   setup_world();
 #endif
 
-  render_target = binocle_gd_create_render_target(DESIGN_WIDTH, DESIGN_HEIGHT, true, GL_RGBA);
-
   gd = binocle_gd_new();
   binocle_gd_init(&gd);
+
+  render_target = binocle_gd_create_render_target(DESIGN_WIDTH, DESIGN_HEIGHT, true, BINOCLE_PIXEL_FORMAT_RGBA);
+
   running_time = 0;
 #ifdef GAMELOOP
   binocle_game_run(window, input);

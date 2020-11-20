@@ -5,7 +5,7 @@
 #include "binocle_gd_wrap.h"
 #include "binocle_lua.h"
 #include "binocle_gd.h"
-#include "binocle_shader.h"
+#include "backend/binocle_shader.h"
 #include "binocle_color.h"
 
 int l_binocle_gd_new(lua_State *L) {
@@ -34,7 +34,7 @@ int l_binocle_gd_create_render_target(lua_State *L) {
   lua_getfield(L, LUA_REGISTRYINDEX, "binocle_render_target");
   lua_setmetatable(L, -2);
   SDL_memset(rt, 0, sizeof(*rt));
-  binocle_render_target *render_target = binocle_gd_create_render_target(width, height, use_depth, format);
+  binocle_render_target render_target = binocle_gd_create_render_target(width, height, use_depth, format);
   rt->rt = render_target;
   return 1;
 }
@@ -44,7 +44,7 @@ int l_binocle_gd_set_render_target(lua_State *L) {
     binocle_gd_set_render_target(NULL);
   } else {
     l_binocle_render_target_t *render_target = luaL_checkudata(L, 1, "binocle_render_target");
-    binocle_gd_set_render_target(render_target->rt);
+    binocle_gd_set_render_target(&render_target->rt);
   }
   return 0;
 }
@@ -83,7 +83,7 @@ int l_binocle_gd_set_uniform_mat4(lua_State *L) {
 int l_binocle_gd_draw_quad_to_screen(lua_State *L) {
   binocle_shader **shader = luaL_checkudata(L, 1, "binocle_shader");
   binocle_render_target **rt = luaL_checkudata(L, 2, "binocle_render_target");
-  binocle_gd_draw_quad_to_screen(*shader, **rt);
+  binocle_gd_draw_quad_to_screen(*shader, *rt);
   return 0;
 }
 

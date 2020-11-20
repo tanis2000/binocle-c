@@ -4,7 +4,7 @@
 
 #include "binocle_shader_wrap.h"
 #include "binocle_lua.h"
-#include "binocle_shader.h"
+#include "backend/binocle_shader.h"
 #include "binocle_sdl.h"
 
 int l_binocle_shader_load_from_file(lua_State *L) {

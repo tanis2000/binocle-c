@@ -8,9 +8,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include "binocle_shader.h"
-#include "binocle_sdl.h"
-#include "binocle_log.h"
-#include "binocle_gd.h"
+#include "../binocle_sdl.h"
+#include "../binocle_log.h"
+#include "binocle_backend_gl.h"
 
 const char *binocle_shader_default_vertex_src = "\
 \n\

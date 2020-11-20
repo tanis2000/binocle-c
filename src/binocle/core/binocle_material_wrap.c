@@ -4,7 +4,7 @@
 
 #include "binocle_material_wrap.h"
 #include "binocle_lua.h"
-#include "binocle_material.h"
+#include "backend/binocle_material.h"
 #include "binocle_sdl.h"
 #include "binocle_texture_wrap.h"
 #include "binocle_shader_wrap.h"
