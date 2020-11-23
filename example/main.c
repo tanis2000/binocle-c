@@ -174,7 +174,7 @@ void main_loop() {
   binocle_gd_set_render_target(&render_target);
 
   // Clear the render target
-  binocle_window_clear(window);
+  binocle_gd_clear(binocle_color_azure());
 
   // Create a viewport that corresponds to the size of our render target
   kmAABB2 viewport;

@@ -117,6 +117,17 @@ GLuint binocle_backend_gl_equation_to_gl_constant(binocle_blend_equation blend_e
   return GL_FUNC_ADD;
 }
 
+GLenum binocle_backend_gl_pixel_format_to_gl_texture_format(binocle_pixel_format fmt) {
+  switch (fmt) {
+  case BINOCLE_PIXEL_FORMAT_RGB:
+    return GL_RGB;
+  case BINOCLE_PIXEL_FORMAT_RGBA:
+    return GL_RGBA;
+  default:
+    return 0;
+  }
+}
+
 void binocle_backend_gl_init(binocle_gl_backend_t *gl) {
   // Create a new vertex buffer object
   glCheck(glGenBuffers(1, &gl->vbo));
@@ -251,7 +262,7 @@ void binocle_backend_gl_draw(binocle_gl_backend_t *gl, const struct binocle_vpct
   glCheck(glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
-binocle_resource_state binocle_backend_gl_create_render_target(binocle_render_target_t *rt, uint32_t width, uint32_t height, bool use_depth, GLenum format) {
+binocle_resource_state binocle_backend_gl_create_render_target(binocle_render_target_t *rt, uint32_t width, uint32_t height, bool use_depth, binocle_pixel_format format) {
   /*
    * glGenBuffers creates regular buffers for vertex data, etc.
    * glGenFrameBuffers creates a framebuffer object primarily used as render targets for offscreen rendering.
@@ -259,6 +270,8 @@ binocle_resource_state binocle_backend_gl_create_render_target(binocle_render_ta
    */
 
 //  binocle_render_target_t *res = SDL_malloc(sizeof(binocle_render_target_t));
+
+  GLenum fmt = binocle_backend_gl_pixel_format_to_gl_texture_format(format);
 
   GLuint fb[1];
   glCheck(glGenFramebuffers(1, fb));
@@ -280,7 +293,7 @@ binocle_resource_state binocle_backend_gl_create_render_target(binocle_render_ta
   // bind the newly created texture: all future texture functions will modify this texture
   glCheck(glBindTexture(GL_TEXTURE_2D, rt->texture));
   // Give an empty image to OpenGL ( the last "0" )
-  glCheck(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+  glCheck(glTexImage2D(GL_TEXTURE_2D, 0, fmt, width, height, 0, fmt, GL_UNSIGNED_BYTE, 0));
   // filtering
   glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
   glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));

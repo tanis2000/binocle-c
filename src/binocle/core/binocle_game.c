@@ -64,7 +64,7 @@ void binocle_game_update(binocle_game *game, float dt) {
 void binocle_game_draw(binocle_game *game, binocle_window window, float dt) {
   // TODO: split UpdateAndRender into Update and Render
   if (game->paused) return;
-  binocle_window_clear(&window);
+  //binocle_window_clear(&window);
 }
 
 void binocle_game_hotreload(binocle_game *game, char *sourceGameCodeDLLFullPath) {

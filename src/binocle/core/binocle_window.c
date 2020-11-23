@@ -34,7 +34,6 @@ binocle_window *binocle_window_new(uint32_t width, uint32_t height, char *title)
 
   binocle_timer_start(&res->framerate_timer);
 
-  binocle_window_clear(res);
   binocle_window_refresh(res);
   return res;
 }
@@ -55,15 +54,6 @@ void binocle_window_destroy(binocle_window *win) {
     win->title = NULL;
   }
   free(win);
-}
-
-void binocle_window_fill(binocle_color color) {
-  glClearColor(color.r, color.g, color.b, color.a);
-  glClear(GL_COLOR_BUFFER_BIT);
-}
-
-void binocle_window_clear(binocle_window *win) {
-  binocle_window_fill(win->bg_color);
 }
 
 void binocle_window_refresh(binocle_window *win) {

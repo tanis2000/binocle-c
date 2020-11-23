@@ -14,16 +14,10 @@
 #include "binocle_shader.h"
 #include "binocle_texture.h"
 #include "binocle_vpct.h"
+#include "binocle_backend_types.h"
 #include "../binocle_pool.h"
 
 typedef struct binocle_render_target { uint32_t id; } binocle_render_target;
-
-typedef enum binocle_pixel_format {
-  BINOCLE_PIXEL_FORMAT_DEFAULT,
-  BINOCLE_PIXEL_FORMAT_NONE,
-  BINOCLE_PIXEL_FORMAT_RGB,
-  BINOCLE_PIXEL_FORMAT_RGBA,
-} binocle_pixel_format;
 
 typedef struct binocle_render_target_desc {
   uint32_t width;

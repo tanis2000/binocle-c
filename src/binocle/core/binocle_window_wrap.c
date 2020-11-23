@@ -7,12 +7,6 @@
 #include "binocle_window.h"
 #include "binocle_color_wrap.h"
 
-int l_binocle_window_clear(lua_State *L) {
-  l_binocle_window_t *window = luaL_checkudata(L, 1, "binocle_window");
-  binocle_window_clear(window->window);
-  return 0;
-}
-
 int l_binocle_window_set_background_color(lua_State *L) {
   l_binocle_window_t *window = luaL_checkudata(L, 1, "binocle_window");
   l_binocle_color_t *color = luaL_checkudata(L, 2, "binocle_color");
@@ -44,7 +38,6 @@ int l_binocle_window_new(lua_State *L) {
 
 static const struct luaL_Reg window [] = {
   {"new", l_binocle_window_new},
-  {"clear", l_binocle_window_clear},
   {"set_background_color", l_binocle_window_set_background_color},
   {"set_minimum_size", l_binocle_window_set_minimum_size},
   {NULL, NULL}

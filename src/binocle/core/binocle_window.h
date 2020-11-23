@@ -73,12 +73,6 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
 void binocle_window_set_background_color(binocle_window *win, binocle_color color);
 
 /**
- * \brief Clears the window content (direct OpenGL calls)
- * @param win the window
- */
-void binocle_window_clear(binocle_window *win);
-
-/**
  * \brief Switches the buffers as needed to show the new frame in the given window
  * @param win the window
  */

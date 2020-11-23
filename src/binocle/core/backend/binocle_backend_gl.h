@@ -8,6 +8,7 @@
 #define BINOCLE_BACKEND_GL_H
 
 #include <stdbool.h>
+#include "binocle_backend_types.h"
 #include "../binocle_sdl.h"
 #include "../binocle_pool.h"
 
@@ -102,7 +103,7 @@ void binocle_backend_gl_apply_3d_texture(struct binocle_material *material);
 void binocle_backend_gl_draw(binocle_gl_backend_t *gl, const struct binocle_vpct *vertices, size_t vertex_count, struct binocle_material material,
                              struct kmAABB2 viewport, struct kmMat4 *cameraTransformMatrix);
 
-binocle_resource_state binocle_backend_gl_create_render_target(binocle_render_target_t *rt, uint32_t width, uint32_t height, bool use_depth, GLenum format);
+binocle_resource_state binocle_backend_gl_create_render_target(binocle_render_target_t *rt, uint32_t width, uint32_t height, bool use_depth, binocle_pixel_format format);
 void binocle_backend_gl_destroy_render_target(binocle_render_target_t *render_target);
 void binocle_backend_gl_set_render_target(binocle_render_target_t *render_target);
 void binocle_backend_gl_clear(struct binocle_color color);
