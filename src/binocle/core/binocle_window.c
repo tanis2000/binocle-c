@@ -157,9 +157,12 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
   }
   binocle_log_info("Status: Using GLEW %s", glewGetString(GLEW_VERSION));
 #endif
-
+#if defined(BINOCLE_GL)
   binocle_log_info("OpenGL version supported by this platform (%s): \n",
                    glGetString(GL_VERSION));
+#elif defined(BINOCLE_METAL)
+  binocle_log_info("Using Metal backend\n");
+#endif
 }
 
 void binocle_window_set_background_color(binocle_window *win, binocle_color color) {

@@ -131,10 +131,11 @@ void binocle_backend_init_render_target(binocle_render_target rt_id, binocle_ren
 }
 
 void binocle_backend_init() {
-#if defined(BINOCLE_GL)
   binocle_backend_setup_pools(&backend.pools);
+#if defined(BINOCLE_GL)
   binocle_backend_gl_init(&backend.gl);
 #elif defined(BINOCLE_METAL)
+  binocle_backend_mtl_init(&backend.mtl);
 #else
 #error("no backend defined")
 #endif

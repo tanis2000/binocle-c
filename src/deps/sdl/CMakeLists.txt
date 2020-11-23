@@ -5,7 +5,7 @@ project(sdl)
 include_directories(include)
 include_directories(src/hidapi/hidapi)
 
-file(GLOB_RECURSE SOURCES 
+file(GLOB_RECURSE SOURCES
         src/SDL.c
         src/SDL_assert.c
 		src/SDL_dataqueue.c
@@ -103,8 +103,9 @@ file(GLOB_RECURSE SOURCES
 		src/video/yuv2rgb/yuv_rgb.c
         src/audio/disk/SDL_diskaudio.c
         src/loadso/dlopen/SDL_sysloadso.c
-        src/render/opengl/SDL_render_gl.c
-        src/render/opengl/SDL_shaders_gl.c
+		src/render/metal/SDL_render_metal.m
+		src/render/opengl/SDL_render_gl.c
+		src/render/opengl/SDL_shaders_gl.c
         src/render/software/SDL_blendfillrect.c
         src/render/software/SDL_blendline.c
         src/render/software/SDL_blendpoint.c
@@ -126,6 +127,19 @@ set(SOURCES
 file(GLOB_RECURSE HEADERS 
 	include/*.h
 	)
+
+#if(BINOCLE_GL)
+#	file(GLOB_RECURSE GL_SOURCES
+#			src/render/opengl/SDL_render_gl.c
+#			src/render/opengl/SDL_shaders_gl.c
+#			)
+#	list(APPEND SOURCES ${GL_SOURCES})
+#elseif(BINOCLE_METAL)
+#	file(GLOB_RECURSE METAL_SOURCES
+#			src/render/metal/SDL_render_metal.m
+#			)
+#	list(APPEND SOURCES ${METAL_SOURCES})
+#endif(BINOCLE_METAL)
 
 if(APPLE)
 	if(IOS)
@@ -197,15 +211,16 @@ if(APPLE)
             src/power/macosx/SDL_syspower.c
             src/file/cocoa/SDL_rwopsbundlesupport.m
             src/filesystem/cocoa/SDL_sysfilesystem.m
-            src/video/SDL_egl.c
+				src/video/SDL_egl.c
             src/video/cocoa/SDL_cocoaclipboard.m
             src/video/cocoa/SDL_cocoaevents.m
             src/video/cocoa/SDL_cocoakeyboard.m
             src/video/cocoa/SDL_cocoamessagebox.m
+				src/video/cocoa/SDL_cocoametalview.m
             src/video/cocoa/SDL_cocoamodes.m
             src/video/cocoa/SDL_cocoamouse.m
             src/video/cocoa/SDL_cocoamousetap.m
-            src/video/cocoa/SDL_cocoaopengl.m
+				src/video/cocoa/SDL_cocoaopengl.m
             src/video/cocoa/SDL_cocoashape.m
             src/video/cocoa/SDL_cocoavideo.m
             src/video/cocoa/SDL_cocoavulkan.m
@@ -214,13 +229,29 @@ if(APPLE)
             #include/SDL_config_macosx.h
 			)
  	   	list(APPEND SOURCES ${MAC_SOURCES})
- 	   	#add_definitions(-DUSING_GENERATED_CONFIG_H)
+
+		if (BINOCLE_GL)
+			file(GLOB MAC_GL_SOURCES
+#					src/video/SDL_egl.c
+#					src/video/cocoa/SDL_cocoaopengl.m
+					)
+			list(APPEND SOURCES ${MAC_GL_SOURCES})
+			add_definitions(-DSDL_VIDEO_RENDER_METAL=0)
+			add_definitions(-DSDL_VIDEO_METAL=0)
+		elseif (BINOCLE_METAL)
+			file(GLOB MAC_METAL_SOURCES
+#					src/video/cocoa/SDL_cocoametalview.m
+					)
+			list(APPEND SOURCES ${MAC_METAL_SOURCES})
+			add_definitions(-DSDL_VIDEO_RENDER_METAL=1)
+			add_definitions(-DSDL_VIDEO_METAL=1)
+		endif()
+
+		#add_definitions(-DUSING_GENERATED_CONFIG_H)
         add_definitions(-DTARGET_API_MAC_CARBON)
         add_definitions(-DTARGET_API_MAC_OSX)
         add_definitions(-D_THREAD_SAFE)
-		add_definitions(-DSDL_VIDEO_RENDER_METAL=0)
 		add_definitions(-DSDL_VIDEO_RENDER_OGL_ES2=0)
-		add_definitions(-DSDL_VIDEO_METAL=0)
 		add_definitions(-DSDL_VIDEO_VULKAN=0)
 		add_definitions(-DSDL_VIDEO_OPENGL_ES2=0)
 		add_definitions(-DSDL_VIDEO_OPENGL_EGL=0)

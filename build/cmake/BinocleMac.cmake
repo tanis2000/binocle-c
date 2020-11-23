@@ -1,15 +1,19 @@
 #include (BundleUtilities)
 
 add_definitions (-D__APPLE__)
-#add_definitions (-DBINOCLE_METAL)
-add_definitions (-DBINOCLE_GL)
+
+add_definitions (-DBINOCLE_METAL)
+set (BINOCLE_METAL true)
+
+#add_definitions (-DBINOCLE_GL)
+#set(BINOCLE_GL true)
 
 list (APPEND BINOCLE_LINK_LIBRARIES "-l iconv")
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-offsetof -std=gnu++0x")
 
-set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework AppKit -framework AudioToolbox -framework AudioUnit -framework Carbon -framework Cocoa -framework CoreAudio -framework CoreVideo -framework ForceFeedback -framework IOKit -framework OpenGL -framework CoreServices -framework Security")
-set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -framework AppKit -framework AudioToolbox -framework AudioUnit -framework Carbon -framework Cocoa -framework CoreAudio -framework CoreVideo -framework ForceFeedback -framework IOKit -framework OpenGL -framework CoreServices -framework Security")
+set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework AppKit -framework AudioToolbox -framework AudioUnit -framework Carbon -framework Cocoa -framework CoreAudio -framework CoreVideo -framework ForceFeedback -framework IOKit -framework OpenGL -framework CoreServices -framework Security -framework Metal")
+set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -framework AppKit -framework AudioToolbox -framework AudioUnit -framework Carbon -framework Cocoa -framework CoreAudio -framework CoreVideo -framework ForceFeedback -framework IOKit -framework OpenGL -framework CoreServices -framework Security -framework Metal")
 #		set(EXTRA_LIBRARIES "${EXTRA_LIBRARIES}  -framework IOKit -framework AppKit -framework GLUT -framework GLKit -framework OpenGL -framework AudioToolbox -framework OpenAL -framework CoreAudio -framework AudioUnit -framework QuartzCore -framework CoreGraphics -framework CoreServices -framework ForceFeedback")
 
 set(CMAKE_OSX_DEPLOYMENT_TARGET 10.9)
