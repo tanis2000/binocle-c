@@ -21,7 +21,7 @@ int l_binocle_subtexture_with_texture(lua_State *L) {
   lua_getfield(L, LUA_REGISTRYINDEX, "binocle_subtexture");
   lua_setmetatable(L, -2);
   SDL_memset(subtexture, 0, sizeof(*subtexture));
-  binocle_subtexture s = binocle_subtexture_with_texture(texture->texture, x, y, width, height);
+  binocle_subtexture s = binocle_subtexture_with_texture(&texture->texture, x, y, width, height);
   subtexture->subtexture = SDL_malloc(sizeof(binocle_subtexture));
   SDL_memcpy(subtexture->subtexture, &s, sizeof(binocle_subtexture));
   return 1;

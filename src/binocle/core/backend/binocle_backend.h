@@ -10,14 +10,16 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "binocle_blend.h"
-#include "binocle_material.h"
 #include "binocle_shader.h"
 #include "binocle_texture.h"
 #include "binocle_vpct.h"
 #include "binocle_backend_types.h"
 #include "../binocle_pool.h"
 
+struct binocle_material;
+
 typedef struct binocle_render_target { uint32_t id; } binocle_render_target;
+typedef struct binocle_image { uint32_t id; } binocle_image;
 
 typedef struct binocle_render_target_desc {
   uint32_t width;
@@ -26,12 +28,27 @@ typedef struct binocle_render_target_desc {
   binocle_pixel_format format;
 } binocle_render_target_desc;
 
-void binocle_backend_init();
+typedef struct binocle_slot_info {
+  binocle_resource_state state;    /* the current state of this resource slot */
+  uint32_t res_id;        /* type-neutral resource if (e.g. sg_buffer.id) */
+  uint32_t ctx_id;        /* the context this resource belongs to */
+} binocle_slot_info;
+
+typedef struct binocle_image_info {
+  binocle_slot_info slot;              /* resource pool slot info */
+  uint32_t upd_frame_index;       /* frame index of last sg_update_image() */
+  int num_slots;                  /* number of renaming-slots for dynamically updated images */
+  int active_slot;                /* currently active write-slot for dynamically updated images */
+  int width;                      /* image width */
+  int height;                     /* image height */
+} binocle_image_info;
+
+void binocle_backend_init(binocle_backend_desc *desc);
 void binocle_backend_apply_default_state();
 void binocle_backend_apply_viewport(uint32_t x, uint32_t y, uint32_t w, uint32_t h);
 void binocle_backend_apply_blend_mode(struct binocle_blend blend_mode);
 void binocle_backend_apply_shader(struct binocle_shader *shader);
-void binocle_backend_apply_texture(binocle_texture texture);
+void binocle_backend_apply_texture(binocle_image texture);
 void binocle_backend_apply_3d_texture(struct binocle_material *material);
 void binocle_backend_draw(const struct binocle_vpct *vertices, size_t vertex_count, struct binocle_material material,
                           struct kmAABB2 viewport, struct kmMat4 *cameraTransformMatrix);
@@ -42,5 +59,10 @@ void binocle_backend_clear(struct binocle_color color);
 void binocle_backend_set_uniform_float2(struct binocle_shader *shader, const char *name, float value1, float value2);
 void binocle_backend_set_uniform_mat4(struct binocle_shader *shader, const char *name, struct kmMat4 mat);
 void binocle_backend_draw_quad_to_screen(struct binocle_shader *shader, binocle_render_target *rt);
+binocle_image binocle_backend_make_image(const binocle_image_desc* desc);
+void binocle_backend_destroy_image(binocle_image img);
+binocle_image_info binocle_backend_query_image_info(binocle_image img_id);
+bool binocle_backend_is_valid_rendertarget_depth_format(binocle_pixel_format fmt);
+bool binocle_backend_is_compressed_pixel_format(binocle_pixel_format fmt);
 
 #endif // BINOCLE_BACKEND_H

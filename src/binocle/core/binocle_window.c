@@ -53,6 +53,12 @@ void binocle_window_destroy(binocle_window *win) {
     SDL_free(win->title);
     win->title = NULL;
   }
+
+  if (win->mtl_view != NULL) {
+    SDL_Metal_DestroyView(win->mtl_view);
+    win->mtl_view = NULL;
+  }
+
   free(win);
 }
 
@@ -74,8 +80,12 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 #endif
-
+#if defined(BINOCLE_GL)
   int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN;
+#elif defined(BINOCLE_METAL)
+  int flags = SDL_WINDOW_SHOWN;
+#endif
+
 #if defined(__IPHONEOS__) || defined(__ANDROID__)
   flags |= SDL_WINDOW_BORDERLESS | SDL_WINDOW_FULLSCREEN;
 #else
@@ -106,12 +116,17 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
   SDL_SetWindowFullscreen(win->window, SDL_TRUE);
 #endif
 
+#if defined(BINOCLE_GL)
   win->gl_context = SDL_GL_CreateContext(win->window);
   if (win->gl_context == 0) {
     binocle_log_error("Window::resize: Couldn't create GL Context");
     binocle_log_error(SDL_GetError());
     return;
   }
+#elif defined(BINOCLE_METAL)
+  win->mtl_view = SDL_Metal_CreateView(win->window);
+#endif
+
 
   //Use Vsync (0 = no vsync, 1 = vsync)
 #if !defined(__EMSCRIPTEN__)

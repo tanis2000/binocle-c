@@ -287,10 +287,8 @@ binocle_model binocle_model_load_obj(char *filename, char *mtl_filename) {
     model.materials[i] = mat;
     // We use diffuse only atm
     if (materials[i].diffuse_texname != NULL) {
-      binocle_image *image = binocle_image_load(materials[i].diffuse_texname);
-      binocle_texture *texture = binocle_texture_from_image(image);
-      model.materials[i]->albedo_texture = malloc(sizeof(binocle_texture));
-      model.materials[i]->albedo_texture = texture;
+      binocle_image image = binocle_image_load(materials[i].diffuse_texname);
+      model.materials[i]->albedo_texture = image;
       //memcpy(model.materials[i].texture, &texture, sizeof(binocle_texture));
       model.materials[i]->shader = &binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT];
     }

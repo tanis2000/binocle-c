@@ -15,7 +15,7 @@
 #include "binocle_camera.h"
 #include <binocle_input.h>
 #include <binocle_image.h>
-#include <backend/binocle_texture.h>
+#include <backend/binocle_backend.h>
 #include <binocle_sprite.h>
 #include <backend/binocle_shader.h>
 #include <backend/binocle_material.h>
@@ -44,8 +44,7 @@ binocle_sprite *player;
 kmVec2 player_pos;
 binocle_gd gd;
 binocle_bitmapfont *font;
-binocle_image *font_image;
-binocle_texture *font_texture;
+binocle_image font_texture;
 binocle_material *font_material;
 binocle_sprite *font_sprite;
 kmVec2 font_sprite_pos;
@@ -404,18 +403,18 @@ int main(int argc, char *argv[])
   adapter = binocle_viewport_adapter_new(window, BINOCLE_VIEWPORT_ADAPTER_KIND_SCALING, BINOCLE_VIEWPORT_ADAPTER_SCALING_TYPE_PIXEL_PERFECT, window->original_width, window->original_height, window->original_width, window->original_height);
   camera = binocle_camera_new(adapter);
   input = binocle_input_new();
+  gd = binocle_gd_new();
+  binocle_gd_init(&gd, window);
 
   binocle_data_dir = binocle_sdl_assets_dir();
   binocle_log_info("Current base path: %s", binocle_data_dir);
 
   char filename[1024];
   sprintf(filename, "%s%s", binocle_data_dir, "wabbit_alpha.png");
-  binocle_image *image = binocle_image_load(filename);
-  binocle_texture *texture = binocle_texture_from_image(image);
+  binocle_image image = binocle_image_load(filename);
 
   sprintf(filename, "%s%s", binocle_data_dir, "player.png");
-  binocle_image *ball_image = binocle_image_load(filename);
-  binocle_texture *ball_texture = binocle_texture_from_image(ball_image);
+  binocle_image ball_image = binocle_image_load(filename);
 
   // Default shader
   char vert[1024];
@@ -430,7 +429,7 @@ int main(int argc, char *argv[])
   screen_shader = binocle_shader_load_from_file(vert, frag);
 
   binocle_material *material = binocle_material_new();
-  material->albedo_texture = texture;
+  material->albedo_texture = image;
   material->shader = shader;
   player = binocle_sprite_from_material(material);
   player_pos.x = 50;
@@ -438,7 +437,7 @@ int main(int argc, char *argv[])
 
 #ifdef WITH_PHYSICS
   binocle_material *ball_material = binocle_material_new();
-  ball_material->albedo_texture = ball_texture;
+  ball_material->albedo_texture = ball_image;
   ball_material->shader = shader;
   ball_sprite = binocle_sprite_from_material(ball_material);
 #endif
@@ -494,8 +493,7 @@ int main(int argc, char *argv[])
 
   char font_image_filename[1024];
   sprintf(font_image_filename, "%s%s", binocle_data_dir, "font.png");
-  font_image = binocle_image_load(font_image_filename);
-  font_texture = binocle_texture_from_image(font_image);
+  font_texture = binocle_image_load(font_image_filename);
   font_material = binocle_material_new();
   font_material->albedo_texture = font_texture;
   font_material->shader = shader;
@@ -518,9 +516,6 @@ int main(int argc, char *argv[])
 #ifdef WITH_PHYSICS
   setup_world();
 #endif
-
-  gd = binocle_gd_new();
-  binocle_gd_init(&gd);
 
   render_target = binocle_gd_create_render_target(DESIGN_WIDTH, DESIGN_HEIGHT, true, BINOCLE_PIXEL_FORMAT_RGBA);
 

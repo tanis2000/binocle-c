@@ -10,6 +10,7 @@
 
 typedef struct l_binocle_gd_t {
   struct binocle_gd *gd;
+  struct binocle_window *win;
 } l_binocle_gd_t;
 
 typedef struct l_binocle_render_target_t {

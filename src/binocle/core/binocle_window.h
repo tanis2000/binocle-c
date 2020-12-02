@@ -24,7 +24,10 @@ typedef struct binocle_window {
   uint32_t original_height;
   bool is_fullscreen;
   binocle_color bg_color;
+
   SDL_GLContext gl_context;
+
+  SDL_MetalView  mtl_view;
 
   uint64_t target_fps; // The desired target FPS
   uint32_t current_time;            // Current time measure in ticks (ms)

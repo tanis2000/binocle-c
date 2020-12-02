@@ -15,15 +15,23 @@
 #include "binocle_camera.h"
 #include "binocle_log.h"
 #include "binocle_model.h"
-#include "backend/binocle_backend_gl.h"
+#include "binocle_window.h"
 
 binocle_gd binocle_gd_new() {
   binocle_gd res = {};
   return res;
 }
 
-void binocle_gd_init(binocle_gd *gd) {
-  binocle_backend_init();
+void binocle_gd_init(binocle_gd *gd, binocle_window *win) {
+#if defined(BINOCLE_GL)
+  binocle_backend_desc desc = {
+  };
+#elif defined(BINOCLE_METAL)
+  binocle_backend_desc desc = {
+    .ctx.mtl = win->mtl_view
+  };
+#endif
+  binocle_backend_init(&desc);
 }
 
 void binocle_gd_draw(binocle_gd *gd, const struct binocle_vpct *vertices, size_t vertex_count, binocle_material material,
@@ -85,7 +93,7 @@ void binocle_gd_apply_shader(binocle_gd *gd, binocle_shader *shader) {
   binocle_backend_apply_shader(shader);
 }
 
-void binocle_gd_apply_texture(binocle_texture texture) {
+void binocle_gd_apply_texture(binocle_image texture) {
   binocle_backend_apply_texture(texture);
 }
 
@@ -93,7 +101,7 @@ void binocle_gd_apply_3d_texture(binocle_material *material) {
   binocle_backend_apply_3d_texture(material);
 }
 
-binocle_render_target binocle_gd_create_render_target(uint32_t width, uint32_t height, bool use_depth, GLenum format) {
+binocle_render_target binocle_gd_create_render_target(uint32_t width, uint32_t height, bool use_depth, binocle_pixel_format format) {
   binocle_render_target_desc desc = {
     .width = width,
     .height = height,
@@ -118,7 +126,7 @@ void binocle_gd_set_uniform_float(struct binocle_shader *shader, const char *nam
 }
 
 void binocle_gd_set_uniform_float2(struct binocle_shader *shader, const char *name, float value1, float value2) {
-  binocle_backend_gl_set_uniform_float2(shader, name, value1, value2);
+  binocle_backend_set_uniform_float2(shader, name, value1, value2);
 }
 
 void binocle_gd_set_uniform_float3(struct binocle_shader *shader, const char *name, float value1, float value2,

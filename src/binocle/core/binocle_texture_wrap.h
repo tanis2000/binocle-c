@@ -6,9 +6,10 @@
 #define LUA_BINOCLE_TEXTURE_WRAP_H
 
 #include "binocle_lua.h"
+#include "backend/binocle_backend.h"
 
 typedef struct l_binocle_texture_t {
-  struct binocle_texture *texture;
+  binocle_image texture;
 } l_binocle_texture_t;
 
 int luaopen_texture(lua_State *L);

@@ -21,7 +21,7 @@ int l_binocle_gd_new(lua_State *L) {
 
 int l_binocle_gd_init(lua_State *L) {
   l_binocle_gd_t *gd = lua_touserdata(L, 1);
-  binocle_gd_init(gd->gd);
+  binocle_gd_init(gd->gd, gd->win);
   return 0;
 }
 

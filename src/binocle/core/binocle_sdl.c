@@ -32,6 +32,10 @@ bool binocle_sdl_init() {
   //SDL_SetHint(SDL_HINT_ORIENTATIONS, "Portrait");
 #endif
 
+#if defined(BINOCLE_METAL)
+  SDL_SetHint(SDL_HINT_RENDER_DRIVER, "metal");
+#endif
+
 #ifdef DEBUG
   SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);
 #endif

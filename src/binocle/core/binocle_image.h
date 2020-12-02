@@ -6,31 +6,32 @@
 #define BINOCLE_IMAGE_H
 
 #include <stdint.h>
+#include "backend/binocle_backend.h"
 
 /**
  * \brief an image
  */
-typedef struct binocle_image {
-  /// The raw data of the image
-  unsigned char *data; // NOTE: this might be better as void*
-  /// The image width
-  uint64_t width;
-  /// The image height
-  uint64_t height;
-  // TODO: might as well add mipmap levels and pixel format
-} binocle_image;
+//typedef struct binocle_image {
+//  /// The raw data of the image
+//  unsigned char *data; // NOTE: this might be better as void*
+//  /// The image width
+//  uint64_t width;
+//  /// The image height
+//  uint64_t height;
+//  // TODO: might as well add mipmap levels and pixel format
+//} binocle_image;
 
 /**
  * \brief Loads an image file (.png or .jpg) through stb image
  * @param filename the full filename of the image we want to load
  * @return the actual image data
  */
-binocle_image *binocle_image_load(const char *filename);
+binocle_image binocle_image_load(const char *filename);
 
 /**
  * \brief Frees the memory allocated for the image
  * @param image the image to destroy
  */
-void binocle_image_destroy(binocle_image *image);
+void binocle_image_destroy(binocle_image image);
 
 #endif //BINOCLE_IMAGE_H

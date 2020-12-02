@@ -27,6 +27,7 @@ struct binocle_texture;
 struct binocle_vpct;
 struct binocle_mesh;
 struct binocle_camera_3d;
+struct binocle_window;
 
 enum binocle_blend_factor;
 enum binocle_blend_equation;
@@ -55,8 +56,9 @@ binocle_gd binocle_gd_new();
 /**
  * Initializes a graphic device
  * @param gd the pointer to the graphics device
+ * @param wind the pointer to the window
  */
-void binocle_gd_init(binocle_gd *gd);
+void binocle_gd_init(binocle_gd *gd, struct binocle_window *win);
 
 /**
  * Creates a 2D model view matrix
@@ -110,7 +112,7 @@ void binocle_gd_apply_shader(binocle_gd *gd, struct binocle_shader *shader);
  * \brief Applies the given texture
  * @param texture the texture to use
  */
-void binocle_gd_apply_texture(struct binocle_texture texture);
+void binocle_gd_apply_texture(struct binocle_image texture);
 
 GLuint binocle_gd_factor_to_gl_constant(enum binocle_blend_factor blend_factor);
 

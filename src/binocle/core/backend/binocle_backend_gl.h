@@ -33,8 +33,68 @@ typedef struct binocle_gl_render_target {
 } binocle_gl_render_target;
 typedef binocle_gl_render_target binocle_render_target_t;
 
+typedef struct binocle_gl_image {
+  binocle_slot_t slot;
+  binocle_image_common_t cmn;
+  struct {
+    GLenum target;
+    GLuint depth_render_buffer;
+    GLuint msaa_render_buffer;
+    GLuint tex[BINOCLE_NUM_INFLIGHT_FRAMES];
+    bool ext_textures;  /* if true, external textures were injected with sg_image_desc.gl_textures */
+  } gl;
+} binocle_gl_image;
+typedef binocle_gl_image binocle_image_t;
+
+typedef struct binocle_gl_attr_t {
+  int8_t vb_index;        /* -1 if attr is not enabled */
+  int8_t divisor;         /* -1 if not initialized */
+  uint8_t stride;
+  uint8_t size;
+  uint8_t normalized;
+  int offset;
+  GLenum type;
+} binocle_gl_attr_t;
+
+typedef struct binocle_gl_cache_attr_t {
+  binocle_gl_attr_t gl_attr;
+  GLuint gl_vbuf;
+} binocle_gl_cache_attr_t;
+
+typedef struct binocle_gl_texture_bind_slot {
+  GLenum target;
+  GLuint texture;
+} binocle_gl_texture_bind_slot;
+
+typedef struct binocle_gl_state_cache_t {
+//  binocle_depth_stencil_state ds;
+//  sg_blend_state blend;
+//  sg_rasterizer_state rast;
+  bool polygon_offset_enabled;
+  binocle_gl_cache_attr_t attrs[BINOCLE_MAX_VERTEX_ATTRIBUTES];
+  GLuint vertex_buffer;
+  GLuint index_buffer;
+  GLuint stored_vertex_buffer;
+  GLuint stored_index_buffer;
+  GLuint prog;
+  binocle_gl_texture_bind_slot textures[BINOCLE_MAX_SHADERSTAGE_IMAGES];
+  binocle_gl_texture_bind_slot stored_texture;
+  int cur_ib_offset;
+  GLenum cur_primitive_type;
+  GLenum cur_index_type;
+  GLenum cur_active_texture;
+//  binocle_pipeline_t* cur_pipeline;
+//  binocle_pipeline cur_pipeline_id;
+} binocle_gl_state_cache_t;
+
 typedef struct binocle_gl_backend_t {
   bool valid;
+  bool gles2;
+  binocle_gl_state_cache_t cache;
+  bool ext_anisotropic;
+  GLint max_anisotropy;
+  GLint max_combined_texture_image_units;
+
   GLuint vbo;
   GLuint vertex_attribute;
   GLuint color_attribute;
@@ -96,11 +156,12 @@ void binocle_backend_gl_apply_blend_mode(struct binocle_blend blend_mode);
  */
 void binocle_backend_gl_apply_shader(binocle_gl_backend_t *gl, struct binocle_shader *shader);
 
-void binocle_backend_gl_apply_texture(struct binocle_texture texture);
+void binocle_backend_gl_apply_texture(binocle_image_t *texture);
 
-void binocle_backend_gl_apply_3d_texture(struct binocle_material *material);
+void binocle_backend_gl_apply_3d_texture(binocle_image_t *albedo, binocle_image_t *normal);
 
-void binocle_backend_gl_draw(binocle_gl_backend_t *gl, const struct binocle_vpct *vertices, size_t vertex_count, struct binocle_material material,
+void binocle_backend_gl_draw(binocle_gl_backend_t *gl, const struct binocle_vpct *vertices, size_t vertex_count, struct binocle_blend blend,
+                             struct binocle_shader *shader, binocle_image_t *albedo,
                              struct kmAABB2 viewport, struct kmMat4 *cameraTransformMatrix);
 
 binocle_resource_state binocle_backend_gl_create_render_target(binocle_render_target_t *rt, uint32_t width, uint32_t height, bool use_depth, binocle_pixel_format format);
@@ -110,5 +171,10 @@ void binocle_backend_gl_clear(struct binocle_color color);
 void binocle_backend_gl_set_uniform_float2(struct binocle_shader *shader, const char *name, float value1, float value2);
 void binocle_backend_gl_set_uniform_mat4(struct binocle_shader *shader, const char *name, struct kmMat4 mat);
 void binocle_backend_gl_draw_quad_to_screen(struct binocle_shader *shader, binocle_render_target_t *render_target);
+binocle_resource_state
+binocle_backend_gl_create_image(binocle_gl_backend_t *gl, binocle_image_t *img,
+                                const binocle_image_desc *desc);
+void binocle_backend_gl_destroy_image(binocle_gl_backend_t *gl, binocle_image_t* img);
+void binocle_backend_gl_reset_state_cache(binocle_gl_backend_t *gl);
 
 #endif // BINOCLE_BACKEND_GL_H

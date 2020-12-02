@@ -8,8 +8,8 @@
 #define BINOCLE_MATERIAL_H
 
 #include "binocle_blend.h"
+#include "binocle_backend.h"
 
-struct binocle_texture;
 struct binocle_shader;
 
 /**
@@ -19,15 +19,15 @@ typedef struct binocle_material {
   /// The blending mode
   binocle_blend blend_mode;
   /// The albedo/diffuse texture
-  struct binocle_texture *albedo_texture;
+  binocle_image albedo_texture;
   /// The normal/specular texture
-  struct binocle_texture *normal_texture;
+  binocle_image normal_texture;
   /// The metallic texture
-  struct binocle_texture *metallic_texture;
+  binocle_image metallic_texture;
   /// The roughness texture
-  struct binocle_texture *roughness_texture;
+  binocle_image roughness_texture;
   /// The ambient occlusion texture
-  struct binocle_texture *ao_texture;
+  binocle_image ao_texture;
   /// The shader (couple of VS/FS)
   struct binocle_shader *shader;
 } binocle_material;

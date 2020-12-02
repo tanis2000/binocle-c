@@ -10,8 +10,8 @@
 #include "backend/binocle_blend.h"
 #include <kazmath/kazmath.h>
 
-struct binocle_texture;
 struct binocle_shader;
+struct binocle_image;
 
 /**
  * \brief A snapshot of the current render state
@@ -20,7 +20,7 @@ struct binocle_shader;
 typedef struct binocle_render_state {
   binocle_blend blend_mode;
   kmMat4 transform;
-  struct binocle_texture *texture;
+  struct binocle_image *texture;
   struct binocle_shader *shader;
   kmAABB2 viewport;
 } binocle_render_state;
@@ -32,6 +32,6 @@ typedef struct binocle_render_state {
  * @param shader  The current shader
  * @return the render state
  */
-binocle_render_state binocle_render_state_new(struct binocle_texture *texture, struct binocle_shader *shader);
+binocle_render_state binocle_render_state_new(struct binocle_image *texture, struct binocle_shader *shader);
 
 #endif //BINOCLE_RENDER_STATE_H
