@@ -269,7 +269,47 @@ GLenum binocle_backend_gl_cubeface_target(int face_index) {
   }
 }
 
+void binocle_backend_gl_init_limits(binocle_gl_backend_t *gl) {
+  assert(glGetError() == GL_NO_ERROR);
+  GLint gl_int;
+//  glGetIntegerv(GL_MAX_TEXTURE_SIZE, &gl_int);
+//  assert(glGetError() == GL_NO_ERROR);
+//  _sg.limits.max_image_size_2d = gl_int;
+//  _sg.limits.max_image_size_array = gl_int;
+//  glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &gl_int);
+//  assert(glGetError() == GL_NO_ERROR);
+//  _sg.limits.max_image_size_cube = gl_int;
+//  glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &gl_int);
+//  assert(glGetError() == GL_NO_ERROR);
+//  if (gl_int > SG_MAX_VERTEX_ATTRIBUTES) {
+//    gl_int = SG_MAX_VERTEX_ATTRIBUTES;
+//  }
+//  _sg.limits.max_vertex_attrs = gl_int;
+//#if !defined(BINOCLE_GLES2)
+//  if (!gl->gles2) {
+//    glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &gl_int);
+//    assert(glGetError() == GL_NO_ERROR);
+//    _sg.limits.max_image_size_3d = gl_int;
+//    glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &gl_int);
+//    assert(glGetError() == GL_NO_ERROR);
+//    _sg.limits.max_image_array_layers = gl_int;
+//  }
+//#endif
+  if (gl->ext_anisotropic) {
+    glGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &gl_int);
+    assert(glGetError() == GL_NO_ERROR);
+    gl->max_anisotropy = gl_int;
+  }
+  else {
+    gl->max_anisotropy = 1;
+  }
+  glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &gl_int);
+  assert(glGetError() == GL_NO_ERROR);
+  gl->max_combined_texture_image_units = gl_int;
+}
+
 void binocle_backend_gl_init(binocle_gl_backend_t *gl) {
+  binocle_backend_gl_init_limits(gl);
   binocle_backend_gl_reset_state_cache(gl);
   // Create a new vertex buffer object
   glCheck(glGenBuffers(1, &gl->vbo));
@@ -848,7 +888,7 @@ binocle_backend_gl_create_image(binocle_gl_backend_t *gl, binocle_image_t *img,
     glBindRenderbuffer(GL_RENDERBUFFER, img->gl.depth_render_buffer);
     GLenum gl_depth_format =
       binocle_backend_gl_depth_attachment_format(img->cmn.pixel_format);
-#if !defined(SOKOL_GLES2)
+#if !defined(BINOCLE_GLES2)
     if (!gl->gles2 && msaa) {
       glRenderbufferStorageMultisample(GL_RENDERBUFFER, img->cmn.sample_count,
                                        gl_depth_format, img->cmn.width,
@@ -866,7 +906,7 @@ binocle_backend_gl_create_image(binocle_gl_backend_t *gl, binocle_image_t *img,
       binocle_backend_gl_teximage_internal_format(img->cmn.pixel_format);
 
 /* if this is a MSAA render target, need to create a separate render buffer */
-#if !defined(SOKOL_GLES2)
+#if !defined(BINOCLE_GLES2)
     if (!gl->gles2 && img->cmn.render_target && msaa) {
       glGenRenderbuffers(1, &img->gl.msaa_render_buffer);
       glBindRenderbuffer(GL_RENDERBUFFER, img->gl.msaa_render_buffer);
@@ -916,13 +956,13 @@ binocle_backend_gl_create_image(binocle_gl_backend_t *gl, binocle_image_t *img,
                           binocle_backend_gl_wrap(img->cmn.wrap_u));
           glTexParameteri(img->gl.target, GL_TEXTURE_WRAP_T,
                           binocle_backend_gl_wrap(img->cmn.wrap_v));
-#if !defined(SOKOL_GLES2)
+#if !defined(BINOCLE_GLES2)
           if (!gl->gles2 && (img->cmn.type == BINOCLE_IMAGETYPE_3D)) {
             glTexParameteri(img->gl.target, GL_TEXTURE_WRAP_R,
                             binocle_backend_gl_wrap(img->cmn.wrap_w));
           }
 #endif
-#if defined(SOKOL_GLCORE33)
+#if defined(BINOCLE_GLCORE33)
           float border[4];
           switch (img->cmn.border_color) {
           case BINOCLE_BORDERCOLOR_TRANSPARENT_BLACK:
@@ -947,7 +987,7 @@ binocle_backend_gl_create_image(binocle_gl_backend_t *gl, binocle_image_t *img,
           glTexParameterfv(img->gl.target, GL_TEXTURE_BORDER_COLOR, border);
 #endif
         }
-#if !defined(SOKOL_GLES2)
+#if !defined(BINOCLE_GLES2)
         if (!gl->gles2) {
           /* GL spec has strange defaults for mipmap min/max lod: -1000 to +1000
            */
@@ -993,7 +1033,7 @@ binocle_backend_gl_create_image(binocle_gl_backend_t *gl, binocle_image_t *img,
                              data_ptr);
               }
             }
-#if !defined(SOKOL_GLES2)
+#if !defined(BINOCLE_GLES2)
             else if (!gl->gles2 &&
                      ((BINOCLE_IMAGETYPE_3D == img->cmn.type) ||
                       (BINOCLE_IMAGETYPE_ARRAY == img->cmn.type))) {

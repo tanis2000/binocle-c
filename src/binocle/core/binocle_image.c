@@ -49,13 +49,16 @@ binocle_image binocle_image_load(const char *filename) {
   binocle_image_desc desc = {
     .width = width,
     .height = height,
-    .pixel_format = BINOCLE_PIXEL_FORMAT_RGBA8,
+    .pixel_format = BINOCLE_PIXEL_FORMAT_RGBA,
+    .min_filter = BINOCLE_FILTER_LINEAR,
+    .mag_filter = BINOCLE_FILTER_LINEAR,
     .content.subimage[0][0] = {
-      .ptr = buffer,
+      .ptr = data,
       .size = width * height * bpp
     }
   };
   img = binocle_backend_make_image(&desc);
+  stbi_image_free(buffer);
   return img;
 }
 
