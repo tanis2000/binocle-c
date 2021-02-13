@@ -29,7 +29,7 @@ int l_binocle_material_set_texture(lua_State *L) {
 int l_binocle_material_set_shader(lua_State *L) {
   l_binocle_material_t *material = luaL_checkudata(L, 1, "binocle_material");
   l_binocle_shader_t *shader = luaL_checkudata(L, 2, "binocle_shader");
-  material->material->shader = shader->shader;
+  material->material->shader = *shader->shader;
   return 0;
 }
 

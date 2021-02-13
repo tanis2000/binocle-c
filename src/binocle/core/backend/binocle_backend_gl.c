@@ -7,7 +7,6 @@
 #include "binocle_backend_gl.h"
 #include "binocle_blend.h"
 #include "../binocle_log.h"
-#include "binocle_shader.h"
 #include "binocle_texture.h"
 #include "binocle_material.h"
 #include "binocle_vpct.h"
@@ -269,6 +268,18 @@ GLenum binocle_backend_gl_cubeface_target(int face_index) {
   }
 }
 
+GLenum binocle_backend_gl_shader_stage(binocle_shader_stage stage) {
+  switch (stage) {
+  case BINOCLE_SHADERSTAGE_VS:
+    return GL_VERTEX_SHADER;
+  case BINOCLE_SHADERSTAGE_FS:
+    return GL_FRAGMENT_SHADER;
+  default:
+    assert(false);
+    return 0;
+  }
+}
+
 void binocle_backend_gl_init_limits(binocle_gl_backend_t *gl) {
   assert(glGetError() == GL_NO_ERROR);
   GLint gl_int;
@@ -351,18 +362,19 @@ void binocle_backend_gl_apply_blend_mode(const struct binocle_blend blend_mode) 
   glCheck(glBlendEquation(binocle_backend_gl_equation_to_gl_constant(blend_mode.color_equation)));
 }
 
-void binocle_backend_gl_apply_shader(binocle_gl_backend_t *gl, binocle_shader *shader) {
+void binocle_backend_gl_apply_shader(binocle_gl_backend_t *gl,
+                                     binocle_gl_shader *shader) {
   GLint id;
-  glCheck(id = glGetAttribLocation(shader->program_id, "vertexPosition"));
+  glCheck(id = glGetAttribLocation(shader->gl.prog, "vertexPosition"));
   gl->vertex_attribute = id;
-  gl->tex_coord_attribute = glGetAttribLocation(shader->program_id, "vertexTCoord");
-  gl->color_attribute = glGetAttribLocation(shader->program_id, "vertexColor");
-  gl->normal_attribute = glGetAttribLocation(shader->program_id, "vertexNormal");
-  gl->projection_matrix_uniform = glGetUniformLocation(shader->program_id, "projectionMatrix");
-  gl->view_matrix_uniform = glGetUniformLocation(shader->program_id, "viewMatrix");
-  gl->model_matrix_uniform = glGetUniformLocation(shader->program_id, "modelMatrix");
-  gl->image_uniform = glGetUniformLocation(shader->program_id, "tex0");
-  glCheck(glUseProgram(shader->program_id));
+  gl->tex_coord_attribute = glGetAttribLocation(shader->gl.prog, "vertexTCoord");
+  gl->color_attribute = glGetAttribLocation(shader->gl.prog, "vertexColor");
+  gl->normal_attribute = glGetAttribLocation(shader->gl.prog, "vertexNormal");
+  gl->projection_matrix_uniform = glGetUniformLocation(shader->gl.prog, "projectionMatrix");
+  gl->view_matrix_uniform = glGetUniformLocation(shader->gl.prog, "viewMatrix");
+  gl->model_matrix_uniform = glGetUniformLocation(shader->gl.prog, "modelMatrix");
+  gl->image_uniform = glGetUniformLocation(shader->gl.prog, "tex0");
+  glCheck(glUseProgram(shader->gl.prog));
 }
 
 void binocle_backend_gl_apply_texture(binocle_image_t *texture) {
@@ -386,7 +398,7 @@ void binocle_backend_gl_apply_3d_texture(binocle_image_t *albedo, binocle_image_
 }
 
 void binocle_backend_gl_draw(binocle_gl_backend_t *gl, const struct binocle_vpct *vertices, size_t vertex_count, struct binocle_blend blend,
-                             struct binocle_shader *shader, binocle_image_t *albedo,
+                             binocle_gl_shader *shader, binocle_image_t *albedo,
                      struct kmAABB2 viewport, struct kmMat4 *cameraTransformMatrix) {
   binocle_backend_gl_apply_default_state();
   binocle_backend_gl_apply_viewport(viewport.min.x, viewport.min.y, viewport.max.x, viewport.max.y);
@@ -526,9 +538,9 @@ void binocle_backend_gl_clear(struct binocle_color color) {
   glCheck(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 }
 
-void binocle_backend_gl_set_uniform_float2(struct binocle_shader *shader, const char *name, float value1, float value2) {
+void binocle_backend_gl_set_uniform_float2(binocle_gl_shader *shader, const char *name, float value1, float value2) {
   GLint id = 0;
-  glCheck(id = glGetUniformLocation(shader->program_id, name));
+  glCheck(id = glGetUniformLocation(shader->gl.prog, name));
   if (id == -1) {
     binocle_log_error("Cannot find uniform called %s", name);
     return;
@@ -536,9 +548,9 @@ void binocle_backend_gl_set_uniform_float2(struct binocle_shader *shader, const 
   glCheck(glUniform2f(id, value1, value2));
 }
 
-void binocle_backend_gl_set_uniform_mat4(struct binocle_shader *shader, const char *name, struct kmMat4 mat) {
+void binocle_backend_gl_set_uniform_mat4(binocle_gl_shader *shader, const char *name, struct kmMat4 mat) {
   GLint id = 0;
-  glCheck(id = glGetUniformLocation(shader->program_id, name));
+  glCheck(id = glGetUniformLocation(shader->gl.prog, name));
   if (id == -1) {
     binocle_log_error("Cannot find uniform called %s", name);
     return;
@@ -546,7 +558,8 @@ void binocle_backend_gl_set_uniform_mat4(struct binocle_shader *shader, const ch
   glCheck(glUniformMatrix4fv(id, 1, GL_FALSE, mat.mat));
 }
 
-void binocle_backend_gl_draw_quad_to_screen(struct binocle_shader *shader, binocle_render_target_t *render_target) {
+void binocle_backend_gl_draw_quad_to_screen(
+  binocle_gl_shader *shader, binocle_render_target_t *render_target) {
   static const GLfloat g_quad_vertex_buffer_data[] = {
       -1.0f, -1.0f,
       1.0f, -1.0f,
@@ -561,11 +574,11 @@ void binocle_backend_gl_draw_quad_to_screen(struct binocle_shader *shader, binoc
   glCheck(glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer));
   glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW));
   GLint pos_id;
-  glCheck(pos_id = glGetAttribLocation(shader->program_id, "position"));
+  glCheck(pos_id = glGetAttribLocation(shader->gl.prog, "position"));
   glCheck(glVertexAttribPointer(pos_id, 2, GL_FLOAT, false, 0, 0));
   glCheck(glEnableVertexAttribArray(pos_id));
   GLint tex_id;
-  glCheck(tex_id = glGetUniformLocation(shader->program_id, "texture"));
+  glCheck(tex_id = glGetUniformLocation(shader->gl.prog, "texture"));
   glCheck(glUniform1i(tex_id, 0));
   glCheck(glActiveTexture(GL_TEXTURE0));
   glCheck(glBindTexture(GL_TEXTURE_2D, render_target->texture));
@@ -1084,6 +1097,150 @@ void binocle_backend_gl_destroy_image(binocle_gl_backend_t *gl, binocle_image_t*
   }
   if (img->gl.msaa_render_buffer) {
     glDeleteRenderbuffers(1, &img->gl.msaa_render_buffer);
+  }
+  assert(glGetError() == GL_NO_ERROR);
+}
+
+GLuint binocle_backend_gl_compile_shader(binocle_shader_stage stage,
+                                         const char *src) {
+  assert(src);
+  assert(glGetError() == GL_NO_ERROR);
+  GLuint gl_shd = glCreateShader(binocle_backend_gl_shader_stage(stage));
+  glShaderSource(gl_shd, 1, &src, 0);
+  glCompileShader(gl_shd);
+  GLint compile_status = 0;
+  glGetShaderiv(gl_shd, GL_COMPILE_STATUS, &compile_status);
+  if (!compile_status) {
+    /* compilation failed, log error and delete shader */
+    GLint log_len = 0;
+    glGetShaderiv(gl_shd, GL_INFO_LOG_LENGTH, &log_len);
+    if (log_len > 0) {
+      GLchar *log_buf = (GLchar *)malloc(log_len);
+      glGetShaderInfoLog(gl_shd, log_len, &log_len, log_buf);
+      binocle_log_error(log_buf);
+      free(log_buf);
+    }
+    glDeleteShader(gl_shd);
+    gl_shd = 0;
+  }
+  assert(glGetError() == GL_NO_ERROR);
+  return gl_shd;
+}
+
+binocle_resource_state
+binocle_backend_gl_create_shader(binocle_gl_backend_t *gl, binocle_shader_t *sha,
+                                 const binocle_shader_desc *desc) {
+  assert(sha && desc);
+  assert(!sha->gl.prog);
+  assert(glGetError() == GL_NO_ERROR);
+
+  binocle_backend_shader_common_init(&sha->cmn, desc);
+
+  /* copy vertex attribute names over, these are required for GLES2, and optional for GLES3 and GL3.x */
+  for (int i = 0; i < BINOCLE_MAX_VERTEX_ATTRIBUTES; i++) {
+    binocle_backend_strcpy(&sha->gl.attrs[i].name, desc->attrs[i].name);
+  }
+
+  GLuint gl_vs = binocle_backend_gl_compile_shader(BINOCLE_SHADERSTAGE_VS, desc->vs.source);
+  GLuint gl_fs = binocle_backend_gl_compile_shader(BINOCLE_SHADERSTAGE_FS, desc->fs.source);
+  if (!(gl_vs && gl_fs)) {
+    return BINOCLE_RESOURCESTATE_FAILED;
+  }
+  GLuint gl_prog = glCreateProgram();
+  glAttachShader(gl_prog, gl_vs);
+  glAttachShader(gl_prog, gl_fs);
+  glLinkProgram(gl_prog);
+  glDeleteShader(gl_vs);
+  glDeleteShader(gl_fs);
+  assert(glGetError() == GL_NO_ERROR);
+
+  GLint link_status;
+  glGetProgramiv(gl_prog, GL_LINK_STATUS, &link_status);
+  if (!link_status) {
+    GLint log_len = 0;
+    glGetProgramiv(gl_prog, GL_INFO_LOG_LENGTH, &log_len);
+    if (log_len > 0) {
+      GLchar* log_buf = (GLchar*) malloc(log_len);
+      glGetProgramInfoLog(gl_prog, log_len, &log_len, log_buf);
+      binocle_log_error(log_buf);
+      free(log_buf);
+    }
+    glDeleteProgram(gl_prog);
+    return BINOCLE_RESOURCESTATE_FAILED;
+  }
+  sha->gl.prog = gl_prog;
+
+  /* resolve uniforms */
+  assert(glGetError() == GL_NO_ERROR);
+  for (int stage_index = 0; stage_index < BINOCLE_NUM_SHADER_STAGES; stage_index++) {
+    const binocle_shader_stage_desc* stage_desc = (stage_index == BINOCLE_SHADERSTAGE_VS)? &desc->vs : &desc->fs;
+    binocle_gl_shader_stage_t* gl_stage = &sha->gl.stage[stage_index];
+    for (int ub_index = 0; ub_index < sha->cmn.stage[stage_index].num_uniform_blocks; ub_index++) {
+      const binocle_shader_uniform_block_desc* ub_desc = &stage_desc->uniform_blocks[ub_index];
+      assert(ub_desc->size > 0);
+      binocle_gl_uniform_block_t* ub = &gl_stage->uniform_blocks[ub_index];
+      assert(ub->num_uniforms == 0);
+      int cur_uniform_offset = 0;
+      for (int u_index = 0; u_index < BINOCLE_MAX_UB_MEMBERS; u_index++) {
+        const binocle_shader_uniform_desc* u_desc = &ub_desc->uniforms[u_index];
+        if (u_desc->type == BINOCLE_UNIFORMTYPE_INVALID) {
+          break;
+        }
+        binocle_gl_uniform_t* u = &ub->uniforms[u_index];
+        u->type = u_desc->type;
+        u->count = (uint8_t) u_desc->array_count;
+        u->offset = (uint16_t) cur_uniform_offset;
+        cur_uniform_offset += binocle_backend_uniform_size(u->type, u->count);
+        if (u_desc->name) {
+          u->gl_loc = glGetUniformLocation(gl_prog, u_desc->name);
+        }
+        else {
+          u->gl_loc = u_index;
+        }
+        ub->num_uniforms++;
+      }
+      assert(ub_desc->size == cur_uniform_offset);
+    }
+  }
+
+  /* resolve image locations */
+  assert(glGetError() == GL_NO_ERROR);
+  GLuint cur_prog = 0;
+  glGetIntegerv(GL_CURRENT_PROGRAM, (GLint*)&cur_prog);
+  glUseProgram(gl_prog);
+  int gl_tex_slot = 0;
+  for (int stage_index = 0; stage_index < BINOCLE_NUM_SHADER_STAGES; stage_index++) {
+    const binocle_shader_stage_desc* stage_desc = (stage_index == BINOCLE_SHADERSTAGE_VS)? &desc->vs : &desc->fs;
+    binocle_gl_shader_stage_t* gl_stage = &sha->gl.stage[stage_index];
+    for (int img_index = 0; img_index < sha->cmn.stage[stage_index].num_images; img_index++) {
+      const binocle_shader_image_desc* img_desc = &stage_desc->images[img_index];
+      assert(img_desc->type != BINOCLE_IMAGETYPE_DEFAULT);
+      binocle_gl_shader_image_t* gl_img = &gl_stage->images[img_index];
+      GLint gl_loc = img_index;
+      if (img_desc->name) {
+        gl_loc = glGetUniformLocation(gl_prog, img_desc->name);
+      }
+      if (gl_loc != -1) {
+        gl_img->gl_tex_slot = gl_tex_slot++;
+        glUniform1i(gl_loc, gl_img->gl_tex_slot);
+      }
+      else {
+        gl_img->gl_tex_slot = -1;
+      }
+    }
+  }
+  /* it's legal to call glUseProgram with 0 */
+  glUseProgram(cur_prog);
+  assert(glGetError() == GL_NO_ERROR);
+  return BINOCLE_RESOURCESTATE_VALID;
+}
+
+void binocle_backend_gl_destroy_shader(binocle_gl_backend_t *gl, binocle_shader_t* sha) {
+  assert(sha);
+  assert(glGetError() == GL_NO_ERROR);
+  if (sha->gl.prog) {
+    binocle_backend_gl_cache_invalidate_program(gl, sha->gl.prog);
+    glDeleteProgram(sha->gl.prog);
   }
   assert(glGetError() == GL_NO_ERROR);
 }

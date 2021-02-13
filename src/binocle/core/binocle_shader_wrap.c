@@ -14,7 +14,8 @@ int l_binocle_shader_load_from_file(lua_State *L) {
   lua_getfield(L, LUA_REGISTRYINDEX, "binocle_shader");
   lua_setmetatable(L, -2);
   SDL_memset(shader, 0, sizeof(*shader));
-  binocle_shader *sh =  binocle_shader_load_from_file(vert_filename, frag_filename);
+  // TODO: fix this as the method is no longer there
+  binocle_shader *sh = NULL; // binocle_shader_load_from_file(vert_filename, frag_filename);
   shader->shader = sh;
   return 1;
 }

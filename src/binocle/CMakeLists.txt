@@ -38,14 +38,53 @@ endif()
 
 
 
-file(GLOB CORE_SOURCE core/*.c core/*.h core/backend/*.m  core/backend/*.c core/backend/*.h)
+file(GLOB CORE_SOURCE
+        core/*.h
+        core/*.c
+
+        core/backend/binocle_backend.h
+        core/backend/binocle_backend_types.h
+        core/backend/binocle_blend.h
+        core/backend/binocle_material.h
+        core/backend/binocle_sampler_cache.h
+        #core/backend/binocle_shader.h
+        core/backend/binocle_texture.h
+        core/backend/binocle_vpct.h
+
+        core/backend/binocle_blend.c
+        core/backend/binocle_material.c
+        core/backend/binocle_sampler_cache.c
+        #core/backend/binocle_shader.c
+        core/backend/binocle_texture.c
+        core/backend/binocle_vpct.c
+
+        core/backend/binocle_backend.m
+        )
 file(GLOB REMOVE_CORE_SOURCE
         "core/binocle.c"
         )
 list(REMOVE_ITEM CORE_SOURCE ${REMOVE_CORE_SOURCE})
 file(GLOB UNITY_SOURCE core/binocle.c core/binocle.h)
 
+set(GL_SOURCE
+        core/backend/binocle_backend_gl.h
+        core/backend/binocle_backend_gl.c
+        )
+
+set(METAL_SOURCE
+        core/backend/binocle_backend_metal.h
+        core/backend/binocle_backend_metal.m
+        )
+
 set(CORE_SOURCE ${CORE_SOURCE} core/binocle_miniaudio.m)
+
+if(BINOCLE_GL)
+    set(CORE_SOURCE ${CORE_SOURCE} ${GL_SOURCE})
+endif()
+
+if(BINOCLE_METAL)
+    set(CORE_SOURCE ${CORE_SOURCE} ${METAL_SOURCE})
+endif()
 
 if (APPLE)
     set(PLATFORM_SOURCE core/PlayerPrefs.mm)
@@ -75,3 +114,5 @@ if (IOS)
             XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 8.0
     )
 endif(IOS)
+
+message("${CORE_SOURCE}")

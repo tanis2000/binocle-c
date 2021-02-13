@@ -5,7 +5,7 @@
 #include "binocle_gd_wrap.h"
 #include "binocle_lua.h"
 #include "binocle_gd.h"
-#include "backend/binocle_shader.h"
+#include "backend/binocle_backend.h"
 #include "binocle_color.h"
 
 int l_binocle_gd_new(lua_State *L) {
@@ -59,7 +59,7 @@ int l_binocle_gd_apply_viewport(lua_State *L) {
 int l_binocle_gd_apply_shader(lua_State *L) {
   binocle_gd *gd = lua_touserdata(L, 1);
   binocle_shader **shader = luaL_checkudata(L, 2, "binocle_shader");
-  binocle_gd_apply_shader(gd, *shader);
+  binocle_gd_apply_shader(gd, **shader);
   return 0;
 }
 
@@ -68,7 +68,7 @@ int l_binocle_gd_set_uniform_float2(lua_State *L) {
   const char *name = luaL_checkstring(L, 2);
   float f1 = luaL_checknumber(L, 3);
   float f2 = luaL_checknumber(L, 4);
-  binocle_gd_set_uniform_float2(*shader, name, f1, f2);
+  binocle_gd_set_uniform_float2(**shader, name, f1, f2);
   return 0;
 }
 
@@ -76,14 +76,14 @@ int l_binocle_gd_set_uniform_mat4(lua_State *L) {
   binocle_shader **shader = luaL_checkudata(L, 1, "binocle_shader");
   const char *name = luaL_checkstring(L, 2);
   kmMat4 **m = luaL_checkudata(L, 3, "KAZMATH{kmMat4}");
-  binocle_gd_set_uniform_mat4(*shader, name, **m);
+  binocle_gd_set_uniform_mat4(**shader, name, **m);
   return 0;
 }
 
 int l_binocle_gd_draw_quad_to_screen(lua_State *L) {
   binocle_shader **shader = luaL_checkudata(L, 1, "binocle_shader");
   binocle_render_target **rt = luaL_checkudata(L, 2, "binocle_render_target");
-  binocle_gd_draw_quad_to_screen(*shader, *rt);
+  binocle_gd_draw_quad_to_screen(**shader, *rt);
   return 0;
 }
 

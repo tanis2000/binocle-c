@@ -14,10 +14,19 @@
 #define BINOCLE_NUM_INFLIGHT_FRAMES (1)
 #define BINOCLE_MAX_MIPMAPS (16)
 #define BINOCLE_MAX_SHADERSTAGE_IMAGES (12)
+#define BINOCLE_MAX_SHADERSTAGE_UBS (4)
+#define BINOCLE_NUM_SHADER_STAGES (2)
+#define BINOCLE_MAX_UB_MEMBERS (16)
 #define BINOCLE_MAX_VERTEX_ATTRIBUTES (16)
+#define BINOCLE_STRING_SIZE (16)
 #define BINOCLE_DEF(val, def) (((val) == 0) ? (def) : (val))
 #define BINOCLE_DEF_FLT(val, def) (((val) == 0.0f) ? (def) : (val))
 #define BINOCLE_CLAMP(v,v0,v1) ((v<v0)?(v0):((v>v1)?(v1):(v)))
+
+/* fixed-size string */
+typedef struct binocle_str_t {
+  char buf[BINOCLE_STRING_SIZE];
+} binocle_str_t;
 
 typedef enum binocle_pixel_format {
   BINOCLE_PIXEL_FORMAT_DEFAULT,
@@ -185,6 +194,117 @@ typedef struct binocle_pixelformat_info {
   bool msaa;          /* pixel format can be used as MSAA render target */
   bool depth;         /* pixel format is a depth format */
 } binocle_pixelformat_info;
+
+/*
+    binocle_uniform_type
+
+    The data type of a uniform block member. This is used to
+    describe the internal layout of uniform blocks when creating
+    a shader object.
+*/
+typedef enum binocle_uniform_type {
+  BINOCLE_UNIFORMTYPE_INVALID,
+  BINOCLE_UNIFORMTYPE_FLOAT,
+  BINOCLE_UNIFORMTYPE_FLOAT2,
+  BINOCLE_UNIFORMTYPE_FLOAT3,
+  BINOCLE_UNIFORMTYPE_FLOAT4,
+  BINOCLE_UNIFORMTYPE_MAT4,
+  _BINOCLE_UNIFORMTYPE_NUM,
+  _BINOCLE_UNIFORMTYPE_FORCE_U32 = 0x7FFFFFFF
+} binocle_uniform_type;
+
+/*
+    binocle_sampler_type
+
+    Indicates the basic data type of a shader's texture sampler which
+    can be float , unsigned integer or signed integer. The sampler
+    type is used in the sg_shader_image_desc to describe the
+    sampler type of a shader's texture sampler binding.
+
+    The default sampler type is BINOCLE_SAMPLERTYPE_FLOAT.
+*/
+typedef enum binocle_sampler_type {
+  _BINOCLE_SAMPLERTYPE_DEFAULT,  /* value 0 reserved for default-init */
+  BINOCLE_SAMPLERTYPE_FLOAT,
+  BINOCLE_SAMPLERTYPE_SINT,
+  BINOCLE_SAMPLERTYPE_UINT,
+} binocle_sampler_type;
+
+/*
+    binocle_shader_stage
+
+    There are 2 shader stages: vertex- and fragment-shader-stage.
+    Each shader stage consists of:
+
+    - one slot for a shader function (provided as source- or byte-code)
+    - BINOCLE_MAX_SHADERSTAGE_UBS slots for uniform blocks
+    - BINOCLE_MAX_SHADERSTAGE_IMAGES slots for images used as textures by
+      the shader function
+*/
+typedef enum binocle_shader_stage {
+  BINOCLE_SHADERSTAGE_VS,
+  BINOCLE_SHADERSTAGE_FS,
+  _BINOCLE_SHADERSTAGE_FORCE_U32 = 0x7FFFFFFF
+} binocle_shader_stage;
+
+typedef struct binocle_shader_attr_desc {
+  const char* name;           /* GLSL vertex attribute name (only required for GLES2) */
+} binocle_shader_attr_desc;
+
+typedef struct binocle_shader_uniform_desc {
+  const char* name;
+  binocle_uniform_type type;
+  int array_count;
+} binocle_shader_uniform_desc;
+
+typedef struct binocle_shader_uniform_block_desc {
+  int size;
+  binocle_shader_uniform_desc uniforms[BINOCLE_MAX_UB_MEMBERS];
+} binocle_shader_uniform_block_desc;
+
+typedef struct binocle_shader_image_desc {
+  const char* name;
+  binocle_image_type type;         /* FIXME: should this be renamed to 'image_type'? */
+  binocle_sampler_type sampler_type;
+} binocle_shader_image_desc;
+
+typedef struct binocle_shader_stage_desc {
+  const char* source;
+  const uint8_t* byte_code;
+  int byte_code_size;
+  const char* entry;
+  binocle_shader_uniform_block_desc uniform_blocks[BINOCLE_MAX_SHADERSTAGE_UBS];
+  binocle_shader_image_desc images[BINOCLE_MAX_SHADERSTAGE_IMAGES];
+} binocle_shader_stage_desc;
+
+typedef struct binocle_shader_desc {
+  uint32_t _start_canary;
+  binocle_shader_attr_desc attrs[BINOCLE_MAX_VERTEX_ATTRIBUTES];
+  binocle_shader_stage_desc vs;
+  binocle_shader_stage_desc fs;
+  const char* label;
+  uint32_t _end_canary;
+} binocle_shader_desc;
+
+typedef struct binocle_uniform_block_t {
+  int size;
+} binocle_uniform_block_t;
+
+typedef struct binocle_shader_image_t {
+  binocle_image_type type;
+  binocle_sampler_type sampler_type;
+} binocle_shader_image_t;
+
+typedef struct binocle_shader_stage_t {
+  int num_uniform_blocks;
+  int num_images;
+  binocle_uniform_block_t uniform_blocks[BINOCLE_MAX_SHADERSTAGE_UBS];
+  binocle_shader_image_t images[BINOCLE_MAX_SHADERSTAGE_IMAGES];
+} binocle_shader_stage_t;
+
+typedef struct binocle_shader_common_t {
+  binocle_shader_stage_t stage[BINOCLE_NUM_SHADER_STAGES];
+} binocle_shader_common_t;
 
 typedef struct binocle_gl_context_desc {
 } binocle_gl_context_desc;

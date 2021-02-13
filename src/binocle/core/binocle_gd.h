@@ -106,7 +106,7 @@ void binocle_gd_apply_blend_mode(const struct binocle_blend blend_mode);
  * @param gd the graphics device instance
  * @param shader the shader
  */
-void binocle_gd_apply_shader(binocle_gd *gd, struct binocle_shader *shader);
+void binocle_gd_apply_shader(binocle_gd *gd, binocle_shader shader);
 
 /**
  * \brief Applies the given texture
@@ -159,7 +159,7 @@ void binocle_gd_set_uniform_float(struct binocle_shader *shader,
  * @param value1 the first float value
  * @param value2 the second float value
  */
-void binocle_gd_set_uniform_float2(struct binocle_shader *shader,
+void binocle_gd_set_uniform_float2(binocle_shader shader,
                                    const char *name, float value1,
                                    float value2);
 
@@ -214,7 +214,7 @@ void binocle_gd_draw_quad(struct binocle_shader *shader);
  * @param shader the shader
  * @param render_target the render target to use as source
  */
-void binocle_gd_draw_quad_to_screen(struct binocle_shader *shader,
+void binocle_gd_draw_quad_to_screen(binocle_shader shader,
                                     binocle_render_target *render_target);
 
 /**
@@ -241,7 +241,7 @@ void binocle_gd_set_uniform_vec3(struct binocle_shader *shader, const char *name
  * @param name the name of the uniform
  * @param mat the mat4 value
  */
-void binocle_gd_set_uniform_mat4(struct binocle_shader *shader, const char *name,
+void binocle_gd_set_uniform_mat4(binocle_shader shader, const char *name,
                                  kmMat4 mat);
 /**
  * \brief Draws a rectangle to the current buffer

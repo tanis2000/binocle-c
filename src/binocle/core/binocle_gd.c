@@ -10,7 +10,7 @@
 #include "backend/binocle_material.h"
 #include "binocle_viewport_adapter.h"
 #include "binocle_render_state.h"
-#include "backend/binocle_shader.h"
+#include "backend/binocle_backend.h"
 #include "backend/binocle_texture.h"
 #include "binocle_camera.h"
 #include "binocle_log.h"
@@ -89,7 +89,7 @@ void binocle_gd_apply_blend_mode(const binocle_blend blend_mode) {
   binocle_backend_apply_blend_mode(blend_mode);
 }
 
-void binocle_gd_apply_shader(binocle_gd *gd, binocle_shader *shader) {
+void binocle_gd_apply_shader(binocle_gd *gd, binocle_shader shader) {
   binocle_backend_apply_shader(shader);
 }
 
@@ -125,7 +125,7 @@ void binocle_gd_set_uniform_float(struct binocle_shader *shader, const char *nam
 //  glCheck(glUniform1f(id, value));
 }
 
-void binocle_gd_set_uniform_float2(struct binocle_shader *shader, const char *name, float value1, float value2) {
+void binocle_gd_set_uniform_float2(binocle_shader shader, const char *name, float value1, float value2) {
   binocle_backend_set_uniform_float2(shader, name, value1, value2);
 }
 
@@ -175,7 +175,7 @@ void binocle_gd_set_uniform_vec3(struct binocle_shader *shader, const char *name
 //  glCheck(glUniform3fv(id, 1, (GLfloat *)&vec));
 }
 
-void binocle_gd_set_uniform_mat4(struct binocle_shader *shader, const char *name, kmMat4 mat) {
+void binocle_gd_set_uniform_mat4(binocle_shader shader, const char *name, kmMat4 mat) {
   binocle_backend_set_uniform_mat4(shader, name, mat);
 }
 
@@ -212,7 +212,7 @@ void binocle_gd_draw_quad(struct binocle_shader *shader) {
 //  glCheck(glDeleteBuffers(1, &quad_vertexbuffer));
 }
 
-void binocle_gd_draw_quad_to_screen(struct binocle_shader *shader, binocle_render_target *render_target) {
+void binocle_gd_draw_quad_to_screen(binocle_shader shader, binocle_render_target *render_target) {
   binocle_backend_draw_quad_to_screen(shader, render_target);
 }
 

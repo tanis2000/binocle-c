@@ -34,6 +34,13 @@ typedef struct binocle_mtl_image {
 } binocle_mtl_image;
 typedef binocle_mtl_image binocle_image_t;
 
+typedef struct binocle_mtl_shader {
+  binocle_slot_t slot;
+  struct {
+  } mtl;
+} binocle_mtl_shader;
+typedef binocle_mtl_shader binocle_shader_t;
+
 typedef struct binocle_mtl_release_item_t {
   uint32_t frame_index;   /* frame index at which it is safe to release this resource */
   uint32_t slot_index;

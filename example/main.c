@@ -17,7 +17,6 @@
 #include <binocle_image.h>
 #include <backend/binocle_backend.h>
 #include <binocle_sprite.h>
-#include <backend/binocle_shader.h>
 #include <backend/binocle_material.h>
 #include <binocle_lua.h>
 #include <binocle_app.h>
@@ -35,6 +34,22 @@
 #define TWODLOOP
 #define DESIGN_WIDTH 320
 #define DESIGN_HEIGHT 240
+
+typedef struct default_shader_params_t {
+  float projectionMatrix[16];
+  float modelMatrix[16];
+  float viewMatrix[16];
+} default_shader_params_t;
+
+typedef struct screen_shader_fs_params_t {
+  float resolution[2];
+  float scale[2];
+  float viewport[2];
+} screen_shader_fs_params_t;
+
+typedef struct screen_shader_vs_params_t {
+  float transform[16];
+} screen_shader_vs_params_t;
 
 binocle_window *window;
 binocle_input input;
@@ -63,7 +78,7 @@ struct binocle_wren_t *wren;
 WrenHandle* gameClass;
 WrenHandle* method;
 binocle_render_target render_target;
-binocle_shader *screen_shader;
+binocle_shader screen_shader;
 
 #if defined(__APPLE__) && !defined(__IPHONEOS__)
 #define WITH_PHYSICS
@@ -421,12 +436,62 @@ int main(int argc, char *argv[])
   sprintf(vert, "%s%s", binocle_data_dir, "default.vert");
   char frag[1024];
   sprintf(frag, "%s%s", binocle_data_dir, "default.frag");
-  binocle_shader *shader = binocle_shader_load_from_file(vert, frag);
+
+  char *shader_vs_src;
+  size_t shader_vs_src_size;
+  binocle_sdl_load_text_file(vert, &shader_vs_src, &shader_vs_src_size);
+
+  char *shader_fs_src;
+  size_t shader_fs_src_size;
+  binocle_sdl_load_text_file(frag, &shader_fs_src, &shader_fs_src_size);
+
+  binocle_shader_desc shader_desc = {
+    .vs.source = shader_vs_src,
+    .vs.uniform_blocks[0] = {
+      .size = sizeof(default_shader_params_t),
+      .uniforms = {
+        [0] = { .name = "projectionMatrix", .type = BINOCLE_UNIFORMTYPE_MAT4},
+        [1] = { .name = "viewMatrix", .type = BINOCLE_UNIFORMTYPE_MAT4},
+        [2] = { .name = "modelMatrix", .type = BINOCLE_UNIFORMTYPE_MAT4},
+      }
+    },
+    .fs.source = shader_fs_src,
+    .fs.images[0] = { .name = "tex0", .type = BINOCLE_IMAGETYPE_2D}
+  };
+  binocle_shader shader = binocle_backend_make_shader(&shader_desc);
 
   // Screen shader
   sprintf(vert, "%s%s", binocle_data_dir, "screen.vert");
   sprintf(frag, "%s%s", binocle_data_dir, "screen.frag");
-  screen_shader = binocle_shader_load_from_file(vert, frag);
+
+  char *screen_shader_vs_src;
+  size_t screen_shader_vs_src_size;
+  binocle_sdl_load_text_file(vert, &screen_shader_vs_src, &screen_shader_vs_src_size);
+
+  char *screen_shader_fs_src;
+  size_t screen_shader_fs_src_size;
+  binocle_sdl_load_text_file(frag, &screen_shader_fs_src, &screen_shader_fs_src_size);
+
+  binocle_shader_desc screen_shader_desc = {
+    .vs.source = screen_shader_vs_src,
+    .vs.uniform_blocks[0] = {
+      .size = sizeof(screen_shader_vs_params_t),
+      .uniforms = {
+        [0] = { .name = "transform", .type = BINOCLE_UNIFORMTYPE_MAT4},
+      },
+    },
+    .fs.source = screen_shader_fs_src,
+    .fs.images[0] = { .name = "texture", .type = BINOCLE_IMAGETYPE_2D},
+    .fs.uniform_blocks[0] = {
+      .size = sizeof(screen_shader_fs_params_t),
+      .uniforms = {
+        [0] = { .name = "resolution", .type = BINOCLE_UNIFORMTYPE_FLOAT2 },
+        [1] = { .name = "scale", .type = BINOCLE_UNIFORMTYPE_FLOAT2 },
+        [2] = { .name = "viewport", .type = BINOCLE_UNIFORMTYPE_FLOAT2 },
+      },
+    },
+  };
+  screen_shader = binocle_backend_make_shader(&screen_shader_desc);
 
   binocle_material *material = binocle_material_new();
   material->albedo_texture = image;
@@ -462,6 +527,7 @@ int main(int argc, char *argv[])
   gameClass = wrenGetSlotHandle(wren->vm, 0);
   method = wrenMakeCallHandle(wren->vm, "update(_)");
 
+#ifdef DEMOLOOP
   // Load the default quad shader
   sprintf(vert, "%s%s", binocle_data_dir, "screen.vert");
   sprintf(frag, "%s%s", binocle_data_dir, "screen.frag");
@@ -486,6 +552,7 @@ int main(int argc, char *argv[])
   sprintf(vert, "%s%s", binocle_data_dir, "dof.vert");
   sprintf(frag, "%s%s", binocle_data_dir, "bloom2.frag");
   bloom_shader = binocle_shader_load_from_file(vert, frag);
+#endif
 
   char font_filename[1024];
   sprintf(font_filename, "%s%s", binocle_data_dir, "font.fnt");

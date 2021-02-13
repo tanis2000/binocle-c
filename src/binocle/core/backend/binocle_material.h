@@ -10,8 +10,6 @@
 #include "binocle_blend.h"
 #include "binocle_backend.h"
 
-struct binocle_shader;
-
 /**
  * \brief A material as used internally by the engine
  */
@@ -29,7 +27,7 @@ typedef struct binocle_material {
   /// The ambient occlusion texture
   binocle_image ao_texture;
   /// The shader (couple of VS/FS)
-  struct binocle_shader *shader;
+  binocle_shader shader;
 } binocle_material;
 
 /**

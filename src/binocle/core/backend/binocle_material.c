@@ -18,7 +18,7 @@ binocle_material *binocle_material_new() {
   res->metallic_texture.id = 0;
   res->roughness_texture.id = 0;
   res->ao_texture.id = 0;
-  res->shader = NULL;
+  res->shader.id = 0;
   return res;
 }
 

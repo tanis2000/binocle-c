@@ -5,9 +5,10 @@
 //
 
 #include "binocle_backend.h"
-#include "../binocle_pool.h"
 #include "../binocle_log.h"
+#include "../binocle_pool.h"
 #include "binocle_material.h"
+#import <SDL.h>
 
 #if defined(BINOCLE_GL)
 #include "binocle_backend_gl.h"
@@ -18,8 +19,12 @@
 typedef struct binocle_pools_t {
   binocle_pool_t render_target_pool;
   binocle_render_target_t* render_targets;
+
   binocle_pool_t image_pool;
   binocle_image_t* images;
+
+  binocle_pool_t shader_pool;
+  binocle_shader_t* shaders;
 } binocle_pools_t;
 
 typedef struct binocle_backend_t {
@@ -37,6 +42,44 @@ typedef struct binocle_backend_t {
 
 static binocle_backend_t backend;
 
+/// Helper functions
+
+void binocle_backend_strcpy(binocle_str_t* dst, const char* src) {
+  assert(dst);
+  if (src) {
+#if defined(_MSC_VER)
+    strncpy_s(dst->buf, BINOCLE_STRING_SIZE, src, (BINOCLE_STRING_SIZE-1));
+#else
+    strncpy(dst->buf, src, BINOCLE_STRING_SIZE);
+#endif
+    dst->buf[BINOCLE_STRING_SIZE-1] = 0;
+  }
+  else {
+    memset(dst->buf, 0, BINOCLE_STRING_SIZE);
+  }
+}
+
+/* return the byte size of a shader uniform */
+int binocle_backend_uniform_size(binocle_uniform_type type, int count) {
+  switch (type) {
+  case BINOCLE_UNIFORMTYPE_INVALID:
+    return 0;
+  case BINOCLE_UNIFORMTYPE_FLOAT:
+    return 4 * count;
+  case BINOCLE_UNIFORMTYPE_FLOAT2:
+    return 8 * count;
+  case BINOCLE_UNIFORMTYPE_FLOAT3:
+    return 12 * count; /* FIXME: std140??? */
+  case BINOCLE_UNIFORMTYPE_FLOAT4:
+    return 16 * count;
+  case BINOCLE_UNIFORMTYPE_MAT4:
+    return 64 * count;
+  default:
+    assert(false);
+    return -1;
+  }
+}
+
 void binocle_backend_setup_pools(binocle_pools_t *pools) {
   assert(pools);
   /* note: the pools here will have an additional item, since slot 0 is reserved */
@@ -51,6 +94,12 @@ void binocle_backend_setup_pools(binocle_pools_t *pools) {
   pools->images = (binocle_image_t*) malloc(image_pool_byte_size);
   assert(pools->images);
   memset(pools->images, 0, image_pool_byte_size);
+
+  binocle_pool_init(&pools->shader_pool, 128);
+  size_t shader_pool_byte_size = sizeof(binocle_shader_t) * pools->shader_pool.size;
+  pools->shaders = (binocle_shader_t*) malloc(shader_pool_byte_size);
+  assert(pools->shaders);
+  memset(pools->shaders, 0, shader_pool_byte_size);
 }
 
 void binocle_backend_discard_pools(binocle_pools_t *p) {
@@ -58,6 +107,14 @@ void binocle_backend_discard_pools(binocle_pools_t *p) {
   free(p->render_targets);
   p->render_targets = 0;
   binocle_pool_discard(&p->render_target_pool);
+
+  free(p->images);
+  p->images = 0;
+  binocle_pool_discard(&p->image_pool);
+
+  free(p->shaders);
+  p->shaders = 0;
+  binocle_pool_discard(&p->shader_pool);
 }
 
 
@@ -74,6 +131,13 @@ binocle_image_t* binocle_image_at(const binocle_pools_t* p, uint32_t rt_id) {
   int slot_index = binocle_pool_slot_index(rt_id);
   assert((slot_index > BINOCLE_POOL_INVALID_SLOT_INDEX) && (slot_index < p->image_pool.size));
   return &p->images[slot_index];
+}
+
+binocle_shader_t* binocle_shader_at(const binocle_pools_t* p, uint32_t rt_id) {
+  assert(p && (BINOCLE_INVALID_ID != rt_id));
+  int slot_index = binocle_pool_slot_index(rt_id);
+  assert((slot_index > BINOCLE_POOL_INVALID_SLOT_INDEX) && (slot_index < p->shader_pool.size));
+  return &p->shaders[slot_index];
 }
 
 /* returns pointer to resource with matching id check, may return 0 */
@@ -97,6 +161,16 @@ binocle_image_t* binocle_backend_lookup_image(const binocle_pools_t* p, uint32_t
   return 0;
 }
 
+binocle_shader_t* binocle_backend_lookup_shader(const binocle_pools_t* p, uint32_t sha_id) {
+  if (BINOCLE_INVALID_ID != sha_id) {
+    binocle_shader_t* sha = binocle_shader_at(p, sha_id);
+    if (sha->slot.id == sha_id) {
+      return sha;
+    }
+  }
+  return 0;
+}
+
 
 void binocle_backend_reset_render_target(binocle_render_target_t* rt) {
   assert(rt);
@@ -106,6 +180,11 @@ void binocle_backend_reset_render_target(binocle_render_target_t* rt) {
 void binocle_backend_reset_image(binocle_image_t* img) {
   assert(img);
   memset(img, 0, sizeof(binocle_image_t));
+}
+
+void binocle_backend_reset_shader(binocle_shader_t* sha) {
+  assert(sha);
+  memset(sha, 0, sizeof(binocle_shader_t));
 }
 
 binocle_resource_state binocle_backend_create_render_target_t(binocle_render_target_t *rt, binocle_render_target_desc *desc) {
@@ -320,6 +399,204 @@ void binocle_backend_destroy_image(binocle_image img) {
   }
 }
 
+bool binocle_backend_validate_shader_desc(const binocle_shader_desc* desc) {
+#if !defined(XXX)
+  return true;
+#else
+  assert(desc);
+        SOKOL_VALIDATE_BEGIN();
+        SOKOL_VALIDATE(desc->_start_canary == 0, _SG_VALIDATE_SHADERDESC_CANARY);
+        SOKOL_VALIDATE(desc->_end_canary == 0, _SG_VALIDATE_SHADERDESC_CANARY);
+        #if defined(SOKOL_GLES2)
+            SOKOL_VALIDATE(0 != desc->attrs[0].name, _SG_VALIDATE_SHADERDESC_ATTR_NAMES);
+        #elif defined(SOKOL_D3D11)
+            SOKOL_VALIDATE(0 != desc->attrs[0].sem_name, _SG_VALIDATE_SHADERDESC_ATTR_SEMANTICS);
+        #endif
+        #if defined(SOKOL_GLCORE33) || defined(SOKOL_GLES2) || defined(SOKOL_GLES3)
+            /* on GL, must provide shader source code */
+            SOKOL_VALIDATE(0 != desc->vs.source, _SG_VALIDATE_SHADERDESC_SOURCE);
+            SOKOL_VALIDATE(0 != desc->fs.source, _SG_VALIDATE_SHADERDESC_SOURCE);
+        #elif defined(SOKOL_METAL) || defined(SOKOL_D3D11)
+            /* on Metal or D3D11, must provide shader source code or byte code */
+            SOKOL_VALIDATE((0 != desc->vs.source)||(0 != desc->vs.byte_code), _SG_VALIDATE_SHADERDESC_SOURCE_OR_BYTECODE);
+            SOKOL_VALIDATE((0 != desc->fs.source)||(0 != desc->fs.byte_code), _SG_VALIDATE_SHADERDESC_SOURCE_OR_BYTECODE);
+        #elif defined(SOKOL_WGPU)
+            /* on WGPU byte code must be provided */
+            SOKOL_VALIDATE((0 != desc->vs.byte_code), _SG_VALIDATE_SHADERDESC_BYTECODE);
+            SOKOL_VALIDATE((0 != desc->fs.byte_code), _SG_VALIDATE_SHADERDESC_BYTECODE);
+        #else
+            /* Dummy Backend, don't require source or bytecode */
+        #endif
+        for (int i = 0; i < SG_MAX_VERTEX_ATTRIBUTES; i++) {
+            if (desc->attrs[i].name) {
+                SOKOL_VALIDATE(strlen(desc->attrs[i].name) < _SG_STRING_SIZE, _SG_VALIDATE_SHADERDESC_ATTR_STRING_TOO_LONG);
+            }
+            if (desc->attrs[i].sem_name) {
+                SOKOL_VALIDATE(strlen(desc->attrs[i].sem_name) < _SG_STRING_SIZE, _SG_VALIDATE_SHADERDESC_ATTR_STRING_TOO_LONG);
+            }
+        }
+        /* if shader byte code, the size must also be provided */
+        if (0 != desc->vs.byte_code) {
+            SOKOL_VALIDATE(desc->vs.byte_code_size > 0, _SG_VALIDATE_SHADERDESC_NO_BYTECODE_SIZE);
+        }
+        if (0 != desc->fs.byte_code) {
+            SOKOL_VALIDATE(desc->fs.byte_code_size > 0, _SG_VALIDATE_SHADERDESC_NO_BYTECODE_SIZE);
+        }
+        for (int stage_index = 0; stage_index < SG_NUM_SHADER_STAGES; stage_index++) {
+            const sg_shader_stage_desc* stage_desc = (stage_index == 0)? &desc->vs : &desc->fs;
+            bool uniform_blocks_continuous = true;
+            for (int ub_index = 0; ub_index < SG_MAX_SHADERSTAGE_UBS; ub_index++) {
+                const sg_shader_uniform_block_desc* ub_desc = &stage_desc->uniform_blocks[ub_index];
+                if (ub_desc->size > 0) {
+                    SOKOL_VALIDATE(uniform_blocks_continuous, _SG_VALIDATE_SHADERDESC_NO_CONT_UBS);
+                    bool uniforms_continuous = true;
+                    int uniform_offset = 0;
+                    int num_uniforms = 0;
+                    for (int u_index = 0; u_index < SG_MAX_UB_MEMBERS; u_index++) {
+                        const sg_shader_uniform_desc* u_desc = &ub_desc->uniforms[u_index];
+                        if (u_desc->type != SG_UNIFORMTYPE_INVALID) {
+                            SOKOL_VALIDATE(uniforms_continuous, _SG_VALIDATE_SHADERDESC_NO_CONT_UB_MEMBERS);
+                            #if defined(SOKOL_GLES2) || defined(SOKOL_GLES3)
+                            SOKOL_VALIDATE(0 != u_desc->name, _SG_VALIDATE_SHADERDESC_UB_MEMBER_NAME);
+                            #endif
+                            const int array_count = u_desc->array_count;
+                            uniform_offset += _sg_uniform_size(u_desc->type, array_count);
+                            num_uniforms++;
+                        }
+                        else {
+                            uniforms_continuous = false;
+                        }
+                    }
+                    #if defined(SOKOL_GLCORE33) || defined(SOKOL_GLES2) || defined(SOKOL_GLES3)
+                    SOKOL_VALIDATE(uniform_offset == ub_desc->size, _SG_VALIDATE_SHADERDESC_UB_SIZE_MISMATCH);
+                    SOKOL_VALIDATE(num_uniforms > 0, _SG_VALIDATE_SHADERDESC_NO_UB_MEMBERS);
+                    #endif
+                }
+                else {
+                    uniform_blocks_continuous = false;
+                }
+            }
+            bool images_continuous = true;
+            for (int img_index = 0; img_index < SG_MAX_SHADERSTAGE_IMAGES; img_index++) {
+                const sg_shader_image_desc* img_desc = &stage_desc->images[img_index];
+                if (img_desc->type != _SG_IMAGETYPE_DEFAULT) {
+                    SOKOL_VALIDATE(images_continuous, _SG_VALIDATE_SHADERDESC_NO_CONT_IMGS);
+                    #if defined(SOKOL_GLES2)
+                    SOKOL_VALIDATE(0 != img_desc->name, _SG_VALIDATE_SHADERDESC_IMG_NAME);
+                    #endif
+                }
+                else {
+                    images_continuous = false;
+                }
+            }
+        }
+        return SOKOL_VALIDATE_END();
+#endif
+}
+
+binocle_shader_desc binocle_backend_shader_desc_defaults(const binocle_shader_desc* desc) {
+  binocle_shader_desc def = *desc;
+#if defined(BINOCLE_METAL)
+  def.vs.entry = BINOCLE_DEF(def.vs.entry, "_main");
+        def.fs.entry = BINOCLE_DEF(def.fs.entry, "_main");
+#else
+  def.vs.entry = BINOCLE_DEF(def.vs.entry, "main");
+  def.fs.entry = BINOCLE_DEF(def.fs.entry, "main");
+#endif
+  for (int stage_index = 0; stage_index < BINOCLE_NUM_SHADER_STAGES; stage_index++) {
+    binocle_shader_stage_desc* stage_desc = (stage_index == BINOCLE_SHADERSTAGE_VS)? &def.vs : &def.fs;
+    for (int ub_index = 0; ub_index < BINOCLE_MAX_SHADERSTAGE_UBS; ub_index++) {
+      binocle_shader_uniform_block_desc* ub_desc = &stage_desc->uniform_blocks[ub_index];
+      if (0 == ub_desc->size) {
+        break;
+      }
+      for (int u_index = 0; u_index < BINOCLE_MAX_UB_MEMBERS; u_index++) {
+        binocle_shader_uniform_desc* u_desc = &ub_desc->uniforms[u_index];
+        if (u_desc->type == BINOCLE_UNIFORMTYPE_INVALID) {
+          break;
+        }
+        u_desc->array_count = BINOCLE_DEF(u_desc->array_count, 1);
+      }
+    }
+    for (int img_index = 0; img_index < BINOCLE_MAX_SHADERSTAGE_IMAGES; img_index++) {
+      binocle_shader_image_desc* img_desc = &stage_desc->images[img_index];
+      if (img_desc->type == BINOCLE_IMAGETYPE_DEFAULT) {
+        break;
+      }
+      img_desc->sampler_type = BINOCLE_DEF(img_desc->sampler_type, BINOCLE_SAMPLERTYPE_FLOAT);
+    }
+  }
+  return def;
+}
+
+binocle_shader binocle_backend_alloc_shader(void) {
+  binocle_shader res;
+  int slot_index = binocle_pool_alloc_index(&backend.pools.shader_pool);
+  if (BINOCLE_POOL_INVALID_SLOT_INDEX != slot_index) {
+    res.id = binocle_pool_slot_alloc(&backend.pools.shader_pool, &backend.pools.shaders[slot_index].slot, slot_index);
+  }
+  else {
+    /* pool is exhausted */
+    res.id = BINOCLE_INVALID_ID;
+  }
+  return res;
+}
+
+static inline binocle_resource_state binocle_backend_create_shader(binocle_shader_t* sha, const binocle_shader_desc* desc) {
+#if defined(BINOCLE_GL)
+  return binocle_backend_gl_create_shader(&backend.gl, sha, desc);
+#elif defined(BINOCLE_METAL)
+  return binocle_backend_mtl_create_shader(&backend.mtl, sha, desc);
+#else
+#error("INVALID BACKEND");
+#endif
+}
+
+void binocle_backend_init_shader(binocle_shader sha_id, const binocle_shader_desc* desc) {
+  assert(sha_id.id != BINOCLE_INVALID_ID && desc);
+  binocle_shader_t* sha = binocle_backend_lookup_shader(&backend.pools, sha_id.id);
+  assert(sha && sha->slot.state == BINOCLE_RESOURCESTATE_ALLOC);
+  if (binocle_backend_validate_shader_desc(desc)) {
+    sha->slot.state = binocle_backend_create_shader(sha, desc);
+  }
+  else {
+    sha->slot.state = BINOCLE_RESOURCESTATE_FAILED;
+  }
+  assert((sha->slot.state == BINOCLE_RESOURCESTATE_VALID)||(sha->slot.state == BINOCLE_RESOURCESTATE_FAILED));
+}
+
+binocle_shader binocle_backend_make_shader(const binocle_shader_desc* desc) {
+  assert(desc);
+  binocle_shader_desc desc_def = binocle_backend_shader_desc_defaults(desc);
+  binocle_shader sha_id = binocle_backend_alloc_shader();
+  if (sha_id.id != BINOCLE_INVALID_ID) {
+    binocle_backend_init_shader(sha_id, &desc_def);
+  }
+  else {
+    binocle_log_error("shader pool exhausted!");
+  }
+  return sha_id;
+}
+
+void binocle_backend_destroy_shader_t(binocle_shader_t* sha) {
+#if defined(BINOCLE_GL)
+  binocle_backend_gl_destroy_shader(&backend.gl, sha);
+#elif defined(BINOCLE_METAL)
+  binocle_backend_mtl_destroy_shader(&backend.mtl, sha);
+#else
+#error("no backend defined")
+#endif
+}
+
+void binocle_backend_destroy_shader(binocle_shader sha) {
+  binocle_shader_t* shader = binocle_backend_lookup_shader(&backend.pools, sha.id);
+  if (shader) {
+    binocle_backend_destroy_shader_t(shader);
+    binocle_backend_reset_shader(shader);
+    binocle_pool_free_index(&backend.pools.shader_pool, binocle_pool_slot_index(sha.id));
+  }
+}
+
 void binocle_backend_init(binocle_backend_desc *desc) {
   binocle_backend_setup_pools(&backend.pools);
 #if defined(BINOCLE_GL)
@@ -366,9 +643,12 @@ void binocle_backend_apply_blend_mode(struct binocle_blend blend_mode) {
 #endif
 }
 
-void binocle_backend_apply_shader(struct binocle_shader *shader) {
+void binocle_backend_apply_shader(binocle_shader shader) {
 #if defined(BINOCLE_GL)
-  binocle_backend_gl_apply_shader(&backend.gl, shader);
+  binocle_shader_t *sha = binocle_backend_lookup_shader(&backend.pools, shader.id);
+  if (sha != NULL) {
+    binocle_backend_gl_apply_shader(&backend.gl, sha);
+  }
 #elif defined(BINOCLE_METAL)
   #else
 #error("no backend defined")
@@ -404,7 +684,8 @@ void binocle_backend_draw(const struct binocle_vpct *vertices, size_t vertex_cou
                              struct kmAABB2 viewport, struct kmMat4 *cameraTransformMatrix) {
 #if defined(BINOCLE_GL)
   binocle_image_t *albedo = binocle_backend_lookup_image(&backend.pools, material.albedo_texture.id);
-  binocle_backend_gl_draw(&backend.gl, vertices, vertex_count, material.blend_mode, material.shader, albedo, viewport, cameraTransformMatrix);
+  binocle_shader_t *shader = binocle_backend_lookup_shader(&backend.pools, material.shader.id);
+  binocle_backend_gl_draw(&backend.gl, vertices, vertex_count, material.blend_mode, shader, albedo, viewport, cameraTransformMatrix);
 #elif defined(BINOCLE_METAL)
   #else
 #error("no backend defined")
@@ -456,32 +737,41 @@ void binocle_backend_clear(struct binocle_color color) {
 #endif
 }
 
-void binocle_backend_set_uniform_float2(struct binocle_shader *shader, const char *name, float value1, float value2) {
+void binocle_backend_set_uniform_float2(binocle_shader shader, const char *name, float value1, float value2) {
 #if defined(BINOCLE_GL)
-  binocle_backend_gl_set_uniform_float2(shader, name, value1, value2);
+  binocle_shader_t *sha = binocle_backend_lookup_shader(&backend.pools, shader.id);
+  if (sha != NULL) {
+    binocle_backend_gl_set_uniform_float2(sha, name, value1, value2);
+  }
 #elif defined(BINOCLE_METAL)
   #else
 #error("no backend defined")
 #endif
 }
 
-void binocle_backend_set_uniform_mat4(struct binocle_shader *shader, const char *name, struct kmMat4 mat) {
+void binocle_backend_set_uniform_mat4(binocle_shader shader, const char *name, struct kmMat4 mat) {
 #if defined(BINOCLE_GL)
-  binocle_backend_gl_set_uniform_mat4(shader, name, mat);
+  binocle_shader_t *sha = binocle_backend_lookup_shader(&backend.pools, shader.id);
+  if (sha != NULL) {
+    binocle_backend_gl_set_uniform_mat4(sha, name, mat);
+  }
 #elif defined(BINOCLE_METAL)
   #else
 #error("no backend defined")
 #endif
 }
 
-void binocle_backend_draw_quad_to_screen(struct binocle_shader *shader, binocle_render_target *rt) {
+void binocle_backend_draw_quad_to_screen(binocle_shader shader, binocle_render_target *rt) {
 #if defined(BINOCLE_GL)
   // TODO this is ugly
   if (rt == NULL) {
     binocle_backend_gl_set_render_target(NULL);
   } else {
-    binocle_render_target_t *render_target = binocle_backend_lookup_render_target(&backend.pools, rt->id);
-    binocle_backend_gl_draw_quad_to_screen(shader, render_target);
+    binocle_shader_t *sha = binocle_backend_lookup_shader(&backend.pools, shader.id);
+    if (sha != NULL) {
+      binocle_render_target_t *render_target = binocle_backend_lookup_render_target(&backend.pools, rt->id);
+      binocle_backend_gl_draw_quad_to_screen(sha, render_target);
+    }
   }
 #elif defined(BINOCLE_METAL)
   #else
@@ -515,4 +805,30 @@ bool binocle_backend_is_valid_rendertarget_depth_format(binocle_pixel_format fmt
 
 bool binocle_backend_is_compressed_pixel_format(binocle_pixel_format fmt) {
   return false;
+}
+
+void binocle_backend_shader_common_init(binocle_shader_common_t* cmn, const binocle_shader_desc* desc) {
+  for (int stage_index = 0; stage_index < BINOCLE_NUM_SHADER_STAGES; stage_index++) {
+    const binocle_shader_stage_desc* stage_desc = (stage_index == BINOCLE_SHADERSTAGE_VS) ? &desc->vs : &desc->fs;
+    binocle_shader_stage_t* stage = &cmn->stage[stage_index];
+    assert(stage->num_uniform_blocks == 0);
+    for (int ub_index = 0; ub_index < BINOCLE_MAX_SHADERSTAGE_UBS; ub_index++) {
+      const binocle_shader_uniform_block_desc* ub_desc = &stage_desc->uniform_blocks[ub_index];
+      if (0 == ub_desc->size) {
+        break;
+      }
+      stage->uniform_blocks[ub_index].size = ub_desc->size;
+      stage->num_uniform_blocks++;
+    }
+    assert(stage->num_images == 0);
+    for (int img_index = 0; img_index < BINOCLE_MAX_SHADERSTAGE_IMAGES; img_index++) {
+      const binocle_shader_image_desc* img_desc = &stage_desc->images[img_index];
+      if (img_desc->type == BINOCLE_IMAGETYPE_DEFAULT) {
+        break;
+      }
+      stage->images[img_index].type = img_desc->type;
+      stage->images[img_index].sampler_type = img_desc->sampler_type;
+      stage->num_images++;
+    }
+  }
 }

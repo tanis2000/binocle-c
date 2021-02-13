@@ -46,6 +46,42 @@ typedef struct binocle_gl_image {
 } binocle_gl_image;
 typedef binocle_gl_image binocle_image_t;
 
+typedef struct binocle_gl_uniform_t {
+  GLint gl_loc;
+  binocle_uniform_type type;
+  uint8_t count;
+  uint16_t offset;
+} binocle_gl_uniform_t;
+
+typedef struct binocle_gl_uniform_block_t {
+  int num_uniforms;
+  binocle_gl_uniform_t uniforms[BINOCLE_MAX_UB_MEMBERS];
+} binocle_gl_uniform_block_t;
+
+typedef struct binocle_gl_shader_image_t {
+  int gl_tex_slot;
+} binocle_gl_shader_image_t;
+
+typedef struct binocle_gl_shader_attr_t {
+  binocle_str_t name;
+} binocle_gl_shader_attr_t;
+
+typedef struct binocle_gl_shader_stage_t {
+  binocle_gl_uniform_block_t uniform_blocks[BINOCLE_MAX_SHADERSTAGE_UBS];
+  binocle_gl_shader_image_t images[BINOCLE_MAX_SHADERSTAGE_IMAGES];
+} binocle_gl_shader_stage_t;
+
+typedef struct binocle_gl_shader {
+  binocle_slot_t slot;
+  binocle_shader_common_t cmn;
+  struct {
+    GLuint prog;
+    binocle_gl_shader_attr_t attrs[BINOCLE_MAX_VERTEX_ATTRIBUTES];
+    binocle_gl_shader_stage_t stage[BINOCLE_NUM_SHADER_STAGES];
+  } gl;
+} binocle_gl_shader;
+typedef binocle_gl_shader binocle_shader_t;
+
 typedef struct binocle_gl_attr_t {
   int8_t vb_index;        /* -1 if attr is not enabled */
   int8_t divisor;         /* -1 if not initialized */
@@ -154,27 +190,34 @@ void binocle_backend_gl_apply_blend_mode(struct binocle_blend blend_mode);
  * @param gd the graphics device instance
  * @param shader the shader
  */
-void binocle_backend_gl_apply_shader(binocle_gl_backend_t *gl, struct binocle_shader *shader);
+void binocle_backend_gl_apply_shader(binocle_gl_backend_t *gl,
+                                     binocle_gl_shader *shader);
 
 void binocle_backend_gl_apply_texture(binocle_image_t *texture);
 
 void binocle_backend_gl_apply_3d_texture(binocle_image_t *albedo, binocle_image_t *normal);
 
 void binocle_backend_gl_draw(binocle_gl_backend_t *gl, const struct binocle_vpct *vertices, size_t vertex_count, struct binocle_blend blend,
-                             struct binocle_shader *shader, binocle_image_t *albedo,
+                             binocle_gl_shader *shader, binocle_image_t *albedo,
                              struct kmAABB2 viewport, struct kmMat4 *cameraTransformMatrix);
 
 binocle_resource_state binocle_backend_gl_create_render_target(binocle_render_target_t *rt, uint32_t width, uint32_t height, bool use_depth, binocle_pixel_format format);
 void binocle_backend_gl_destroy_render_target(binocle_render_target_t *render_target);
 void binocle_backend_gl_set_render_target(binocle_render_target_t *render_target);
 void binocle_backend_gl_clear(struct binocle_color color);
-void binocle_backend_gl_set_uniform_float2(struct binocle_shader *shader, const char *name, float value1, float value2);
-void binocle_backend_gl_set_uniform_mat4(struct binocle_shader *shader, const char *name, struct kmMat4 mat);
-void binocle_backend_gl_draw_quad_to_screen(struct binocle_shader *shader, binocle_render_target_t *render_target);
+void binocle_backend_gl_set_uniform_float2(binocle_gl_shader *shader, const char *name, float value1, float value2);
+void binocle_backend_gl_set_uniform_mat4(binocle_gl_shader *shader, const char *name, struct kmMat4 mat);
+void binocle_backend_gl_draw_quad_to_screen(
+  binocle_gl_shader *shader, binocle_render_target_t *render_target);
 binocle_resource_state
 binocle_backend_gl_create_image(binocle_gl_backend_t *gl, binocle_image_t *img,
                                 const binocle_image_desc *desc);
 void binocle_backend_gl_destroy_image(binocle_gl_backend_t *gl, binocle_image_t* img);
 void binocle_backend_gl_reset_state_cache(binocle_gl_backend_t *gl);
+
+binocle_resource_state
+binocle_backend_gl_create_shader(binocle_gl_backend_t *gl, binocle_shader_t *sha,
+                                const binocle_shader_desc *desc);
+void binocle_backend_gl_destroy_shader(binocle_gl_backend_t *gl, binocle_shader_t* sha);
 
 #endif // BINOCLE_BACKEND_GL_H
