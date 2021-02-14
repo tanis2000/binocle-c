@@ -10,7 +10,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define BINOCLE_DEFAULT_UB_SIZE = (4 * 1024 * 1024)
+#define BINOCLE_DEFAULT_UB_SIZE (4 * 1024 * 1024)
+#define BINOCLE_DEFAULT_BUFFER_POOL_SIZE (128)
+#define BINOCLE_DEFAULT_RENDER_TARGET_POOL_SIZE (128)
+#define BINOCLE_DEFAULT_IMAGE_POOL_SIZE (128)
+#define BINOCLE_DEFAULT_SHADER_POOL_SIZE (32)
+#define BINOCLE_DEFAULT_SAMPLER_CACHE_CAPACITY (64)
 #define BINOCLE_NUM_INFLIGHT_FRAMES (1)
 #define BINOCLE_MAX_MIPMAPS (16)
 #define BINOCLE_MAX_SHADERSTAGE_IMAGES (12)
@@ -34,6 +39,7 @@ typedef enum binocle_pixel_format {
   BINOCLE_PIXEL_FORMAT_RGB,
   BINOCLE_PIXEL_FORMAT_RGBA,
   BINOCLE_PIXEL_FORMAT_RGBA8,
+  BINOCLE_PIXEL_FORMAT_BGRA8,
   BINOCLE_PIXEL_FORMAT_DEPTH,
   BINOCLE_PIXEL_FORMAT_DEPTH_STENCIL,
   BINOCLE_PIXEL_FORMAT_NUM,
@@ -324,11 +330,12 @@ typedef struct binocle_context_desc {
 
 typedef struct binocle_backend_desc {
   uint32_t buffer_pool_size;
+  uint32_t render_target_pool_size;
   uint32_t image_pool_size;
   uint32_t shader_pool_size;
   uint32_t uniform_buffer_size;
   uint32_t sampler_cache_size;
-  binocle_context_desc ctx;
+  binocle_context_desc context;
 } binocle_backend_desc;
 
 #endif // BINOCLE_BINOCLE_BACKEND_TYPES_H

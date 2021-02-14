@@ -19,7 +19,7 @@
 #define BINOCLE_INVALID_ID (0)
 #define BINOCLE_SLOT_SHIFT 16
 #define BINOCLE_SLOT_MASK (1<<BINOCLE_SLOT_SHIFT)-1
-
+#define BINOCLE_MAX_POOL_SIZE (1<<BINOCLE_SLOT_SHIFT)
 
 /*
     binocle_resource_state

@@ -34,9 +34,16 @@ typedef struct binocle_mtl_image {
 } binocle_mtl_image;
 typedef binocle_mtl_image binocle_image_t;
 
+typedef struct binocle_mtl_shader_stage_t {
+  uint32_t mtl_lib;
+  uint32_t mtl_func;
+} binocle_mtl_shader_stage_t;
+
 typedef struct binocle_mtl_shader {
   binocle_slot_t slot;
+  binocle_shader_common_t cmn;
   struct {
+    binocle_mtl_shader_stage_t stage[BINOCLE_NUM_SHADER_STAGES];
   } mtl;
 } binocle_mtl_shader;
 typedef binocle_mtl_shader binocle_shader_t;
@@ -91,5 +98,9 @@ binocle_resource_state
 binocle_backend_mtl_create_image(binocle_mtl_backend_t *mtl, binocle_image_t *img,
                                  const binocle_image_desc *desc);
 void binocle_backend_mtl_destroy_image(binocle_mtl_backend_t *mtl, binocle_image_t *img);
-
+binocle_resource_state
+binocle_backend_mtl_create_shader(binocle_mtl_backend_t *mtl, binocle_shader_t *shd,
+                                  const binocle_shader_desc *desc);
+void binocle_backend_mtl_destroy_shader(binocle_mtl_backend_t *mtl,
+                                        binocle_shader_t *shd);
 #endif // BINOCLE_BACKEND_METAL_H

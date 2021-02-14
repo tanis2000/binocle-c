@@ -28,10 +28,10 @@ void binocle_gd_init(binocle_gd *gd, binocle_window *win) {
   };
 #elif defined(BINOCLE_METAL)
   binocle_backend_desc desc = {
-    .ctx.mtl = win->mtl_view
+    .context.mtl = win->mtl_view
   };
 #endif
-  binocle_backend_init(&desc);
+  binocle_backend_setup(&desc);
 }
 
 void binocle_gd_draw(binocle_gd *gd, const struct binocle_vpct *vertices, size_t vertex_count, binocle_material material,

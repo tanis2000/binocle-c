@@ -28,7 +28,9 @@ typedef struct binocle_pools_t {
 } binocle_pools_t;
 
 typedef struct binocle_backend_t {
+  bool valid;
   binocle_backend_desc desc;       /* original desc with default values patched in */
+  uint32_t frame_index;
   binocle_pools_t pools;
   binocle_pixelformat_info formats[BINOCLE_PIXEL_FORMAT_NUM];
 #if defined(BINOCLE_GL)
@@ -80,22 +82,26 @@ int binocle_backend_uniform_size(binocle_uniform_type type, int count) {
   }
 }
 
-void binocle_backend_setup_pools(binocle_pools_t *pools) {
+void binocle_backend_setup_pools(binocle_pools_t *pools, const binocle_backend_desc* desc) {
   assert(pools);
+  assert(desc);
   /* note: the pools here will have an additional item, since slot 0 is reserved */
-  binocle_pool_init(&pools->render_target_pool, 128);
+  assert((desc->render_target_pool_size > 0) && (desc->render_target_pool_size < BINOCLE_MAX_POOL_SIZE));
+  binocle_pool_init(&pools->render_target_pool, desc->render_target_pool_size);
   size_t render_target_pool_byte_size = sizeof(binocle_render_target_t) * pools->render_target_pool.size;
   pools->render_targets = (binocle_render_target_t*) malloc(render_target_pool_byte_size);
   assert(pools->render_targets);
   memset(pools->render_targets, 0, render_target_pool_byte_size);
 
-  binocle_pool_init(&pools->image_pool, 128);
+  assert((desc->image_pool_size > 0) && (desc->image_pool_size < BINOCLE_MAX_POOL_SIZE));
+  binocle_pool_init(&pools->image_pool, desc->image_pool_size);
   size_t image_pool_byte_size = sizeof(binocle_image_t) * pools->image_pool.size;
   pools->images = (binocle_image_t*) malloc(image_pool_byte_size);
   assert(pools->images);
   memset(pools->images, 0, image_pool_byte_size);
 
-  binocle_pool_init(&pools->shader_pool, 128);
+  assert((desc->shader_pool_size > 0) && (desc->shader_pool_size < BINOCLE_MAX_POOL_SIZE));
+  binocle_pool_init(&pools->shader_pool, desc->shader_pool_size);
   size_t shader_pool_byte_size = sizeof(binocle_shader_t) * pools->shader_pool.size;
   pools->shaders = (binocle_shader_t*) malloc(shader_pool_byte_size);
   assert(pools->shaders);
@@ -191,6 +197,7 @@ binocle_resource_state binocle_backend_create_render_target_t(binocle_render_tar
 #if defined(BINOCLE_GL)
   return binocle_backend_gl_create_render_target(rt, desc->width, desc->height, desc->use_depth, desc->format);
 #elif defined(BINOCLE_METAL)
+  return BINOCLE_RESOURCESTATE_INVALID;
   #else
 #error("no backend defined")
 #endif
@@ -251,8 +258,8 @@ binocle_image_desc binocle_backend_image_desc_defaults(const binocle_image_desc*
   def.num_mipmaps = BINOCLE_DEF(def.num_mipmaps, 1);
   def.usage = BINOCLE_DEF(def.usage, BINOCLE_USAGE_IMMUTABLE);
   if (desc->render_target) {
-    def.pixel_format = BINOCLE_DEF(def.pixel_format, backend.desc.ctx.color_format);
-    def.sample_count = BINOCLE_DEF(def.sample_count, backend.desc.ctx.sample_count);
+    def.pixel_format = BINOCLE_DEF(def.pixel_format, backend.desc.context.color_format);
+    def.sample_count = BINOCLE_DEF(def.sample_count, backend.desc.context.sample_count);
   } else {
     def.pixel_format = BINOCLE_DEF(def.pixel_format, BINOCLE_PIXEL_FORMAT_RGBA8);
     def.sample_count = BINOCLE_DEF(def.sample_count, 1);
@@ -597,8 +604,7 @@ void binocle_backend_destroy_shader(binocle_shader sha) {
   }
 }
 
-void binocle_backend_init(binocle_backend_desc *desc) {
-  binocle_backend_setup_pools(&backend.pools);
+void binocle_backend_setup_backend(binocle_backend_desc *desc) {
 #if defined(BINOCLE_GL)
   // TODO: move this somewhere else
   backend.formats[BINOCLE_PIXEL_FORMAT_RGB].render = true;
@@ -614,6 +620,37 @@ void binocle_backend_init(binocle_backend_desc *desc) {
 #else
 #error("no backend defined")
 #endif
+}
+
+void binocle_backend_setup(const binocle_backend_desc* desc) {
+  assert(desc);
+  backend = (binocle_backend_t){ 0 };
+  backend.desc = *desc;
+
+#if defined(BINOCLE_METAL)
+  backend.desc.context.color_format = BINOCLE_DEF(backend.desc.context.color_format, BINOCLE_PIXEL_FORMAT_BGRA8);
+#else
+  backend.desc.context.color_format = BINOCLE_DEF(backend.desc.context.color_format, BINOCLE_PIXEL_FORMAT_RGBA8);
+#endif
+  backend.desc.context.depth_format = BINOCLE_DEF(backend.desc.context.depth_format, BINOCLE_PIXEL_FORMAT_DEPTH_STENCIL);
+  backend.desc.context.sample_count = BINOCLE_DEF(backend.desc.context.sample_count, 1);
+  backend.desc.buffer_pool_size = BINOCLE_DEF(backend.desc.buffer_pool_size, BINOCLE_DEFAULT_BUFFER_POOL_SIZE);
+  backend.desc.render_target_pool_size = BINOCLE_DEF(backend.desc.render_target_pool_size, BINOCLE_DEFAULT_RENDER_TARGET_POOL_SIZE);
+  backend.desc.image_pool_size = BINOCLE_DEF(backend.desc.image_pool_size, BINOCLE_DEFAULT_IMAGE_POOL_SIZE);
+  backend.desc.shader_pool_size = BINOCLE_DEF(backend.desc.shader_pool_size, BINOCLE_DEFAULT_SHADER_POOL_SIZE);
+  //backend.desc.pipeline_pool_size = BINOCLE_DEF(backend.desc.pipeline_pool_size, BINOCLE_DEFAULT_PIPELINE_POOL_SIZE);
+  //backend.desc.pass_pool_size = BINOCLE_DEF(backend.desc.pass_pool_size, BINOCLE_DEFAULT_PASS_POOL_SIZE);
+  //backend.desc.context_pool_size = BINOCLE_DEF(backend.desc.context_pool_size, BINOCLE_DEFAULT_CONTEXT_POOL_SIZE);
+  backend.desc.uniform_buffer_size = BINOCLE_DEF(backend.desc.uniform_buffer_size, BINOCLE_DEFAULT_UB_SIZE);
+  //backend.desc.staging_buffer_size = BINOCLE_DEF(backend.desc.staging_buffer_size, BINOCLE_DEFAULT_STAGING_SIZE);
+  backend.desc.sampler_cache_size = BINOCLE_DEF(backend.desc.sampler_cache_size, BINOCLE_DEFAULT_SAMPLER_CACHE_CAPACITY);
+
+  binocle_backend_setup_pools(&backend.pools, &backend.desc);
+  backend.frame_index = 1;
+  binocle_backend_setup_backend(&backend.desc);
+  backend.valid = true;
+  // Not yet using this as we work with just one context for the time being
+  //binocle_backend_setup_context();
 }
 
 void binocle_backend_apply_default_state() {

@@ -45,7 +45,7 @@ typedef struct binocle_image_info {
   int height;                     /* image height */
 } binocle_image_info;
 
-void binocle_backend_init(binocle_backend_desc *desc);
+void binocle_backend_setup(const binocle_backend_desc* desc);
 void binocle_backend_apply_default_state();
 void binocle_backend_apply_viewport(uint32_t x, uint32_t y, uint32_t w, uint32_t h);
 void binocle_backend_apply_blend_mode(struct binocle_blend blend_mode);

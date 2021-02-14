@@ -7,6 +7,7 @@
 #include "binocle_backend_metal.h"
 #import <QuartzCore/CAMetalLayer.h>
 #include "binocle_sampler_cache.h"
+#include "binocle_backend.h"
 #include "../binocle_log.h"
 
 MTLSamplerAddressMode binocle_backend_mtl_address_mode(binocle_wrap w) {
@@ -283,7 +284,7 @@ void binocle_backend_mtl_init(binocle_mtl_backend_t *mtl, binocle_backend_desc *
   mtl->ub_size = desc->uniform_buffer_size;
   mtl->sem = dispatch_semaphore_create(BINOCLE_NUM_INFLIGHT_FRAMES);
 
-  NSView *view = (__bridge NSView *)desc->ctx.mtl.mtl_view;
+  NSView *view = (__bridge NSView *)desc->context.mtl.mtl_view;
   CAMetalLayer *metal_layer = (CAMetalLayer *)view.layer;
 
   mtl->device = MTLCreateSystemDefaultDevice();
@@ -481,4 +482,100 @@ void binocle_backend_mtl_destroy_image(binocle_mtl_backend_t *mtl, binocle_image
   binocle_backend_mtl_release_resource(mtl, mtl->frame_index, img->mtl.depth_tex);
   binocle_backend_mtl_release_resource(mtl, mtl->frame_index, img->mtl.msaa_tex);
   /* NOTE: sampler state objects are shared and not released until shutdown */
+}
+
+id<MTLLibrary> binocle_backend_mtl_compile_library(binocle_mtl_backend_t *mtl, const char* src) {
+  NSError* err = NULL;
+  id<MTLLibrary> lib = [mtl->device
+    newLibraryWithSource:[NSString stringWithUTF8String:src]
+                 options:nil
+                   error:&err
+  ];
+  if (err) {
+    binocle_log_error([err.localizedDescription UTF8String]);
+  }
+  return lib;
+}
+
+id<MTLLibrary> binocle_backend_mtl_library_from_bytecode(binocle_mtl_backend_t *mtl, const uint8_t* ptr, int num_bytes) {
+  NSError* err = NULL;
+  dispatch_data_t lib_data = dispatch_data_create(ptr, num_bytes, NULL, DISPATCH_DATA_DESTRUCTOR_DEFAULT);
+  id<MTLLibrary> lib = [mtl->device newLibraryWithData:lib_data error:&err];
+  if (err) {
+    binocle_log_error([err.localizedDescription UTF8String]);
+  }
+  lib_data = nil;
+  return lib;
+}
+
+binocle_resource_state
+binocle_backend_mtl_create_shader(binocle_mtl_backend_t *mtl, binocle_shader_t *shd,
+                                  const binocle_shader_desc *desc) {
+  assert(shd && desc);
+
+  binocle_backend_shader_common_init(&shd->cmn, desc);
+
+  /* create metal libray objects and lookup entry functions */
+  id<MTLLibrary> vs_lib;
+  id<MTLLibrary> fs_lib;
+  id<MTLFunction> vs_func;
+  id<MTLFunction> fs_func;
+  const char *vs_entry = desc->vs.entry;
+  const char *fs_entry = desc->fs.entry;
+  if (desc->vs.byte_code && desc->fs.byte_code) {
+    /* separate byte code provided */
+    vs_lib = binocle_backend_mtl_library_from_bytecode(mtl, desc->vs.byte_code,
+                                           desc->vs.byte_code_size);
+    fs_lib = binocle_backend_mtl_library_from_bytecode(mtl, desc->fs.byte_code,
+                                           desc->fs.byte_code_size);
+    if (nil == vs_lib || nil == fs_lib) {
+      return BINOCLE_RESOURCESTATE_FAILED;
+    }
+    vs_func =
+      [vs_lib newFunctionWithName:[NSString stringWithUTF8String:vs_entry]];
+    fs_func =
+      [fs_lib newFunctionWithName:[NSString stringWithUTF8String:fs_entry]];
+  } else if (desc->vs.source && desc->fs.source) {
+    /* separate sources provided */
+    vs_lib = binocle_backend_mtl_compile_library(mtl, desc->vs.source);
+    fs_lib = binocle_backend_mtl_compile_library(mtl, desc->fs.source);
+    if (nil == vs_lib || nil == fs_lib) {
+      return BINOCLE_RESOURCESTATE_FAILED;
+    }
+    vs_func =
+      [vs_lib newFunctionWithName:[NSString stringWithUTF8String:vs_entry]];
+    fs_func =
+      [fs_lib newFunctionWithName:[NSString stringWithUTF8String:fs_entry]];
+  } else {
+    return BINOCLE_RESOURCESTATE_FAILED;
+  }
+  if (nil == vs_func) {
+    binocle_log_error("vertex shader entry function not found\n");
+    return BINOCLE_RESOURCESTATE_FAILED;
+  }
+  if (nil == fs_func) {
+    binocle_log_error("fragment shader entry function not found\n");
+    return BINOCLE_RESOURCESTATE_FAILED;
+  }
+  /* it is legal to call _sg_mtl_add_resource with a nil value, this will return
+   * a special 0xFFFFFFFF index */
+  shd->mtl.stage[BINOCLE_SHADERSTAGE_VS].mtl_lib = binocle_backend_mtl_add_resource(mtl, vs_lib);
+  shd->mtl.stage[BINOCLE_SHADERSTAGE_FS].mtl_lib = binocle_backend_mtl_add_resource(mtl, fs_lib);
+  shd->mtl.stage[BINOCLE_SHADERSTAGE_VS].mtl_func = binocle_backend_mtl_add_resource(mtl, vs_func);
+  shd->mtl.stage[BINOCLE_SHADERSTAGE_FS].mtl_func = binocle_backend_mtl_add_resource(mtl, fs_func);
+  return BINOCLE_RESOURCESTATE_VALID;
+}
+
+void binocle_backend_mtl_destroy_shader(binocle_mtl_backend_t *mtl,
+                                        binocle_shader_t *shd) {
+  assert(shd);
+  /* it is valid to call _sg_mtl_release_resource with a 'null resource' */
+  binocle_backend_mtl_release_resource(
+    mtl, mtl->frame_index, shd->mtl.stage[BINOCLE_SHADERSTAGE_VS].mtl_func);
+  binocle_backend_mtl_release_resource(
+    mtl, mtl->frame_index, shd->mtl.stage[BINOCLE_SHADERSTAGE_VS].mtl_lib);
+  binocle_backend_mtl_release_resource(
+    mtl, mtl->frame_index, shd->mtl.stage[BINOCLE_SHADERSTAGE_FS].mtl_func);
+  binocle_backend_mtl_release_resource(
+    mtl, mtl->frame_index, shd->mtl.stage[BINOCLE_SHADERSTAGE_FS].mtl_lib);
 }

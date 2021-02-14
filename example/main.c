@@ -35,6 +35,11 @@
 #define DESIGN_WIDTH 320
 #define DESIGN_HEIGHT 240
 
+#if defined(BINOCLE_MACOS) && defined(BINOCLE_METAL)
+#include "../../assets/metal/default-metal-macosx.h"
+#include "../../assets/metal/screen-metal-macosx.h"
+#endif
+
 typedef struct default_shader_params_t {
   float projectionMatrix[16];
   float modelMatrix[16];
@@ -446,7 +451,12 @@ int main(int argc, char *argv[])
   binocle_sdl_load_text_file(frag, &shader_fs_src, &shader_fs_src_size);
 
   binocle_shader_desc shader_desc = {
+#ifdef BINOCLE_GL
     .vs.source = shader_vs_src,
+#else
+    .vs.byte_code = default_vs_bytecode,
+    .vs.byte_code_size = sizeof(default_vs_bytecode),
+#endif
     .vs.uniform_blocks[0] = {
       .size = sizeof(default_shader_params_t),
       .uniforms = {
@@ -455,7 +465,12 @@ int main(int argc, char *argv[])
         [2] = { .name = "modelMatrix", .type = BINOCLE_UNIFORMTYPE_MAT4},
       }
     },
+#ifdef BINOCLE_GL
     .fs.source = shader_fs_src,
+#else
+    .fs.byte_code = default_fs_bytecode,
+    .fs.byte_code_size = sizeof(default_fs_bytecode),
+#endif
     .fs.images[0] = { .name = "tex0", .type = BINOCLE_IMAGETYPE_2D}
   };
   binocle_shader shader = binocle_backend_make_shader(&shader_desc);
@@ -473,14 +488,24 @@ int main(int argc, char *argv[])
   binocle_sdl_load_text_file(frag, &screen_shader_fs_src, &screen_shader_fs_src_size);
 
   binocle_shader_desc screen_shader_desc = {
+#ifdef BINOCLE_GL
     .vs.source = screen_shader_vs_src,
+#else
+    .vs.byte_code = screen_vs_bytecode,
+    .vs.byte_code_size = sizeof(screen_vs_bytecode),
+#endif
     .vs.uniform_blocks[0] = {
       .size = sizeof(screen_shader_vs_params_t),
       .uniforms = {
         [0] = { .name = "transform", .type = BINOCLE_UNIFORMTYPE_MAT4},
       },
     },
+#ifdef BINOCLE_GL
     .fs.source = screen_shader_fs_src,
+#else
+    .fs.byte_code = screen_fs_bytecode,
+    .fs.byte_code_size = sizeof(screen_fs_bytecode),
+#endif
     .fs.images[0] = { .name = "texture", .type = BINOCLE_IMAGETYPE_2D},
     .fs.uniform_blocks[0] = {
       .size = sizeof(screen_shader_fs_params_t),
