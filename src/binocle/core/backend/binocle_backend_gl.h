@@ -42,6 +42,7 @@ typedef struct binocle_gl_image {
     GLuint msaa_render_buffer;
     GLuint tex[BINOCLE_NUM_INFLIGHT_FRAMES];
     bool ext_textures;  /* if true, external textures were injected with sg_image_desc.gl_textures */
+    GLuint frame_buffer; // TODO: remove this if we implement render passes as it would belong there
   } gl;
 } binocle_gl_image;
 typedef binocle_gl_image binocle_image_t;
@@ -203,12 +204,12 @@ void binocle_backend_gl_draw(binocle_gl_backend_t *gl, const struct binocle_vpct
 
 binocle_resource_state binocle_backend_gl_create_render_target(binocle_render_target_t *rt, uint32_t width, uint32_t height, bool use_depth, binocle_pixel_format format);
 void binocle_backend_gl_destroy_render_target(binocle_render_target_t *render_target);
-void binocle_backend_gl_set_render_target(binocle_render_target_t *render_target);
+void binocle_backend_gl_set_render_target(binocle_image_t *render_target);
 void binocle_backend_gl_clear(struct binocle_color color);
 void binocle_backend_gl_set_uniform_float2(binocle_gl_shader *shader, const char *name, float value1, float value2);
 void binocle_backend_gl_set_uniform_mat4(binocle_gl_shader *shader, const char *name, struct kmMat4 mat);
 void binocle_backend_gl_draw_quad_to_screen(
-  binocle_gl_shader *shader, binocle_render_target_t *render_target);
+  binocle_gl_shader *shader, binocle_image_t *render_target);
 binocle_resource_state
 binocle_backend_gl_create_image(binocle_gl_backend_t *gl, binocle_image_t *img,
                                 const binocle_image_desc *desc);

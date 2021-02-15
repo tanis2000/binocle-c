@@ -101,20 +101,6 @@ void binocle_gd_apply_3d_texture(binocle_material *material) {
   binocle_backend_apply_3d_texture(material);
 }
 
-binocle_render_target binocle_gd_create_render_target(uint32_t width, uint32_t height, bool use_depth, binocle_pixel_format format) {
-  binocle_render_target_desc desc = {
-    .width = width,
-    .height = height,
-    .use_depth = use_depth,
-    .format = format
-  };
-  return binocle_backend_create_render_target(&desc);
-}
-
-void binocle_gd_destroy_render_target(binocle_render_target render_target) {
-  binocle_backend_destroy_render_target(render_target);
-}
-
 void binocle_gd_set_uniform_float(struct binocle_shader *shader, const char *name, float value) {
 //  GLint id = 0;
 //  glCheck(id = glGetUniformLocation(shader->program_id, name));
@@ -153,7 +139,7 @@ binocle_gd_set_uniform_float4(struct binocle_shader *shader, const char *name, f
 }
 
 void binocle_gd_set_uniform_render_target_as_texture(struct binocle_shader *shader, const char *name,
-                                                     binocle_render_target render_target) {
+                                                     binocle_image render_target) {
 //  GLint id = 0;
 //  glCheck(id = glGetUniformLocation(shader->program_id, name));
 //  if (id == -1) {
@@ -183,7 +169,7 @@ void binocle_gd_clear(struct binocle_color color) {
   binocle_backend_clear(color);
 }
 
-void binocle_gd_set_render_target(binocle_render_target *render_target) {
+void binocle_gd_set_render_target(binocle_image render_target) {
   binocle_backend_set_render_target(render_target);
 }
 
@@ -212,7 +198,7 @@ void binocle_gd_draw_quad(struct binocle_shader *shader) {
 //  glCheck(glDeleteBuffers(1, &quad_vertexbuffer));
 }
 
-void binocle_gd_draw_quad_to_screen(binocle_shader shader, binocle_render_target *render_target) {
+void binocle_gd_draw_quad_to_screen(binocle_shader shader, binocle_image render_target) {
   binocle_backend_draw_quad_to_screen(shader, render_target);
 }
 

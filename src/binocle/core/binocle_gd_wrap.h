@@ -14,7 +14,7 @@ typedef struct l_binocle_gd_t {
 } l_binocle_gd_t;
 
 typedef struct l_binocle_render_target_t {
-  binocle_render_target rt;
+  binocle_image rt;
 } l_binocle_render_target_t;
 
 int luaopen_gd(lua_State *L);

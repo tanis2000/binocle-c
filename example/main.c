@@ -82,7 +82,7 @@ binocle_app app;
 struct binocle_wren_t *wren;
 WrenHandle* gameClass;
 WrenHandle* method;
-binocle_render_target render_target;
+binocle_image render_target;
 binocle_shader screen_shader;
 
 #if defined(__APPLE__) && !defined(__IPHONEOS__)
@@ -190,7 +190,7 @@ void main_loop() {
 
 
   // Set the render target we will draw to
-  binocle_gd_set_render_target(&render_target);
+  binocle_backend_set_render_target(render_target);
 
   // Clear the render target
   binocle_gd_clear(binocle_color_azure());
@@ -232,7 +232,7 @@ void main_loop() {
   float vp_x = vp.min.x;
   float vp_y = vp.min.y;
   // Reset the render target to the screen
-  binocle_gd_set_render_target(NULL);
+  binocle_backend_unset_render_target();
   // Clear the screen with an azure
   binocle_gd_clear(binocle_color_black());
   binocle_gd_apply_viewport(vp);
@@ -242,7 +242,7 @@ void main_loop() {
   binocle_gd_set_uniform_mat4(screen_shader, "transform", view_matrix);
   binocle_gd_set_uniform_float2(screen_shader, "scale", adapter->inverse_multiplier, adapter->inverse_multiplier);
   binocle_gd_set_uniform_float2(screen_shader, "viewport", vp_x, vp_y);
-  binocle_gd_draw_quad_to_screen(screen_shader, &render_target);
+  binocle_gd_draw_quad_to_screen(screen_shader, render_target);
 
   binocle_window_refresh(window);
   binocle_window_end_frame(window);
@@ -609,7 +609,14 @@ int main(int argc, char *argv[])
   setup_world();
 #endif
 
-  render_target = binocle_gd_create_render_target(DESIGN_WIDTH, DESIGN_HEIGHT, true, BINOCLE_PIXEL_FORMAT_RGBA);
+  binocle_image_desc rt_desc = {
+    .render_target = true,
+    .width = DESIGN_WIDTH,
+    .height = DESIGN_HEIGHT,
+    .pixel_format = BINOCLE_PIXEL_FORMAT_RGBA,
+    .sample_count = 1,
+  };
+  render_target = binocle_backend_make_image(&rt_desc);
 
   running_time = 0;
 #ifdef GAMELOOP

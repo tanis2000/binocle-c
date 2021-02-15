@@ -26,25 +26,26 @@ int l_binocle_gd_init(lua_State *L) {
 }
 
 int l_binocle_gd_create_render_target(lua_State *L) {
-  int width = luaL_checkint(L, 1);
-  int height = luaL_checkint(L, 2);
-  bool use_depth = lua_toboolean(L, 3);
-  int format = luaL_checkint(L, 4);
-  l_binocle_render_target_t *rt = lua_newuserdata(L, sizeof(l_binocle_render_target_t));
-  lua_getfield(L, LUA_REGISTRYINDEX, "binocle_render_target");
-  lua_setmetatable(L, -2);
-  SDL_memset(rt, 0, sizeof(*rt));
-  binocle_render_target render_target = binocle_gd_create_render_target(width, height, use_depth, format);
-  rt->rt = render_target;
+  // TODO: redo this
+//  int width = luaL_checkint(L, 1);
+//  int height = luaL_checkint(L, 2);
+//  bool use_depth = lua_toboolean(L, 3);
+//  int format = luaL_checkint(L, 4);
+//  l_binocle_render_target_t *rt = lua_newuserdata(L, sizeof(l_binocle_render_target_t));
+//  lua_getfield(L, LUA_REGISTRYINDEX, "binocle_render_target");
+//  lua_setmetatable(L, -2);
+//  SDL_memset(rt, 0, sizeof(*rt));
+//  binocle_image render_target = binocle_backend_create_render_target(width, height, use_depth, format);
+//  rt->rt = render_target;
   return 1;
 }
 
 int l_binocle_gd_set_render_target(lua_State *L) {
   if (lua_isnil(L, 1)) {
-    binocle_gd_set_render_target(NULL);
+    binocle_backend_unset_render_target();
   } else {
     l_binocle_render_target_t *render_target = luaL_checkudata(L, 1, "binocle_render_target");
-    binocle_gd_set_render_target(&render_target->rt);
+    binocle_gd_set_render_target(render_target->rt);
   }
   return 0;
 }
@@ -82,8 +83,8 @@ int l_binocle_gd_set_uniform_mat4(lua_State *L) {
 
 int l_binocle_gd_draw_quad_to_screen(lua_State *L) {
   binocle_shader **shader = luaL_checkudata(L, 1, "binocle_shader");
-  binocle_render_target **rt = luaL_checkudata(L, 2, "binocle_render_target");
-  binocle_gd_draw_quad_to_screen(**shader, *rt);
+  binocle_image **rt = luaL_checkudata(L, 2, "binocle_render_target");
+  binocle_gd_draw_quad_to_screen(**shader, **rt);
   return 0;
 }
 

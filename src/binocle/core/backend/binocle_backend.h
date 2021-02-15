@@ -19,16 +19,8 @@
 
 struct binocle_material;
 
-typedef struct binocle_render_target { uint32_t id; } binocle_render_target;
 typedef struct binocle_image { uint32_t id; } binocle_image;
 typedef struct binocle_shader { uint32_t id; } binocle_shader;
-
-typedef struct binocle_render_target_desc {
-  uint32_t width;
-  uint32_t height;
-  bool use_depth;
-  binocle_pixel_format format;
-} binocle_render_target_desc;
 
 typedef struct binocle_slot_info {
   binocle_resource_state state;    /* the current state of this resource slot */
@@ -54,13 +46,12 @@ void binocle_backend_apply_texture(binocle_image texture);
 void binocle_backend_apply_3d_texture(struct binocle_material *material);
 void binocle_backend_draw(const struct binocle_vpct *vertices, size_t vertex_count, struct binocle_material material,
                           struct kmAABB2 viewport, struct kmMat4 *cameraTransformMatrix);
-binocle_render_target binocle_backend_create_render_target(binocle_render_target_desc *desc);
-void binocle_backend_destroy_render_target(binocle_render_target rt);
-void binocle_backend_set_render_target(binocle_render_target *rt);
+void binocle_backend_set_render_target(binocle_image rt);
+void binocle_backend_unset_render_target();
 void binocle_backend_clear(struct binocle_color color);
 void binocle_backend_set_uniform_float2(binocle_shader shader, const char *name, float value1, float value2);
 void binocle_backend_set_uniform_mat4(binocle_shader shader, const char *name, struct kmMat4 mat);
-void binocle_backend_draw_quad_to_screen(binocle_shader shader, binocle_render_target *rt);
+void binocle_backend_draw_quad_to_screen(binocle_shader shader, binocle_image rt);
 binocle_image binocle_backend_make_image(const binocle_image_desc* desc);
 void binocle_backend_destroy_image(binocle_image img);
 binocle_image_info binocle_backend_query_image_info(binocle_image img_id);

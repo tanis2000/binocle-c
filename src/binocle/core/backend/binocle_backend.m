@@ -17,9 +17,6 @@
 #endif
 
 typedef struct binocle_pools_t {
-  binocle_pool_t render_target_pool;
-  binocle_render_target_t* render_targets;
-
   binocle_pool_t image_pool;
   binocle_image_t* images;
 
@@ -86,13 +83,6 @@ void binocle_backend_setup_pools(binocle_pools_t *pools, const binocle_backend_d
   assert(pools);
   assert(desc);
   /* note: the pools here will have an additional item, since slot 0 is reserved */
-  assert((desc->render_target_pool_size > 0) && (desc->render_target_pool_size < BINOCLE_MAX_POOL_SIZE));
-  binocle_pool_init(&pools->render_target_pool, desc->render_target_pool_size);
-  size_t render_target_pool_byte_size = sizeof(binocle_render_target_t) * pools->render_target_pool.size;
-  pools->render_targets = (binocle_render_target_t*) malloc(render_target_pool_byte_size);
-  assert(pools->render_targets);
-  memset(pools->render_targets, 0, render_target_pool_byte_size);
-
   assert((desc->image_pool_size > 0) && (desc->image_pool_size < BINOCLE_MAX_POOL_SIZE));
   binocle_pool_init(&pools->image_pool, desc->image_pool_size);
   size_t image_pool_byte_size = sizeof(binocle_image_t) * pools->image_pool.size;
@@ -110,9 +100,6 @@ void binocle_backend_setup_pools(binocle_pools_t *pools, const binocle_backend_d
 
 void binocle_backend_discard_pools(binocle_pools_t *p) {
   assert(p);
-  free(p->render_targets);
-  p->render_targets = 0;
-  binocle_pool_discard(&p->render_target_pool);
 
   free(p->images);
   p->images = 0;
@@ -125,13 +112,6 @@ void binocle_backend_discard_pools(binocle_pools_t *p) {
 
 
 /* returns pointer to resource by id without matching id check */
-binocle_render_target_t* binocle_render_target_at(const binocle_pools_t* p, uint32_t rt_id) {
-  assert(p && (BINOCLE_INVALID_ID != rt_id));
-  int slot_index = binocle_pool_slot_index(rt_id);
-  assert((slot_index > BINOCLE_POOL_INVALID_SLOT_INDEX) && (slot_index < p->render_target_pool.size));
-  return &p->render_targets[slot_index];
-}
-
 binocle_image_t* binocle_image_at(const binocle_pools_t* p, uint32_t rt_id) {
   assert(p && (BINOCLE_INVALID_ID != rt_id));
   int slot_index = binocle_pool_slot_index(rt_id);
@@ -147,16 +127,6 @@ binocle_shader_t* binocle_shader_at(const binocle_pools_t* p, uint32_t rt_id) {
 }
 
 /* returns pointer to resource with matching id check, may return 0 */
-binocle_render_target_t* binocle_backend_lookup_render_target(const binocle_pools_t* p, uint32_t rt_id) {
-  if (BINOCLE_INVALID_ID != rt_id) {
-    binocle_render_target_t* rt = binocle_render_target_at(p, rt_id);
-    if (rt->slot.id == rt_id) {
-      return rt;
-    }
-  }
-  return 0;
-}
-
 binocle_image_t* binocle_backend_lookup_image(const binocle_pools_t* p, uint32_t img_id) {
   if (BINOCLE_INVALID_ID != img_id) {
     binocle_image_t* img = binocle_image_at(p, img_id);
@@ -178,11 +148,6 @@ binocle_shader_t* binocle_backend_lookup_shader(const binocle_pools_t* p, uint32
 }
 
 
-void binocle_backend_reset_render_target(binocle_render_target_t* rt) {
-  assert(rt);
-  memset(rt, 0, sizeof(binocle_render_target_t));
-}
-
 void binocle_backend_reset_image(binocle_image_t* img) {
   assert(img);
   memset(img, 0, sizeof(binocle_image_t));
@@ -191,64 +156,6 @@ void binocle_backend_reset_image(binocle_image_t* img) {
 void binocle_backend_reset_shader(binocle_shader_t* sha) {
   assert(sha);
   memset(sha, 0, sizeof(binocle_shader_t));
-}
-
-binocle_resource_state binocle_backend_create_render_target_t(binocle_render_target_t *rt, binocle_render_target_desc *desc) {
-#if defined(BINOCLE_GL)
-  return binocle_backend_gl_create_render_target(rt, desc->width, desc->height, desc->use_depth, desc->format);
-#elif defined(BINOCLE_METAL)
-  return BINOCLE_RESOURCESTATE_INVALID;
-  #else
-#error("no backend defined")
-#endif
-}
-
-void binocle_backend_destroy_render_target_t(binocle_render_target_t* rt) {
-#if defined(BINOCLE_GL)
-  binocle_backend_gl_destroy_render_target(rt);
-#elif defined(BINOCLE_METAL)
-  #else
-#error("no backend defined")
-#endif
-}
-
-void binocle_backend_destroy_all_resources(binocle_pools_t* p, uint32_t ctx_id) {
-  /*  this is a bit dumb since it loops over all pool slots to
-      find the occupied slots, on the other hand it is only ever
-      executed at shutdown
-      NOTE: ONLY EXECUTE THIS AT SHUTDOWN
-            ...because the free queues will not be reset
-            and the resource slots not be cleared!
-  */
-  for (int i = 1; i < p->render_target_pool.size; i++) {
-    if (p->render_targets[i].slot.ctx_id == ctx_id) {
-      binocle_resource_state state = p->render_targets[i].slot.state;
-      if ((state == BINOCLE_RESOURCESTATE_VALID) || (state == BINOCLE_RESOURCESTATE_FAILED)) {
-        binocle_backend_destroy_render_target_t(&p->render_targets[i]);
-      }
-    }
-  }
-}
-
-binocle_render_target binocle_backend_alloc_render_target(void) {
-  binocle_render_target res;
-  int slot_index = binocle_pool_alloc_index(&backend.pools.render_target_pool);
-  if (BINOCLE_POOL_INVALID_SLOT_INDEX != slot_index) {
-    res.id = binocle_pool_slot_alloc(&backend.pools.render_target_pool, &backend.pools.render_targets[slot_index].slot, slot_index);
-  }
-  else {
-    /* pool is exhausted */
-    res.id = BINOCLE_INVALID_ID;
-  }
-  return res;
-}
-
-void binocle_backend_init_render_target(binocle_render_target rt_id, binocle_render_target_desc *desc) {
-  assert(rt_id.id != BINOCLE_INVALID_ID);
-  binocle_render_target_t* img = binocle_backend_lookup_render_target(&backend.pools, rt_id.id);
-  assert(img && img->slot.state == BINOCLE_RESOURCESTATE_ALLOC);
-  img->slot.state = binocle_backend_create_render_target_t(img, desc);
-  assert((img->slot.state == BINOCLE_RESOURCESTATE_VALID)||(img->slot.state == BINOCLE_RESOURCESTATE_FAILED));
 }
 
 binocle_image_desc binocle_backend_image_desc_defaults(const binocle_image_desc* desc) {
@@ -604,6 +511,33 @@ void binocle_backend_destroy_shader(binocle_shader sha) {
   }
 }
 
+void binocle_backend_destroy_all_resources(binocle_pools_t* p, uint32_t ctx_id) {
+  /*  this is a bit dumb since it loops over all pool slots to
+      find the occupied slots, on the other hand it is only ever
+      executed at shutdown
+      NOTE: ONLY EXECUTE THIS AT SHUTDOWN
+            ...because the free queues will not be reset
+            and the resource slots not be cleared!
+  */
+  for (int i = 1; i < p->image_pool.size; i++) {
+    if (p->images[i].slot.ctx_id == ctx_id) {
+      binocle_resource_state state = p->images[i].slot.state;
+      if ((state == BINOCLE_RESOURCESTATE_VALID) || (state == BINOCLE_RESOURCESTATE_FAILED)) {
+        binocle_backend_destroy_image_t(&p->images[i]);
+      }
+    }
+  }
+
+  for (int i = 1; i < p->shader_pool.size; i++) {
+    if (p->shaders[i].slot.ctx_id == ctx_id) {
+      binocle_resource_state state = p->shaders[i].slot.state;
+      if ((state == BINOCLE_RESOURCESTATE_VALID) || (state == BINOCLE_RESOURCESTATE_FAILED)) {
+        binocle_backend_destroy_shader_t(&p->shaders[i]);
+      }
+    }
+  }
+}
+
 void binocle_backend_setup_backend(binocle_backend_desc *desc) {
 #if defined(BINOCLE_GL)
   // TODO: move this somewhere else
@@ -635,7 +569,6 @@ void binocle_backend_setup(const binocle_backend_desc* desc) {
   backend.desc.context.depth_format = BINOCLE_DEF(backend.desc.context.depth_format, BINOCLE_PIXEL_FORMAT_DEPTH_STENCIL);
   backend.desc.context.sample_count = BINOCLE_DEF(backend.desc.context.sample_count, 1);
   backend.desc.buffer_pool_size = BINOCLE_DEF(backend.desc.buffer_pool_size, BINOCLE_DEFAULT_BUFFER_POOL_SIZE);
-  backend.desc.render_target_pool_size = BINOCLE_DEF(backend.desc.render_target_pool_size, BINOCLE_DEFAULT_RENDER_TARGET_POOL_SIZE);
   backend.desc.image_pool_size = BINOCLE_DEF(backend.desc.image_pool_size, BINOCLE_DEFAULT_IMAGE_POOL_SIZE);
   backend.desc.shader_pool_size = BINOCLE_DEF(backend.desc.shader_pool_size, BINOCLE_DEFAULT_SHADER_POOL_SIZE);
   //backend.desc.pipeline_pool_size = BINOCLE_DEF(backend.desc.pipeline_pool_size, BINOCLE_DEFAULT_PIPELINE_POOL_SIZE);
@@ -729,36 +662,23 @@ void binocle_backend_draw(const struct binocle_vpct *vertices, size_t vertex_cou
 #endif
 }
 
-binocle_render_target binocle_backend_create_render_target(binocle_render_target_desc *desc) {
-  assert(desc);
-  binocle_render_target rt_id = binocle_backend_alloc_render_target();
-  if (rt_id.id != BINOCLE_INVALID_ID) {
-    binocle_backend_init_render_target(rt_id, desc);
-  }
-  else {
-    SDL_Log("image pool exhausted!");
-  }
-  return rt_id;
-}
-
-void binocle_backend_destroy_render_target(binocle_render_target rt) {
-  binocle_render_target_t* img = binocle_backend_lookup_render_target(&backend.pools, rt.id);
-  if (img) {
-    binocle_backend_destroy_render_target_t(img);
-    binocle_backend_reset_render_target(img);
-    binocle_pool_free_index(&backend.pools.render_target_pool, binocle_pool_slot_index(rt.id));
-  }
-}
-
-void binocle_backend_set_render_target(binocle_render_target *rt) {
+void binocle_backend_set_render_target(binocle_image rt) {
 #if defined(BINOCLE_GL)
-  // TODO this is ugly
-  if (rt == NULL) {
+  if (rt.id == 0) {
     binocle_backend_gl_set_render_target(NULL);
   } else {
-    binocle_render_target_t *render_target = binocle_backend_lookup_render_target(&backend.pools, rt->id);
+    binocle_image_t *render_target = binocle_backend_lookup_image(&backend.pools, rt.id);
     binocle_backend_gl_set_render_target(render_target);
   }
+#elif defined(BINOCLE_METAL)
+  #else
+#error("no backend defined")
+#endif
+}
+
+void binocle_backend_unset_render_target() {
+#if defined(BINOCLE_GL)
+  binocle_backend_gl_set_render_target(NULL);
 #elif defined(BINOCLE_METAL)
   #else
 #error("no backend defined")
@@ -798,17 +718,12 @@ void binocle_backend_set_uniform_mat4(binocle_shader shader, const char *name, s
 #endif
 }
 
-void binocle_backend_draw_quad_to_screen(binocle_shader shader, binocle_render_target *rt) {
+void binocle_backend_draw_quad_to_screen(binocle_shader shader, binocle_image rt) {
 #if defined(BINOCLE_GL)
-  // TODO this is ugly
-  if (rt == NULL) {
-    binocle_backend_gl_set_render_target(NULL);
-  } else {
-    binocle_shader_t *sha = binocle_backend_lookup_shader(&backend.pools, shader.id);
-    if (sha != NULL) {
-      binocle_render_target_t *render_target = binocle_backend_lookup_render_target(&backend.pools, rt->id);
-      binocle_backend_gl_draw_quad_to_screen(sha, render_target);
-    }
+  binocle_shader_t *sha = binocle_backend_lookup_shader(&backend.pools, shader.id);
+  if (sha != NULL) {
+    binocle_image_t *render_target = binocle_backend_lookup_image(&backend.pools, rt.id);
+    binocle_backend_gl_draw_quad_to_screen(sha, render_target);
   }
 #elif defined(BINOCLE_METAL)
   #else

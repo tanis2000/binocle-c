@@ -523,13 +523,14 @@ void binocle_backend_gl_destroy_render_target(binocle_render_target_t *render_ta
 //  SDL_free(render_target);
 }
 
-void binocle_backend_gl_set_render_target(binocle_render_target_t *render_target) {
+void binocle_backend_gl_set_render_target(binocle_image_t *render_target) {
   if (render_target == NULL) {
     glCheck(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     glCheck(glBindRenderbuffer(GL_RENDERBUFFER, 0));
   } else {
-    glCheck(glBindFramebuffer(GL_FRAMEBUFFER, render_target->frame_buffer));
-    glCheck(glBindRenderbuffer(GL_RENDERBUFFER, render_target->render_buffer));
+    glCheck(glBindFramebuffer(GL_FRAMEBUFFER, render_target->gl.frame_buffer));
+    // NOTE: this might not be needed unless we use MSAA and it'' not OpenGLES2
+    //glCheck(glBindRenderbuffer(GL_RENDERBUFFER, render_target->render_buffer));
   }
 }
 
@@ -559,7 +560,7 @@ void binocle_backend_gl_set_uniform_mat4(binocle_gl_shader *shader, const char *
 }
 
 void binocle_backend_gl_draw_quad_to_screen(
-  binocle_gl_shader *shader, binocle_render_target_t *render_target) {
+  binocle_gl_shader *shader, binocle_image_t *render_target) {
   static const GLfloat g_quad_vertex_buffer_data[] = {
       -1.0f, -1.0f,
       1.0f, -1.0f,
@@ -581,7 +582,7 @@ void binocle_backend_gl_draw_quad_to_screen(
   glCheck(tex_id = glGetUniformLocation(shader->gl.prog, "texture"));
   glCheck(glUniform1i(tex_id, 0));
   glCheck(glActiveTexture(GL_TEXTURE0));
-  glCheck(glBindTexture(GL_TEXTURE_2D, render_target->texture));
+  glCheck(glBindTexture(GL_TEXTURE_2D, render_target->gl.tex[0]));
   // Sets the frame buffer to use as the screen
 #if defined(__IPHONEOS__)
   SDL_SysWMinfo info;
@@ -1076,6 +1077,57 @@ binocle_backend_gl_create_image(binocle_gl_backend_t *gl, binocle_image_t *img,
       }
     }
   }
+
+  // Begin hack to get render targets working without render passes
+  {
+    GLenum fmt =
+      binocle_backend_gl_pixel_format_to_gl_texture_format(desc->pixel_format);
+
+    GLuint fb[1];
+    glCheck(glGenFramebuffers(1, fb));
+    img->gl.frame_buffer = fb[0];
+
+    GLuint rb[1];
+    glCheck(glGenRenderbuffers(1, rb));
+    img->gl.depth_render_buffer = rb[0];
+
+    // set up framebuffer
+
+    // bind the framebuffer
+    glCheck(glBindFramebuffer(GL_FRAMEBUFFER, img->gl.frame_buffer));
+
+    // bind the newly created texture: all future texture functions will modify
+    // this texture
+    glCheck(glBindTexture(GL_TEXTURE_2D, img->gl.tex[0]));
+    // Give an empty image to OpenGL ( the last "0" )
+    glCheck(glTexImage2D(GL_TEXTURE_2D, 0, fmt, img->cmn.width, img->cmn.height,
+                         0, fmt, GL_UNSIGNED_BYTE, 0));
+    // filtering
+    glCheck(
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+    glCheck(
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+    glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+    glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+    // attach the texture to the bound framebuffer object
+    glCheck(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                   GL_TEXTURE_2D, img->gl.tex[0], 0));
+
+    // set up renderbuffer (depth buffer)
+    glCheck(glBindRenderbuffer(GL_RENDERBUFFER, img->gl.depth_render_buffer));
+    glCheck(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16,
+                                  img->cmn.width, img->cmn.height));
+    glCheck(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                                      GL_RENDERBUFFER,
+                                      img->gl.depth_render_buffer));
+
+    // clean up
+    glCheck(glBindTexture(GL_TEXTURE_2D, 0));
+    glCheck(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+    glCheck(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+  }
+  // End hack to get render targets working without render passes
+
   assert(glGetError() == GL_NO_ERROR);
 
   return BINOCLE_RESOURCESTATE_VALID;

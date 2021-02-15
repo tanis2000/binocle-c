@@ -125,25 +125,6 @@ GLuint
 binocle_gd_equation_to_gl_constant(enum binocle_blend_equation blend_equation);
 
 /**
- * \brief Creates a new render target
- * @param width the width of the render target texture
- * @param height the height of the render target texture
- * @param use_depth true if you want to enable the depth buffer
- * @param format the texture format
- * @return
- */
-binocle_render_target binocle_gd_create_render_target(uint32_t width,
-                                                      uint32_t height,
-                                                      bool use_depth,
-                                                      GLenum format);
-
-/**
- * \brief Destroys a render target and releases all its resources
- * @param render_target the render target
- */
-void binocle_gd_destroy_render_target(binocle_render_target render_target);
-
-/**
  * \brief Sets a uniform float value for the given shader
  * @param shader the shader
  * @param name the name of the uniform
@@ -201,7 +182,7 @@ void binocle_gd_clear(struct binocle_color color);
  * \brief Binds the frame buffer and the render buffer of a render target
  * @param render_target the render target. If NULL, it sets both the frame buffer and render buffer to 0.
  */
-void binocle_gd_set_render_target(binocle_render_target *render_target);
+void binocle_gd_set_render_target(binocle_image render_target);
 
 /**
  * \brief Draws a quad to the current buffer using the given shader
@@ -215,7 +196,7 @@ void binocle_gd_draw_quad(struct binocle_shader *shader);
  * @param render_target the render target to use as source
  */
 void binocle_gd_draw_quad_to_screen(binocle_shader shader,
-                                    binocle_render_target *render_target);
+                                    binocle_image render_target);
 
 /**
  * \brief Sets a render target as the texture for a given uniform
@@ -225,7 +206,7 @@ void binocle_gd_draw_quad_to_screen(binocle_shader shader,
  */
 void binocle_gd_set_uniform_render_target_as_texture(
     struct binocle_shader *shader, const char *name,
-    binocle_render_target render_target);
+    binocle_image render_target);
 
 /**
  * \brief Sets a uniform vec3 value

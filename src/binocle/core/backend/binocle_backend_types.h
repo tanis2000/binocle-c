@@ -12,7 +12,6 @@
 
 #define BINOCLE_DEFAULT_UB_SIZE (4 * 1024 * 1024)
 #define BINOCLE_DEFAULT_BUFFER_POOL_SIZE (128)
-#define BINOCLE_DEFAULT_RENDER_TARGET_POOL_SIZE (128)
 #define BINOCLE_DEFAULT_IMAGE_POOL_SIZE (128)
 #define BINOCLE_DEFAULT_SHADER_POOL_SIZE (32)
 #define BINOCLE_DEFAULT_SAMPLER_CACHE_CAPACITY (64)
@@ -330,7 +329,6 @@ typedef struct binocle_context_desc {
 
 typedef struct binocle_backend_desc {
   uint32_t buffer_pool_size;
-  uint32_t render_target_pool_size;
   uint32_t image_pool_size;
   uint32_t shader_pool_size;
   uint32_t uniform_buffer_size;
