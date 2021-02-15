@@ -29,7 +29,7 @@ typedef struct binocle_backend_t {
   binocle_backend_desc desc;       /* original desc with default values patched in */
   uint32_t frame_index;
   binocle_pools_t pools;
-  binocle_pixelformat_info formats[BINOCLE_PIXEL_FORMAT_NUM];
+  binocle_pixelformat_info formats[BINOCLE_PIXELFORMAT_NUM];
 #if defined(BINOCLE_GL)
   binocle_gl_backend_t gl;
 #elif defined(BINOCLE_METAL)
@@ -77,6 +77,159 @@ int binocle_backend_uniform_size(binocle_uniform_type type, int count) {
     assert(false);
     return -1;
   }
+}
+
+/* return the bytes-per-pixel for a pixel format */
+int binocle_pixelformat_bytesize(binocle_pixel_format fmt) {
+  switch (fmt) {
+  case BINOCLE_PIXELFORMAT_R8:
+  case BINOCLE_PIXELFORMAT_R8SN:
+  case BINOCLE_PIXELFORMAT_R8UI:
+  case BINOCLE_PIXELFORMAT_R8SI:
+    return 1;
+
+  case BINOCLE_PIXELFORMAT_R16:
+  case BINOCLE_PIXELFORMAT_R16SN:
+  case BINOCLE_PIXELFORMAT_R16UI:
+  case BINOCLE_PIXELFORMAT_R16SI:
+  case BINOCLE_PIXELFORMAT_R16F:
+  case BINOCLE_PIXELFORMAT_RG8:
+  case BINOCLE_PIXELFORMAT_RG8SN:
+  case BINOCLE_PIXELFORMAT_RG8UI:
+  case BINOCLE_PIXELFORMAT_RG8SI:
+    return 2;
+
+  case BINOCLE_PIXELFORMAT_R32UI:
+  case BINOCLE_PIXELFORMAT_R32SI:
+  case BINOCLE_PIXELFORMAT_R32F:
+  case BINOCLE_PIXELFORMAT_RG16:
+  case BINOCLE_PIXELFORMAT_RG16SN:
+  case BINOCLE_PIXELFORMAT_RG16UI:
+  case BINOCLE_PIXELFORMAT_RG16SI:
+  case BINOCLE_PIXELFORMAT_RG16F:
+  case BINOCLE_PIXELFORMAT_RGBA8:
+  case BINOCLE_PIXELFORMAT_RGBA8SN:
+  case BINOCLE_PIXELFORMAT_RGBA8UI:
+  case BINOCLE_PIXELFORMAT_RGBA8SI:
+  case BINOCLE_PIXELFORMAT_BGRA8:
+  case BINOCLE_PIXELFORMAT_RGB10A2:
+  case BINOCLE_PIXELFORMAT_RG11B10F:
+    return 4;
+
+  case BINOCLE_PIXELFORMAT_RG32UI:
+  case BINOCLE_PIXELFORMAT_RG32SI:
+  case BINOCLE_PIXELFORMAT_RG32F:
+  case BINOCLE_PIXELFORMAT_RGBA16:
+  case BINOCLE_PIXELFORMAT_RGBA16SN:
+  case BINOCLE_PIXELFORMAT_RGBA16UI:
+  case BINOCLE_PIXELFORMAT_RGBA16SI:
+  case BINOCLE_PIXELFORMAT_RGBA16F:
+    return 8;
+
+  case BINOCLE_PIXELFORMAT_RGBA32UI:
+  case BINOCLE_PIXELFORMAT_RGBA32SI:
+  case BINOCLE_PIXELFORMAT_RGBA32F:
+    return 16;
+
+  default:
+    assert(false);
+    return 0;
+  }
+}
+
+/* return row pitch for an image
+    see ComputePitch in https://github.com/microsoft/DirectXTex/blob/master/DirectXTex/DirectXTexUtil.cpp
+*/
+uint32_t binocle_backend_row_pitch(binocle_pixel_format fmt, uint32_t width,
+                                   uint32_t row_align) {
+  uint32_t pitch;
+  switch (fmt) {
+  case BINOCLE_PIXELFORMAT_BC1_RGBA:
+  case BINOCLE_PIXELFORMAT_BC4_R:
+  case BINOCLE_PIXELFORMAT_BC4_RSN:
+  case BINOCLE_PIXELFORMAT_ETC2_RGB8:
+  case BINOCLE_PIXELFORMAT_ETC2_RGB8A1:
+    pitch = ((width + 3) / 4) * 8;
+    pitch = pitch < 8 ? 8 : pitch;
+    break;
+  case BINOCLE_PIXELFORMAT_BC2_RGBA:
+  case BINOCLE_PIXELFORMAT_BC3_RGBA:
+  case BINOCLE_PIXELFORMAT_BC5_RG:
+  case BINOCLE_PIXELFORMAT_BC5_RGSN:
+  case BINOCLE_PIXELFORMAT_BC6H_RGBF:
+  case BINOCLE_PIXELFORMAT_BC6H_RGBUF:
+  case BINOCLE_PIXELFORMAT_BC7_RGBA:
+  case BINOCLE_PIXELFORMAT_ETC2_RGBA8:
+  case BINOCLE_PIXELFORMAT_ETC2_RG11:
+  case BINOCLE_PIXELFORMAT_ETC2_RG11SN:
+    pitch = ((width + 3) / 4) * 16;
+    pitch = pitch < 16 ? 16 : pitch;
+    break;
+  case BINOCLE_PIXELFORMAT_PVRTC_RGB_4BPP:
+  case BINOCLE_PIXELFORMAT_PVRTC_RGBA_4BPP: {
+    const int block_size = 4 * 4;
+    const int bpp = 4;
+    int width_blocks = width / 4;
+    width_blocks = width_blocks < 2 ? 2 : width_blocks;
+    pitch = width_blocks * ((block_size * bpp) / 8);
+  } break;
+  case BINOCLE_PIXELFORMAT_PVRTC_RGB_2BPP:
+  case BINOCLE_PIXELFORMAT_PVRTC_RGBA_2BPP: {
+    const int block_size = 8 * 4;
+    const int bpp = 2;
+    int width_blocks = width / 4;
+    width_blocks = width_blocks < 2 ? 2 : width_blocks;
+    pitch = width_blocks * ((block_size * bpp) / 8);
+  } break;
+  default:
+    pitch = width * binocle_pixelformat_bytesize(fmt);
+    break;
+  }
+  pitch = BINOCLE_ROUNDUP(pitch, row_align);
+  return pitch;
+}
+
+/* compute the number of rows in a surface depending on pixel format */
+int binocle_backend_num_rows(binocle_pixel_format fmt, int height) {
+  int num_rows;
+  switch (fmt) {
+  case BINOCLE_PIXELFORMAT_BC1_RGBA:
+  case BINOCLE_PIXELFORMAT_BC4_R:
+  case BINOCLE_PIXELFORMAT_BC4_RSN:
+  case BINOCLE_PIXELFORMAT_ETC2_RGB8:
+  case BINOCLE_PIXELFORMAT_ETC2_RGB8A1:
+  case BINOCLE_PIXELFORMAT_ETC2_RGBA8:
+  case BINOCLE_PIXELFORMAT_ETC2_RG11:
+  case BINOCLE_PIXELFORMAT_ETC2_RG11SN:
+  case BINOCLE_PIXELFORMAT_BC2_RGBA:
+  case BINOCLE_PIXELFORMAT_BC3_RGBA:
+  case BINOCLE_PIXELFORMAT_BC5_RG:
+  case BINOCLE_PIXELFORMAT_BC5_RGSN:
+  case BINOCLE_PIXELFORMAT_BC6H_RGBF:
+  case BINOCLE_PIXELFORMAT_BC6H_RGBUF:
+  case BINOCLE_PIXELFORMAT_BC7_RGBA:
+  case BINOCLE_PIXELFORMAT_PVRTC_RGB_4BPP:
+  case BINOCLE_PIXELFORMAT_PVRTC_RGBA_4BPP:
+  case BINOCLE_PIXELFORMAT_PVRTC_RGB_2BPP:
+  case BINOCLE_PIXELFORMAT_PVRTC_RGBA_2BPP:
+    num_rows = ((height + 3) / 4);
+    break;
+  default:
+    num_rows = height;
+    break;
+  }
+  if (num_rows < 1) {
+    num_rows = 1;
+  }
+  return num_rows;
+}
+
+/* return pitch of a 2D subimage / texture slice
+    see ComputePitch in https://github.com/microsoft/DirectXTex/blob/master/DirectXTex/DirectXTexUtil.cpp
+*/
+uint32_t binocle_backend_surface_pitch(binocle_pixel_format fmt, uint32_t width, uint32_t height, uint32_t row_align) {
+  int num_rows = binocle_backend_num_rows(fmt, height);
+  return num_rows * binocle_backend_row_pitch(fmt, width, row_align);
 }
 
 void binocle_backend_setup_pools(binocle_pools_t *pools, const binocle_backend_desc* desc) {
@@ -168,7 +321,7 @@ binocle_image_desc binocle_backend_image_desc_defaults(const binocle_image_desc*
     def.pixel_format = BINOCLE_DEF(def.pixel_format, backend.desc.context.color_format);
     def.sample_count = BINOCLE_DEF(def.sample_count, backend.desc.context.sample_count);
   } else {
-    def.pixel_format = BINOCLE_DEF(def.pixel_format, BINOCLE_PIXEL_FORMAT_RGBA8);
+    def.pixel_format = BINOCLE_DEF(def.pixel_format, BINOCLE_PIXELFORMAT_RGBA8);
     def.sample_count = BINOCLE_DEF(def.sample_count, 1);
   }
   def.min_filter = BINOCLE_DEF(def.min_filter, BINOCLE_FILTER_NEAREST);
@@ -541,13 +694,12 @@ void binocle_backend_destroy_all_resources(binocle_pools_t* p, uint32_t ctx_id) 
 void binocle_backend_setup_backend(binocle_backend_desc *desc) {
 #if defined(BINOCLE_GL)
   // TODO: move this somewhere else
-  backend.formats[BINOCLE_PIXEL_FORMAT_RGB].render = true;
-  backend.formats[BINOCLE_PIXEL_FORMAT_RGBA].render = true;
-  backend.formats[BINOCLE_PIXEL_FORMAT_RGBA8].render = true;
-  backend.formats[BINOCLE_PIXEL_FORMAT_DEPTH].render = true;
-  backend.formats[BINOCLE_PIXEL_FORMAT_DEPTH].depth = true;
-  backend.formats[BINOCLE_PIXEL_FORMAT_DEPTH_STENCIL].render = true;
-  backend.formats[BINOCLE_PIXEL_FORMAT_DEPTH_STENCIL].depth = true;
+  backend.formats[BINOCLE_PIXELFORMAT_RGBA8].render = true;
+  backend.formats[BINOCLE_PIXELFORMAT_RGBA8].render = true;
+  backend.formats[BINOCLE_PIXELFORMAT_DEPTH].render = true;
+  backend.formats[BINOCLE_PIXELFORMAT_DEPTH].depth = true;
+  backend.formats[BINOCLE_PIXELFORMAT_DEPTH_STENCIL].render = true;
+  backend.formats[BINOCLE_PIXELFORMAT_DEPTH_STENCIL].depth = true;
   binocle_backend_gl_init(&backend.gl);
 #elif defined(BINOCLE_METAL)
   binocle_backend_mtl_init(&backend.mtl, desc);
@@ -562,11 +714,11 @@ void binocle_backend_setup(const binocle_backend_desc* desc) {
   backend.desc = *desc;
 
 #if defined(BINOCLE_METAL)
-  backend.desc.context.color_format = BINOCLE_DEF(backend.desc.context.color_format, BINOCLE_PIXEL_FORMAT_BGRA8);
+  backend.desc.context.color_format = BINOCLE_DEF(backend.desc.context.color_format, BINOCLE_PIXELFORMAT_BGRA8);
 #else
-  backend.desc.context.color_format = BINOCLE_DEF(backend.desc.context.color_format, BINOCLE_PIXEL_FORMAT_RGBA8);
+  backend.desc.context.color_format = BINOCLE_DEF(backend.desc.context.color_format, BINOCLE_PIXELFORMAT_RGBA8);
 #endif
-  backend.desc.context.depth_format = BINOCLE_DEF(backend.desc.context.depth_format, BINOCLE_PIXEL_FORMAT_DEPTH_STENCIL);
+  backend.desc.context.depth_format = BINOCLE_DEF(backend.desc.context.depth_format, BINOCLE_PIXELFORMAT_DEPTH_STENCIL);
   backend.desc.context.sample_count = BINOCLE_DEF(backend.desc.context.sample_count, 1);
   backend.desc.buffer_pool_size = BINOCLE_DEF(backend.desc.buffer_pool_size, BINOCLE_DEFAULT_BUFFER_POOL_SIZE);
   backend.desc.image_pool_size = BINOCLE_DEF(backend.desc.image_pool_size, BINOCLE_DEFAULT_IMAGE_POOL_SIZE);
@@ -751,7 +903,7 @@ binocle_image_info binocle_backend_query_image_info(binocle_image img_id) {
 /* return true if pixel format is a valid depth format */
 bool binocle_backend_is_valid_rendertarget_depth_format(binocle_pixel_format fmt) {
   const int fmt_index = (int) fmt;
-  assert((fmt_index >= 0) && (fmt_index < BINOCLE_PIXEL_FORMAT_NUM));
+  assert((fmt_index >= 0) && (fmt_index < BINOCLE_PIXELFORMAT_NUM));
   return backend.formats[fmt_index].render && backend.formats[fmt_index].depth;
 }
 

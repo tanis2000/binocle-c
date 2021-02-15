@@ -83,14 +83,143 @@ MTLTextureType binocle_backend_mtl_texture_type(binocle_image_type t) {
 
 MTLPixelFormat binocle_backend_mtl_pixel_format(binocle_pixel_format fmt) {
   switch (fmt) {
-  case BINOCLE_PIXEL_FORMAT_RGB:
+  case BINOCLE_PIXELFORMAT_R8:
+    return MTLPixelFormatR8Unorm;
+  case BINOCLE_PIXELFORMAT_R8SN:
+    return MTLPixelFormatR8Snorm;
+  case BINOCLE_PIXELFORMAT_R8UI:
+    return MTLPixelFormatR8Uint;
+  case BINOCLE_PIXELFORMAT_R8SI:
+    return MTLPixelFormatR8Sint;
+  case BINOCLE_PIXELFORMAT_R16:
+    return MTLPixelFormatR16Unorm;
+  case BINOCLE_PIXELFORMAT_R16SN:
+    return MTLPixelFormatR16Snorm;
+  case BINOCLE_PIXELFORMAT_R16UI:
+    return MTLPixelFormatR16Uint;
+  case BINOCLE_PIXELFORMAT_R16SI:
+    return MTLPixelFormatR16Sint;
+  case BINOCLE_PIXELFORMAT_R16F:
+    return MTLPixelFormatR16Float;
+  case BINOCLE_PIXELFORMAT_RG8:
+    return MTLPixelFormatRG8Unorm;
+  case BINOCLE_PIXELFORMAT_RG8SN:
+    return MTLPixelFormatRG8Snorm;
+  case BINOCLE_PIXELFORMAT_RG8UI:
+    return MTLPixelFormatRG8Uint;
+  case BINOCLE_PIXELFORMAT_RG8SI:
+    return MTLPixelFormatRG8Sint;
+  case BINOCLE_PIXELFORMAT_R32UI:
+    return MTLPixelFormatR32Uint;
+  case BINOCLE_PIXELFORMAT_R32SI:
+    return MTLPixelFormatR32Sint;
+  case BINOCLE_PIXELFORMAT_R32F:
+    return MTLPixelFormatR32Float;
+  case BINOCLE_PIXELFORMAT_RG16:
+    return MTLPixelFormatRG16Unorm;
+  case BINOCLE_PIXELFORMAT_RG16SN:
+    return MTLPixelFormatRG16Snorm;
+  case BINOCLE_PIXELFORMAT_RG16UI:
+    return MTLPixelFormatRG16Uint;
+  case BINOCLE_PIXELFORMAT_RG16SI:
+    return MTLPixelFormatRG16Sint;
+  case BINOCLE_PIXELFORMAT_RG16F:
+    return MTLPixelFormatRG16Float;
+  case BINOCLE_PIXELFORMAT_RGBA8:
     return MTLPixelFormatRGBA8Unorm;
-  case BINOCLE_PIXEL_FORMAT_RGBA:
-    return MTLPixelFormatRGBA8Unorm;
-  case BINOCLE_PIXEL_FORMAT_RGBA8:
-    return MTLPixelFormatRGBA8Unorm;
+  case BINOCLE_PIXELFORMAT_RGBA8SN:
+    return MTLPixelFormatRGBA8Snorm;
+  case BINOCLE_PIXELFORMAT_RGBA8UI:
+    return MTLPixelFormatRGBA8Uint;
+  case BINOCLE_PIXELFORMAT_RGBA8SI:
+    return MTLPixelFormatRGBA8Sint;
+  case BINOCLE_PIXELFORMAT_BGRA8:
+    return MTLPixelFormatBGRA8Unorm;
+  case BINOCLE_PIXELFORMAT_RGB10A2:
+    return MTLPixelFormatRGB10A2Unorm;
+  case BINOCLE_PIXELFORMAT_RG11B10F:
+    return MTLPixelFormatRG11B10Float;
+  case BINOCLE_PIXELFORMAT_RG32UI:
+    return MTLPixelFormatRG32Uint;
+  case BINOCLE_PIXELFORMAT_RG32SI:
+    return MTLPixelFormatRG32Sint;
+  case BINOCLE_PIXELFORMAT_RG32F:
+    return MTLPixelFormatRG32Float;
+  case BINOCLE_PIXELFORMAT_RGBA16:
+    return MTLPixelFormatRGBA16Unorm;
+  case BINOCLE_PIXELFORMAT_RGBA16SN:
+    return MTLPixelFormatRGBA16Snorm;
+  case BINOCLE_PIXELFORMAT_RGBA16UI:
+    return MTLPixelFormatRGBA16Uint;
+  case BINOCLE_PIXELFORMAT_RGBA16SI:
+    return MTLPixelFormatRGBA16Sint;
+  case BINOCLE_PIXELFORMAT_RGBA16F:
+    return MTLPixelFormatRGBA16Float;
+  case BINOCLE_PIXELFORMAT_RGBA32UI:
+    return MTLPixelFormatRGBA32Uint;
+  case BINOCLE_PIXELFORMAT_RGBA32SI:
+    return MTLPixelFormatRGBA32Sint;
+  case BINOCLE_PIXELFORMAT_RGBA32F:
+    return MTLPixelFormatRGBA32Float;
+  case BINOCLE_PIXELFORMAT_DEPTH:
+    return MTLPixelFormatDepth32Float;
+  case BINOCLE_PIXELFORMAT_DEPTH_STENCIL:
+    return MTLPixelFormatDepth32Float_Stencil8;
+#if defined(BINOCLE_MACOS)
+  case BINOCLE_PIXELFORMAT_BC1_RGBA:
+    return MTLPixelFormatBC1_RGBA;
+  case BINOCLE_PIXELFORMAT_BC2_RGBA:
+    return MTLPixelFormatBC2_RGBA;
+  case BINOCLE_PIXELFORMAT_BC3_RGBA:
+    return MTLPixelFormatBC3_RGBA;
+  case BINOCLE_PIXELFORMAT_BC4_R:
+    return MTLPixelFormatBC4_RUnorm;
+  case BINOCLE_PIXELFORMAT_BC4_RSN:
+    return MTLPixelFormatBC4_RSnorm;
+  case BINOCLE_PIXELFORMAT_BC5_RG:
+    return MTLPixelFormatBC5_RGUnorm;
+  case BINOCLE_PIXELFORMAT_BC5_RGSN:
+    return MTLPixelFormatBC5_RGSnorm;
+  case BINOCLE_PIXELFORMAT_BC6H_RGBF:
+    return MTLPixelFormatBC6H_RGBFloat;
+  case BINOCLE_PIXELFORMAT_BC6H_RGBUF:
+    return MTLPixelFormatBC6H_RGBUfloat;
+  case BINOCLE_PIXELFORMAT_BC7_RGBA:
+    return MTLPixelFormatBC7_RGBAUnorm;
+#else
+  case BINOCLE_PIXELFORMAT_PVRTC_RGB_2BPP:
+    return MTLPixelFormatPVRTC_RGB_2BPP;
+  case BINOCLE_PIXELFORMAT_PVRTC_RGB_4BPP:
+    return MTLPixelFormatPVRTC_RGB_4BPP;
+  case BINOCLE_PIXELFORMAT_PVRTC_RGBA_2BPP:
+    return MTLPixelFormatPVRTC_RGBA_2BPP;
+  case BINOCLE_PIXELFORMAT_PVRTC_RGBA_4BPP:
+    return MTLPixelFormatPVRTC_RGBA_4BPP;
+  case BINOCLE_PIXELFORMAT_ETC2_RGB8:
+    return MTLPixelFormatETC2_RGB8;
+  case BINOCLE_PIXELFORMAT_ETC2_RGB8A1:
+    return MTLPixelFormatETC2_RGB8A1;
+  case BINOCLE_PIXELFORMAT_ETC2_RGBA8:
+    return MTLPixelFormatEAC_RGBA8;
+  case BINOCLE_PIXELFORMAT_ETC2_RG11:
+    return MTLPixelFormatEAC_RG11Unorm;
+  case BINOCLE_PIXELFORMAT_ETC2_RG11SN:
+    return MTLPixelFormatEAC_RG11Snorm;
+#endif
   default:
     return MTLPixelFormatInvalid;
+  }
+}
+
+bool binocle_backend_mtl_is_pvrtc(binocle_pixel_format fmt) {
+  switch (fmt) {
+  case BINOCLE_PIXELFORMAT_PVRTC_RGB_2BPP:
+  case BINOCLE_PIXELFORMAT_PVRTC_RGB_4BPP:
+  case BINOCLE_PIXELFORMAT_PVRTC_RGBA_2BPP:
+  case BINOCLE_PIXELFORMAT_PVRTC_RGBA_4BPP:
+    return true;
+  default:
+    return false;
   }
 }
 
@@ -248,7 +377,7 @@ binocle_backend_mtl_create_sampler(binocle_mtl_backend_t *mtl,
       mtl_desc.rAddressMode =
         binocle_backend_mtl_address_mode(img_desc->wrap_w);
     }
-#if defined(_SG_TARGET_MACOS)
+#if defined(_BINOCLE_TARGET_MACOS)
     mtl_desc.borderColor =
       binocle_backend_mtl_border_color(img_desc->border_color);
 #endif
@@ -392,6 +521,47 @@ void binocle_backend_mtl_init_texdesc_rt_msaa(MTLTextureDescriptor* mtl_desc, bi
   mtl_desc.sampleCount = img->cmn.sample_count;
 }
 
+void binocle_backend_mtl_copy_image_content(const binocle_image_t* img, __unsafe_unretained id<MTLTexture> mtl_tex, const binocle_image_content* content) {
+  const int num_faces = (img->cmn.type == BINOCLE_IMAGETYPE_CUBE) ? 6:1;
+  const int num_slices = (img->cmn.type == BINOCLE_IMAGETYPE_ARRAY) ? img->cmn.depth : 1;
+  for (int face_index = 0; face_index < num_faces; face_index++) {
+    for (int mip_index = 0; mip_index < img->cmn.num_mipmaps; mip_index++) {
+      assert(content->subimage[face_index][mip_index].ptr);
+      assert(content->subimage[face_index][mip_index].size > 0);
+      const uint8_t* data_ptr = (const uint8_t*)content->subimage[face_index][mip_index].ptr;
+      const int mip_width = BINOCLE_MAX(img->cmn.width >> mip_index, 1);
+      const int mip_height = BINOCLE_MAX(img->cmn.height >> mip_index, 1);
+      /* special case PVRTC formats: bytePerRow must be 0 */
+      int bytes_per_row = 0;
+      int bytes_per_slice = binocle_backend_surface_pitch(img->cmn.pixel_format, mip_width, mip_height, 1);
+      if (!binocle_backend_mtl_is_pvrtc(img->cmn.pixel_format)) {
+        bytes_per_row = binocle_backend_row_pitch(img->cmn.pixel_format, mip_width, 1);
+      }
+      MTLRegion region;
+      if (img->cmn.type == BINOCLE_IMAGETYPE_3D) {
+        const int mip_depth = BINOCLE_MAX(img->cmn.depth >> mip_index, 1);
+        region = MTLRegionMake3D(0, 0, 0, mip_width, mip_height, mip_depth);
+        /* FIXME: apparently the minimal bytes_per_image size for 3D texture
+         is 4 KByte... somehow need to handle this */
+      }
+      else {
+        region = MTLRegionMake2D(0, 0, mip_width, mip_height);
+      }
+      for (int slice_index = 0; slice_index < num_slices; slice_index++) {
+        const int mtl_slice_index = (img->cmn.type == BINOCLE_IMAGETYPE_CUBE) ? face_index : slice_index;
+        const int slice_offset = slice_index * bytes_per_slice;
+        assert((slice_offset + bytes_per_slice) <= (int)content->subimage[face_index][mip_index].size);
+        [mtl_tex replaceRegion:region
+                   mipmapLevel:mip_index
+                         slice:mtl_slice_index
+                     withBytes:data_ptr + slice_offset
+                   bytesPerRow:bytes_per_row
+                 bytesPerImage:bytes_per_slice];
+      }
+    }
+  }
+}
+
 binocle_resource_state
 binocle_backend_mtl_create_image(binocle_mtl_backend_t *mtl, binocle_image_t *img,
                                  const binocle_image_desc *desc) {
@@ -415,8 +585,8 @@ binocle_backend_mtl_create_image(binocle_mtl_backend_t *mtl, binocle_image_t *im
   }
 
   /* special case depth-stencil-buffer? */
-  if (true /*binocle_backend_is_valid_rendertarget_depth_format(
-        img->cmn.pixel_format)*/) {
+  if (binocle_backend_is_valid_rendertarget_depth_format(
+        img->cmn.pixel_format)) {
     /* depth-stencil buffer texture must always be a render target */
     assert(img->cmn.render_target);
     assert(img->cmn.type == BINOCLE_IMAGETYPE_2D);
@@ -431,43 +601,43 @@ binocle_backend_mtl_create_image(binocle_mtl_backend_t *mtl, binocle_image_t *im
     assert(nil != tex);
     img->mtl.depth_tex = binocle_backend_mtl_add_resource(mtl, tex);
   } else {
-//    /* create the color texture
-//        In case this is a render target without MSAA, add the relevant
-//        render-target descriptor attributes.
-//        In case this is a render target *with* MSAA, the color texture
-//        will serve as MSAA-resolve target (not as render target), and rendering
-//        will go into a separate render target texture of type
-//        MTLTextureType2DMultisample.
-//    */
-//    if (img->cmn.render_target && !msaa) {
-//      binocle_backend_mtl_init_texdesc_rt(mtl_desc, img);
-//    }
-//    for (int slot = 0; slot < img->cmn.num_slots; slot++) {
-//      id<MTLTexture> tex;
-//      if (injected) {
-//        assert(desc->mtl_textures[slot]);
-//        tex = (__bridge id<MTLTexture>)desc->mtl_textures[slot];
-//      } else {
-//        tex = [mtl->device newTextureWithDescriptor:mtl_desc];
-//        if ((img->cmn.usage == BINOCLE_USAGE_IMMUTABLE) &&
-//            !img->cmn.render_target) {
-//          binocle_backend_mtl_copy_image_content(img, tex, &desc->content);
-//        }
-//      }
-//      img->mtl.tex[slot] = binocle_backend_mtl_add_resource(mtl, tex);
-//    }
-//
-//    /* if MSAA color render target, create an additional MSAA render-surface
-//     * texture */
-//    if (img->cmn.render_target && msaa) {
-//      binocle_backend_mtl_init_texdesc_rt_msaa(mtl_desc, img);
-//      id<MTLTexture> tex = [mtl->device newTextureWithDescriptor:mtl_desc];
-//      img->mtl.msaa_tex = binocle_backend_mtl_add_resource(mtl, tex);
-//    }
-//
-//    /* create (possibly shared) sampler state */
-//    img->mtl.sampler_state =
-//      binocle_backend_mtl_create_sampler(mtl, mtl->device, desc);
+    /* create the color texture
+        In case this is a render target without MSAA, add the relevant
+        render-target descriptor attributes.
+        In case this is a render target *with* MSAA, the color texture
+        will serve as MSAA-resolve target (not as render target), and rendering
+        will go into a separate render target texture of type
+        MTLTextureType2DMultisample.
+    */
+    if (img->cmn.render_target && !msaa) {
+      binocle_backend_mtl_init_texdesc_rt(mtl_desc, img);
+    }
+    for (int slot = 0; slot < img->cmn.num_slots; slot++) {
+      id<MTLTexture> tex;
+      if (injected) {
+        assert(desc->mtl_textures[slot]);
+        tex = (__bridge id<MTLTexture>)desc->mtl_textures[slot];
+      } else {
+        tex = [mtl->device newTextureWithDescriptor:mtl_desc];
+        if ((img->cmn.usage == BINOCLE_USAGE_IMMUTABLE) &&
+            !img->cmn.render_target) {
+          binocle_backend_mtl_copy_image_content(img, tex, &desc->content);
+        }
+      }
+      img->mtl.tex[slot] = binocle_backend_mtl_add_resource(mtl, tex);
+    }
+
+    /* if MSAA color render target, create an additional MSAA render-surface
+     * texture */
+    if (img->cmn.render_target && msaa) {
+      binocle_backend_mtl_init_texdesc_rt_msaa(mtl_desc, img);
+      id<MTLTexture> tex = [mtl->device newTextureWithDescriptor:mtl_desc];
+      img->mtl.msaa_tex = binocle_backend_mtl_add_resource(mtl, tex);
+    }
+
+    /* create (possibly shared) sampler state */
+    img->mtl.sampler_state =
+      binocle_backend_mtl_create_sampler(mtl, mtl->device, desc);
   }
   return BINOCLE_RESOURCESTATE_VALID;
 }

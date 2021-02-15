@@ -613,7 +613,7 @@ int main(int argc, char *argv[])
     .render_target = true,
     .width = DESIGN_WIDTH,
     .height = DESIGN_HEIGHT,
-    .pixel_format = BINOCLE_PIXEL_FORMAT_RGBA,
+    .pixel_format = BINOCLE_PIXELFORMAT_RGBA8,
     .sample_count = 1,
   };
   render_target = binocle_backend_make_image(&rt_desc);

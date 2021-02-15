@@ -49,7 +49,7 @@ binocle_image binocle_image_load(const char *filename) {
   binocle_image_desc desc = {
     .width = width,
     .height = height,
-    .pixel_format = BINOCLE_PIXEL_FORMAT_RGBA,
+    .pixel_format = BINOCLE_PIXELFORMAT_RGBA8,
     .min_filter = BINOCLE_FILTER_LINEAR,
     .mag_filter = BINOCLE_FILTER_LINEAR,
     .content.subimage[0][0] = {

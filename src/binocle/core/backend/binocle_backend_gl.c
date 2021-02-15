@@ -117,22 +117,11 @@ GLuint binocle_backend_gl_equation_to_gl_constant(binocle_blend_equation blend_e
   return GL_FUNC_ADD;
 }
 
-GLenum binocle_backend_gl_pixel_format_to_gl_texture_format(binocle_pixel_format fmt) {
-  switch (fmt) {
-  case BINOCLE_PIXEL_FORMAT_RGB:
-    return GL_RGB;
-  case BINOCLE_PIXEL_FORMAT_RGBA:
-    return GL_RGBA;
-  default:
-    return 0;
-  }
-}
-
 GLenum binocle_backend_gl_depth_attachment_format(binocle_pixel_format fmt) {
   switch (fmt) {
-  case BINOCLE_PIXEL_FORMAT_DEPTH:
+  case BINOCLE_PIXELFORMAT_DEPTH:
     return GL_DEPTH_COMPONENT16;
-  case BINOCLE_PIXEL_FORMAT_DEPTH_STENCIL:
+  case BINOCLE_PIXELFORMAT_DEPTH_STENCIL:
     return GL_DEPTH24_STENCIL8;
   default:
     assert(false);
@@ -142,18 +131,141 @@ GLenum binocle_backend_gl_depth_attachment_format(binocle_pixel_format fmt) {
 
 GLenum binocle_backend_gl_teximage_format(binocle_pixel_format fmt) {
   switch (fmt) {
-  case BINOCLE_PIXEL_FORMAT_RGBA:
-  case BINOCLE_PIXEL_FORMAT_RGBA8:
+  case BINOCLE_PIXELFORMAT_R8:
+  case BINOCLE_PIXELFORMAT_R8SN:
+  case BINOCLE_PIXELFORMAT_R16:
+  case BINOCLE_PIXELFORMAT_R16SN:
+  case BINOCLE_PIXELFORMAT_R16F:
+  case BINOCLE_PIXELFORMAT_R32F:
+#if defined(SOKOL_GLES2)
+    return GL_LUMINANCE;
+#else
+//    if (backend.gl.gles2) {
+//      return GL_LUMINANCE;
+//    }
+//    else
+    {
+      return GL_RED;
+    }
+#endif
+#if !defined(SOKOL_GLES2)
+  case BINOCLE_PIXELFORMAT_R8UI:
+  case BINOCLE_PIXELFORMAT_R8SI:
+  case BINOCLE_PIXELFORMAT_R16UI:
+  case BINOCLE_PIXELFORMAT_R16SI:
+  case BINOCLE_PIXELFORMAT_R32UI:
+  case BINOCLE_PIXELFORMAT_R32SI:
+//    return GL_RED_INTEGER;
+  assert(false);
+  return 0;
+  case BINOCLE_PIXELFORMAT_RG8:
+  case BINOCLE_PIXELFORMAT_RG8SN:
+  case BINOCLE_PIXELFORMAT_RG16:
+  case BINOCLE_PIXELFORMAT_RG16SN:
+  case BINOCLE_PIXELFORMAT_RG16F:
+  case BINOCLE_PIXELFORMAT_RG32F:
+    return GL_RG;
+  case BINOCLE_PIXELFORMAT_RG8UI:
+  case BINOCLE_PIXELFORMAT_RG8SI:
+  case BINOCLE_PIXELFORMAT_RG16UI:
+  case BINOCLE_PIXELFORMAT_RG16SI:
+  case BINOCLE_PIXELFORMAT_RG32UI:
+  case BINOCLE_PIXELFORMAT_RG32SI:
+    return GL_RG_INTEGER;
+#endif
+  case BINOCLE_PIXELFORMAT_RGBA8:
+  case BINOCLE_PIXELFORMAT_RGBA8SN:
+  case BINOCLE_PIXELFORMAT_RGBA16:
+  case BINOCLE_PIXELFORMAT_RGBA16SN:
+  case BINOCLE_PIXELFORMAT_RGBA16F:
+  case BINOCLE_PIXELFORMAT_RGBA32F:
+  case BINOCLE_PIXELFORMAT_RGB10A2:
     return GL_RGBA;
-  case BINOCLE_PIXEL_FORMAT_RGB:
-    return GL_RGB;
-  case BINOCLE_PIXEL_FORMAT_DEPTH:
-    return GL_DEPTH_COMPONENT;
-  case BINOCLE_PIXEL_FORMAT_DEPTH_STENCIL:
-    return GL_DEPTH_STENCIL;
-  default:
+#if !defined(SOKOL_GLES2)
+  case BINOCLE_PIXELFORMAT_RGBA8UI:
+  case BINOCLE_PIXELFORMAT_RGBA8SI:
+  case BINOCLE_PIXELFORMAT_RGBA16UI:
+  case BINOCLE_PIXELFORMAT_RGBA16SI:
+  case BINOCLE_PIXELFORMAT_RGBA32UI:
+  case BINOCLE_PIXELFORMAT_RGBA32SI:
+//    return GL_RGBA_INTEGER;
     assert(false);
     return 0;
+#endif
+  case BINOCLE_PIXELFORMAT_RG11B10F:
+    return GL_RGB;
+  case BINOCLE_PIXELFORMAT_DEPTH:
+    return GL_DEPTH_COMPONENT;
+  case BINOCLE_PIXELFORMAT_DEPTH_STENCIL:
+    return GL_DEPTH_STENCIL;
+  case BINOCLE_PIXELFORMAT_BC1_RGBA:
+    return GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+  case BINOCLE_PIXELFORMAT_BC2_RGBA:
+    return GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+  case BINOCLE_PIXELFORMAT_BC3_RGBA:
+    return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+  case BINOCLE_PIXELFORMAT_BC4_R:
+    return GL_COMPRESSED_RED_RGTC1;
+  case BINOCLE_PIXELFORMAT_BC4_RSN:
+    return GL_COMPRESSED_SIGNED_RED_RGTC1;
+  case BINOCLE_PIXELFORMAT_BC5_RG:
+    assert(false);
+    return 0;
+//    return GL_COMPRESSED_RED_GREEN_RGTC2;
+  case BINOCLE_PIXELFORMAT_BC5_RGSN:
+    assert(false);
+    return 0;
+//    return GL_COMPRESSED_SIGNED_RED_GREEN_RGTC2;
+  case BINOCLE_PIXELFORMAT_BC6H_RGBF:
+    assert(false);
+    return 0;
+//    return GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB;
+  case BINOCLE_PIXELFORMAT_BC6H_RGBUF:
+    assert(false);
+    return 0;
+//    return GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_ARB;
+  case BINOCLE_PIXELFORMAT_BC7_RGBA:
+    assert(false);
+    return 0;
+//    return GL_COMPRESSED_RGBA_BPTC_UNORM_ARB;
+  case BINOCLE_PIXELFORMAT_PVRTC_RGB_2BPP:
+    assert(false);
+    return 0;
+//    return GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
+  case BINOCLE_PIXELFORMAT_PVRTC_RGB_4BPP:
+    assert(false);
+    return 0;
+//    return GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
+  case BINOCLE_PIXELFORMAT_PVRTC_RGBA_2BPP:
+    assert(false);
+    return 0;
+//    return GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
+  case BINOCLE_PIXELFORMAT_PVRTC_RGBA_4BPP:
+    assert(false);
+    return 0;
+//    return GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
+  case BINOCLE_PIXELFORMAT_ETC2_RGB8:
+    assert(false);
+    return 0;
+//    return GL_COMPRESSED_RGB8_ETC2;
+  case BINOCLE_PIXELFORMAT_ETC2_RGB8A1:
+    assert(false);
+    return 0;
+//    return GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2;
+  case BINOCLE_PIXELFORMAT_ETC2_RGBA8:
+    assert(false);
+    return 0;
+//    return GL_COMPRESSED_RGBA8_ETC2_EAC;
+  case BINOCLE_PIXELFORMAT_ETC2_RG11:
+    assert(false);
+    return 0;
+//    return GL_COMPRESSED_RG11_EAC;
+  case BINOCLE_PIXELFORMAT_ETC2_RG11SN:
+    assert(false);
+    return 0;
+//    return GL_COMPRESSED_SIGNED_RG11_EAC;
+  default:
+    assert(false); return 0;
   }
 }
 
@@ -174,21 +286,171 @@ GLenum binocle_backend_gl_texture_target(binocle_image_type t) {
 }
 
 GLenum binocle_backend_gl_teximage_internal_format(binocle_pixel_format fmt) {
-  switch (fmt) {
-  case BINOCLE_PIXEL_FORMAT_RGB:
-    return GL_RGB;
-  case BINOCLE_PIXEL_FORMAT_RGBA:
-    return GL_RGBA;
-  case BINOCLE_PIXEL_FORMAT_RGBA8:
-    return GL_RGBA8;
-  case BINOCLE_PIXEL_FORMAT_DEPTH:
-    return GL_DEPTH_COMPONENT16;
-  case BINOCLE_PIXEL_FORMAT_DEPTH_STENCIL:
-    return GL_DEPTH24_STENCIL8;
-  default:
-    assert(false);
-    return 0;
+#if defined(BINOCLE_GLES2)
+  return binocle_backend_gl_teximage_format(fmt);
+#else
+//  if (backend.gl.gles2) {
+//    return binocle_backend_gl_teximage_format(fmt);
+//  }
+//  else 
+  {
+    switch (fmt) {
+    case BINOCLE_PIXELFORMAT_R8:         return GL_R8;
+    case BINOCLE_PIXELFORMAT_R8SN:
+      assert(false);
+      return 0;
+//      return GL_R8_SNORM;
+    case BINOCLE_PIXELFORMAT_R8UI:       return GL_R8UI;
+    case BINOCLE_PIXELFORMAT_R8SI:       return GL_R8I;
+#if !defined(SOKOL_GLES3)
+    case BINOCLE_PIXELFORMAT_R16:        return GL_R16;
+    case BINOCLE_PIXELFORMAT_R16SN:
+      assert(false);
+      return 0;
+//      return GL_R16_SNORM;
+#endif
+    case BINOCLE_PIXELFORMAT_R16UI:      return GL_R16UI;
+    case BINOCLE_PIXELFORMAT_R16SI:      return GL_R16I;
+    case BINOCLE_PIXELFORMAT_R16F:       return GL_R16F;
+    case BINOCLE_PIXELFORMAT_RG8:        return GL_RG8;
+    case BINOCLE_PIXELFORMAT_RG8SN:
+      assert(false);
+      return 0;
+//      return GL_RG8_SNORM;
+    case BINOCLE_PIXELFORMAT_RG8UI:      return GL_RG8UI;
+    case BINOCLE_PIXELFORMAT_RG8SI:      return GL_RG8I;
+    case BINOCLE_PIXELFORMAT_R32UI:      return GL_R32UI;
+    case BINOCLE_PIXELFORMAT_R32SI:      return GL_R32I;
+    case BINOCLE_PIXELFORMAT_R32F:       return GL_R32F;
+#if !defined(SOKOL_GLES3)
+    case BINOCLE_PIXELFORMAT_RG16:       return GL_RG16;
+    case BINOCLE_PIXELFORMAT_RG16SN:
+      assert(false);
+      return 0;
+//      return GL_RG16_SNORM;
+#endif
+    case BINOCLE_PIXELFORMAT_RG16UI:     return GL_RG16UI;
+    case BINOCLE_PIXELFORMAT_RG16SI:     return GL_RG16I;
+    case BINOCLE_PIXELFORMAT_RG16F:      return GL_RG16F;
+    case BINOCLE_PIXELFORMAT_RGBA8:      return GL_RGBA8;
+    case BINOCLE_PIXELFORMAT_RGBA8SN:
+      assert(false);
+      return 0;
+//      return GL_RGBA8_SNORM;
+    case BINOCLE_PIXELFORMAT_RGBA8UI:
+      assert(false);
+      return 0;
+//      return GL_RGBA8UI;
+    case BINOCLE_PIXELFORMAT_RGBA8SI:
+      assert(false);
+      return 0;
+//      return GL_RGBA8I;
+    case BINOCLE_PIXELFORMAT_RGB10A2:    return GL_RGB10_A2;
+    case BINOCLE_PIXELFORMAT_RG11B10F:
+      assert(false);
+      return 0;
+//      return GL_R11F_G11F_B10F;
+    case BINOCLE_PIXELFORMAT_RG32UI:     return GL_RG32UI;
+    case BINOCLE_PIXELFORMAT_RG32SI:     return GL_RG32I;
+    case BINOCLE_PIXELFORMAT_RG32F:      return GL_RG32F;
+#if !defined(SOKOL_GLES3)
+    case BINOCLE_PIXELFORMAT_RGBA16:     return GL_RGBA16;
+    case BINOCLE_PIXELFORMAT_RGBA16SN:
+      assert(false);
+      return 0;
+//      return GL_RGBA16_SNORM;
+#endif
+    case BINOCLE_PIXELFORMAT_RGBA16UI:
+      assert(false);
+      return 0;
+//      return GL_RGBA16UI;
+    case BINOCLE_PIXELFORMAT_RGBA16SI:
+      assert(false);
+      return 0;
+//      return GL_RGBA16I;
+    case BINOCLE_PIXELFORMAT_RGBA16F:
+      assert(false);
+      return 0;
+//      return GL_RGBA16F;
+    case BINOCLE_PIXELFORMAT_RGBA32UI:
+      assert(false);
+      return 0;
+//      return GL_RGBA32UI;
+    case BINOCLE_PIXELFORMAT_RGBA32SI:
+      assert(false);
+      return 0;
+//      return GL_RGBA32I;
+    case BINOCLE_PIXELFORMAT_RGBA32F:
+      assert(false);
+      return 0;
+//      return GL_RGBA32F;
+    case BINOCLE_PIXELFORMAT_DEPTH:      return GL_DEPTH_COMPONENT16;
+    case BINOCLE_PIXELFORMAT_DEPTH_STENCIL:      return GL_DEPTH24_STENCIL8;
+    case BINOCLE_PIXELFORMAT_BC1_RGBA:           return GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+    case BINOCLE_PIXELFORMAT_BC2_RGBA:           return GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+    case BINOCLE_PIXELFORMAT_BC3_RGBA:           return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+    case BINOCLE_PIXELFORMAT_BC4_R:              return GL_COMPRESSED_RED_RGTC1;
+    case BINOCLE_PIXELFORMAT_BC4_RSN:            return GL_COMPRESSED_SIGNED_RED_RGTC1;
+    case BINOCLE_PIXELFORMAT_BC5_RG:
+      assert(false);
+      return 0;
+//      return GL_COMPRESSED_RED_GREEN_RGTC2;
+    case BINOCLE_PIXELFORMAT_BC5_RGSN:
+      assert(false);
+      return 0;
+//      return GL_COMPRESSED_SIGNED_RED_GREEN_RGTC2;
+    case BINOCLE_PIXELFORMAT_BC6H_RGBF:
+      assert(false);
+      return 0;
+//      return GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB;
+    case BINOCLE_PIXELFORMAT_BC6H_RGBUF:
+      assert(false);
+      return 0;
+//      return GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_ARB;
+    case BINOCLE_PIXELFORMAT_BC7_RGBA:
+      assert(false);
+      return 0;
+//      return GL_COMPRESSED_RGBA_BPTC_UNORM_ARB;
+    case BINOCLE_PIXELFORMAT_PVRTC_RGB_2BPP:
+      assert(false);
+      return 0;
+//      return GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
+    case BINOCLE_PIXELFORMAT_PVRTC_RGB_4BPP:
+      assert(false);
+      return 0;
+//      return GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
+    case BINOCLE_PIXELFORMAT_PVRTC_RGBA_2BPP:
+      assert(false);
+      return 0;
+//      return GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
+    case BINOCLE_PIXELFORMAT_PVRTC_RGBA_4BPP:
+      assert(false);
+      return 0;
+//      return GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
+    case BINOCLE_PIXELFORMAT_ETC2_RGB8:
+      assert(false);
+      return 0;
+//      return GL_COMPRESSED_RGB8_ETC2;
+    case BINOCLE_PIXELFORMAT_ETC2_RGB8A1:
+      assert(false);
+      return 0;
+//      return GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2;
+    case BINOCLE_PIXELFORMAT_ETC2_RGBA8:
+      assert(false);
+      return 0;
+//      return GL_COMPRESSED_RGBA8_ETC2_EAC;
+    case BINOCLE_PIXELFORMAT_ETC2_RG11:
+      assert(false);
+      return 0;
+//      return GL_COMPRESSED_RG11_EAC;
+    case BINOCLE_PIXELFORMAT_ETC2_RG11SN:
+      assert(false);
+      return 0;
+//      return GL_COMPRESSED_SIGNED_RG11_EAC;
+    default: assert(false); return 0;
+    }
   }
+#endif
 }
 
 GLenum binocle_backend_gl_wrap(binocle_wrap w) {
@@ -234,17 +496,65 @@ GLenum binocle_backend_gl_filter(binocle_filter f) {
 
 GLenum binocle_backend_gl_teximage_type(binocle_pixel_format fmt) {
   switch (fmt) {
-  case BINOCLE_PIXEL_FORMAT_RGBA8:
-  case BINOCLE_PIXEL_FORMAT_RGBA:
-  case BINOCLE_PIXEL_FORMAT_RGB:
+  case BINOCLE_PIXELFORMAT_R8:
+  case BINOCLE_PIXELFORMAT_R8UI:
+  case BINOCLE_PIXELFORMAT_RG8:
+  case BINOCLE_PIXELFORMAT_RG8UI:
+  case BINOCLE_PIXELFORMAT_RGBA8:
+  case BINOCLE_PIXELFORMAT_RGBA8UI:
+  case BINOCLE_PIXELFORMAT_BGRA8:
     return GL_UNSIGNED_BYTE;
-  case BINOCLE_PIXEL_FORMAT_DEPTH:
+  case BINOCLE_PIXELFORMAT_R8SN:
+  case BINOCLE_PIXELFORMAT_R8SI:
+  case BINOCLE_PIXELFORMAT_RG8SN:
+  case BINOCLE_PIXELFORMAT_RG8SI:
+  case BINOCLE_PIXELFORMAT_RGBA8SN:
+  case BINOCLE_PIXELFORMAT_RGBA8SI:
+    return GL_BYTE;
+  case BINOCLE_PIXELFORMAT_R16:
+  case BINOCLE_PIXELFORMAT_R16UI:
+  case BINOCLE_PIXELFORMAT_RG16:
+  case BINOCLE_PIXELFORMAT_RG16UI:
+  case BINOCLE_PIXELFORMAT_RGBA16:
+  case BINOCLE_PIXELFORMAT_RGBA16UI:
     return GL_UNSIGNED_SHORT;
-  case BINOCLE_PIXEL_FORMAT_DEPTH_STENCIL:
-    return GL_UNSIGNED_INT_24_8;
-  default:
+  case BINOCLE_PIXELFORMAT_R16SN:
+  case BINOCLE_PIXELFORMAT_R16SI:
+  case BINOCLE_PIXELFORMAT_RG16SN:
+  case BINOCLE_PIXELFORMAT_RG16SI:
+  case BINOCLE_PIXELFORMAT_RGBA16SN:
+  case BINOCLE_PIXELFORMAT_RGBA16SI:
+    return GL_SHORT;
+  case BINOCLE_PIXELFORMAT_R16F:
+  case BINOCLE_PIXELFORMAT_RG16F:
+  case BINOCLE_PIXELFORMAT_RGBA16F:
+    return GL_HALF_FLOAT;
+  case BINOCLE_PIXELFORMAT_R32UI:
+  case BINOCLE_PIXELFORMAT_RG32UI:
+  case BINOCLE_PIXELFORMAT_RGBA32UI:
+    return GL_UNSIGNED_INT;
+  case BINOCLE_PIXELFORMAT_R32SI:
+  case BINOCLE_PIXELFORMAT_RG32SI:
+  case BINOCLE_PIXELFORMAT_RGBA32SI:
+    return GL_INT;
+  case BINOCLE_PIXELFORMAT_R32F:
+  case BINOCLE_PIXELFORMAT_RG32F:
+  case BINOCLE_PIXELFORMAT_RGBA32F:
+    return GL_FLOAT;
+#if !defined(SOKOL_GLES2)
+  case BINOCLE_PIXELFORMAT_RGB10A2:
+    return GL_UNSIGNED_INT_2_10_10_10_REV;
+  case BINOCLE_PIXELFORMAT_RG11B10F:
     assert(false);
     return 0;
+//    return GL_UNSIGNED_INT_10F_11F_11F_REV;
+#endif
+  case BINOCLE_PIXELFORMAT_DEPTH:
+    return GL_UNSIGNED_SHORT;
+  case BINOCLE_PIXELFORMAT_DEPTH_STENCIL:
+    return GL_UNSIGNED_INT_24_8;
+  default:
+    assert(false); return 0;
   }
 }
 
@@ -466,7 +776,7 @@ binocle_resource_state binocle_backend_gl_create_render_target(binocle_render_ta
 
 //  binocle_render_target_t *res = SDL_malloc(sizeof(binocle_render_target_t));
 
-  GLenum fmt = binocle_backend_gl_pixel_format_to_gl_texture_format(format);
+  GLenum fmt = binocle_backend_gl_teximage_format(format);
 
   GLuint fb[1];
   glCheck(glGenFramebuffers(1, fb));
@@ -1081,7 +1391,7 @@ binocle_backend_gl_create_image(binocle_gl_backend_t *gl, binocle_image_t *img,
   // Begin hack to get render targets working without render passes
   {
     GLenum fmt =
-      binocle_backend_gl_pixel_format_to_gl_texture_format(desc->pixel_format);
+      binocle_backend_gl_teximage_format(desc->pixel_format);
 
     GLuint fb[1];
     glCheck(glGenFramebuffers(1, fb));

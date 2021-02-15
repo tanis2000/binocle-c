@@ -61,5 +61,8 @@ void binocle_backend_shader_common_init(binocle_shader_common_t* cmn, const bino
 void binocle_backend_strcpy(binocle_str_t* dst, const char* src);
 int binocle_backend_uniform_size(binocle_uniform_type type, int count);
 binocle_shader binocle_backend_make_shader(const binocle_shader_desc* desc);
+uint32_t binocle_backend_surface_pitch(binocle_pixel_format fmt, uint32_t width, uint32_t height, uint32_t row_align);
+uint32_t binocle_backend_row_pitch(binocle_pixel_format fmt, uint32_t width,
+                                   uint32_t row_align);
 
 #endif // BINOCLE_BACKEND_H
