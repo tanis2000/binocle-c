@@ -52,9 +52,9 @@ binocle_image binocle_image_load(const char *filename) {
     .pixel_format = BINOCLE_PIXELFORMAT_RGBA8,
     .min_filter = BINOCLE_FILTER_LINEAR,
     .mag_filter = BINOCLE_FILTER_LINEAR,
-    .content.subimage[0][0] = {
+    .data.subimage[0][0] = {
       .ptr = data,
-      .size = width * height * bpp
+      .size = width * height * 4 // forced to 4bpp as we use the same format all the time no matter what we read from the asset
     }
   };
   img = binocle_backend_make_image(&desc);

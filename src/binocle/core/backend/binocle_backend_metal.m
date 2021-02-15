@@ -463,16 +463,16 @@ bool binocle_backend_mtl_init_texdesc_common(MTLTextureDescriptor *mtl_desc,
     binocle_log_warning("Unsupported texture pixel format!\n");
     return false;
   }
-  mtl_desc.width = img->cmn.width;
-  mtl_desc.height = img->cmn.height;
+  mtl_desc.width = (NSUInteger)img->cmn.width;
+  mtl_desc.height = (NSUInteger)img->cmn.height;
   if (BINOCLE_IMAGETYPE_3D == img->cmn.type) {
-    mtl_desc.depth = img->cmn.depth;
+    mtl_desc.depth = (NSUInteger)img->cmn.depth;
   } else {
     mtl_desc.depth = 1;
   }
-  mtl_desc.mipmapLevelCount = img->cmn.num_mipmaps;
+  mtl_desc.mipmapLevelCount = (NSUInteger)img->cmn.num_mipmaps;
   if (BINOCLE_IMAGETYPE_ARRAY == img->cmn.type) {
-    mtl_desc.arrayLength = img->cmn.depth;
+    mtl_desc.arrayLength = (NSUInteger)img->cmn.depth;
   } else {
     mtl_desc.arrayLength = 1;
   }
@@ -521,14 +521,14 @@ void binocle_backend_mtl_init_texdesc_rt_msaa(MTLTextureDescriptor* mtl_desc, bi
   mtl_desc.sampleCount = img->cmn.sample_count;
 }
 
-void binocle_backend_mtl_copy_image_content(const binocle_image_t* img, __unsafe_unretained id<MTLTexture> mtl_tex, const binocle_image_content* content) {
+void binocle_backend_mtl_copy_image_data(const binocle_image_t* img, __unsafe_unretained id<MTLTexture> mtl_tex, const binocle_image_data* data) {
   const int num_faces = (img->cmn.type == BINOCLE_IMAGETYPE_CUBE) ? 6:1;
   const int num_slices = (img->cmn.type == BINOCLE_IMAGETYPE_ARRAY) ? img->cmn.depth : 1;
   for (int face_index = 0; face_index < num_faces; face_index++) {
     for (int mip_index = 0; mip_index < img->cmn.num_mipmaps; mip_index++) {
-      assert(content->subimage[face_index][mip_index].ptr);
-      assert(content->subimage[face_index][mip_index].size > 0);
-      const uint8_t* data_ptr = (const uint8_t*)content->subimage[face_index][mip_index].ptr;
+      assert(data->subimage[face_index][mip_index].ptr);
+      assert(data->subimage[face_index][mip_index].size > 0);
+      const uint8_t* data_ptr = (const uint8_t*)data->subimage[face_index][mip_index].ptr;
       const int mip_width = BINOCLE_MAX(img->cmn.width >> mip_index, 1);
       const int mip_height = BINOCLE_MAX(img->cmn.height >> mip_index, 1);
       /* special case PVRTC formats: bytePerRow must be 0 */
@@ -540,23 +540,23 @@ void binocle_backend_mtl_copy_image_content(const binocle_image_t* img, __unsafe
       MTLRegion region;
       if (img->cmn.type == BINOCLE_IMAGETYPE_3D) {
         const int mip_depth = BINOCLE_MAX(img->cmn.depth >> mip_index, 1);
-        region = MTLRegionMake3D(0, 0, 0, mip_width, mip_height, mip_depth);
+        region = MTLRegionMake3D(0, 0, 0, (NSUInteger)mip_width, (NSUInteger)mip_height, (NSUInteger)mip_depth);
         /* FIXME: apparently the minimal bytes_per_image size for 3D texture
          is 4 KByte... somehow need to handle this */
       }
       else {
-        region = MTLRegionMake2D(0, 0, mip_width, mip_height);
+        region = MTLRegionMake2D(0, 0, (NSUInteger)mip_width, (NSUInteger)mip_height);
       }
       for (int slice_index = 0; slice_index < num_slices; slice_index++) {
         const int mtl_slice_index = (img->cmn.type == BINOCLE_IMAGETYPE_CUBE) ? face_index : slice_index;
         const int slice_offset = slice_index * bytes_per_slice;
-        assert((slice_offset + bytes_per_slice) <= (int)content->subimage[face_index][mip_index].size);
+        assert((slice_offset + bytes_per_slice) <= (int)data->subimage[face_index][mip_index].size);
         [mtl_tex replaceRegion:region
-                   mipmapLevel:mip_index
-                         slice:mtl_slice_index
+                   mipmapLevel:(NSUInteger)mip_index
+                         slice:(NSUInteger)mtl_slice_index
                      withBytes:data_ptr + slice_offset
-                   bytesPerRow:bytes_per_row
-                 bytesPerImage:bytes_per_slice];
+                   bytesPerRow:(NSUInteger)bytes_per_row
+                 bytesPerImage:(NSUInteger)bytes_per_slice];
       }
     }
   }
@@ -616,12 +616,12 @@ binocle_backend_mtl_create_image(binocle_mtl_backend_t *mtl, binocle_image_t *im
       id<MTLTexture> tex;
       if (injected) {
         assert(desc->mtl_textures[slot]);
-        tex = (__bridge id<MTLTexture>)desc->mtl_textures[slot];
-      } else {
+        tex = (__bridge id<MTLTexture>) desc->mtl_textures[slot];
+      }
+      else {
         tex = [mtl->device newTextureWithDescriptor:mtl_desc];
-        if ((img->cmn.usage == BINOCLE_USAGE_IMMUTABLE) &&
-            !img->cmn.render_target) {
-          binocle_backend_mtl_copy_image_content(img, tex, &desc->content);
+        if ((img->cmn.usage == BINOCLE_USAGE_IMMUTABLE) && !img->cmn.render_target) {
+          binocle_backend_mtl_copy_image_data(img, tex, &desc->data);
         }
       }
       img->mtl.tex[slot] = binocle_backend_mtl_add_resource(mtl, tex);
@@ -639,6 +639,7 @@ binocle_backend_mtl_create_image(binocle_mtl_backend_t *mtl, binocle_image_t *im
     img->mtl.sampler_state =
       binocle_backend_mtl_create_sampler(mtl, mtl->device, desc);
   }
+  mtl_desc = nil;
   return BINOCLE_RESOURCESTATE_VALID;
 }
 

@@ -7,8 +7,9 @@
 #ifndef BINOCLE_BINOCLE_BACKEND_TYPES_H
 #define BINOCLE_BINOCLE_BACKEND_TYPES_H
 
-#include <stdint.h>
 #include <stdbool.h>
+#import <stddef.h>
+#include <stdint.h>
 
 #define BINOCLE_DEFAULT_UB_SIZE (4 * 1024 * 1024)
 #define BINOCLE_DEFAULT_BUFFER_POOL_SIZE (128)
@@ -172,33 +173,28 @@ typedef enum binocle_cube_face {
 } binocle_cube_face;
 
 /*
-    binocle_subimage_content
-
-    Pointer to and size of a subimage-surface data, this is
-    used to describe the initial content of immutable-usage images,
-    or for updating a dynamic- or stream-usage images.
-
-    For 3D- or array-textures, one binocle_subimage_content item
-    describes an entire mipmap level consisting of all array- or
-    3D-slices of the mipmap level. It is only possible to update
-    an entire mipmap level, not parts of it.
+    binocle_range is a pointer-size-pair struct used to pass memory blobs into
+    the library. When initialized from a value type (array or struct), you can
+    use the BINOCLE_RANGE() macro to build an binocle_range struct. For functions which
+    take either a binocle_range pointer, or a (C++) binocle_range reference, use the
+    BINOCLE_RANGE_REF macro as a solution which compiles both in C and C++.
 */
-typedef struct binocle_subimage_content {
-  const void* ptr;    /* pointer to subimage data */
-  int size;           /* size in bytes of pointed-to subimage data */
-} binocle_subimage_content;
+typedef struct binocle_range {
+  const void* ptr;
+  size_t size;
+} binocle_range;
 
 /*
-    binocle_image_content
+    binocle_image_data
 
     Defines the content of an image through a 2D array
-    of binocle_subimage_content structs. The first array dimension
+    of binocle_range structs. The first array dimension
     is the cubemap face, and the second array dimension the
     mipmap level.
 */
-typedef struct binocle_image_content {
-  binocle_subimage_content subimage[BINOCLE_CUBEFACE_NUM][BINOCLE_MAX_MIPMAPS];
-} binocle_image_content;
+typedef struct binocle_image_data {
+  binocle_range subimage[BINOCLE_CUBEFACE_NUM][BINOCLE_MAX_MIPMAPS];
+} binocle_image_data;
 
 typedef struct binocle_image_desc {
   binocle_image_type type;
@@ -222,7 +218,7 @@ typedef struct binocle_image_desc {
   uint32_t max_anisotropy;
   float min_lod;
   float max_lod;
-  binocle_image_content content;
+  binocle_image_data data;
   const char* label;
   /* GL specific */
   uint32_t gl_textures[BINOCLE_NUM_INFLIGHT_FRAMES];
