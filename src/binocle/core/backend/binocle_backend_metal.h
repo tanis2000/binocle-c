@@ -8,6 +8,7 @@
 #define BINOCLE_BACKEND_METAL_H
 
 #include <TargetConditionals.h>
+#import <QuartzCore/CAMetalLayer.h>
 #import <Metal/Metal.h>
 #import <Cocoa/Cocoa.h>
 #include "binocle_backend_types.h"
@@ -95,6 +96,7 @@ typedef struct binocle_mtl_backend_t {
   id<MTLCommandBuffer> cmd_buffer;
   id<MTLRenderCommandEncoder> cmd_encoder;
   id<MTLBuffer> uniform_buffers[BINOCLE_NUM_INFLIGHT_FRAMES];
+  CAMetalLayer *layer;
 } binocle_mtl_backend_t;
 
 void binocle_backend_mtl_setup_backend(binocle_mtl_backend_t *mtl, binocle_backend_desc *desc);

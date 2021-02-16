@@ -234,7 +234,7 @@ void main_loop() {
   // Reset the render target to the screen
   binocle_backend_unset_render_target();
   // Clear the screen with an azure
-  binocle_gd_clear(binocle_color_black());
+  binocle_gd_clear(binocle_color_green());
   binocle_gd_apply_viewport(vp);
   binocle_gd_apply_shader(&gd, screen_shader);
   binocle_gd_set_uniform_float2(screen_shader, "resolution", DESIGN_WIDTH,

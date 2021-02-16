@@ -418,6 +418,7 @@ void binocle_backend_mtl_setup_backend(binocle_mtl_backend_t *mtl, binocle_backe
   mtl->sem = dispatch_semaphore_create(BINOCLE_NUM_INFLIGHT_FRAMES);
   NSView *view = (__bridge NSView *)desc->context.mtl.mtl_view;
   CAMetalLayer *metal_layer = (CAMetalLayer *)view.layer;
+  mtl->layer = metal_layer;
   mtl->device = MTLCreateSystemDefaultDevice();
   metal_layer.device = mtl->device;
   mtl->cmd_queue = [mtl->device newCommandQueue];
@@ -760,6 +761,8 @@ void binocle_backend_mtl_clear(binocle_mtl_backend_t *mtl, struct binocle_color 
   assert(nil == mtl->cmd_encoder);
 
   MTLRenderPassDescriptor* pass_desc = [MTLRenderPassDescriptor renderPassDescriptor];
+    id<CAMetalDrawable> cur_drawable = [mtl->layer nextDrawable];
+    pass_desc.colorAttachments[0].texture = cur_drawable.texture;
   pass_desc.colorAttachments[0].loadAction = MTLLoadActionClear;
   pass_desc.colorAttachments[0].storeAction = MTLStoreActionStore;
   pass_desc.colorAttachments[0].clearColor = MTLClearColorMake(color.r, color.g, color.b, color.a);
@@ -770,6 +773,7 @@ void binocle_backend_mtl_clear(binocle_mtl_backend_t *mtl, struct binocle_color 
   mtl->cmd_encoder = [mtl->cmd_buffer renderCommandEncoderWithDescriptor:pass_desc];
   [mtl->cmd_encoder endEncoding];
   mtl->cmd_encoder = nil;
+    [mtl->cmd_buffer presentDrawable:cur_drawable];
   [mtl->cmd_buffer commit];
   mtl->cmd_buffer = nil;
 }
