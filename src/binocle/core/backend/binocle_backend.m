@@ -232,6 +232,69 @@ uint32_t binocle_backend_surface_pitch(binocle_pixel_format fmt, uint32_t width,
   return num_rows * binocle_backend_row_pitch(fmt, width, row_align);
 }
 
+/* capability table pixel format helper functions */
+void binocle_backend_pixelformat_all(binocle_pixelformat_info* pfi) {
+  pfi->sample = true;
+  pfi->filter = true;
+  pfi->blend = true;
+  pfi->render = true;
+  pfi->msaa = true;
+}
+
+void binocle_backend_pixelformat_s(binocle_pixelformat_info* pfi) {
+  pfi->sample = true;
+}
+
+void binocle_backend_pixelformat_sf(binocle_pixelformat_info* pfi) {
+  pfi->sample = true;
+  pfi->filter = true;
+}
+
+void binocle_backend_pixelformat_sr(binocle_pixelformat_info* pfi) {
+  pfi->sample = true;
+  pfi->render = true;
+}
+
+void binocle_backend_pixelformat_srmd(binocle_pixelformat_info* pfi) {
+  pfi->sample = true;
+  pfi->render = true;
+  pfi->msaa = true;
+  pfi->depth = true;
+}
+
+void binocle_backend_pixelformat_srm(binocle_pixelformat_info* pfi) {
+  pfi->sample = true;
+  pfi->render = true;
+  pfi->msaa = true;
+}
+
+void binocle_backend_pixelformat_sfrm(binocle_pixelformat_info* pfi) {
+  pfi->sample = true;
+  pfi->filter = true;
+  pfi->render = true;
+  pfi->msaa = true;
+}
+
+void binocle_backend_pixelformat_sbrm(binocle_pixelformat_info* pfi) {
+  pfi->sample = true;
+  pfi->blend = true;
+  pfi->render = true;
+  pfi->msaa = true;
+}
+
+void binocle_backend_pixelformat_sbr(binocle_pixelformat_info* pfi) {
+  pfi->sample = true;
+  pfi->blend = true;
+  pfi->render = true;
+}
+
+void binocle_backend_pixelformat_sfbr(binocle_pixelformat_info* pfi) {
+  pfi->sample = true;
+  pfi->filter = true;
+  pfi->blend = true;
+  pfi->render = true;
+}
+
 void binocle_backend_setup_pools(binocle_pools_t *pools, const binocle_backend_desc* desc) {
   assert(pools);
   assert(desc);
@@ -702,7 +765,7 @@ void binocle_backend_setup_backend(binocle_backend_desc *desc) {
   backend.formats[BINOCLE_PIXELFORMAT_DEPTH_STENCIL].depth = true;
   binocle_backend_gl_init(&backend.gl);
 #elif defined(BINOCLE_METAL)
-  binocle_backend_mtl_init(&backend.mtl, desc);
+  binocle_backend_mtl_setup_backend(&backend.mtl, desc);
 #else
 #error("no backend defined")
 #endif
@@ -841,7 +904,8 @@ void binocle_backend_clear(struct binocle_color color) {
 #if defined(BINOCLE_GL)
   binocle_backend_gl_clear(color);
 #elif defined(BINOCLE_METAL)
-  #else
+  binocle_backend_mtl_clear(&backend.mtl, color);
+#else
 #error("no backend defined")
 #endif
 }
@@ -935,4 +999,144 @@ void binocle_backend_shader_common_init(binocle_shader_common_t* cmn, const bino
       stage->num_images++;
     }
   }
+}
+
+/* https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf */
+void binocle_backend_mtl_init_caps(void) {
+//#if defined(BINOCLE_MACOS)
+//  backend.backend = BINOCLE_BACKEND_METAL_MACOS;
+//#elif defined(BINOCLE_IOS)
+//  #if defined(BINOCLE_IOS_SIMULATOR)
+//            backend.backend = BINOCLE_BACKEND_METAL_SIMULATOR;
+//        #else
+//            backend.backend = BINOCLE_BACKEND_METAL_IOS;
+//        #endif
+//#endif
+//  backend.features.instancing = true;
+//  backend.features.origin_top_left = true;
+//  backend.features.multiple_render_targets = true;
+//  backend.features.msaa_render_targets = true;
+//  backend.features.imagetype_3d = true;
+//  backend.features.imagetype_array = true;
+//#if defined(_SG_TARGET_MACOS)
+//  backend.features.image_clamp_to_border = true;
+//#else
+//  backend.features.image_clamp_to_border = false;
+//#endif
+//  backend.features.mrt_independent_blend_state = true;
+//  backend.features.mrt_independent_write_mask = true;
+//
+//#if defined(_SG_TARGET_MACOS)
+//  backend.limits.max_image_size_2d = 16 * 1024;
+//        backend.limits.max_image_size_cube = 16 * 1024;
+//        backend.limits.max_image_size_3d = 2 * 1024;
+//        backend.limits.max_image_size_array = 16 * 1024;
+//        backend.limits.max_image_array_layers = 2 * 1024;
+//#else
+//  /* newer iOS devices support 16k textures */
+//  backend.limits.max_image_size_2d = 8 * 1024;
+//  backend.limits.max_image_size_cube = 8 * 1024;
+//  backend.limits.max_image_size_3d = 2 * 1024;
+//  backend.limits.max_image_size_array = 8 * 1024;
+//  backend.limits.max_image_array_layers = 2 * 1024;
+//#endif
+//  backend.limits.max_vertex_attrs = SG_MAX_VERTEX_ATTRIBUTES;
+
+  binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_R8]);
+  binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_R8SN]);
+  binocle_backend_pixelformat_srm(&backend.formats[BINOCLE_PIXELFORMAT_R8UI]);
+  binocle_backend_pixelformat_srm(&backend.formats[BINOCLE_PIXELFORMAT_R8SI]);
+#if defined(BINOCLE_MACOS)
+  binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_R16]);
+  binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_R16SN]);
+#else
+  binocle_backend_pixelformat_sfbr(&backend.formats[BINOCLE_PIXELFORMAT_R16]);
+  binocle_backend_pixelformat_sfbr(&backend.formats[BINOCLE_PIXELFORMAT_R16SN]);
+#endif
+  binocle_backend_pixelformat_srm(&backend.formats[BINOCLE_PIXELFORMAT_R16UI]);
+  binocle_backend_pixelformat_srm(&backend.formats[BINOCLE_PIXELFORMAT_R16SI]);
+  binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_R16F]);
+  binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_RG8]);
+  binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_RG8SN]);
+  binocle_backend_pixelformat_srm(&backend.formats[BINOCLE_PIXELFORMAT_RG8UI]);
+  binocle_backend_pixelformat_srm(&backend.formats[BINOCLE_PIXELFORMAT_RG8SI]);
+  binocle_backend_pixelformat_sr(&backend.formats[BINOCLE_PIXELFORMAT_R32UI]);
+  binocle_backend_pixelformat_sr(&backend.formats[BINOCLE_PIXELFORMAT_R32SI]);
+#if defined(BINOCLE_MACOS)
+  binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_R32F]);
+#else
+  binocle_backend_pixelformat_sbr(&backend.formats[BINOCLE_PIXELFORMAT_R32F]);
+#endif
+#if defined(BINOCLE_MACOS)
+  binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_RG16]);
+  binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_RG16SN]);
+#else
+  binocle_backend_pixelformat_sfbr(&backend.formats[BINOCLE_PIXELFORMAT_RG16]);
+  binocle_backend_pixelformat_sfbr(&backend.formats[BINOCLE_PIXELFORMAT_RG16SN]);
+#endif
+  binocle_backend_pixelformat_srm(&backend.formats[BINOCLE_PIXELFORMAT_RG16UI]);
+  binocle_backend_pixelformat_srm(&backend.formats[BINOCLE_PIXELFORMAT_RG16SI]);
+  binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_RG16F]);
+  binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_RGBA8]);
+  binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_RGBA8SN]);
+  binocle_backend_pixelformat_srm(&backend.formats[BINOCLE_PIXELFORMAT_RGBA8UI]);
+  binocle_backend_pixelformat_srm(&backend.formats[BINOCLE_PIXELFORMAT_RGBA8SI]);
+  binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_BGRA8]);
+  binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_RGB10A2]);
+  binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_RG11B10F]);
+#if defined(BINOCLE_MACOS)
+  binocle_backend_pixelformat_srm(&backend.formats[BINOCLE_PIXELFORMAT_RG32UI]);
+  binocle_backend_pixelformat_srm(&backend.formats[BINOCLE_PIXELFORMAT_RG32SI]);
+#else
+  binocle_backend_pixelformat_sr(&backend.formats[BINOCLE_PIXELFORMAT_RG32UI]);
+  binocle_backend_pixelformat_sr(&backend.formats[BINOCLE_PIXELFORMAT_RG32SI]);
+#endif
+#if defined(BINOCLE_MACOS)
+  binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_RG32F]);
+#else
+  binocle_backend_pixelformat_sbr(&backend.formats[BINOCLE_PIXELFORMAT_RG32F]);
+#endif
+#if defined(BINOCLE_MACOS)
+  binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_RGBA16]);
+  binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_RGBA16SN]);
+#else
+  binocle_backend_pixelformat_sfbr(&backend.formats[BINOCLE_PIXELFORMAT_RGBA16]);
+  binocle_backend_pixelformat_sfbr(&backend.formats[BINOCLE_PIXELFORMAT_RGBA16SN]);
+#endif
+  binocle_backend_pixelformat_srm(&backend.formats[BINOCLE_PIXELFORMAT_RGBA16UI]);
+  binocle_backend_pixelformat_srm(&backend.formats[BINOCLE_PIXELFORMAT_RGBA16SI]);
+  binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_RGBA16F]);
+#if defined(BINOCLE_MACOS)
+  binocle_backend_pixelformat_srm(&backend.formats[BINOCLE_PIXELFORMAT_RGBA32UI]);
+  binocle_backend_pixelformat_srm(&backend.formats[BINOCLE_PIXELFORMAT_RGBA32SI]);
+  binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_RGBA32F]);
+#else
+  binocle_backend_pixelformat_sr(&backend.formats[BINOCLE_PIXELFORMAT_RGBA32UI]);
+  binocle_backend_pixelformat_sr(&backend.formats[BINOCLE_PIXELFORMAT_RGBA32SI]);
+  binocle_backend_pixelformat_sr(&backend.formats[BINOCLE_PIXELFORMAT_RGBA32F]);
+#endif
+  binocle_backend_pixelformat_srmd(&backend.formats[BINOCLE_PIXELFORMAT_DEPTH]);
+  binocle_backend_pixelformat_srmd(&backend.formats[BINOCLE_PIXELFORMAT_DEPTH_STENCIL]);
+#if defined(BINOCLE_MACOS)
+  binocle_backend_pixelformat_sf(&backend.formats[BINOCLE_PIXELFORMAT_BC1_RGBA]);
+  binocle_backend_pixelformat_sf(&backend.formats[BINOCLE_PIXELFORMAT_BC2_RGBA]);
+  binocle_backend_pixelformat_sf(&backend.formats[BINOCLE_PIXELFORMAT_BC3_RGBA]);
+  binocle_backend_pixelformat_sf(&backend.formats[BINOCLE_PIXELFORMAT_BC4_R]);
+  binocle_backend_pixelformat_sf(&backend.formats[BINOCLE_PIXELFORMAT_BC4_RSN]);
+  binocle_backend_pixelformat_sf(&backend.formats[BINOCLE_PIXELFORMAT_BC5_RG]);
+  binocle_backend_pixelformat_sf(&backend.formats[BINOCLE_PIXELFORMAT_BC5_RGSN]);
+  binocle_backend_pixelformat_sf(&backend.formats[BINOCLE_PIXELFORMAT_BC6H_RGBF]);
+  binocle_backend_pixelformat_sf(&backend.formats[BINOCLE_PIXELFORMAT_BC6H_RGBUF]);
+  binocle_backend_pixelformat_sf(&backend.formats[BINOCLE_PIXELFORMAT_BC7_RGBA]);
+#else
+  binocle_backend_pixelformat_sf(&backend.formats[BINOCLE_PIXELFORMAT_PVRTC_RGB_2BPP]);
+  binocle_backend_pixelformat_sf(&backend.formats[BINOCLE_PIXELFORMAT_PVRTC_RGB_4BPP]);
+  binocle_backend_pixelformat_sf(&backend.formats[BINOCLE_PIXELFORMAT_PVRTC_RGBA_2BPP]);
+  binocle_backend_pixelformat_sf(&backend.formats[BINOCLE_PIXELFORMAT_PVRTC_RGBA_4BPP]);
+  binocle_backend_pixelformat_sf(&backend.formats[BINOCLE_PIXELFORMAT_ETC2_RGB8]);
+  binocle_backend_pixelformat_sf(&backend.formats[BINOCLE_PIXELFORMAT_ETC2_RGB8A1]);
+  binocle_backend_pixelformat_sf(&backend.formats[BINOCLE_PIXELFORMAT_ETC2_RGBA8]);
+  binocle_backend_pixelformat_sf(&backend.formats[BINOCLE_PIXELFORMAT_ETC2_RG11]);
+  binocle_backend_pixelformat_sf(&backend.formats[BINOCLE_PIXELFORMAT_ETC2_RG11SN]);
+#endif
 }

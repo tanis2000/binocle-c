@@ -6,7 +6,7 @@
 
 #include <string.h>
 #include "binocle_gd.h"
-#include "binocle_vpct.h"
+#include "backend/binocle_vpct.h"
 #include "backend/binocle_material.h"
 #include "binocle_viewport_adapter.h"
 #include "binocle_render_state.h"

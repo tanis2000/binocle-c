@@ -23,7 +23,7 @@ binocle_image binocle_image_load(const char *filename) {
   int bpp = 0;
   char *buffer;
   size_t size;
-  binocle_image img;
+  binocle_image img = { 0 };
 
 #if defined(BINOCLE_GL)
   // Flip the y-coordinate because OpenGL expects the 0.0 coordinate on the y-axis to be on the bottom side of the

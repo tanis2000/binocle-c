@@ -11,7 +11,7 @@
 #include "binocle_subtexture.h"
 #include "backend/binocle_material.h"
 #include "binocle_gd.h"
-#include "binocle_vpct.h"
+#include "backend/binocle_vpct.h"
 #include "binocle_log.h"
 #include "binocle_camera.h"
 #include <ksort/ksort.h>

@@ -14,7 +14,7 @@
 #include "backend/binocle_texture.h"
 #include "binocle_image.h"
 #include "backend/binocle_backend.h"
-#include "binocle_vpct.h"
+#include "backend/binocle_vpct.h"
 
 
 binocle_model binocle_model_load_obj(char *filename, char *mtl_filename) {

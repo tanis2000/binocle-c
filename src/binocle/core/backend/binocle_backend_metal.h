@@ -16,6 +16,8 @@
 
 #define BINOCLE_MTL_INVALID_SLOT_INDEX (0)
 
+struct binocle_color;
+
 typedef struct binocle_mtl_render_target {
   binocle_slot_t slot;
   // TODO: add more Metal properties here
@@ -80,8 +82,10 @@ typedef struct binocle_mtl_state_cache_t {
 
 typedef struct binocle_mtl_backend_t {
   bool valid;
-  uint32_t ub_size;
   uint32_t frame_index;
+  int ub_size;
+  int cur_width;
+  int cur_height;
   binocle_mtl_state_cache_t state_cache;
   binocle_sampler_cache_t sampler_cache;
   binocle_mtl_idpool_t idpool;
@@ -90,10 +94,10 @@ typedef struct binocle_mtl_backend_t {
   id<MTLCommandQueue> cmd_queue;
   id<MTLCommandBuffer> cmd_buffer;
   id<MTLRenderCommandEncoder> cmd_encoder;
-  id<MTLBuffer> uniform_buffer;
+  id<MTLBuffer> uniform_buffers[BINOCLE_NUM_INFLIGHT_FRAMES];
 } binocle_mtl_backend_t;
 
-void binocle_backend_mtl_init(binocle_mtl_backend_t *mtl, binocle_backend_desc *desc);
+void binocle_backend_mtl_setup_backend(binocle_mtl_backend_t *mtl, binocle_backend_desc *desc);
 binocle_resource_state
 binocle_backend_mtl_create_image(binocle_mtl_backend_t *mtl, binocle_image_t *img,
                                  const binocle_image_desc *desc);
@@ -103,4 +107,5 @@ binocle_backend_mtl_create_shader(binocle_mtl_backend_t *mtl, binocle_shader_t *
                                   const binocle_shader_desc *desc);
 void binocle_backend_mtl_destroy_shader(binocle_mtl_backend_t *mtl,
                                         binocle_shader_t *shd);
+void binocle_backend_mtl_clear(binocle_mtl_backend_t *mtl, struct binocle_color color);
 #endif // BINOCLE_BACKEND_METAL_H

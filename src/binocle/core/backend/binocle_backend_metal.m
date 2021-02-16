@@ -6,6 +6,7 @@
 
 #include "binocle_backend_metal.h"
 #import <QuartzCore/CAMetalLayer.h>
+#include <stdbool.h>
 #include "binocle_sampler_cache.h"
 #include "binocle_backend.h"
 #include "../binocle_log.h"
@@ -403,33 +404,36 @@ void binocle_backend_mtl_clear_state_cache(binocle_mtl_backend_t *mtl) {
   memset(&mtl->state_cache, 0, sizeof(mtl->state_cache));
 }
 
-void binocle_backend_mtl_init(binocle_mtl_backend_t *mtl, binocle_backend_desc *desc) {
+void binocle_backend_mtl_setup_backend(binocle_mtl_backend_t *mtl, binocle_backend_desc *desc) {
   assert(desc);
+  assert(desc->context.mtl.mtl_view);
   assert(desc->uniform_buffer_size > 0);
 
   binocle_backend_mtl_init_pool(mtl, desc);
   binocle_backend_mtl_init_sampler_cache(mtl, desc);
   binocle_backend_mtl_clear_state_cache(mtl);
+  mtl->valid = true;
+  mtl->frame_index = 1;
   mtl->ub_size = desc->uniform_buffer_size;
   mtl->sem = dispatch_semaphore_create(BINOCLE_NUM_INFLIGHT_FRAMES);
-
   NSView *view = (__bridge NSView *)desc->context.mtl.mtl_view;
   CAMetalLayer *metal_layer = (CAMetalLayer *)view.layer;
-
   mtl->device = MTLCreateSystemDefaultDevice();
+  metal_layer.device = mtl->device;
   mtl->cmd_queue = [mtl->device newCommandQueue];
   mtl->cmd_buffer = [mtl->cmd_queue commandBuffer];
-
-  MTLRenderPassDescriptor *render_desc = [MTLRenderPassDescriptor renderPassDescriptor];
-  mtl->cmd_encoder = [mtl->cmd_buffer renderCommandEncoderWithDescriptor:render_desc];
 
   MTLResourceOptions res_opts = MTLResourceCPUCacheModeWriteCombined;
 #if defined(BINOCLE_MACOS)
   res_opts |= MTLResourceStorageModeManaged;
 #endif
-  mtl->uniform_buffer = [mtl->device newBufferWithLength:mtl->ub_size options: res_opts];
-
-  mtl->valid = true;
+  for (int i = 0; i < BINOCLE_NUM_INFLIGHT_FRAMES; i++) {
+    mtl->uniform_buffers[i] = [mtl->device
+      newBufferWithLength:(NSUInteger)mtl->ub_size
+                  options:res_opts
+    ];
+  }
+  binocle_backend_mtl_init_caps();
 }
 
 void binocle_backend_image_common_init(binocle_image_common_t* cmn, const binocle_image_desc* desc) {
@@ -485,7 +489,7 @@ bool binocle_backend_mtl_init_texdesc_common(MTLTextureDescriptor *mtl_desc,
   mtl_desc.resourceOptions = MTLResourceStorageModeManaged;
   mtl_desc.storageMode = MTLStorageModeManaged;
 #else
-  /* iOS: use CPU/GPU shared memory */
+  mtl_setup_backend/* iOS: use CPU/GPU shared memory */
   mtl_desc.resourceOptions = MTLResourceStorageModeShared;
   mtl_desc.storageMode = MTLStorageModeShared;
 #endif
@@ -749,4 +753,23 @@ void binocle_backend_mtl_destroy_shader(binocle_mtl_backend_t *mtl,
     mtl, mtl->frame_index, shd->mtl.stage[BINOCLE_SHADERSTAGE_FS].mtl_func);
   binocle_backend_mtl_release_resource(
     mtl, mtl->frame_index, shd->mtl.stage[BINOCLE_SHADERSTAGE_FS].mtl_lib);
+}
+
+void binocle_backend_mtl_clear(binocle_mtl_backend_t *mtl, struct binocle_color color) {
+  assert(mtl->cmd_queue);
+  assert(nil == mtl->cmd_encoder);
+
+  MTLRenderPassDescriptor* pass_desc = [MTLRenderPassDescriptor renderPassDescriptor];
+  pass_desc.colorAttachments[0].loadAction = MTLLoadActionClear;
+  pass_desc.colorAttachments[0].storeAction = MTLStoreActionStore;
+  pass_desc.colorAttachments[0].clearColor = MTLClearColorMake(color.r, color.g, color.b, color.a);
+
+    if (mtl->cmd_buffer == nil) {
+        mtl->cmd_buffer = [mtl->cmd_queue commandBufferWithUnretainedReferences];
+    }
+  mtl->cmd_encoder = [mtl->cmd_buffer renderCommandEncoderWithDescriptor:pass_desc];
+  [mtl->cmd_encoder endEncoding];
+  mtl->cmd_encoder = nil;
+  [mtl->cmd_buffer commit];
+  mtl->cmd_buffer = nil;
 }

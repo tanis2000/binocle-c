@@ -377,8 +377,7 @@ typedef struct binocle_gl_context_desc {
 } binocle_gl_context_desc;
 
 typedef struct binocle_mtl_context_desc {
-  void *mtl_view;
-  uint32_t ub_size;
+  const void* mtl_view;
 } binocle_mtl_context_desc;
 
 typedef struct binocle_context_desc {

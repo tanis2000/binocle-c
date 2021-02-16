@@ -9,7 +9,7 @@
 
 #include "binocle_render_state.h"
 #include "binocle_subtexture.h"
-#include "binocle_vpct.h"
+#include "backend/binocle_vpct.h"
 #include <kazmath/kazmath.h>
 #include <stdbool.h>
 #include <stdlib.h>

@@ -64,5 +64,16 @@ binocle_shader binocle_backend_make_shader(const binocle_shader_desc* desc);
 uint32_t binocle_backend_surface_pitch(binocle_pixel_format fmt, uint32_t width, uint32_t height, uint32_t row_align);
 uint32_t binocle_backend_row_pitch(binocle_pixel_format fmt, uint32_t width,
                                    uint32_t row_align);
+void binocle_backend_pixelformat_all(binocle_pixelformat_info* pfi);
+void binocle_backend_pixelformat_s(binocle_pixelformat_info* pfi);
+void binocle_backend_pixelformat_sf(binocle_pixelformat_info* pfi);
+void binocle_backend_pixelformat_sr(binocle_pixelformat_info* pfi);
+void binocle_backend_pixelformat_srmd(binocle_pixelformat_info* pfi);
+void binocle_backend_pixelformat_srm(binocle_pixelformat_info* pfi);
+void binocle_backend_pixelformat_sfrm(binocle_pixelformat_info* pfi);
+void binocle_backend_pixelformat_sbrm(binocle_pixelformat_info* pfi);
+void binocle_backend_pixelformat_sbr(binocle_pixelformat_info* pfi);
+void binocle_backend_pixelformat_sfbr(binocle_pixelformat_info* pfi);
+void binocle_backend_mtl_init_caps(void);
 
 #endif // BINOCLE_BACKEND_H
