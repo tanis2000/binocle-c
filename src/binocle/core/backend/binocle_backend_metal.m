@@ -224,6 +224,258 @@ bool binocle_backend_mtl_is_pvrtc(binocle_pixel_format fmt) {
   }
 }
 
+MTLPrimitiveType binocle_backend_mtl_primitive_type(binocle_primitive_type t) {
+  switch (t) {
+  case BINOCLE_PRIMITIVETYPE_POINTS:
+    return MTLPrimitiveTypePoint;
+  case BINOCLE_PRIMITIVETYPE_LINES:
+    return MTLPrimitiveTypeLine;
+  case BINOCLE_PRIMITIVETYPE_LINE_STRIP:
+    return MTLPrimitiveTypeLineStrip;
+  case BINOCLE_PRIMITIVETYPE_TRIANGLES:
+    return MTLPrimitiveTypeTriangle;
+  case BINOCLE_PRIMITIVETYPE_TRIANGLE_STRIP:
+    return MTLPrimitiveTypeTriangleStrip;
+  default:
+    assert(false);
+    return (MTLPrimitiveType)0;
+  }
+}
+
+MTLColorWriteMask binocle_backend_mtl_color_write_mask(binocle_color_mask m) {
+  MTLColorWriteMask mtl_mask = MTLColorWriteMaskNone;
+  if (m & BINOCLE_COLORMASK_R) {
+    mtl_mask |= MTLColorWriteMaskRed;
+  }
+  if (m & BINOCLE_COLORMASK_G) {
+    mtl_mask |= MTLColorWriteMaskGreen;
+  }
+  if (m & BINOCLE_COLORMASK_B) {
+    mtl_mask |= MTLColorWriteMaskBlue;
+  }
+  if (m & BINOCLE_COLORMASK_A) {
+    mtl_mask |= MTLColorWriteMaskAlpha;
+  }
+  return mtl_mask;
+}
+
+MTLBlendOperation binocle_backend_mtl_blend_op(binocle_blend_op op) {
+  switch (op) {
+  case BINOCLE_BLENDOP_ADD:
+    return MTLBlendOperationAdd;
+  case BINOCLE_BLENDOP_SUBTRACT:
+    return MTLBlendOperationSubtract;
+  case BINOCLE_BLENDOP_REVERSE_SUBTRACT:
+    return MTLBlendOperationReverseSubtract;
+  default:
+    assert(false);
+    return (MTLBlendOperation)0;
+  }
+}
+
+MTLBlendFactor binocle_backend_mtl_blend_factor(binocle_blend_factor f) {
+  switch (f) {
+  case BINOCLE_BLENDFACTOR_ZERO:
+    return MTLBlendFactorZero;
+  case BINOCLE_BLENDFACTOR_ONE:
+    return MTLBlendFactorOne;
+  case BINOCLE_BLENDFACTOR_SRC_COLOR:
+    return MTLBlendFactorSourceColor;
+  case BINOCLE_BLENDFACTOR_ONE_MINUS_SRC_COLOR:
+    return MTLBlendFactorOneMinusSourceColor;
+  case BINOCLE_BLENDFACTOR_SRC_ALPHA:
+    return MTLBlendFactorSourceAlpha;
+  case BINOCLE_BLENDFACTOR_ONE_MINUS_SRC_ALPHA:
+    return MTLBlendFactorOneMinusSourceAlpha;
+  case BINOCLE_BLENDFACTOR_DST_COLOR:
+    return MTLBlendFactorDestinationColor;
+  case BINOCLE_BLENDFACTOR_ONE_MINUS_DST_COLOR:
+    return MTLBlendFactorOneMinusDestinationColor;
+  case BINOCLE_BLENDFACTOR_DST_ALPHA:
+    return MTLBlendFactorDestinationAlpha;
+  case BINOCLE_BLENDFACTOR_ONE_MINUS_DST_ALPHA:
+    return MTLBlendFactorOneMinusDestinationAlpha;
+  case BINOCLE_BLENDFACTOR_SRC_ALPHA_SATURATED:
+    return MTLBlendFactorSourceAlphaSaturated;
+  case BINOCLE_BLENDFACTOR_BLEND_COLOR:
+    return MTLBlendFactorBlendColor;
+  case BINOCLE_BLENDFACTOR_ONE_MINUS_BLEND_COLOR:
+    return MTLBlendFactorOneMinusBlendColor;
+  case BINOCLE_BLENDFACTOR_BLEND_ALPHA:
+    return MTLBlendFactorBlendAlpha;
+  case BINOCLE_BLENDFACTOR_ONE_MINUS_BLEND_ALPHA:
+    return MTLBlendFactorOneMinusBlendAlpha;
+  default:
+    assert(false);
+    return (MTLBlendFactor)0;
+  }
+}
+
+MTLCompareFunction binocle_backend_mtl_compare_func(binocle_compare_func f) {
+  switch (f) {
+  case BINOCLE_COMPAREFUNC_NEVER:
+    return MTLCompareFunctionNever;
+  case BINOCLE_COMPAREFUNC_LESS:
+    return MTLCompareFunctionLess;
+  case BINOCLE_COMPAREFUNC_EQUAL:
+    return MTLCompareFunctionEqual;
+  case BINOCLE_COMPAREFUNC_LESS_EQUAL:
+    return MTLCompareFunctionLessEqual;
+  case BINOCLE_COMPAREFUNC_GREATER:
+    return MTLCompareFunctionGreater;
+  case BINOCLE_COMPAREFUNC_NOT_EQUAL:
+    return MTLCompareFunctionNotEqual;
+  case BINOCLE_COMPAREFUNC_GREATER_EQUAL:
+    return MTLCompareFunctionGreaterEqual;
+  case BINOCLE_COMPAREFUNC_ALWAYS:
+    return MTLCompareFunctionAlways;
+  default:
+    assert(false);
+    return (MTLCompareFunction)0;
+  }
+}
+
+MTLStencilOperation binocle_backend_mtl_stencil_op(binocle_stencil_op op) {
+  switch (op) {
+  case BINOCLE_STENCILOP_KEEP:
+    return MTLStencilOperationKeep;
+  case BINOCLE_STENCILOP_ZERO:
+    return MTLStencilOperationZero;
+  case BINOCLE_STENCILOP_REPLACE:
+    return MTLStencilOperationReplace;
+  case BINOCLE_STENCILOP_INCR_CLAMP:
+    return MTLStencilOperationIncrementClamp;
+  case BINOCLE_STENCILOP_DECR_CLAMP:
+    return MTLStencilOperationDecrementClamp;
+  case BINOCLE_STENCILOP_INVERT:
+    return MTLStencilOperationInvert;
+  case BINOCLE_STENCILOP_INCR_WRAP:
+    return MTLStencilOperationIncrementWrap;
+  case BINOCLE_STENCILOP_DECR_WRAP:
+    return MTLStencilOperationDecrementWrap;
+  default:
+    assert(false);
+    return (MTLStencilOperation)0;
+  }
+}
+
+MTLCullMode binocle_backend_mtl_cull_mode(binocle_cull_mode m) {
+  switch (m) {
+  case BINOCLE_CULLMODE_NONE:
+    return MTLCullModeNone;
+  case BINOCLE_CULLMODE_FRONT:
+    return MTLCullModeFront;
+  case BINOCLE_CULLMODE_BACK:
+    return MTLCullModeBack;
+  default:
+    assert(false);
+    return (MTLCullMode)0;
+  }
+}
+
+MTLWinding binocle_backend_mtl_winding(binocle_face_winding w) {
+  switch (w) {
+  case BINOCLE_FACEWINDING_CW:
+    return MTLWindingClockwise;
+  case BINOCLE_FACEWINDING_CCW:
+    return MTLWindingCounterClockwise;
+  default:
+    assert(false);
+    return (MTLWinding)0;
+  }
+}
+
+MTLIndexType binocle_backend_mtl_index_type(binocle_index_type t) {
+  switch (t) {
+  case BINOCLE_INDEXTYPE_UINT16:
+    return MTLIndexTypeUInt16;
+  case BINOCLE_INDEXTYPE_UINT32:
+    return MTLIndexTypeUInt32;
+  default:
+    assert(false);
+    return (MTLIndexType)0;
+  }
+}
+
+int binocle_backend_mtl_index_size(binocle_index_type t) {
+  switch (t) {
+  case BINOCLE_INDEXTYPE_NONE:
+    return 0;
+  case BINOCLE_INDEXTYPE_UINT16:
+    return 2;
+  case BINOCLE_INDEXTYPE_UINT32:
+    return 4;
+  default:
+    assert(false);
+    return 0;
+  }
+}
+
+MTLVertexFormat binocle_backend_mtl_vertex_format(binocle_vertex_format fmt) {
+  switch (fmt) {
+  case BINOCLE_VERTEXFORMAT_FLOAT:
+    return MTLVertexFormatFloat;
+  case BINOCLE_VERTEXFORMAT_FLOAT2:
+    return MTLVertexFormatFloat2;
+  case BINOCLE_VERTEXFORMAT_FLOAT3:
+    return MTLVertexFormatFloat3;
+  case BINOCLE_VERTEXFORMAT_FLOAT4:
+    return MTLVertexFormatFloat4;
+  case BINOCLE_VERTEXFORMAT_BYTE4:
+    return MTLVertexFormatChar4;
+  case BINOCLE_VERTEXFORMAT_BYTE4N:
+    return MTLVertexFormatChar4Normalized;
+  case BINOCLE_VERTEXFORMAT_UBYTE4:
+    return MTLVertexFormatUChar4;
+  case BINOCLE_VERTEXFORMAT_UBYTE4N:
+    return MTLVertexFormatUChar4Normalized;
+  case BINOCLE_VERTEXFORMAT_SHORT2:
+    return MTLVertexFormatShort2;
+  case BINOCLE_VERTEXFORMAT_SHORT2N:
+    return MTLVertexFormatShort2Normalized;
+  case BINOCLE_VERTEXFORMAT_USHORT2N:
+    return MTLVertexFormatUShort2Normalized;
+  case BINOCLE_VERTEXFORMAT_SHORT4:
+    return MTLVertexFormatShort4;
+  case BINOCLE_VERTEXFORMAT_SHORT4N:
+    return MTLVertexFormatShort4Normalized;
+  case BINOCLE_VERTEXFORMAT_USHORT4N:
+    return MTLVertexFormatUShort4Normalized;
+  case BINOCLE_VERTEXFORMAT_UINT10_N2:
+    return MTLVertexFormatUInt1010102Normalized;
+  default:
+    assert(false);
+    return (MTLVertexFormat)0;
+  }
+}
+
+MTLVertexStepFunction
+binocle_backend_mtl_step_function(binocle_vertex_step step) {
+  switch (step) {
+  case BINOCLE_VERTEXSTEP_PER_VERTEX:
+    return MTLVertexStepFunctionPerVertex;
+  case BINOCLE_VERTEXSTEP_PER_INSTANCE:
+    return MTLVertexStepFunctionPerInstance;
+  default:
+    assert(false);
+    return (MTLVertexStepFunction)0;
+  }
+}
+
+MTLLoadAction binocle_backend_mtl_load_action(binocle_action a) {
+  switch (a) {
+  case BINOCLE_ACTION_CLEAR:
+    return MTLLoadActionClear;
+  case BINOCLE_ACTION_LOAD:
+    return MTLLoadActionLoad;
+  case BINOCLE_ACTION_DONTCARE:
+    return MTLLoadActionDontCare;
+  default:
+    assert(false);
+    return (MTLLoadAction)0;
+  }
+}
+
 void binocle_backend_mtl_init_pool(binocle_mtl_backend_t *mtl, binocle_backend_desc *desc) {
   mtl->idpool.num_slots = 2 *
                              (
@@ -775,5 +1027,411 @@ void binocle_backend_mtl_clear(binocle_mtl_backend_t *mtl, struct binocle_color 
   mtl->cmd_encoder = nil;
     [mtl->cmd_buffer presentDrawable:cur_drawable];
   [mtl->cmd_buffer commit];
+  mtl->cmd_buffer = nil;
+}
+
+void binocle_backend_mtl_bind_uniform_buffers(binocle_mtl_backend_t *mtl) {
+  assert(nil != mtl->cmd_encoder);
+  for (int slot = 0; slot < BINOCLE_MAX_SHADERSTAGE_UBS; slot++) {
+    [mtl->cmd_encoder
+      setVertexBuffer:mtl->uniform_buffers[mtl->cur_frame_rotate_index]
+               offset:0
+              atIndex:(NSUInteger)slot];
+    [mtl->cmd_encoder
+      setFragmentBuffer:mtl->uniform_buffers[mtl->cur_frame_rotate_index]
+                 offset:0
+                atIndex:(NSUInteger)slot];
+  }
+}
+
+binocle_resource_state binocle_backend_mtl_create_pipeline(
+  binocle_mtl_backend_t *mtl, binocle_pipeline_t *pip, binocle_shader_t *shd,
+  const binocle_pipeline_desc *desc) {
+  assert(pip && shd && desc);
+  assert(desc->shader.id == shd->slot.id);
+
+  pip->shader = shd;
+  binocle_backend_pipeline_common_init(&pip->cmn, desc);
+
+  binocle_primitive_type prim_type = desc->primitive_type;
+  pip->mtl.prim_type = binocle_backend_mtl_primitive_type(prim_type);
+  pip->mtl.index_size = binocle_backend_mtl_index_size(pip->cmn.index_type);
+  if (BINOCLE_INDEXTYPE_NONE != pip->cmn.index_type) {
+    pip->mtl.index_type = binocle_backend_mtl_index_type(pip->cmn.index_type);
+  }
+  pip->mtl.cull_mode = binocle_backend_mtl_cull_mode(desc->cull_mode);
+  pip->mtl.winding = binocle_backend_mtl_winding(desc->face_winding);
+  pip->mtl.stencil_ref = desc->stencil.ref;
+
+  /* create vertex-descriptor */
+  MTLVertexDescriptor *vtx_desc = [MTLVertexDescriptor vertexDescriptor];
+  for (NSUInteger attr_index = 0; attr_index < BINOCLE_MAX_VERTEX_ATTRIBUTES;
+       attr_index++) {
+    const binocle_vertex_attr_desc *a_desc = &desc->layout.attrs[attr_index];
+    if (a_desc->format == BINOCLE_VERTEXFORMAT_INVALID) {
+      break;
+    }
+    assert(a_desc->buffer_index < BINOCLE_MAX_SHADERSTAGE_BUFFERS);
+    vtx_desc.attributes[attr_index].format =
+      binocle_backend_mtl_vertex_format(a_desc->format);
+    vtx_desc.attributes[attr_index].offset = (NSUInteger)a_desc->offset;
+    vtx_desc.attributes[attr_index].bufferIndex =
+      (NSUInteger)(a_desc->buffer_index + BINOCLE_MAX_SHADERSTAGE_UBS);
+    pip->cmn.vertex_layout_valid[a_desc->buffer_index] = true;
+  }
+  for (NSUInteger layout_index = 0;
+       layout_index < BINOCLE_MAX_SHADERSTAGE_BUFFERS; layout_index++) {
+    if (pip->cmn.vertex_layout_valid[layout_index]) {
+      const binocle_buffer_layout_desc *l_desc =
+        &desc->layout.buffers[layout_index];
+      const NSUInteger mtl_vb_slot = layout_index + BINOCLE_MAX_SHADERSTAGE_UBS;
+      assert(l_desc->stride > 0);
+      vtx_desc.layouts[mtl_vb_slot].stride = (NSUInteger)l_desc->stride;
+      vtx_desc.layouts[mtl_vb_slot].stepFunction =
+        binocle_backend_mtl_step_function(l_desc->step_func);
+      vtx_desc.layouts[mtl_vb_slot].stepRate = (NSUInteger)l_desc->step_rate;
+    }
+  }
+
+  /* render-pipeline descriptor */
+  MTLRenderPipelineDescriptor *rp_desc =
+    [[MTLRenderPipelineDescriptor alloc] init];
+  rp_desc.vertexDescriptor = vtx_desc;
+  assert(shd->mtl.stage[BINOCLE_SHADERSTAGE_VS].mtl_func !=
+         BINOCLE_MTL_INVALID_SLOT_INDEX);
+  rp_desc.vertexFunction = binocle_backend_mtl_id(
+    mtl, shd->mtl.stage[BINOCLE_SHADERSTAGE_VS].mtl_func);
+  assert(shd->mtl.stage[BINOCLE_SHADERSTAGE_FS].mtl_func !=
+         BINOCLE_MTL_INVALID_SLOT_INDEX);
+  rp_desc.fragmentFunction = binocle_backend_mtl_id(
+    mtl, shd->mtl.stage[BINOCLE_SHADERSTAGE_FS].mtl_func);
+  rp_desc.sampleCount = (NSUInteger)desc->sample_count;
+  rp_desc.alphaToCoverageEnabled = desc->alpha_to_coverage_enabled;
+  rp_desc.alphaToOneEnabled = NO;
+  rp_desc.rasterizationEnabled = YES;
+  rp_desc.depthAttachmentPixelFormat =
+    binocle_backend_mtl_pixel_format(desc->depth.pixel_format);
+  if (desc->depth.pixel_format == BINOCLE_PIXELFORMAT_DEPTH_STENCIL) {
+    rp_desc.stencilAttachmentPixelFormat =
+      binocle_backend_mtl_pixel_format(desc->depth.pixel_format);
+  }
+  /* FIXME: this only works on macOS 10.13!
+  for (int i = 0; i <
+  (BINOCLE_MAX_SHADERSTAGE_UBS+BINOCLE_MAX_SHADERSTAGE_BUFFERS); i++) {
+      rp_desc.vertexBuffers[i].mutability = MTLMutabilityImmutable;
+  }
+  for (int i = 0; i < BINOCLE_MAX_SHADERSTAGE_UBS; i++) {
+      rp_desc.fragmentBuffers[i].mutability = MTLMutabilityImmutable;
+  }
+  */
+  for (NSUInteger i = 0; i < (NSUInteger)desc->color_count; i++) {
+    assert(i < BINOCLE_MAX_COLOR_ATTACHMENTS);
+    const binocle_color_state *cs = &desc->colors[i];
+    rp_desc.colorAttachments[i].pixelFormat =
+      binocle_backend_mtl_pixel_format(cs->pixel_format);
+    rp_desc.colorAttachments[i].writeMask =
+      binocle_backend_mtl_color_write_mask(cs->write_mask);
+    rp_desc.colorAttachments[i].blendingEnabled = cs->blend.enabled;
+    rp_desc.colorAttachments[i].alphaBlendOperation =
+      binocle_backend_mtl_blend_op(cs->blend.op_alpha);
+    rp_desc.colorAttachments[i].rgbBlendOperation =
+      binocle_backend_mtl_blend_op(cs->blend.op_rgb);
+    rp_desc.colorAttachments[i].destinationAlphaBlendFactor =
+      binocle_backend_mtl_blend_factor(cs->blend.dst_factor_alpha);
+    rp_desc.colorAttachments[i].destinationRGBBlendFactor =
+      binocle_backend_mtl_blend_factor(cs->blend.dst_factor_rgb);
+    rp_desc.colorAttachments[i].sourceAlphaBlendFactor =
+      binocle_backend_mtl_blend_factor(cs->blend.src_factor_alpha);
+    rp_desc.colorAttachments[i].sourceRGBBlendFactor =
+      binocle_backend_mtl_blend_factor(cs->blend.src_factor_rgb);
+  }
+  NSError *err = NULL;
+  id<MTLRenderPipelineState> mtl_rps =
+    [mtl->device newRenderPipelineStateWithDescriptor:rp_desc error:&err];
+  rp_desc = nil;
+  if (nil == mtl_rps) {
+    assert(err);
+    binocle_log_error([err.localizedDescription UTF8String]);
+    return BINOCLE_RESOURCESTATE_FAILED;
+  }
+
+  /* depth-stencil-state */
+  MTLDepthStencilDescriptor *ds_desc = [[MTLDepthStencilDescriptor alloc] init];
+  ds_desc.depthCompareFunction =
+    binocle_backend_mtl_compare_func(desc->depth.compare);
+  ds_desc.depthWriteEnabled = desc->depth.write_enabled;
+  if (desc->stencil.enabled) {
+    const binocle_stencil_face_state *sb = &desc->stencil.back;
+    ds_desc.backFaceStencil = [[MTLStencilDescriptor alloc] init];
+    ds_desc.backFaceStencil.stencilFailureOperation =
+      binocle_backend_mtl_stencil_op(sb->fail_op);
+    ds_desc.backFaceStencil.depthFailureOperation =
+      binocle_backend_mtl_stencil_op(sb->depth_fail_op);
+    ds_desc.backFaceStencil.depthStencilPassOperation =
+      binocle_backend_mtl_stencil_op(sb->pass_op);
+    ds_desc.backFaceStencil.stencilCompareFunction =
+      binocle_backend_mtl_compare_func(sb->compare);
+    ds_desc.backFaceStencil.readMask = desc->stencil.read_mask;
+    ds_desc.backFaceStencil.writeMask = desc->stencil.write_mask;
+    const binocle_stencil_face_state *sf = &desc->stencil.front;
+    ds_desc.frontFaceStencil = [[MTLStencilDescriptor alloc] init];
+    ds_desc.frontFaceStencil.stencilFailureOperation =
+      binocle_backend_mtl_stencil_op(sf->fail_op);
+    ds_desc.frontFaceStencil.depthFailureOperation =
+      binocle_backend_mtl_stencil_op(sf->depth_fail_op);
+    ds_desc.frontFaceStencil.depthStencilPassOperation =
+      binocle_backend_mtl_stencil_op(sf->pass_op);
+    ds_desc.frontFaceStencil.stencilCompareFunction =
+      binocle_backend_mtl_compare_func(sf->compare);
+    ds_desc.frontFaceStencil.readMask = desc->stencil.read_mask;
+    ds_desc.frontFaceStencil.writeMask = desc->stencil.write_mask;
+  }
+  id<MTLDepthStencilState> mtl_dss =
+    [mtl->device newDepthStencilStateWithDescriptor:ds_desc];
+  ds_desc = nil;
+  pip->mtl.rps = binocle_backend_mtl_add_resource(mtl, mtl_rps);
+  pip->mtl.dss = binocle_backend_mtl_add_resource(mtl, mtl_dss);
+  return BINOCLE_RESOURCESTATE_VALID;
+}
+
+void binocle_backend_mtl_destroy_pipeline(binocle_mtl_backend_t *mtl, binocle_pipeline_t* pip) {
+  assert(pip);
+  /* it's valid to call release resource with a 'null resource' */
+  binocle_backend_mtl_release_resource(mtl, mtl->frame_index, pip->mtl.rps);
+  binocle_backend_mtl_release_resource(mtl, mtl->frame_index, pip->mtl.dss);
+}
+
+binocle_resource_state
+binocle_backend_mtl_create_pass(binocle_pass_t *pass,
+                                binocle_image_t **att_images,
+                                const binocle_pass_desc *desc) {
+  assert(pass && desc);
+  assert(att_images && att_images[0]);
+
+  binocle_pass_common_init(&pass->cmn, desc);
+
+  /* copy image pointers */
+  const binocle_pass_attachment_desc *att_desc;
+  for (int i = 0; i < pass->cmn.num_color_atts; i++) {
+    att_desc = &desc->color_attachments[i];
+    if (att_desc->image.id != BINOCLE_INVALID_ID) {
+      assert(att_desc->image.id != BINOCLE_INVALID_ID);
+      assert(0 == pass->mtl.color_atts[i].image);
+      assert(att_images[i] && (att_images[i]->slot.id == att_desc->image.id));
+      assert(binocle_backend_is_valid_rendertarget_color_format(
+        att_images[i]->cmn.pixel_format));
+      pass->mtl.color_atts[i].image = att_images[i];
+    }
+  }
+  assert(0 == pass->mtl.ds_att.image);
+  att_desc = &desc->depth_stencil_attachment;
+  if (att_desc->image.id != BINOCLE_INVALID_ID) {
+    const int ds_img_index = BINOCLE_MAX_COLOR_ATTACHMENTS;
+    assert(att_images[ds_img_index] &&
+           (att_images[ds_img_index]->slot.id == att_desc->image.id));
+    assert(binocle_backend_is_valid_rendertarget_depth_format(
+      att_images[ds_img_index]->cmn.pixel_format));
+    pass->mtl.ds_att.image = att_images[ds_img_index];
+  }
+  return BINOCLE_RESOURCESTATE_VALID;
+}
+
+void binocle_backend_mtl_destroy_pass(binocle_pass_t* pass) {
+  assert(pass);
+  (void)(pass);
+}
+
+binocle_image_t* binocle_backend_mtl_pass_color_image(const binocle_pass_t* pass, int index) {
+  assert(pass && (index >= 0) && (index < BINOCLE_MAX_COLOR_ATTACHMENTS));
+  /* NOTE: may return null */
+  return pass->mtl.color_atts[index].image;
+}
+
+binocle_image_t* binocle_backend_mtl_pass_ds_image(const binocle_pass_t* pass) {
+  /* NOTE: may return null */
+  assert(pass);
+  return pass->mtl.ds_att.image;
+}
+
+void binocle_backend_mtl_begin_pass(binocle_mtl_backend_t *mtl, binocle_pass_t* pass, const binocle_pass_action* action, int w, int h) {
+  assert(action);
+  assert(!mtl->in_pass);
+  assert(mtl->cmd_queue);
+  assert(nil == mtl->cmd_encoder);
+  assert(mtl->renderpass_descriptor_cb || mtl->renderpass_descriptor_userdata_cb);
+  mtl->in_pass = true;
+  mtl->cur_width = w;
+  mtl->cur_height = h;
+  binocle_backend_mtl_clear_state_cache(mtl);
+
+  /* if this is the first pass in the frame, create a command buffer */
+  if (nil == mtl->cmd_buffer) {
+    /* block until the oldest frame in flight has finished */
+    dispatch_semaphore_wait(mtl->sem, DISPATCH_TIME_FOREVER);
+    mtl->cmd_buffer = [mtl->cmd_queue commandBufferWithUnretainedReferences];
+  }
+
+  /* if this is first pass in frame, get uniform buffer base pointer */
+  if (0 == mtl->cur_ub_base_ptr) {
+    mtl->cur_ub_base_ptr = (uint8_t*)[mtl->uniform_buffers[mtl->cur_frame_rotate_index] contents];
+  }
+
+  /* initialize a render pass descriptor */
+  MTLRenderPassDescriptor* pass_desc = nil;
+  if (pass) {
+    /* offscreen render pass */
+    pass_desc = [MTLRenderPassDescriptor renderPassDescriptor];
+  }
+  else {
+    /* default render pass, call user-provided callback to provide render pass descriptor */
+    if (mtl->renderpass_descriptor_cb) {
+      pass_desc = (__bridge MTLRenderPassDescriptor*) mtl->renderpass_descriptor_cb();
+    }
+    else {
+      pass_desc = (__bridge MTLRenderPassDescriptor*) mtl->renderpass_descriptor_userdata_cb(mtl->user_data);
+    }
+
+  }
+  if (pass_desc) {
+    mtl->pass_valid = true;
+  }
+  else {
+    /* default pass descriptor will not be valid if window is minimized,
+       don't do any rendering in this case */
+    mtl->pass_valid = false;
+    return;
+  }
+  if (pass) {
+    /* setup pass descriptor for offscreen rendering */
+    assert(pass->slot.state == BINOCLE_RESOURCESTATE_VALID);
+    for (NSUInteger i = 0; i < (NSUInteger)pass->cmn.num_color_atts; i++) {
+      const binocle_pass_attachment_t* cmn_att = &pass->cmn.color_atts[i];
+      const binocle_mtl_attachment_t* mtl_att = &pass->mtl.color_atts[i];
+      const binocle_image_t* att_img = mtl_att->image;
+      assert(att_img->slot.state == BINOCLE_RESOURCESTATE_VALID);
+      assert(att_img->slot.id == cmn_att->image_id.id);
+      const bool is_msaa = (att_img->cmn.sample_count > 1);
+      pass_desc.colorAttachments[i].loadAction = binocle_backend_mtl_load_action(action->colors[i].action);
+      pass_desc.colorAttachments[i].storeAction = is_msaa ? MTLStoreActionMultisampleResolve : MTLStoreActionStore;
+      binocle_color c = action->colors[i].value;
+      pass_desc.colorAttachments[i].clearColor = MTLClearColorMake(c.r, c.g, c.b, c.a);
+      if (is_msaa) {
+        assert(att_img->mtl.msaa_tex != BINOCLE_MTL_INVALID_SLOT_INDEX);
+        assert(att_img->mtl.tex[mtl_att->image->cmn.active_slot] != BINOCLE_MTL_INVALID_SLOT_INDEX);
+        pass_desc.colorAttachments[i].texture = binocle_backend_mtl_id(mtl, att_img->mtl.msaa_tex);
+        pass_desc.colorAttachments[i].resolveTexture = binocle_backend_mtl_id(mtl, att_img->mtl.tex[att_img->cmn.active_slot]);
+        pass_desc.colorAttachments[i].resolveLevel = (NSUInteger)cmn_att->mip_level;
+        switch (att_img->cmn.type) {
+        case BINOCLE_IMAGETYPE_CUBE:
+        case BINOCLE_IMAGETYPE_ARRAY:
+          pass_desc.colorAttachments[i].resolveSlice = (NSUInteger)cmn_att->slice;
+          break;
+        case BINOCLE_IMAGETYPE_3D:
+          pass_desc.colorAttachments[i].resolveDepthPlane = (NSUInteger)cmn_att->slice;
+          break;
+        default: break;
+        }
+      }
+      else {
+        assert(att_img->mtl.tex[att_img->cmn.active_slot] != BINOCLE_MTL_INVALID_SLOT_INDEX);
+        pass_desc.colorAttachments[i].texture = binocle_backend_mtl_id(mtl, att_img->mtl.tex[att_img->cmn.active_slot]);
+        pass_desc.colorAttachments[i].level = (NSUInteger)cmn_att->mip_level;
+        switch (att_img->cmn.type) {
+        case BINOCLE_IMAGETYPE_CUBE:
+        case BINOCLE_IMAGETYPE_ARRAY:
+          pass_desc.colorAttachments[i].slice = (NSUInteger)cmn_att->slice;
+          break;
+        case BINOCLE_IMAGETYPE_3D:
+          pass_desc.colorAttachments[i].depthPlane = (NSUInteger)cmn_att->slice;
+          break;
+        default: break;
+        }
+      }
+    }
+    const binocle_image_t* ds_att_img = pass->mtl.ds_att.image;
+    if (0 != ds_att_img) {
+      assert(ds_att_img->slot.state == BINOCLE_RESOURCESTATE_VALID);
+      assert(ds_att_img->slot.id == pass->cmn.ds_att.image_id.id);
+      assert(ds_att_img->mtl.depth_tex != BINOCLE_MTL_INVALID_SLOT_INDEX);
+      pass_desc.depthAttachment.texture = binocle_backend_mtl_id(mtl, ds_att_img->mtl.depth_tex);
+      pass_desc.depthAttachment.loadAction = binocle_backend_mtl_load_action(action->depth.action);
+      pass_desc.depthAttachment.clearDepth = action->depth.value;
+      if (binocle_backend_is_depth_stencil_format(ds_att_img->cmn.pixel_format)) {
+        pass_desc.stencilAttachment.texture = binocle_backend_mtl_id(mtl, ds_att_img->mtl.depth_tex);
+        pass_desc.stencilAttachment.loadAction = binocle_backend_mtl_load_action(action->stencil.action);
+        pass_desc.stencilAttachment.clearStencil = action->stencil.value;
+      }
+    }
+  }
+  else {
+    /* setup pass descriptor for default rendering */
+    pass_desc.colorAttachments[0].loadAction = binocle_backend_mtl_load_action(action->colors[0].action);
+    binocle_color c = action->colors[0].value;
+    pass_desc.colorAttachments[0].clearColor = MTLClearColorMake(c.r, c.g, c.b, c.a);
+    pass_desc.depthAttachment.loadAction = binocle_backend_mtl_load_action(action->depth.action);
+    pass_desc.depthAttachment.clearDepth = action->depth.value;
+    pass_desc.stencilAttachment.loadAction = binocle_backend_mtl_load_action(action->stencil.action);
+    pass_desc.stencilAttachment.clearStencil = action->stencil.value;
+  }
+
+  /* create a render command encoder, this might return nil if window is minimized */
+  mtl->cmd_encoder = [mtl->cmd_buffer renderCommandEncoderWithDescriptor:pass_desc];
+  if (nil == mtl->cmd_encoder) {
+    mtl->pass_valid = false;
+    return;
+  }
+
+  /* bind the global uniform buffer, this only happens once per pass */
+  binocle_backend_mtl_bind_uniform_buffers(mtl);
+}
+
+void binocle_backend_mtl_end_pass(binocle_mtl_backend_t *mtl) {
+  assert(mtl->in_pass);
+  mtl->in_pass = false;
+  mtl->pass_valid = false;
+  if (nil != mtl->cmd_encoder) {
+    [mtl->cmd_encoder endEncoding];
+    /* NOTE: MTLRenderCommandEncoder is autoreleased */
+    mtl->cmd_encoder = nil;
+  }
+}
+
+void binocle_backend_mtl_commit(binocle_mtl_backend_t *mtl) {
+  assert(!mtl->in_pass);
+  assert(!mtl->pass_valid);
+  assert(mtl->drawable_cb || mtl->drawable_userdata_cb);
+  assert(nil == mtl->cmd_encoder);
+  assert(nil != mtl->cmd_buffer);
+
+#if defined(BINOCLE_MACOS)
+  [mtl->uniform_buffers[mtl->cur_frame_rotate_index] didModifyRange:NSMakeRange(0, (NSUInteger)mtl->cur_ub_offset)];
+#endif
+
+  /* present, commit and signal semaphore when done */
+  id<MTLDrawable> cur_drawable = nil;
+  if (mtl->drawable_cb) {
+    cur_drawable = (__bridge id<MTLDrawable>) mtl->drawable_cb();
+  }
+  else {
+    cur_drawable = (__bridge id<MTLDrawable>) mtl->drawable_userdata_cb(mtl->user_data);
+  }
+  [mtl->cmd_buffer presentDrawable:cur_drawable];
+  [mtl->cmd_buffer addCompletedHandler:^(id<MTLCommandBuffer> cmd_buffer) {
+    (void)(cmd_buffer);
+    dispatch_semaphore_signal(mtl->sem);
+  }];
+  [mtl->cmd_buffer commit];
+
+  /* garbage-collect resources pending for release */
+  binocle_backend_mtl_garbage_collect(mtl, mtl->frame_index);
+
+  /* rotate uniform buffer slot */
+  if (++mtl->cur_frame_rotate_index >= BINOCLE_NUM_INFLIGHT_FRAMES) {
+    mtl->cur_frame_rotate_index = 0;
+  }
+  mtl->frame_index++;
+  mtl->cur_ub_offset = 0;
+  mtl->cur_ub_base_ptr = 0;
+  /* NOTE: MTLCommandBuffer is autoreleased */
   mtl->cmd_buffer = nil;
 }

@@ -124,6 +124,42 @@ typedef struct binocle_gl_state_cache_t {
 //  binocle_pipeline cur_pipeline_id;
 } binocle_gl_state_cache_t;
 
+typedef struct binocle_gl_pipeline_t {
+  binocle_slot_t slot;
+  binocle_pipeline_common_t cmn;
+  binocle_shader_t* shader;
+  struct {
+    binocle_gl_attr_t attrs[BINOCLE_MAX_VERTEX_ATTRIBUTES];
+    binocle_depth_state depth;
+    binocle_stencil_state stencil;
+    binocle_primitive_type primitive_type;
+    binocle_blend_state blend;
+    binocle_color_mask color_write_mask[BINOCLE_MAX_COLOR_ATTACHMENTS];
+    binocle_cull_mode cull_mode;
+    binocle_face_winding face_winding;
+    int sample_count;
+    bool alpha_to_coverage_enabled;
+  } gl;
+} binocle_gl_pipeline_t;
+typedef binocle_gl_pipeline_t binocle_pipeline_t;
+
+typedef struct {
+  binocle_image_t* image;
+  GLuint gl_msaa_resolve_buffer;
+} binocle_gl_attachment_t;
+
+typedef struct binocle_gl_pass_t {
+  binocle_slot_t slot;
+  binocle_pass_common_t cmn;
+  struct {
+    GLuint fb;
+    binocle_gl_attachment_t color_atts[BINOCLE_MAX_COLOR_ATTACHMENTS];
+    binocle_gl_attachment_t ds_att;
+  } gl;
+} binocle_gl_pass_t;
+typedef binocle_gl_pass_t binocle_pass_t;
+typedef binocle_pass_attachment_common_t binocle_pass_attachment_t;
+
 typedef struct binocle_gl_backend_t {
   bool valid;
   bool gles2;
@@ -141,6 +177,8 @@ typedef struct binocle_gl_backend_t {
   GLint projection_matrix_uniform;
   GLint view_matrix_uniform;
   GLint model_matrix_uniform;
+
+  binocle_limits limits;
 } binocle_gl_backend_t;
 
 #ifdef DEBUG
@@ -220,5 +258,8 @@ binocle_resource_state
 binocle_backend_gl_create_shader(binocle_gl_backend_t *gl, binocle_shader_t *sha,
                                 const binocle_shader_desc *desc);
 void binocle_backend_gl_destroy_shader(binocle_gl_backend_t *gl, binocle_shader_t* sha);
+binocle_resource_state binocle_backend_gl_create_pipeline(
+  binocle_gl_backend_t *gl, binocle_pipeline_t *pip, binocle_shader_t *shd,
+  const binocle_pipeline_desc *desc);
 
 #endif // BINOCLE_BACKEND_GL_H

@@ -36,11 +36,11 @@ binocle_blend binocle_blend_new_simple(binocle_blend_factor source_factor, binoc
 
 binocle_blend binocle_blend_new_default() {
   binocle_blend res = {
-      .color_src_factor = BINOCLE_BLEND_SRCALPHA,
-      .color_dst_factor = BINOCLE_BLEND_ONEMINUSSRCALPHA,
+      .color_src_factor = BINOCLE_BLENDFACTOR_SRC_ALPHA,
+      .color_dst_factor = BINOCLE_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
       .color_equation = BINOCLE_BLEND_ADD,
-      .alpha_src_factor = BINOCLE_BLEND_ONE,
-      .alpha_dst_factor = BINOCLE_BLEND_ONEMINUSSRCALPHA,
+      .alpha_src_factor = BINOCLE_BLENDFACTOR_ONE,
+      .alpha_dst_factor = BINOCLE_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
       .alpha_equation = BINOCLE_BLEND_ADD
   };
   return res;

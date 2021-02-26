@@ -3,11 +3,11 @@
 add_definitions (-D__APPLE__)
 add_definitions (-DBINOCLE_MACOS)
 
-add_definitions (-DBINOCLE_METAL)
-set (BINOCLE_METAL true)
+#add_definitions (-DBINOCLE_METAL)
+#set (BINOCLE_METAL true)
 
-#add_definitions (-DBINOCLE_GL)
-#set(BINOCLE_GL true)
+add_definitions (-DBINOCLE_GL)
+set(BINOCLE_GL true)
 
 list (APPEND BINOCLE_LINK_LIBRARIES "-l iconv")
 

@@ -45,6 +45,7 @@ file(GLOB CORE_SOURCE
         core/backend/binocle_backend.h
         core/backend/binocle_backend_types.h
         core/backend/binocle_blend.h
+        core/backend/binocle_color.h
         core/backend/binocle_material.h
         core/backend/binocle_sampler_cache.h
         #core/backend/binocle_shader.h
@@ -52,6 +53,7 @@ file(GLOB CORE_SOURCE
         core/backend/binocle_vpct.h
 
         core/backend/binocle_blend.c
+        core/backend/binocle_color.c
         core/backend/binocle_material.c
         core/backend/binocle_sampler_cache.c
         #core/backend/binocle_shader.c

@@ -7,23 +7,42 @@
 #ifndef BINOCLE_BLEND_H
 #define BINOCLE_BLEND_H
 
-/**
- * \brief Enumeration of the blending factors
- *
- * The factors are mapped directly to their OpenGL equivalents,
- * specified by glBlendFunc() or glBlendFuncSeparate().
- */
+/*
+    binocle_blend_factor
+
+    The source and destination factors in blending operations.
+    This is used in the following members when creating a pipeline object:
+
+    binocle_pipeline_desc
+        .colors[i]
+            .blend
+                .src_factor_rgb
+                .dst_factor_rgb
+                .src_factor_alpha
+                .dst_factor_alpha
+
+    The default value is BINOCLE_BLENDFACTOR_ONE for source
+    factors, and BINOCLE_BLENDFACTOR_ZERO for destination factors.
+*/
 typedef enum binocle_blend_factor {
-  BINOCLE_BLEND_ZERO,             ///< (0, 0, 0, 0)
-  BINOCLE_BLEND_ONE,              ///< (1, 1, 1, 1)
-  BINOCLE_BLEND_SRCCOLOR,         ///< (src.r, src.g, src.b, src.a)
-  BINOCLE_BLEND_ONEMINUSSRCCOLOR, ///< (1, 1, 1, 1) - (src.r, src.g, src.b, src.a)
-  BINOCLE_BLEND_DSTCOLOR,         ///< (dst.r, dst.g, dst.b, dst.a)
-  BINOCLE_BLEND_ONEMINUSDSTCOLOR, ///< (1, 1, 1, 1) - (dst.r, dst.g, dst.b, dst.a)
-  BINOCLE_BLEND_SRCALPHA,         ///< (src.a, src.a, src.a, src.a)
-  BINOCLE_BLEND_ONEMINUSSRCALPHA, ///< (1, 1, 1, 1) - (src.a, src.a, src.a, src.a)
-  BINOCLE_BLEND_DSTALPHA,         ///< (dst.a, dst.a, dst.a, dst.a)
-  BINOCLE_BLEND_ONEMINUSDSTALPHA  ///< (1, 1, 1, 1) - (dst.a, dst.a, dst.a, dst.a)
+  BINOCLE_BLENDFACTOR_DEFAULT,    /* value 0 reserved for default-init */
+  BINOCLE_BLENDFACTOR_ZERO,
+  BINOCLE_BLENDFACTOR_ONE,
+  BINOCLE_BLENDFACTOR_SRC_COLOR,
+  BINOCLE_BLENDFACTOR_ONE_MINUS_SRC_COLOR,
+  BINOCLE_BLENDFACTOR_SRC_ALPHA,
+  BINOCLE_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+  BINOCLE_BLENDFACTOR_DST_COLOR,
+  BINOCLE_BLENDFACTOR_ONE_MINUS_DST_COLOR,
+  BINOCLE_BLENDFACTOR_DST_ALPHA,
+  BINOCLE_BLENDFACTOR_ONE_MINUS_DST_ALPHA,
+  BINOCLE_BLENDFACTOR_SRC_ALPHA_SATURATED,
+  BINOCLE_BLENDFACTOR_BLEND_COLOR,
+  BINOCLE_BLENDFACTOR_ONE_MINUS_BLEND_COLOR,
+  BINOCLE_BLENDFACTOR_BLEND_ALPHA,
+  BINOCLE_BLENDFACTOR_ONE_MINUS_BLEND_ALPHA,
+  BINOCLE_BLENDFACTOR_NUM,
+  BINOCLE_BLENDFACTOR_FORCE_U32 = 0x7FFFFFFF
 } binocle_blend_factor;
 
 /**

@@ -6,7 +6,7 @@
 #include "binocle_lua.h"
 #include "binocle_gd.h"
 #include "backend/binocle_backend.h"
-#include "binocle_color.h"
+#include "backend/binocle_color.h"
 
 int l_binocle_gd_new(lua_State *L) {
   l_binocle_gd_t *gd = lua_newuserdata(L, sizeof(l_binocle_gd_t));

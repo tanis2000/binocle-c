@@ -9,7 +9,6 @@
 
 #include "../binocle_pool.h"
 #include "binocle_backend_types.h"
-#include "binocle_blend.h"
 #include "binocle_texture.h"
 #include "binocle_vpct.h"
 
@@ -18,9 +17,6 @@
 #include <stdint.h>
 
 struct binocle_material;
-
-typedef struct binocle_image { uint32_t id; } binocle_image;
-typedef struct binocle_shader { uint32_t id; } binocle_shader;
 
 typedef struct binocle_slot_info {
   binocle_resource_state state;    /* the current state of this resource slot */
@@ -55,9 +51,13 @@ void binocle_backend_draw_quad_to_screen(binocle_shader shader, binocle_image rt
 binocle_image binocle_backend_make_image(const binocle_image_desc* desc);
 void binocle_backend_destroy_image(binocle_image img);
 binocle_image_info binocle_backend_query_image_info(binocle_image img_id);
+bool binocle_backend_is_valid_rendertarget_color_format(binocle_pixel_format fmt);
 bool binocle_backend_is_valid_rendertarget_depth_format(binocle_pixel_format fmt);
+bool binocle_backend_is_depth_stencil_format(binocle_pixel_format fmt);
 bool binocle_backend_is_compressed_pixel_format(binocle_pixel_format fmt);
 void binocle_backend_shader_common_init(binocle_shader_common_t* cmn, const binocle_shader_desc* desc);
+bool binocle_backend_strempty(const binocle_str_t* str);
+const char* binocle_backend_strptr(const binocle_str_t* str);
 void binocle_backend_strcpy(binocle_str_t* dst, const char* src);
 int binocle_backend_uniform_size(binocle_uniform_type type, int count);
 binocle_shader binocle_backend_make_shader(const binocle_shader_desc* desc);
@@ -75,5 +75,7 @@ void binocle_backend_pixelformat_sbrm(binocle_pixelformat_info* pfi);
 void binocle_backend_pixelformat_sbr(binocle_pixelformat_info* pfi);
 void binocle_backend_pixelformat_sfbr(binocle_pixelformat_info* pfi);
 void binocle_backend_mtl_init_caps(void);
-
+void binocle_backend_pipeline_common_init(binocle_pipeline_common_t* cmn, const binocle_pipeline_desc* desc);
+void binocle_pass_common_init(binocle_pass_common_t *cmn,
+                              const binocle_pass_desc *desc);
 #endif // BINOCLE_BACKEND_H

@@ -8,7 +8,7 @@
 #define BINOCLE_VPCT_H
 
 #include "../binocle_math.h"
-#include "../binocle_color.h"
+#include "binocle_color.h"
 
 /**
  * The vertex representation as position, color and texture coordinates

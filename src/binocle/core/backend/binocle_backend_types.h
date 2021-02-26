@@ -10,6 +10,8 @@
 #include <stdbool.h>
 #import <stddef.h>
 #include <stdint.h>
+#include "binocle_color.h"
+#include "binocle_blend.h"
 
 #define BINOCLE_DEFAULT_UB_SIZE (4 * 1024 * 1024)
 #define BINOCLE_DEFAULT_BUFFER_POOL_SIZE (128)
@@ -20,6 +22,8 @@
 #define BINOCLE_MAX_MIPMAPS (16)
 #define BINOCLE_MAX_SHADERSTAGE_IMAGES (12)
 #define BINOCLE_MAX_SHADERSTAGE_UBS (4)
+#define BINOCLE_MAX_SHADERSTAGE_BUFFERS (8)
+#define BINOCLE_MAX_COLOR_ATTACHMENTS (4)
 #define BINOCLE_NUM_SHADER_STAGES (2)
 #define BINOCLE_MAX_UB_MEMBERS (16)
 #define BINOCLE_MAX_VERTEX_ATTRIBUTES (16)
@@ -30,6 +34,9 @@
 #define BINOCLE_MAX(a,b) ((a>b)?a:b)
 #define BINOCLE_CLAMP(v,v0,v1) ((v<v0)?(v0):((v>v1)?(v1):(v)))
 #define BINOCLE_ROUNDUP(val, round_to) (((val)+((round_to)-1))&~((round_to)-1))
+
+typedef struct binocle_image { uint32_t id; } binocle_image;
+typedef struct binocle_shader { uint32_t id; } binocle_shader;
 
 /* fixed-size string */
 typedef struct binocle_str_t {
@@ -111,6 +118,25 @@ typedef enum binocle_pixel_format {
   BINOCLE_PIXELFORMAT_FORCE_U32 = 0x7FFFFFFF
 } binocle_pixel_format;
 
+/*
+    binocle_index_type
+
+    Indicates whether indexed rendering (fetching vertex-indices from an
+    index buffer) is used, and if yes, the index data type (16- or 32-bits).
+    This is used in the binocle_pipeline_desc.index_type member when creating a
+    pipeline object.
+
+    The default index type is BINOCLE_INDEXTYPE_NONE.
+*/
+typedef enum binocle_index_type {
+  BINOCLE_INDEXTYPE_DEFAULT,   /* value 0 reserved for default-init */
+  BINOCLE_INDEXTYPE_NONE,
+  BINOCLE_INDEXTYPE_UINT16,
+  BINOCLE_INDEXTYPE_UINT32,
+  BINOCLE_INDEXTYPE_NUM,
+  BINOCLE_INDEXTYPE_FORCE_U32 = 0x7FFFFFFF
+} binocle_index_type;
+
 typedef enum binocle_image_type {
   BINOCLE_IMAGETYPE_DEFAULT,  /* value 0 reserved for default-init */
   BINOCLE_IMAGETYPE_2D,
@@ -171,6 +197,229 @@ typedef enum binocle_cube_face {
   BINOCLE_CUBEFACE_NUM,
   BINOCLE_CUBEFACE_FORCE_U32 = 0x7FFFFFFF
 } binocle_cube_face;
+
+/*
+    binocle_vertex_step
+
+    Defines whether the input pointer of a vertex input stream is advanced
+    'per vertex' or 'per instance'. The default step-func is
+    BINOCLE_VERTEXSTEP_PER_VERTEX. BINOCLE_VERTEXSTEP_PER_INSTANCE is used with
+    instanced-rendering.
+
+    The vertex-step is part of the vertex-layout definition
+    when creating pipeline objects.
+*/
+typedef enum binocle_vertex_step {
+  BINOCLE_VERTEXSTEP_DEFAULT,     /* value 0 reserved for default-init */
+  BINOCLE_VERTEXSTEP_PER_VERTEX,
+  BINOCLE_VERTEXSTEP_PER_INSTANCE,
+  BINOCLE_VERTEXSTEP_NUM,
+  BINOCLE_VERTEXSTEP_FORCE_U32 = 0x7FFFFFFF
+} binocle_vertex_step;
+
+/*
+    binocle_vertex_format
+
+    The data type of a vertex component. This is used to describe
+    the layout of vertex data when creating a pipeline object.
+*/
+typedef enum binocle_vertex_format {
+  BINOCLE_VERTEXFORMAT_INVALID,
+  BINOCLE_VERTEXFORMAT_FLOAT,
+  BINOCLE_VERTEXFORMAT_FLOAT2,
+  BINOCLE_VERTEXFORMAT_FLOAT3,
+  BINOCLE_VERTEXFORMAT_FLOAT4,
+  BINOCLE_VERTEXFORMAT_BYTE4,
+  BINOCLE_VERTEXFORMAT_BYTE4N,
+  BINOCLE_VERTEXFORMAT_UBYTE4,
+  BINOCLE_VERTEXFORMAT_UBYTE4N,
+  BINOCLE_VERTEXFORMAT_SHORT2,
+  BINOCLE_VERTEXFORMAT_SHORT2N,
+  BINOCLE_VERTEXFORMAT_USHORT2N,
+  BINOCLE_VERTEXFORMAT_SHORT4,
+  BINOCLE_VERTEXFORMAT_SHORT4N,
+  BINOCLE_VERTEXFORMAT_USHORT4N,
+  BINOCLE_VERTEXFORMAT_UINT10_N2,
+  BINOCLE_VERTEXFORMAT_NUM,
+  BINOCLE_VERTEXFORMAT_FORCE_U32 = 0x7FFFFFFF
+} binocle_vertex_format;
+
+/*
+    binocle_compare_func
+
+    The compare-function for depth- and stencil-ref tests.
+    This is used when creating pipeline objects in the members:
+
+    binocle_pipeline_desc
+        .depth
+            .compare
+        .stencil
+            .front.compare
+            .back.compar
+
+    The default compare func for depth- and stencil-tests is
+    BINOCLE_COMPAREFUNC_ALWAYS.
+*/
+typedef enum binocle_compare_func {
+  BINOCLE_COMPAREFUNC_DEFAULT,    /* value 0 reserved for default-init */
+  BINOCLE_COMPAREFUNC_NEVER,
+  BINOCLE_COMPAREFUNC_LESS,
+  BINOCLE_COMPAREFUNC_EQUAL,
+  BINOCLE_COMPAREFUNC_LESS_EQUAL,
+  BINOCLE_COMPAREFUNC_GREATER,
+  BINOCLE_COMPAREFUNC_NOT_EQUAL,
+  BINOCLE_COMPAREFUNC_GREATER_EQUAL,
+  BINOCLE_COMPAREFUNC_ALWAYS,
+  BINOCLE_COMPAREFUNC_NUM,
+  BINOCLE_COMPAREFUNC_FORCE_U32 = 0x7FFFFFFF
+} binocle_compare_func;
+
+/*
+    sg_stencil_op
+
+    The operation performed on a currently stored stencil-value when a
+    comparison test passes or fails. This is used when creating a pipeline
+    object in the members:
+
+    sg_pipeline_desc
+        .stencil
+            .front
+                .fail_op
+                .depth_fail_op
+                .pass_op
+            .back
+                .fail_op
+                .depth_fail_op
+                .pass_op
+
+    The default value is SG_STENCILOP_KEEP.
+*/
+typedef enum binocle_stencil_op {
+  BINOCLE_STENCILOP_DEFAULT,      /* value 0 reserved for default-init */
+  BINOCLE_STENCILOP_KEEP,
+  BINOCLE_STENCILOP_ZERO,
+  BINOCLE_STENCILOP_REPLACE,
+  BINOCLE_STENCILOP_INCR_CLAMP,
+  BINOCLE_STENCILOP_DECR_CLAMP,
+  BINOCLE_STENCILOP_INVERT,
+  BINOCLE_STENCILOP_INCR_WRAP,
+  BINOCLE_STENCILOP_DECR_WRAP,
+  BINOCLE_STENCILOP_NUM,
+  BINOCLE_STENCILOP_FORCE_U32 = 0x7FFFFFFF
+} binocle_stencil_op;
+
+/*
+    binocle_blend_op
+
+    Describes how the source and destination values are combined in the
+    fragment blending operation. It is used in the following members when
+    creating a pipeline object:
+
+    binocle_pipeline_desc
+        .colors[i]
+            .blend
+                .op_rgb
+                .op_alpha
+
+    The default value is BINOCLE_BLENDOP_ADD.
+*/
+typedef enum binocle_blend_op {
+  BINOCLE_BLENDOP_DEFAULT,    /* value 0 reserved for default-init */
+  BINOCLE_BLENDOP_ADD,
+  BINOCLE_BLENDOP_SUBTRACT,
+  BINOCLE_BLENDOP_REVERSE_SUBTRACT,
+  BINOCLE_BLENDOP_NUM,
+  BINOCLE_BLENDOP_FORCE_U32 = 0x7FFFFFFF
+} binocle_blend_op;
+
+/*
+    binocle_color_mask
+
+    Selects the active color channels when writing a fragment color to the
+    framebuffer. This is used in the members
+    binocle_pipeline_desc.colors[i].write_mask when creating a pipeline object.
+
+    The default colormask is BINOCLE_COLORMASK_RGBA (write all colors channels)
+
+    NOTE: since the color mask value 0 is reserved for the default value
+    (BINOCLE_COLORMASK_RGBA), use BINOCLE_COLORMASK_NONE if all color channels
+    should be disabled.
+*/
+typedef enum binocle_color_mask {
+  BINOCLE_COLORMASK_DEFAULT = 0,    /* value 0 reserved for default-init */
+  BINOCLE_COLORMASK_NONE   = 0x10,   /* special value for 'all channels disabled */
+  BINOCLE_COLORMASK_R      = 0x1,
+  BINOCLE_COLORMASK_G      = 0x2,
+  BINOCLE_COLORMASK_RG     = 0x3,
+  BINOCLE_COLORMASK_B      = 0x4,
+  BINOCLE_COLORMASK_RB     = 0x5,
+  BINOCLE_COLORMASK_GB     = 0x6,
+  BINOCLE_COLORMASK_RGB    = 0x7,
+  BINOCLE_COLORMASK_A      = 0x8,
+  BINOCLE_COLORMASK_RA     = 0x9,
+  BINOCLE_COLORMASK_GA     = 0xA,
+  BINOCLE_COLORMASK_RGA    = 0xB,
+  BINOCLE_COLORMASK_BA     = 0xC,
+  BINOCLE_COLORMASK_RBA    = 0xD,
+  BINOCLE_COLORMASK_GBA    = 0xE,
+  BINOCLE_COLORMASK_RGBA   = 0xF,
+  BINOCLE_COLORMASK_FORCE_U32 = 0x7FFFFFFF
+} binocle_color_mask;
+
+/*
+    binocle_primitive_type
+
+    This is the common subset of 3D primitive types supported across all 3D
+    APIs. This is used in the sg_pipeline_desc.primitive_type member when
+    creating a pipeline object.
+
+    The default primitive type is BINOCLE_PRIMITIVETYPE_TRIANGLES.
+*/
+typedef enum binocle_primitive_type {
+  BINOCLE_PRIMITIVETYPE_DEFAULT,  /* value 0 reserved for default-init */
+  BINOCLE_PRIMITIVETYPE_POINTS,
+  BINOCLE_PRIMITIVETYPE_LINES,
+  BINOCLE_PRIMITIVETYPE_LINE_STRIP,
+  BINOCLE_PRIMITIVETYPE_TRIANGLES,
+  BINOCLE_PRIMITIVETYPE_TRIANGLE_STRIP,
+  BINOCLE_PRIMITIVETYPE_NUM,
+  BINOCLE_PRIMITIVETYPE_FORCE_U32 = 0x7FFFFFFF
+} binocle_primitive_type;
+
+/*
+    binocle_cull_mode
+
+    The face-culling mode, this is used in the
+    binocle_pipeline_desc.cull_mode member when creating a
+    pipeline object.
+
+    The default cull mode is BINOCLE_CULLMODE_NONE
+*/
+typedef enum binocle_cull_mode {
+  BINOCLE_CULLMODE_DEFAULT,   /* value 0 reserved for default-init */
+  BINOCLE_CULLMODE_NONE,
+  BINOCLE_CULLMODE_FRONT,
+  BINOCLE_CULLMODE_BACK,
+  BINOCLE_CULLMODE_NUM,
+  BINOCLE_CULLMODE_FORCE_U32 = 0x7FFFFFFF
+} binocle_cull_mode;
+
+/*
+    binocle_face_winding
+
+    The vertex-winding rule that determines a front-facing primitive. This
+    is used in the member binocle_pipeline_desc.face_winding
+    when creating a pipeline object.
+
+    The default winding is BINOCLE_FACEWINDING_CW (clockwise)
+*/
+typedef enum binocle_face_winding {
+  BINOCLE_FACEWINDING_DEFAULT,    /* value 0 reserved for default-init */
+  BINOCLE_FACEWINDING_CCW,
+  BINOCLE_FACEWINDING_CW,
+  BINOCLE_FACEWINDING_NUM,
+  BINOCLE_FACEWINDING_FORCE_U32 = 0x7FFFFFFF
+} binocle_face_winding;
 
 /*
     binocle_range is a pointer-size-pair struct used to pass memory blobs into
@@ -379,6 +628,204 @@ typedef struct binocle_gl_context_desc {
 typedef struct binocle_mtl_context_desc {
   const void* mtl_view;
 } binocle_mtl_context_desc;
+
+typedef struct binocle_pipeline_common_t {
+  binocle_shader shader_id;
+  binocle_index_type index_type;
+  bool vertex_layout_valid[BINOCLE_MAX_SHADERSTAGE_BUFFERS];
+  int color_attachment_count;
+  binocle_pixel_format color_formats[BINOCLE_MAX_COLOR_ATTACHMENTS];
+  binocle_pixel_format depth_format;
+  int sample_count;
+  float depth_bias;
+  float depth_bias_slope_scale;
+  float depth_bias_clamp;
+  binocle_color blend_color;
+} binocle_pipeline_common_t;
+
+typedef struct binocle_buffer_layout_desc {
+  int stride;
+  binocle_vertex_step step_func;
+  int step_rate;
+} binocle_buffer_layout_desc;
+
+typedef struct binocle_vertex_attr_desc {
+  int buffer_index;
+  int offset;
+  binocle_vertex_format format;
+} binocle_vertex_attr_desc;
+
+typedef struct binocle_layout_desc {
+  binocle_buffer_layout_desc buffers[BINOCLE_MAX_SHADERSTAGE_BUFFERS];
+  binocle_vertex_attr_desc attrs[BINOCLE_MAX_VERTEX_ATTRIBUTES];
+} binocle_layout_desc;
+
+typedef struct binocle_depth_state {
+  binocle_pixel_format pixel_format;
+  binocle_compare_func compare;
+  bool write_enabled;
+  float bias;
+  float bias_slope_scale;
+  float bias_clamp;
+} binocle_depth_state;
+
+typedef struct binocle_stencil_face_state {
+  binocle_compare_func compare;
+  binocle_stencil_op fail_op;
+  binocle_stencil_op depth_fail_op;
+  binocle_stencil_op pass_op;
+} binocle_stencil_face_state;
+
+typedef struct binocle_stencil_state {
+  bool enabled;
+  binocle_stencil_face_state front;
+  binocle_stencil_face_state back;
+  uint8_t read_mask;
+  uint8_t write_mask;
+  uint8_t ref;
+} binocle_stencil_state;
+
+typedef struct binocle_blend_state {
+  bool enabled;
+  binocle_blend_factor src_factor_rgb;
+  binocle_blend_factor dst_factor_rgb;
+  binocle_blend_op op_rgb;
+  binocle_blend_factor src_factor_alpha;
+  binocle_blend_factor dst_factor_alpha;
+  binocle_blend_op op_alpha;
+} binocle_blend_state;
+
+typedef struct binocle_color_state {
+  binocle_pixel_format pixel_format;
+  binocle_color_mask write_mask;
+  binocle_blend_state blend;
+} binocle_color_state;
+
+typedef struct binocle_pipeline_desc {
+  uint32_t _start_canary;
+  binocle_shader shader;
+  binocle_layout_desc layout;
+  binocle_depth_state depth;
+  binocle_stencil_state stencil;
+  int color_count;
+  binocle_color_state colors[BINOCLE_MAX_COLOR_ATTACHMENTS];
+  binocle_primitive_type primitive_type;
+  binocle_index_type index_type;
+  binocle_cull_mode cull_mode;
+  binocle_face_winding face_winding;
+  int sample_count;
+  binocle_color blend_color;
+  bool alpha_to_coverage_enabled;
+  const char* label;
+  uint32_t _end_canary;
+} binocle_pipeline_desc;
+
+typedef struct binocle_pass_attachment_common_t {
+  binocle_image image_id;
+  int mip_level;
+  int slice;
+} binocle_pass_attachment_common_t;
+
+typedef struct binocle_pass_common_t {
+  int num_color_atts;
+  binocle_pass_attachment_common_t color_atts[BINOCLE_MAX_COLOR_ATTACHMENTS];
+  binocle_pass_attachment_common_t ds_att;
+} binocle_pass_common_t;
+
+typedef struct binocle_pass_attachment_desc {
+  binocle_image image;
+  int mip_level;
+  int slice;      /* cube texture: face; array texture: layer; 3D texture: slice */
+} binocle_pass_attachment_desc;
+
+typedef struct binocle_pass_desc {
+  uint32_t _start_canary;
+  binocle_pass_attachment_desc color_attachments[BINOCLE_MAX_COLOR_ATTACHMENTS];
+  binocle_pass_attachment_desc depth_stencil_attachment;
+  const char* label;
+  uint32_t _end_canary;
+} binocle_pass_desc;
+
+/*
+    binocle_action
+
+    Defines what action should be performed at the start of a render pass:
+
+    BINOCLE_ACTION_CLEAR:    clear the render target image
+    BINOCLE_ACTION_LOAD:     load the previous content of the render target image
+    BINOCLE_ACTION_DONTCARE: leave the render target image content undefined
+
+    This is used in the binocle_pass_action structure.
+
+    The default action for all pass attachments is BINOCLE_ACTION_CLEAR, with the
+    clear color rgba = {0.5f, 0.5f, 0.5f, 1.0f], depth=1.0 and stencil=0.
+
+    If you want to override the default behaviour, it is important to not
+    only set the clear color, but the 'action' field as well (as long as this
+    is in its _BINOCLE_ACTION_DEFAULT, the value fields will be ignored).
+*/
+typedef enum binocle_action {
+  BINOCLE_ACTION_DEFAULT,
+  BINOCLE_ACTION_CLEAR,
+  BINOCLE_ACTION_LOAD,
+  BINOCLE_ACTION_DONTCARE,
+  BINOCLE_ACTION_NUM,
+  BINOCLE_ACTION_FORCE_U32 = 0x7FFFFFFF
+} binocle_action;
+
+/*
+    binocle_pass_action
+
+    The binocle_pass_action struct defines the actions to be performed
+    at the start of a rendering pass in the functions binocle_begin_pass()
+    and binocle_begin_default_pass().
+
+    A separate action and clear values can be defined for each
+    color attachment, and for the depth-stencil attachment.
+
+    The default clear values are defined by the macros:
+
+    - BINOCLE_DEFAULT_CLEAR_RED:     0.5f
+    - BINOCLE_DEFAULT_CLEAR_GREEN:   0.5f
+    - BINOCLE_DEFAULT_CLEAR_BLUE:    0.5f
+    - BINOCLE_DEFAULT_CLEAR_ALPHA:   1.0f
+    - BINOCLE_DEFAULT_CLEAR_DEPTH:   1.0f
+    - BINOCLE_DEFAULT_CLEAR_STENCIL: 0
+*/
+typedef struct binocle_color_attachment_action {
+  binocle_action action;
+  binocle_color value;
+} binocle_color_attachment_action;
+
+typedef struct binocle_depth_attachment_action {
+  binocle_action action;
+  float value;
+} binocle_depth_attachment_action;
+
+typedef struct binocle_stencil_attachment_action {
+  binocle_action action;
+  uint8_t value;
+} binocle_stencil_attachment_action;
+
+typedef struct binocle_pass_action {
+  uint32_t _start_canary;
+  binocle_color_attachment_action colors[BINOCLE_MAX_COLOR_ATTACHMENTS];
+  binocle_depth_attachment_action depth;
+  binocle_stencil_attachment_action stencil;
+  uint32_t _end_canary;
+} binocle_pass_action;
+
+/*
+    Runtime information about resource limits, returned by binocle_backend_query_limit()
+*/
+typedef struct binocle_limits {
+  int max_image_size_2d;          // max width/height of BINOCLE_IMAGETYPE_2D images
+  int max_image_size_cube;        // max width/height of BINOCLE_IMAGETYPE_CUBE images
+  int max_image_size_3d;          // max width/height/depth of BINOCLE_IMAGETYPE_3D images
+  int max_image_size_array;       // max width/height of BINOCLE_IMAGETYPE_ARRAY images
+  int max_image_array_layers;     // max number of layers in BINOCLE_IMAGETYPE_ARRAY images
+  int max_vertex_attrs;           // <= BINOCLE_MAX_VERTEX_ATTRIBUTES (only on some GLES2 impls)
+} binocle_limits;
 
 typedef struct binocle_context_desc {
   binocle_pixel_format color_format;

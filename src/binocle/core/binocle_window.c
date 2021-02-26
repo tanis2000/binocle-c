@@ -6,7 +6,7 @@
 
 #include <inttypes.h>
 #include "binocle_sdl.h"
-#include "binocle_color.h"
+#include "backend/binocle_color.h"
 #include "binocle_window.h"
 #include "binocle_log.h"
 

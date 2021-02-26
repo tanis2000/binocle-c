@@ -7,8 +7,8 @@
 #ifndef BINOCLE_MATERIAL_H
 #define BINOCLE_MATERIAL_H
 
-#include "binocle_blend.h"
 #include "binocle_backend.h"
+#include "binocle_blend.h"
 
 /**
  * \brief A material as used internally by the engine

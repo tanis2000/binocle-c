@@ -43,6 +43,14 @@ static binocle_backend_t backend;
 
 /// Helper functions
 
+bool binocle_backend_strempty(const binocle_str_t* str) {
+  return 0 == str->buf[0];
+}
+
+const char* binocle_backend_strptr(const binocle_str_t* str) {
+  return &str->buf[0];
+}
+
 void binocle_backend_strcpy(binocle_str_t* dst, const char* src) {
   assert(dst);
   if (src) {
@@ -727,6 +735,17 @@ void binocle_backend_destroy_shader(binocle_shader sha) {
   }
 }
 
+binocle_resource_state binocle_backend_create_pipeline(binocle_pipeline_t* pip, binocle_shader_t* shd, const binocle_pipeline_desc* desc) {
+#if defined(BINOCLE_GL)
+  return binocle_backend_gl_create_pipeline(&backend.gl, pip, shd, desc);
+#elif defined(BINOCLE_METAL)
+  return binocle_backend_mtl_create_pipeline(&backend.mtl, pip, shd, desc);
+#else
+#error("INVALID BACKEND");
+#endif
+
+}
+
 void binocle_backend_destroy_all_resources(binocle_pools_t* p, uint32_t ctx_id) {
   /*  this is a bit dumb since it loops over all pool slots to
       find the occupied slots, on the other hand it is only ever
@@ -964,6 +983,13 @@ binocle_image_info binocle_backend_query_image_info(binocle_image img_id) {
   return info;
 }
 
+/* return true if pixel format is a valid render target format */
+bool binocle_backend_is_valid_rendertarget_color_format(binocle_pixel_format fmt) {
+  const int fmt_index = (int) fmt;
+  assert((fmt_index >= 0) && (fmt_index < BINOCLE_PIXELFORMAT_NUM));
+  return backend.formats[fmt_index].render && !backend.formats[fmt_index].depth;
+}
+
 /* return true if pixel format is a valid depth format */
 bool binocle_backend_is_valid_rendertarget_depth_format(binocle_pixel_format fmt) {
   const int fmt_index = (int) fmt;
@@ -971,8 +997,36 @@ bool binocle_backend_is_valid_rendertarget_depth_format(binocle_pixel_format fmt
   return backend.formats[fmt_index].render && backend.formats[fmt_index].depth;
 }
 
+/* return true if pixel format is a depth-stencil format */
+bool binocle_backend_is_depth_stencil_format(binocle_pixel_format fmt) {
+  return (BINOCLE_PIXELFORMAT_DEPTH_STENCIL == fmt);
+}
+
 bool binocle_backend_is_compressed_pixel_format(binocle_pixel_format fmt) {
-  return false;
+  switch (fmt) {
+  case BINOCLE_PIXELFORMAT_BC1_RGBA:
+  case BINOCLE_PIXELFORMAT_BC2_RGBA:
+  case BINOCLE_PIXELFORMAT_BC3_RGBA:
+  case BINOCLE_PIXELFORMAT_BC4_R:
+  case BINOCLE_PIXELFORMAT_BC4_RSN:
+  case BINOCLE_PIXELFORMAT_BC5_RG:
+  case BINOCLE_PIXELFORMAT_BC5_RGSN:
+  case BINOCLE_PIXELFORMAT_BC6H_RGBF:
+  case BINOCLE_PIXELFORMAT_BC6H_RGBUF:
+  case BINOCLE_PIXELFORMAT_BC7_RGBA:
+  case BINOCLE_PIXELFORMAT_PVRTC_RGB_2BPP:
+  case BINOCLE_PIXELFORMAT_PVRTC_RGB_4BPP:
+  case BINOCLE_PIXELFORMAT_PVRTC_RGBA_2BPP:
+  case BINOCLE_PIXELFORMAT_PVRTC_RGBA_4BPP:
+  case BINOCLE_PIXELFORMAT_ETC2_RGB8:
+  case BINOCLE_PIXELFORMAT_ETC2_RGB8A1:
+  case BINOCLE_PIXELFORMAT_ETC2_RGBA8:
+  case BINOCLE_PIXELFORMAT_ETC2_RG11:
+  case BINOCLE_PIXELFORMAT_ETC2_RG11SN:
+    return true;
+  default:
+    return false;
+  }
 }
 
 void binocle_backend_shader_common_init(binocle_shader_common_t* cmn, const binocle_shader_desc* desc) {
@@ -998,6 +1052,49 @@ void binocle_backend_shader_common_init(binocle_shader_common_t* cmn, const bino
       stage->images[img_index].sampler_type = img_desc->sampler_type;
       stage->num_images++;
     }
+  }
+}
+
+void binocle_backend_pipeline_common_init(binocle_pipeline_common_t *cmn,
+                                          const binocle_pipeline_desc *desc) {
+  assert(desc->color_count < BINOCLE_MAX_COLOR_ATTACHMENTS);
+  cmn->shader_id = desc->shader;
+  cmn->index_type = desc->index_type;
+  for (int i = 0; i < BINOCLE_MAX_SHADERSTAGE_BUFFERS; i++) {
+    cmn->vertex_layout_valid[i] = false;
+  }
+  cmn->color_attachment_count = desc->color_count;
+  for (int i = 0; i < cmn->color_attachment_count; i++) {
+    cmn->color_formats[i] = desc->colors[i].pixel_format;
+  }
+  cmn->depth_format = desc->depth.pixel_format;
+  cmn->sample_count = desc->sample_count;
+  cmn->depth_bias = desc->depth.bias;
+  cmn->depth_bias_slope_scale = desc->depth.bias_slope_scale;
+  cmn->depth_bias_clamp = desc->depth.bias_clamp;
+  cmn->blend_color = desc->blend_color;
+}
+
+void binocle_pass_common_init(binocle_pass_common_t *cmn,
+                              const binocle_pass_desc *desc) {
+  const binocle_pass_attachment_desc *att_desc;
+  binocle_pass_attachment_common_t *att;
+  for (int i = 0; i < BINOCLE_MAX_COLOR_ATTACHMENTS; i++) {
+    att_desc = &desc->color_attachments[i];
+    if (att_desc->image.id != BINOCLE_INVALID_ID) {
+      cmn->num_color_atts++;
+      att = &cmn->color_atts[i];
+      att->image_id = att_desc->image;
+      att->mip_level = att_desc->mip_level;
+      att->slice = att_desc->slice;
+    }
+  }
+  att_desc = &desc->depth_stencil_attachment;
+  if (att_desc->image.id != BINOCLE_INVALID_ID) {
+    att = &cmn->ds_att;
+    att->image_id = att_desc->image;
+    att->mip_level = att_desc->mip_level;
+    att->slice = att_desc->slice;
   }
 }
 

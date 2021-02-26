@@ -8,7 +8,7 @@
 #include "emscripten.h"
 #endif
 #include "binocle_sdl.h"
-#include "binocle_color.h"
+#include "backend/binocle_color.h"
 #include "binocle_window.h"
 #include "binocle_game.h"
 #include "binocle_viewport_adapter.h"
@@ -187,6 +187,26 @@ void main_loop() {
     dragging_ball = false;
   }
 #endif
+
+  // Main render loop
+
+  binocle_color clear_color = binocle_color_azure();
+  binocle_pass_action clear_offscreen_action = {
+    .colors[0] = {
+      .action = BINOCLE_ACTION_CLEAR,
+      .value = {
+        .r = clear_color.r,
+        .g = clear_color.g,
+        .b = clear_color.b,
+        .a = clear_color.a,
+      }
+    }
+  };
+
+
+
+
+
 
 
   // Set the render target we will draw to
@@ -603,7 +623,7 @@ int main(int argc, char *argv[])
   sprintf(music_filename, "%s%s", binocle_data_dir, "8bit.ogg");
   music = binocle_audio_load_music_stream(&audio, music_filename);
   binocle_audio_play_music_stream(music);
-  binocle_audio_set_music_volume(music, 0.01f);
+  binocle_audio_set_music_volume(music, 0.00f);
 
 #ifdef WITH_PHYSICS
   setup_world();

@@ -51,6 +51,38 @@ typedef struct binocle_mtl_shader {
 } binocle_mtl_shader;
 typedef binocle_mtl_shader binocle_shader_t;
 
+typedef struct binocle_mtl_pipeline_t {
+  binocle_slot_t slot;
+  binocle_pipeline_common_t cmn;
+  binocle_shader_t* shader;
+  struct {
+    MTLPrimitiveType prim_type;
+    int index_size;
+    MTLIndexType index_type;
+    MTLCullMode cull_mode;
+    MTLWinding winding;
+    uint32_t stencil_ref;
+    int rps;
+    int dss;
+  } mtl;
+} binocle_mtl_pipeline_t;
+typedef binocle_mtl_pipeline_t binocle_pipeline_t;
+
+typedef struct binocle_mtl_attachment_t {
+  binocle_image_t* image;
+} binocle_mtl_attachment_t;
+
+typedef struct binocle_mtl_pass_t {
+  binocle_slot_t slot;
+  binocle_pass_common_t cmn;
+  struct {
+    binocle_mtl_attachment_t color_atts[BINOCLE_MAX_COLOR_ATTACHMENTS];
+    binocle_mtl_attachment_t ds_att;
+  } mtl;
+} binocle_mtl_pass_t;
+typedef binocle_mtl_pass_t binocle_pass_t;
+typedef binocle_pass_attachment_common_t binocle_pass_attachment_t;
+
 typedef struct binocle_mtl_release_item_t {
   uint32_t frame_index;   /* frame index at which it is safe to release this resource */
   uint32_t slot_index;
@@ -83,8 +115,18 @@ typedef struct binocle_mtl_state_cache_t {
 
 typedef struct binocle_mtl_backend_t {
   bool valid;
+  const void*(*renderpass_descriptor_cb)(void);
+  const void*(*renderpass_descriptor_userdata_cb)(void*);
+  const void*(*drawable_cb)(void);
+  const void*(*drawable_userdata_cb)(void*);
+  void* user_data;
   uint32_t frame_index;
+  uint32_t cur_frame_rotate_index;
   int ub_size;
+  int cur_ub_offset;
+  uint8_t* cur_ub_base_ptr;
+  bool in_pass;
+  bool pass_valid;
   int cur_width;
   int cur_height;
   binocle_mtl_state_cache_t state_cache;
@@ -110,4 +152,7 @@ binocle_backend_mtl_create_shader(binocle_mtl_backend_t *mtl, binocle_shader_t *
 void binocle_backend_mtl_destroy_shader(binocle_mtl_backend_t *mtl,
                                         binocle_shader_t *shd);
 void binocle_backend_mtl_clear(binocle_mtl_backend_t *mtl, struct binocle_color color);
+binocle_resource_state binocle_backend_mtl_create_pipeline(
+  binocle_mtl_backend_t *mtl, binocle_pipeline_t *pip, binocle_shader_t *shd,
+  const binocle_pipeline_desc *desc);
 #endif // BINOCLE_BACKEND_METAL_H

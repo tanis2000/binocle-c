@@ -11,7 +11,7 @@
 
 #include "binocle_sdl.h"
 #include "binocle_timer.h"
-#include "binocle_color.h"
+#include "backend/binocle_color.h"
 
 /**
  * This is the representation of the app/window. Currently an app can only have one window
