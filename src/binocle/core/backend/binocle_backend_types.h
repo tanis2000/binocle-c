@@ -17,6 +17,9 @@
 #define BINOCLE_DEFAULT_BUFFER_POOL_SIZE (128)
 #define BINOCLE_DEFAULT_IMAGE_POOL_SIZE (128)
 #define BINOCLE_DEFAULT_SHADER_POOL_SIZE (32)
+#define BINOCLE_DEFAULT_PIPELINE_POOL_SIZE (64)
+#define BINOCLE_DEFAULT_PASS_POOL_SIZE (16)
+#define BINOCLE_DEFAULT_CONTEXT_POOL_SIZE (16)
 #define BINOCLE_DEFAULT_SAMPLER_CACHE_CAPACITY (64)
 #define BINOCLE_NUM_INFLIGHT_FRAMES (1)
 #define BINOCLE_MAX_MIPMAPS (16)
@@ -33,10 +36,37 @@
 #define BINOCLE_MIN(a,b) ((a<b)?a:b)
 #define BINOCLE_MAX(a,b) ((a>b)?a:b)
 #define BINOCLE_CLAMP(v,v0,v1) ((v<v0)?(v0):((v>v1)?(v1):(v)))
+#define BINOCLE_FEQUAL(val,cmp,delta) (((val-cmp)> -delta)&&((val-cmp)<delta))
 #define BINOCLE_ROUNDUP(val, round_to) (((val)+((round_to)-1))&~((round_to)-1))
+#define BINOCLE_RANGE(x) (binocle_range){ &x, sizeof(x) }
+#define BINOCLE_RANGE_REF(x) &(binocle_range){ &x, sizeof(x) }
 
+/* default clear values */
+#ifndef BINOCLE_DEFAULT_CLEAR_RED
+#define BINOCLE_DEFAULT_CLEAR_RED (0.5f)
+#endif
+#ifndef BINOCLE_DEFAULT_CLEAR_GREEN
+#define BINOCLE_DEFAULT_CLEAR_GREEN (0.5f)
+#endif
+#ifndef BINOCLE_DEFAULT_CLEAR_BLUE
+#define BINOCLE_DEFAULT_CLEAR_BLUE (0.5f)
+#endif
+#ifndef BINOCLE_DEFAULT_CLEAR_ALPHA
+#define BINOCLE_DEFAULT_CLEAR_ALPHA (1.0f)
+#endif
+#ifndef BINOCLE_DEFAULT_CLEAR_DEPTH
+#define BINOCLE_DEFAULT_CLEAR_DEPTH (1.0f)
+#endif
+#ifndef BINOCLE_DEFAULT_CLEAR_STENCIL
+#define BINOCLE_DEFAULT_CLEAR_STENCIL (0)
+#endif
+
+typedef struct binocle_buffer { uint32_t id; } binocle_buffer;
 typedef struct binocle_image { uint32_t id; } binocle_image;
 typedef struct binocle_shader { uint32_t id; } binocle_shader;
+typedef struct binocle_pipeline { uint32_t id; } binocle_pipeline;
+typedef struct binocle_pass { uint32_t id; } binocle_pass;
+typedef struct binocle_context { uint32_t id; } binocle_context;
 
 /* fixed-size string */
 typedef struct binocle_str_t {
@@ -155,6 +185,14 @@ typedef enum binocle_usage {
   BINOCLE_USAGE_NUM,
   BINOCLE_USAGE_FORCE_U32 = 0x7FFFFFFF
 } binocle_usage;
+
+typedef enum binocle_buffer_type {
+  BINOCLE_BUFFERTYPE_DEFAULT,         /* value 0 reserved for default-init */
+  BINOCLE_BUFFERTYPE_VERTEXBUFFER,
+  BINOCLE_BUFFERTYPE_INDEXBUFFER,
+  BINOCLE_BUFFERTYPE_NUM,
+  BINOCLE_BUFFERTYPE_FORCE_U32 = 0x7FFFFFFF
+} binocle_buffer_type;
 
 typedef enum binocle_filter {
   BINOCLE_FILTER_DEFAULT, /* value 0 reserved for default-init */
@@ -643,6 +681,18 @@ typedef struct binocle_pipeline_common_t {
   binocle_color blend_color;
 } binocle_pipeline_common_t;
 
+typedef struct binocle_buffer_common_t {
+  int size;
+  int append_pos;
+  bool append_overflow;
+  binocle_buffer_type type;
+  binocle_usage usage;
+  uint32_t update_frame_index;
+  uint32_t append_frame_index;
+  int num_slots;
+  int active_slot;
+} binocle_buffer_common_t;
+
 typedef struct binocle_buffer_layout_desc {
   int stride;
   binocle_vertex_step step_func;
@@ -773,6 +823,21 @@ typedef enum binocle_action {
   BINOCLE_ACTION_FORCE_U32 = 0x7FFFFFFF
 } binocle_action;
 
+typedef struct binocle_color_attachment_action {
+  binocle_action action;
+  binocle_color value;
+} binocle_color_attachment_action;
+
+typedef struct binocle_depth_attachment_action {
+  binocle_action action;
+  float value;
+} binocle_depth_attachment_action;
+
+typedef struct binocle_stencil_attachment_action {
+  binocle_action action;
+  uint8_t value;
+} binocle_stencil_attachment_action;
+
 /*
     binocle_pass_action
 
@@ -791,29 +856,114 @@ typedef enum binocle_action {
     - BINOCLE_DEFAULT_CLEAR_ALPHA:   1.0f
     - BINOCLE_DEFAULT_CLEAR_DEPTH:   1.0f
     - BINOCLE_DEFAULT_CLEAR_STENCIL: 0
-*/
-typedef struct binocle_color_attachment_action {
-  binocle_action action;
-  binocle_color value;
-} binocle_color_attachment_action;
-
-typedef struct binocle_depth_attachment_action {
-  binocle_action action;
-  float value;
-} binocle_depth_attachment_action;
-
-typedef struct binocle_stencil_attachment_action {
-  binocle_action action;
-  uint8_t value;
-} binocle_stencil_attachment_action;
-
-typedef struct binocle_pass_action {
+*/typedef struct binocle_pass_action {
   uint32_t _start_canary;
   binocle_color_attachment_action colors[BINOCLE_MAX_COLOR_ATTACHMENTS];
   binocle_depth_attachment_action depth;
   binocle_stencil_attachment_action stencil;
   uint32_t _end_canary;
 } binocle_pass_action;
+
+/*
+    binocle_bindings
+
+    The binocle_bindings structure defines the resource binding slots
+    of the render pipeline, used as argument to the
+    binocle_apply_bindings() function.
+
+    A resource binding struct contains:
+
+    - 1..N vertex buffers
+    - 0..N vertex buffer offsets
+    - 0..1 index buffers
+    - 0..1 index buffer offsets
+    - 0..N vertex shader stage images
+    - 0..N fragment shader stage images
+
+    The max number of vertex buffer and shader stage images
+    are defined by the BINOCLE_MAX_SHADERSTAGE_BUFFERS and
+    BINOCLE_MAX_SHADERSTAGE_IMAGES configuration constants.
+
+    The optional buffer offsets can be used to put different unrelated
+    chunks of vertex- and/or index-data into the same buffer objects.
+*/
+typedef struct binocle_bindings {
+  uint32_t _start_canary;
+  binocle_buffer vertex_buffers[BINOCLE_MAX_SHADERSTAGE_BUFFERS];
+  int vertex_buffer_offsets[BINOCLE_MAX_SHADERSTAGE_BUFFERS];
+  binocle_buffer index_buffer;
+  int index_buffer_offset;
+  binocle_image vs_images[BINOCLE_MAX_SHADERSTAGE_IMAGES];
+  binocle_image fs_images[BINOCLE_MAX_SHADERSTAGE_IMAGES];
+  uint32_t _end_canary;
+} binocle_bindings;
+
+/*
+    binocle_buffer_desc
+
+    Creation parameters for binocle_buffer objects, used in the
+    binocle_make_buffer() call.
+
+    The default configuration is:
+
+    .size:      0       (*must* be >0 for buffers without data)
+    .type:      BINOCLE_BUFFERTYPE_VERTEXBUFFER
+    .usage:     BINOCLE_USAGE_IMMUTABLE
+    .data.ptr   0       (*must* be valid for immutable buffers)
+    .data.size  0       (*must* be > 0 for immutable buffers)
+    .label      0       (optional string label for trace hooks)
+
+    The label will be ignored, it is only useful
+    when hooking into binocle_make_buffer() or binocle_init_buffer() via
+    the binocle_install_trace_hooks() function.
+
+    For immutable buffers which are initialized with initial data,
+    keep the .size item zero-initialized, and set the size together with the
+    pointer to the initial data in the .data item.
+
+    For mutable buffers without initial data, keep the .data item
+    zero-initialized, and set the buffer size in the .size item instead.
+
+    You can also set both size values, but currently both size values must
+    be identical (this may change in the future when the dynamic resource
+    management may become more flexible).
+
+    ADVANCED TOPIC: Injecting native 3D-API buffers:
+
+    The following struct members allow to inject your own GL, Metal
+    or D3D11 buffers into sokol_gfx:
+
+    .gl_buffers[BINOCLE_NUM_INFLIGHT_FRAMES]
+    .mtl_buffers[BINOCLE_NUM_INFLIGHT_FRAMES]
+    .d3d11_buffer
+
+    You must still provide all other struct items except the .data item, and
+    these must match the creation parameters of the native buffers you
+    provide. For SG_USAGE_IMMUTABLE, only provide a single native 3D-API
+    buffer, otherwise you need to provide SG_NUM_INFLIGHT_FRAMES buffers
+    (only for GL and Metal, not D3D11). Providing multiple buffers for GL and
+    Metal is necessary because sokol_gfx will rotate through them when
+    calling binocle_update_buffer() to prevent lock-stalls.
+
+    Note that it is expected that immutable injected buffer have already been
+    initialized with content, and the .content member must be 0!
+
+    Also you need to call binocle_reset_state_cache() after calling native 3D-API
+    functions, and before calling any sokol_gfx function.
+*/
+typedef struct binocle_buffer_desc {
+  uint32_t _start_canary;
+  size_t size;
+  binocle_buffer_type type;
+  binocle_usage usage;
+  binocle_range data;
+  const char* label;
+  /* GL specific */
+  uint32_t gl_buffers[BINOCLE_NUM_INFLIGHT_FRAMES];
+  /* Metal specific */
+  const void* mtl_buffers[BINOCLE_NUM_INFLIGHT_FRAMES];
+  uint32_t _end_canary;
+} binocle_buffer_desc;
 
 /*
     Runtime information about resource limits, returned by binocle_backend_query_limit()
@@ -839,6 +989,9 @@ typedef struct binocle_backend_desc {
   uint32_t buffer_pool_size;
   uint32_t image_pool_size;
   uint32_t shader_pool_size;
+  uint32_t pipeline_pool_size;
+  uint32_t pass_pool_size;
+  uint32_t context_pool_size;
   uint32_t uniform_buffer_size;
   uint32_t sampler_cache_size;
   binocle_context_desc context;

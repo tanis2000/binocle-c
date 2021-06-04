@@ -742,7 +742,7 @@ bool binocle_backend_mtl_init_texdesc_common(MTLTextureDescriptor *mtl_desc,
   mtl_desc.resourceOptions = MTLResourceStorageModeManaged;
   mtl_desc.storageMode = MTLStorageModeManaged;
 #else
-  mtl_setup_backend/* iOS: use CPU/GPU shared memory */
+  /* iOS: use CPU/GPU shared memory */
   mtl_desc.resourceOptions = MTLResourceStorageModeShared;
   mtl_desc.storageMode = MTLStorageModeShared;
 #endif
@@ -1434,4 +1434,157 @@ void binocle_backend_mtl_commit(binocle_mtl_backend_t *mtl) {
   mtl->cur_ub_base_ptr = 0;
   /* NOTE: MTLCommandBuffer is autoreleased */
   mtl->cmd_buffer = nil;
+}
+
+void binocle_backend_mtl_apply_pipeline(binocle_mtl_backend_t *mtl, binocle_pipeline_t* pip) {
+  assert(pip);
+  assert(pip->shader && (pip->cmn.shader_id.id == pip->shader->slot.id));
+  assert(mtl->in_pass);
+  if (!mtl->pass_valid) {
+    return;
+  }
+  assert(nil != mtl->cmd_encoder);
+
+  if ((mtl->state_cache.cur_pipeline != pip) || (mtl->state_cache.cur_pipeline_id.id != pip->slot.id)) {
+    mtl->state_cache.cur_pipeline = pip;
+    mtl->state_cache.cur_pipeline_id.id = pip->slot.id;
+    binocle_color c = pip->cmn.blend_color;
+    [mtl->cmd_encoder setBlendColorRed:c.r green:c.g blue:c.b alpha:c.a];
+    [mtl->cmd_encoder setCullMode:pip->mtl.cull_mode];
+    [mtl->cmd_encoder setFrontFacingWinding:pip->mtl.winding];
+    [mtl->cmd_encoder setStencilReferenceValue:pip->mtl.stencil_ref];
+    [mtl->cmd_encoder setDepthBias:pip->cmn.depth_bias slopeScale:pip->cmn.depth_bias_slope_scale clamp:pip->cmn.depth_bias_clamp];
+    assert(pip->mtl.rps != BINOCLE_MTL_INVALID_SLOT_INDEX);
+    [mtl->cmd_encoder setRenderPipelineState:binocle_backend_mtl_id(mtl, pip->mtl.rps)];
+    assert(pip->mtl.dss != BINOCLE_MTL_INVALID_SLOT_INDEX);
+    [mtl->cmd_encoder setDepthStencilState:binocle_backend_mtl_id(mtl, pip->mtl.dss)];
+  }
+}
+
+void binocle_backend_mtl_apply_bindings(
+  binocle_mtl_backend_t *mtl,
+  binocle_pipeline_t* pip,
+  binocle_buffer_t** vbs, const int* vb_offsets, int num_vbs,
+  binocle_buffer_t* ib, int ib_offset,
+  binocle_image_t** vs_imgs, int num_vs_imgs,
+  binocle_image_t** fs_imgs, int num_fs_imgs)
+{
+//  _SOKOL_UNUSED(pip);
+  assert(mtl->in_pass);
+  if (!mtl->pass_valid) {
+    return;
+  }
+  assert(nil != mtl->cmd_encoder);
+
+  /* store index buffer binding, this will be needed later in sg_draw() */
+  mtl->state_cache.cur_indexbuffer = ib;
+  mtl->state_cache.cur_indexbuffer_offset = ib_offset;
+  if (ib) {
+    assert(pip->cmn.index_type != BINOCLE_INDEXTYPE_NONE);
+    mtl->state_cache.cur_indexbuffer_id.id = ib->slot.id;
+  }
+  else {
+    assert(pip->cmn.index_type == BINOCLE_INDEXTYPE_NONE);
+    mtl->state_cache.cur_indexbuffer_id.id = BINOCLE_INVALID_ID;
+  }
+
+  /* apply vertex buffers */
+  NSUInteger slot;
+  for (slot = 0; slot < (NSUInteger)num_vbs; slot++) {
+    const binocle_buffer_t* vb = vbs[slot];
+    if ((mtl->state_cache.cur_vertexbuffers[slot] != vb) ||
+        (mtl->state_cache.cur_vertexbuffer_offsets[slot] != vb_offsets[slot]) ||
+        (mtl->state_cache.cur_vertexbuffer_ids[slot].id != vb->slot.id))
+    {
+      mtl->state_cache.cur_vertexbuffers[slot] = vb;
+      mtl->state_cache.cur_vertexbuffer_offsets[slot] = vb_offsets[slot];
+      mtl->state_cache.cur_vertexbuffer_ids[slot].id = vb->slot.id;
+      const NSUInteger mtl_slot = BINOCLE_MAX_SHADERSTAGE_UBS + slot;
+      assert(vb->mtl.buf[vb->cmn.active_slot] != BINOCLE_MTL_INVALID_SLOT_INDEX);
+      [mtl->cmd_encoder setVertexBuffer:binocle_backend_mtl_id(mtl, vb->mtl.buf[vb->cmn.active_slot])
+                                    offset:(NSUInteger)vb_offsets[slot]
+                                   atIndex:mtl_slot];
+    }
+  }
+
+  /* apply vertex shader images */
+  for (slot = 0; slot < (NSUInteger)num_vs_imgs; slot++) {
+    const binocle_image_t* img = vs_imgs[slot];
+    if ((mtl->state_cache.cur_vs_images[slot] != img) || (mtl->state_cache.cur_vs_image_ids[slot].id != img->slot.id)) {
+      mtl->state_cache.cur_vs_images[slot] = img;
+      mtl->state_cache.cur_vs_image_ids[slot].id = img->slot.id;
+      assert(img->mtl.tex[img->cmn.active_slot] != BINOCLE_MTL_INVALID_SLOT_INDEX);
+      [mtl->cmd_encoder setVertexTexture:binocle_backend_mtl_id(mtl, img->mtl.tex[img->cmn.active_slot]) atIndex:slot];
+      assert(img->mtl.sampler_state != BINOCLE_MTL_INVALID_SLOT_INDEX);
+      [mtl->cmd_encoder setVertexSamplerState:binocle_backend_mtl_id(mtl, img->mtl.sampler_state) atIndex:slot];
+    }
+  }
+
+  /* apply fragment shader images */
+  for (slot = 0; slot < (NSUInteger)num_fs_imgs; slot++) {
+    const binocle_image_t* img = fs_imgs[slot];
+    if ((mtl->state_cache.cur_fs_images[slot] != img) || (mtl->state_cache.cur_fs_image_ids[slot].id != img->slot.id)) {
+      mtl->state_cache.cur_fs_images[slot] = img;
+      mtl->state_cache.cur_fs_image_ids[slot].id = img->slot.id;
+      assert(img->mtl.tex[img->cmn.active_slot] != BINOCLE_MTL_INVALID_SLOT_INDEX);
+      [mtl->cmd_encoder setFragmentTexture:binocle_backend_mtl_id(mtl, img->mtl.tex[img->cmn.active_slot]) atIndex:slot];
+      assert(img->mtl.sampler_state != BINOCLE_MTL_INVALID_SLOT_INDEX);
+      [mtl->cmd_encoder setFragmentSamplerState:binocle_backend_mtl_id(mtl, img->mtl.sampler_state) atIndex:slot];
+    }
+  }
+}
+
+void binocle_backend_mtl_apply_uniforms(binocle_mtl_backend_t *mtl, binocle_shader_stage stage_index, int ub_index, const binocle_range* data) {
+  assert(mtl->in_pass);
+  if (!mtl->pass_valid) {
+    return;
+  }
+  assert(nil != mtl->cmd_encoder);
+  assert(((size_t)mtl->cur_ub_offset + data->size) <= (size_t)mtl->ub_size);
+  assert((mtl->cur_ub_offset & (BINOCLE_MTL_UB_ALIGN-1)) == 0);
+  assert(mtl->state_cache.cur_pipeline && mtl->state_cache.cur_pipeline->shader);
+  assert(mtl->state_cache.cur_pipeline->slot.id == mtl->state_cache.cur_pipeline_id.id);
+  assert(mtl->state_cache.cur_pipeline->shader->slot.id == mtl->state_cache.cur_pipeline->cmn.shader_id.id);
+  assert(ub_index < mtl->state_cache.cur_pipeline->shader->cmn.stage[stage_index].num_uniform_blocks);
+  assert(data->size <= mtl->state_cache.cur_pipeline->shader->cmn.stage[stage_index].uniform_blocks[ub_index].size);
+
+  /* copy to global uniform buffer, record offset into cmd encoder, and advance offset */
+  uint8_t* dst = &mtl->cur_ub_base_ptr[mtl->cur_ub_offset];
+  memcpy(dst, data->ptr, data->size);
+  if (stage_index == BINOCLE_SHADERSTAGE_VS) {
+    [mtl->cmd_encoder setVertexBufferOffset:(NSUInteger)mtl->cur_ub_offset atIndex:(NSUInteger)ub_index];
+  }
+  else {
+    [mtl->cmd_encoder setFragmentBufferOffset:(NSUInteger)mtl->cur_ub_offset atIndex:(NSUInteger)ub_index];
+  }
+  mtl->cur_ub_offset = BINOCLE_ROUNDUP(mtl->cur_ub_offset + (int)data->size, BINOCLE_MTL_UB_ALIGN);
+}
+
+void binocle_backend_mtl_draw(binocle_mtl_backend_t *mtl, int base_element, int num_elements, int num_instances) {
+  assert(mtl->in_pass);
+  if (!mtl->pass_valid) {
+    return;
+  }
+  assert(nil != mtl->cmd_encoder);
+  assert(mtl->state_cache.cur_pipeline && (mtl->state_cache.cur_pipeline->slot.id == mtl->state_cache.cur_pipeline_id.id));
+  if (BINOCLE_INDEXTYPE_NONE != mtl->state_cache.cur_pipeline->cmn.index_type) {
+    /* indexed rendering */
+    assert(mtl->state_cache.cur_indexbuffer && (mtl->state_cache.cur_indexbuffer->slot.id == mtl->state_cache.cur_indexbuffer_id.id));
+    const binocle_buffer_t* ib = mtl->state_cache.cur_indexbuffer;
+    assert(ib->mtl.buf[ib->cmn.active_slot] != BINOCLE_MTL_INVALID_SLOT_INDEX);
+    const NSUInteger index_buffer_offset = (NSUInteger) (mtl->state_cache.cur_indexbuffer_offset + base_element * mtl->state_cache.cur_pipeline->mtl.index_size);
+    [mtl->cmd_encoder drawIndexedPrimitives:mtl->state_cache.cur_pipeline->mtl.prim_type
+                                    indexCount:(NSUInteger)num_elements
+                                     indexType:mtl->state_cache.cur_pipeline->mtl.index_type
+                                   indexBuffer:binocle_backend_mtl_id(mtl, ib->mtl.buf[ib->cmn.active_slot])
+                             indexBufferOffset:index_buffer_offset
+                                 instanceCount:(NSUInteger)num_instances];
+  }
+  else {
+    /* non-indexed rendering */
+    [mtl->cmd_encoder drawPrimitives:mtl->state_cache.cur_pipeline->mtl.prim_type
+                            vertexStart:(NSUInteger)base_element
+                            vertexCount:(NSUInteger)num_elements
+                          instanceCount:(NSUInteger)num_instances];
+  }
 }

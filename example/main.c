@@ -83,7 +83,37 @@ struct binocle_wren_t *wren;
 WrenHandle* gameClass;
 WrenHandle* method;
 binocle_image render_target;
+binocle_shader default_shader;
 binocle_shader screen_shader;
+binocle_image wabbit_image;
+
+typedef struct state_t {
+  binocle_pass offscreen_pass;
+  binocle_pipeline offscreen_pip;
+  binocle_bindings offscreen_bind;
+  binocle_pipeline default_pip;
+  binocle_bindings default_bind;
+  binocle_pass_action offscreen_pass_action;
+  binocle_pass_action default_pass_action;
+} state_t;
+
+state_t state;
+
+typedef struct default_vs_params_t {
+  kmMat4 projectionMatrix;
+  kmMat4 viewMatrix;
+  kmMat4 modelMatrix;
+} default_vs_params_t;
+
+typedef struct screen_vs_params_t {
+  kmMat4 transform;
+} screen_vs_params_t;
+
+typedef struct screen_fs_params_t {
+  float resolution[2];
+  float scale[2];
+  float viewport[2];
+} screen_fs_params_t;
 
 #if defined(__APPLE__) && !defined(__IPHONEOS__)
 #define WITH_PHYSICS
@@ -121,15 +151,15 @@ void main_loop() {
 
 
   if (binocle_input_is_key_pressed(&input, KEY_RIGHT)) {
-    player_pos.x += 50 * (1.0/window->frame_time);
+    player_pos.x += 50.0f * (1.0f/window->frame_time);
   } else if (binocle_input_is_key_pressed(&input, KEY_LEFT)) {
-    player_pos.x -= 50 * (1.0/window->frame_time);
+    player_pos.x -= 50.0f * (1.0f/window->frame_time);
   }
 
   if (binocle_input_is_key_pressed(&input, KEY_UP)) {
-    player_pos.y += 50 * (1.0/window->frame_time);
+    player_pos.y += 50.0f * (1.0f/window->frame_time);
   } else if (binocle_input_is_key_pressed(&input, KEY_DOWN)) {
-    player_pos.y -= 50 * (1.0/window->frame_time);
+    player_pos.y -= 50.0f * (1.0f/window->frame_time);
   }
 
   if (binocle_input_is_key_pressed(&input, KEY_SPACE)) {
@@ -190,18 +220,51 @@ void main_loop() {
 
   // Main render loop
 
-  binocle_color clear_color = binocle_color_azure();
-  binocle_pass_action clear_offscreen_action = {
-    .colors[0] = {
-      .action = BINOCLE_ACTION_CLEAR,
-      .value = {
-        .r = clear_color.r,
-        .g = clear_color.g,
-        .b = clear_color.b,
-        .a = clear_color.a,
-      }
-    }
-  };
+
+
+  // fill in the buffers and set them in the bindings from the draw sprite calls
+  default_vs_params_t default_vs_params;
+  screen_vs_params_t screen_vs_params;
+  screen_fs_params_t screen_fs_params;
+
+  kmMat4Identity(&default_vs_params.modelMatrix);
+  kmMat4Identity(&default_vs_params.projectionMatrix);
+  kmMat4Identity(&default_vs_params.viewMatrix);
+
+
+  kmMat4Identity(&screen_vs_params.transform);
+
+  screen_fs_params.resolution[0] = DESIGN_WIDTH;
+  screen_fs_params.resolution[1] = DESIGN_HEIGHT;
+  screen_fs_params.scale[0] = 1;
+  screen_fs_params.scale[1] = 1;
+
+  // Gets the viewport calculated by the adapter
+  kmAABB2 vp = binocle_viewport_adapter_get_viewport(*adapter);
+  float vp_x = vp.min.x;
+  float vp_y = vp.min.y;
+  screen_fs_params.viewport[0] = vp_x;
+  screen_fs_params.viewport[1] = vp_y;
+
+  binocle_backend_begin_pass(state.offscreen_pass, &state.offscreen_pass_action);
+  binocle_backend_apply_pipeline(state.offscreen_pip);
+  binocle_backend_apply_bindings(&state.offscreen_bind);
+  binocle_backend_apply_uniforms(BINOCLE_SHADERSTAGE_VS, 0, &BINOCLE_RANGE(default_vs_params));
+  binocle_backend_draw(0, 6, 1);
+  binocle_backend_end_pass();
+
+  binocle_backend_begin_default_pass(&state.default_pass_action, window->width, window->height);
+  binocle_backend_apply_pipeline(state.default_pip);
+  binocle_backend_apply_bindings(&state.default_bind);
+  binocle_backend_apply_uniforms(BINOCLE_SHADERSTAGE_VS, 0, &BINOCLE_RANGE(screen_vs_params));
+  binocle_backend_apply_uniforms(BINOCLE_SHADERSTAGE_FS, 0, &BINOCLE_RANGE(screen_fs_params));
+  binocle_backend_draw(0, 6, 1);
+  binocle_backend_end_pass();
+
+  binocle_backend_commit();
+
+  binocle_window_refresh(window);
+  binocle_window_end_frame(window);
 
 
 
@@ -209,6 +272,8 @@ void main_loop() {
 
 
 
+
+#ifdef PIPPO
   // Set the render target we will draw to
   binocle_backend_set_render_target(render_target);
 
@@ -270,6 +335,8 @@ void main_loop() {
 
 #ifdef WITH_PHYSICS
   mouse_prev_pos = mouse_world_pos;
+#endif
+
 #endif
 }
 #endif
@@ -451,7 +518,7 @@ int main(int argc, char *argv[])
 
   char filename[1024];
   sprintf(filename, "%s%s", binocle_data_dir, "wabbit_alpha.png");
-  binocle_image image = binocle_image_load(filename);
+  wabbit_image = binocle_image_load(filename);
 
   sprintf(filename, "%s%s", binocle_data_dir, "player.png");
   binocle_image ball_image = binocle_image_load(filename);
@@ -470,8 +537,13 @@ int main(int argc, char *argv[])
   size_t shader_fs_src_size;
   binocle_sdl_load_text_file(frag, &shader_fs_src, &shader_fs_src_size);
 
-  binocle_shader_desc shader_desc = {
+  binocle_shader_desc default_shader_desc = {
 #ifdef BINOCLE_GL
+    .attrs = {
+      [0].name = "vertexPosition",
+      [1].name = "vertexColor",
+      [2].name = "vertexTCoord",
+    },
     .vs.source = shader_vs_src,
 #else
     .vs.byte_code = default_vs_bytecode,
@@ -491,9 +563,9 @@ int main(int argc, char *argv[])
     .fs.byte_code = default_fs_bytecode,
     .fs.byte_code_size = sizeof(default_fs_bytecode),
 #endif
-    .fs.images[0] = { .name = "tex0", .type = BINOCLE_IMAGETYPE_2D}
+    .fs.images[0] = { .name = "tex0", .type = BINOCLE_IMAGETYPE_2D},
   };
-  binocle_shader shader = binocle_backend_make_shader(&shader_desc);
+  default_shader = binocle_backend_make_shader(&default_shader_desc);
 
   // Screen shader
   sprintf(vert, "%s%s", binocle_data_dir, "screen.vert");
@@ -509,6 +581,9 @@ int main(int argc, char *argv[])
 
   binocle_shader_desc screen_shader_desc = {
 #ifdef BINOCLE_GL
+    .attrs = {
+      [0].name = "position"
+    },
     .vs.source = screen_shader_vs_src,
 #else
     .vs.byte_code = screen_vs_bytecode,
@@ -539,8 +614,8 @@ int main(int argc, char *argv[])
   screen_shader = binocle_backend_make_shader(&screen_shader_desc);
 
   binocle_material *material = binocle_material_new();
-  material->albedo_texture = image;
-  material->shader = shader;
+  material->albedo_texture = wabbit_image;
+  material->shader = default_shader;
   player = binocle_sprite_from_material(material);
   player_pos.x = 50;
   player_pos.y = 50;
@@ -548,7 +623,7 @@ int main(int argc, char *argv[])
 #ifdef WITH_PHYSICS
   binocle_material *ball_material = binocle_material_new();
   ball_material->albedo_texture = ball_image;
-  ball_material->shader = shader;
+  ball_material->shader = default_shader;
   ball_sprite = binocle_sprite_from_material(ball_material);
 #endif
 
@@ -608,7 +683,7 @@ int main(int argc, char *argv[])
   font_texture = binocle_image_load(font_image_filename);
   font_material = binocle_material_new();
   font_material->albedo_texture = font_texture;
-  font_material->shader = shader;
+  font_material->shader = default_shader;
   font->material = font_material;
   font_sprite = binocle_sprite_from_material(font_material);
   font_sprite_pos.x = 0;
@@ -629,14 +704,125 @@ int main(int argc, char *argv[])
   setup_world();
 #endif
 
+  // Create the render target image
   binocle_image_desc rt_desc = {
     .render_target = true,
     .width = DESIGN_WIDTH,
     .height = DESIGN_HEIGHT,
+    .min_filter = BINOCLE_FILTER_LINEAR,
+    .mag_filter = BINOCLE_FILTER_LINEAR,
     .pixel_format = BINOCLE_PIXELFORMAT_RGBA8,
     .sample_count = 1,
   };
   render_target = binocle_backend_make_image(&rt_desc);
+
+  // Clear screen action for the offscreen render target
+  binocle_color off_clear_color = binocle_color_azure();
+  binocle_pass_action offscreen_action = {
+    .colors[0] = {
+      .action = BINOCLE_ACTION_CLEAR,
+      .value = {
+        .r = off_clear_color.r,
+        .g = off_clear_color.g,
+        .b = off_clear_color.b,
+        .a = off_clear_color.a,
+      }
+    }
+  };
+  state.offscreen_pass_action = offscreen_action;
+
+  // Clear screen action for the actual screen
+  binocle_color clear_color = binocle_color_green();
+  binocle_pass_action default_action = {
+    .colors[0] = {
+      .action = BINOCLE_ACTION_CLEAR,
+      .value = {
+        .r = clear_color.r,
+        .g = clear_color.g,
+        .b = clear_color.b,
+        .a = clear_color.a,
+      }
+    }
+  };
+  state.default_pass_action = default_action;
+
+  // Render pass that renders to the offscreen render target
+  state.offscreen_pass = binocle_backend_make_pass(&(binocle_pass_desc){
+    .color_attachments[0].image = render_target,
+  });
+
+  // Pipeline state object for the offscreen rendered sprite
+  state.offscreen_pip = binocle_backend_make_pipeline(&(binocle_pipeline_desc) {
+    .layout = {
+      .attrs = {
+        [0] = { .format = BINOCLE_VERTEXFORMAT_FLOAT3 }, // position
+        [1] = { .format = BINOCLE_VERTEXFORMAT_FLOAT4 }, // color
+        [2] = { .format = BINOCLE_VERTEXFORMAT_FLOAT2 }, // texture uv
+      },
+    },
+    .shader = default_shader,
+    .index_type = BINOCLE_INDEXTYPE_UINT16,
+    .colors = {
+      [0] = { .pixel_format = BINOCLE_PIXELFORMAT_RGBA8 }
+    }
+  });
+
+  // Pipeline state object for the screen (default) pass
+  state.default_pip = binocle_backend_make_pipeline(&(binocle_pipeline_desc){
+    .layout = {
+      .attrs = {
+        [0] = { .format = BINOCLE_VERTEXFORMAT_FLOAT3 }, // position
+        [1] = { .format = BINOCLE_VERTEXFORMAT_FLOAT4 }, // color
+        [2] = { .format = BINOCLE_VERTEXFORMAT_FLOAT2 }, // texture uv
+      }
+    },
+    .shader = screen_shader,
+    .index_type = BINOCLE_INDEXTYPE_UINT16,
+    .colors = {
+      [0] = { .pixel_format = BINOCLE_PIXELFORMAT_RGBA8 }
+    }
+  });
+
+  float vertices[] = {
+    /* pos                  color                       uvs */
+    -1.0f, -1.0f, 0.0f,    1.0f, 1.0f, 1.0f, 1.0f,     0.0f, 0.0f,
+    1.0f, -1.0f, 0.0f,    1.0f, 1.0f, 1.0f, 1.0f,     1.0f, 0.0f,
+    1.0f,  1.0f, 0.0f,    1.0f, 1.0f, 1.0f, 1.0f,     1.0f, 1.0f,
+    -1.0f,  1.0f, 0.0f,    1.0f, 1.0f, 1.0f, 1.0f,     0.0f, 1.0f,
+  };
+  binocle_buffer_desc vbuf_desc = {
+    .data = BINOCLE_RANGE(vertices)
+  };
+  binocle_buffer vbuf = binocle_backend_make_buffer(&vbuf_desc);
+
+  uint16_t indices[] = {
+    0, 1, 2,  0, 2, 3,
+  };
+  binocle_buffer_desc ibuf_desc = {
+    .type = BINOCLE_BUFFERTYPE_INDEXBUFFER,
+    .data = BINOCLE_RANGE(indices)
+  };
+  binocle_buffer ibuf = binocle_backend_make_buffer(&ibuf_desc);
+
+  state.offscreen_bind = (binocle_bindings){
+    .vertex_buffers = {
+      [0] = vbuf,
+    },
+    .index_buffer = ibuf,
+    .fs_images = {
+      [0] = wabbit_image,
+    }
+  };
+
+  state.default_bind = (binocle_bindings){
+    .vertex_buffers = {
+      [0] = vbuf,
+    },
+    .index_buffer = ibuf,
+    .fs_images = {
+      [0] = render_target,
+    }
+  };
 
   running_time = 0;
 #ifdef GAMELOOP

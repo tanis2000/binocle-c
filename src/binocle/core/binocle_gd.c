@@ -42,7 +42,7 @@ void binocle_gd_draw(binocle_gd *gd, const struct binocle_vpct *vertices, size_t
     cameraTransformMatrix = binocle_camera_get_transform_matrix(camera);
   }
 
-  binocle_backend_draw(vertices, vertex_count, material, viewport, cameraTransformMatrix);
+  LEGACY_binocle_backend_draw(vertices, vertex_count, material, viewport, cameraTransformMatrix);
 }
 
 kmMat4 binocle_gd_create_model_view_matrix(float x, float y, float scale, float rotation) {

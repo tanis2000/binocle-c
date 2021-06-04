@@ -40,7 +40,7 @@ void binocle_backend_apply_blend_mode(struct binocle_blend blend_mode);
 void binocle_backend_apply_shader(binocle_shader shader);
 void binocle_backend_apply_texture(binocle_image texture);
 void binocle_backend_apply_3d_texture(struct binocle_material *material);
-void binocle_backend_draw(const struct binocle_vpct *vertices, size_t vertex_count, struct binocle_material material,
+void LEGACY_binocle_backend_draw(const struct binocle_vpct *vertices, size_t vertex_count, struct binocle_material material,
                           struct kmAABB2 viewport, struct kmMat4 *cameraTransformMatrix);
 void binocle_backend_set_render_target(binocle_image rt);
 void binocle_backend_unset_render_target();
@@ -78,4 +78,17 @@ void binocle_backend_mtl_init_caps(void);
 void binocle_backend_pipeline_common_init(binocle_pipeline_common_t* cmn, const binocle_pipeline_desc* desc);
 void binocle_pass_common_init(binocle_pass_common_t *cmn,
                               const binocle_pass_desc *desc);
+binocle_pipeline binocle_backend_make_pipeline(const binocle_pipeline_desc* desc);
+binocle_pass binocle_backend_make_pass(const binocle_pass_desc* desc);
+void binocle_backend_begin_pass(binocle_pass pass_id, const binocle_pass_action* pass_action);
+void binocle_backend_end_pass(void);
+void binocle_backend_draw(int base_element, int num_elements, int num_instances);
+void binocle_backend_apply_pipeline(binocle_pipeline pip_id);
+void binocle_backend_apply_bindings(const binocle_bindings* bindings);
+void binocle_backend_apply_uniforms(binocle_shader_stage stage, int ub_index, const binocle_range* data);
+void binocle_backend_begin_default_pass(const binocle_pass_action* pass_action, int width, int height);
+void binocle_backend_commit(void);
+void binocle_backend_buffer_common_init(binocle_buffer_common_t* cmn, const binocle_buffer_desc* desc);
+binocle_buffer binocle_backend_make_buffer(const binocle_buffer_desc* desc);
+
 #endif // BINOCLE_BACKEND_H

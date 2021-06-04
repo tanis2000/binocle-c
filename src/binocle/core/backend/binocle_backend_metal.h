@@ -15,6 +15,11 @@
 #include "../binocle_pool.h"
 #include "binocle_sampler_cache.h"
 
+#if defined(BINOCLE_MACOS) || defined(BINOCLE_TARGET_IOS_SIMULATOR)
+#define BINOCLE_MTL_UB_ALIGN (256)
+#else
+#define BINOCLE_MTL_UB_ALIGN (16)
+#endif
 #define BINOCLE_MTL_INVALID_SLOT_INDEX (0)
 
 struct binocle_color;
@@ -24,6 +29,15 @@ typedef struct binocle_mtl_render_target {
   // TODO: add more Metal properties here
 } binocle_mtl_render_target;
 typedef binocle_mtl_render_target binocle_render_target_t;
+
+typedef struct binocle_mtl_buffer {
+  binocle_slot_t slot;
+  binocle_buffer_common_t cmn;
+  struct {
+    int buf[BINOCLE_NUM_INFLIGHT_FRAMES];  /* index into binocle_mtl_pool */
+  } mtl;
+} binocle_mtl_buffer;
+typedef binocle_mtl_buffer binocle_buffer_t;
 
 typedef struct binocle_mtl_image {
   binocle_slot_t slot;
@@ -99,18 +113,18 @@ typedef struct binocle_mtl_idpool_t {
 } binocle_mtl_idpool_t;
 
 typedef struct binocle_mtl_state_cache_t {
-//  const _sg_pipeline_t* cur_pipeline;
-//  sg_pipeline cur_pipeline_id;
-//  const _sg_buffer_t* cur_indexbuffer;
-//  int cur_indexbuffer_offset;
-//  sg_buffer cur_indexbuffer_id;
-//  const _sg_buffer_t* cur_vertexbuffers[SG_MAX_SHADERSTAGE_BUFFERS];
-//  int cur_vertexbuffer_offsets[SG_MAX_SHADERSTAGE_BUFFERS];
-//  sg_buffer cur_vertexbuffer_ids[SG_MAX_SHADERSTAGE_BUFFERS];
-//  const _sg_image_t* cur_vs_images[SG_MAX_SHADERSTAGE_IMAGES];
-//  sg_image cur_vs_image_ids[SG_MAX_SHADERSTAGE_IMAGES];
-//  const _sg_image_t* cur_fs_images[SG_MAX_SHADERSTAGE_IMAGES];
-//  sg_image cur_fs_image_ids[SG_MAX_SHADERSTAGE_IMAGES];
+  const binocle_pipeline_t* cur_pipeline;
+  binocle_pipeline cur_pipeline_id;
+  const binocle_buffer_t* cur_indexbuffer;
+  int cur_indexbuffer_offset;
+  binocle_buffer cur_indexbuffer_id;
+  const binocle_buffer_t* cur_vertexbuffers[BINOCLE_MAX_SHADERSTAGE_BUFFERS];
+  int cur_vertexbuffer_offsets[BINOCLE_MAX_SHADERSTAGE_BUFFERS];
+  binocle_buffer cur_vertexbuffer_ids[BINOCLE_MAX_SHADERSTAGE_BUFFERS];
+  const binocle_image_t* cur_vs_images[BINOCLE_MAX_SHADERSTAGE_IMAGES];
+  binocle_image cur_vs_image_ids[BINOCLE_MAX_SHADERSTAGE_IMAGES];
+  const binocle_image_t* cur_fs_images[BINOCLE_MAX_SHADERSTAGE_IMAGES];
+  binocle_image cur_fs_image_ids[BINOCLE_MAX_SHADERSTAGE_IMAGES];
 } binocle_mtl_state_cache_t;
 
 typedef struct binocle_mtl_backend_t {
@@ -155,4 +169,22 @@ void binocle_backend_mtl_clear(binocle_mtl_backend_t *mtl, struct binocle_color 
 binocle_resource_state binocle_backend_mtl_create_pipeline(
   binocle_mtl_backend_t *mtl, binocle_pipeline_t *pip, binocle_shader_t *shd,
   const binocle_pipeline_desc *desc);
+binocle_resource_state
+binocle_backend_mtl_create_pass(binocle_pass_t *pass,
+                                binocle_image_t **att_images,
+                                const binocle_pass_desc *desc);
+void binocle_backend_mtl_begin_pass(binocle_mtl_backend_t *mtl, binocle_pass_t* pass, const binocle_pass_action* action, int w, int h);
+void binocle_backend_mtl_end_pass(binocle_mtl_backend_t *mtl);
+binocle_image_t* binocle_backend_mtl_pass_color_image(const binocle_pass_t* pass, int index);
+void binocle_backend_mtl_apply_pipeline(binocle_mtl_backend_t *mtl, binocle_pipeline_t* pip);
+void binocle_backend_mtl_apply_bindings(
+  binocle_mtl_backend_t *mtl,
+  binocle_pipeline_t* pip,
+  binocle_buffer_t** vbs, const int* vb_offsets, int num_vbs,
+  binocle_buffer_t* ib, int ib_offset,
+  binocle_image_t** vs_imgs, int num_vs_imgs,
+  binocle_image_t** fs_imgs, int num_fs_imgs);
+void binocle_backend_mtl_apply_uniforms(binocle_mtl_backend_t *mtl, binocle_shader_stage stage_index, int ub_index, const binocle_range* data);
+void binocle_backend_mtl_draw(binocle_mtl_backend_t *mtl, int base_element, int num_elements, int num_instances);
+void binocle_backend_mtl_commit(binocle_mtl_backend_t *mtl);
 #endif // BINOCLE_BACKEND_METAL_H

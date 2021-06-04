@@ -33,6 +33,25 @@ typedef struct binocle_gl_render_target {
 } binocle_gl_render_target;
 typedef binocle_gl_render_target binocle_render_target_t;
 
+typedef struct binocle_gl_context_t {
+  binocle_slot_t slot;
+#if !defined(BINOCLE_GLES2)
+  GLuint vao;
+#endif
+  GLuint default_framebuffer;
+} binocle_gl_context_t;
+typedef binocle_gl_context_t binocle_context_t;
+
+typedef struct binocle_gl_buffer {
+  binocle_slot_t slot;
+  binocle_buffer_common_t cmn;
+  struct {
+    GLuint buf[BINOCLE_NUM_INFLIGHT_FRAMES];
+    bool ext_buffers;   /* if true, external buffers were injected with binocle_buffer_desc.gl_buffers */
+  } gl;
+} binocle_gl_buffer;
+typedef binocle_gl_buffer binocle_buffer_t;
+
 typedef struct binocle_gl_image {
   binocle_slot_t slot;
   binocle_image_common_t cmn;
@@ -103,27 +122,6 @@ typedef struct binocle_gl_texture_bind_slot {
   GLuint texture;
 } binocle_gl_texture_bind_slot;
 
-typedef struct binocle_gl_state_cache_t {
-//  binocle_depth_stencil_state ds;
-//  sg_blend_state blend;
-//  sg_rasterizer_state rast;
-  bool polygon_offset_enabled;
-  binocle_gl_cache_attr_t attrs[BINOCLE_MAX_VERTEX_ATTRIBUTES];
-  GLuint vertex_buffer;
-  GLuint index_buffer;
-  GLuint stored_vertex_buffer;
-  GLuint stored_index_buffer;
-  GLuint prog;
-  binocle_gl_texture_bind_slot textures[BINOCLE_MAX_SHADERSTAGE_IMAGES];
-  binocle_gl_texture_bind_slot stored_texture;
-  int cur_ib_offset;
-  GLenum cur_primitive_type;
-  GLenum cur_index_type;
-  GLenum cur_active_texture;
-//  binocle_pipeline_t* cur_pipeline;
-//  binocle_pipeline cur_pipeline_id;
-} binocle_gl_state_cache_t;
-
 typedef struct binocle_gl_pipeline_t {
   binocle_slot_t slot;
   binocle_pipeline_common_t cmn;
@@ -142,6 +140,33 @@ typedef struct binocle_gl_pipeline_t {
   } gl;
 } binocle_gl_pipeline_t;
 typedef binocle_gl_pipeline_t binocle_pipeline_t;
+
+typedef struct binocle_gl_state_cache_t {
+  binocle_depth_state depth;
+  binocle_stencil_state stencil;
+  binocle_blend_state blend;
+  binocle_color_mask color_write_mask[BINOCLE_MAX_COLOR_ATTACHMENTS];
+  binocle_cull_mode cull_mode;
+  binocle_face_winding face_winding;
+  bool polygon_offset_enabled;
+  int sample_count;
+  binocle_color blend_color;
+  bool alpha_to_coverage_enabled;
+  binocle_gl_cache_attr_t attrs[BINOCLE_MAX_VERTEX_ATTRIBUTES];
+  GLuint vertex_buffer;
+  GLuint index_buffer;
+  GLuint stored_vertex_buffer;
+  GLuint stored_index_buffer;
+  GLuint prog;
+  binocle_gl_texture_bind_slot textures[BINOCLE_MAX_SHADERSTAGE_IMAGES];
+  binocle_gl_texture_bind_slot stored_texture;
+  int cur_ib_offset;
+  GLenum cur_primitive_type;
+  GLenum cur_index_type;
+  GLenum cur_active_texture;
+  binocle_pipeline_t* cur_pipeline;
+  binocle_pipeline cur_pipeline_id;
+} binocle_gl_state_cache_t;
 
 typedef struct {
   binocle_image_t* image;
@@ -163,6 +188,12 @@ typedef binocle_pass_attachment_common_t binocle_pass_attachment_t;
 typedef struct binocle_gl_backend_t {
   bool valid;
   bool gles2;
+  bool in_pass;
+  int cur_pass_width;
+  int cur_pass_height;
+  binocle_context_t* cur_context;
+  binocle_pass_t* cur_pass;
+  binocle_pass cur_pass_id;
   binocle_gl_state_cache_t cache;
   bool ext_anisotropic;
   GLint max_anisotropy;
@@ -236,7 +267,7 @@ void binocle_backend_gl_apply_texture(binocle_image_t *texture);
 
 void binocle_backend_gl_apply_3d_texture(binocle_image_t *albedo, binocle_image_t *normal);
 
-void binocle_backend_gl_draw(binocle_gl_backend_t *gl, const struct binocle_vpct *vertices, size_t vertex_count, struct binocle_blend blend,
+void LEGACY_binocle_backend_gl_draw(binocle_gl_backend_t *gl, const struct binocle_vpct *vertices, size_t vertex_count, struct binocle_blend blend,
                              binocle_gl_shader *shader, binocle_image_t *albedo,
                              struct kmAABB2 viewport, struct kmMat4 *cameraTransformMatrix);
 
@@ -261,5 +292,28 @@ void binocle_backend_gl_destroy_shader(binocle_gl_backend_t *gl, binocle_shader_
 binocle_resource_state binocle_backend_gl_create_pipeline(
   binocle_gl_backend_t *gl, binocle_pipeline_t *pip, binocle_shader_t *shd,
   const binocle_pipeline_desc *desc);
+binocle_resource_state
+binocle_backend_gl_create_pass(binocle_gl_backend_t *gl, binocle_pass_t *pass,
+                               binocle_image_t **att_images,
+                               const binocle_pass_desc *desc);
+void binocle_backend_gl_begin_pass(binocle_gl_backend_t *gl, binocle_pass_t* pass, const binocle_pass_action* action, int w, int h);
+binocle_image_t* binocle_backend_gl_pass_color_image(const binocle_pass_t* pass, int index);
+void binocle_backend_gl_end_pass(binocle_gl_backend_t *gl);
+void binocle_backend_gl_apply_pipeline(binocle_gl_backend_t *gl, binocle_pipeline_t* pip);
+void binocle_backend_gl_activate_context(binocle_gl_backend_t *gl, binocle_context_t* ctx);
+binocle_resource_state binocle_backend_gl_create_context(binocle_gl_backend_t *gl, binocle_context_t* ctx);
+void binocle_backend_gl_destroy_context(binocle_gl_backend_t *gl, binocle_context_t* ctx);
+void binocle_backend_gl_apply_bindings(
+  binocle_gl_backend_t *gl,
+  binocle_pipeline_t* pip,
+  binocle_buffer_t** vbs, const int* vb_offsets, int num_vbs,
+  binocle_buffer_t* ib, int ib_offset,
+  binocle_image_t** vs_imgs, int num_vs_imgs,
+  binocle_image_t** fs_imgs, int num_fs_imgs);
+void binocle_backend_gl_apply_uniforms(binocle_gl_backend_t *gl, binocle_shader_stage stage_index, int ub_index, const binocle_range* data);
+void binocle_backend_gl_draw(binocle_gl_backend_t *gl, int base_element, int num_elements, int num_instances);
+void binocle_backend_gl_commit(binocle_gl_backend_t *gl);
+void binocle_backend_gl_setup_backend(binocle_gl_backend_t *gl, const binocle_backend_desc* desc);
+binocle_resource_state binocle_backend_gl_create_buffer(binocle_gl_backend_t *gl, binocle_buffer_t* buf, const binocle_buffer_desc* desc);
 
 #endif // BINOCLE_BACKEND_GL_H
