@@ -523,6 +523,7 @@ int main(int argc, char *argv[])
   sprintf(filename, "%s%s", binocle_data_dir, "player.png");
   binocle_image ball_image = binocle_image_load(filename);
 
+#ifdef BINOCLE_GL
   // Default shader
   char vert[1024];
   sprintf(vert, "%s%s", binocle_data_dir, "default.vert");
@@ -536,16 +537,17 @@ int main(int argc, char *argv[])
   char *shader_fs_src;
   size_t shader_fs_src_size;
   binocle_sdl_load_text_file(frag, &shader_fs_src, &shader_fs_src_size);
+#endif
 
   binocle_shader_desc default_shader_desc = {
 #ifdef BINOCLE_GL
+    .vs.source = shader_vs_src,
+#else
     .attrs = {
       [0].name = "vertexPosition",
       [1].name = "vertexColor",
       [2].name = "vertexTCoord",
     },
-    .vs.source = shader_vs_src,
-#else
     .vs.byte_code = default_vs_bytecode,
     .vs.byte_code_size = sizeof(default_vs_bytecode),
 #endif
@@ -567,6 +569,7 @@ int main(int argc, char *argv[])
   };
   default_shader = binocle_backend_make_shader(&default_shader_desc);
 
+#ifdef BINOCLE_GL
   // Screen shader
   sprintf(vert, "%s%s", binocle_data_dir, "screen.vert");
   sprintf(frag, "%s%s", binocle_data_dir, "screen.frag");
@@ -578,17 +581,18 @@ int main(int argc, char *argv[])
   char *screen_shader_fs_src;
   size_t screen_shader_fs_src_size;
   binocle_sdl_load_text_file(frag, &screen_shader_fs_src, &screen_shader_fs_src_size);
+#endif
 
   binocle_shader_desc screen_shader_desc = {
 #ifdef BINOCLE_GL
-    .attrs = {
-      [0].name = "position"
-    },
     .vs.source = screen_shader_vs_src,
 #else
     .vs.byte_code = screen_vs_bytecode,
     .vs.byte_code_size = sizeof(screen_vs_bytecode),
 #endif
+    .attrs = {
+      [0].name = "position"
+    },
     .vs.uniform_blocks[0] = {
       .size = sizeof(screen_shader_vs_params_t),
       .uniforms = {
@@ -711,7 +715,11 @@ int main(int argc, char *argv[])
     .height = DESIGN_HEIGHT,
     .min_filter = BINOCLE_FILTER_LINEAR,
     .mag_filter = BINOCLE_FILTER_LINEAR,
+#ifdef BINOCLE_GL
     .pixel_format = BINOCLE_PIXELFORMAT_RGBA8,
+#else
+    .pixel_format = BINOCLE_PIXELFORMAT_BGRA8,
+#endif
     .sample_count = 1,
   };
   render_target = binocle_backend_make_image(&rt_desc);
@@ -762,8 +770,20 @@ int main(int argc, char *argv[])
     },
     .shader = default_shader,
     .index_type = BINOCLE_INDEXTYPE_UINT16,
+    .depth = {
+      .pixel_format = BINOCLE_PIXELFORMAT_NONE,
+      .compare = BINOCLE_COMPAREFUNC_NEVER,
+      .write_enabled = false,
+    },
+    .stencil = {
+      .enabled = false,
+    },
     .colors = {
+#ifdef BINOCLE_GL
       [0] = { .pixel_format = BINOCLE_PIXELFORMAT_RGBA8 }
+#else
+      [0] = { .pixel_format = BINOCLE_PIXELFORMAT_BGRA8 }
+#endif
     }
   });
 
@@ -778,8 +798,20 @@ int main(int argc, char *argv[])
     },
     .shader = screen_shader,
     .index_type = BINOCLE_INDEXTYPE_UINT16,
+    .depth = {
+      .pixel_format = BINOCLE_PIXELFORMAT_NONE,
+      .compare = BINOCLE_COMPAREFUNC_NEVER,
+      .write_enabled = false,
+    },
+    .stencil = {
+      .enabled = false,
+    },
     .colors = {
+#ifdef BINOCLE_GL
       [0] = { .pixel_format = BINOCLE_PIXELFORMAT_RGBA8 }
+#else
+      [0] = { .pixel_format = BINOCLE_PIXELFORMAT_BGRA8 }
+#endif
     }
   });
 

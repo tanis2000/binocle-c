@@ -7,8 +7,8 @@ struct params_t {
 };
 struct vs_in {
     float3 vertexPosition [[attribute(0)]];
-    float2 vertexTCoord [[attribute(1)]];
-    float4 vertexColor [[attribute(2)]];
+    float4 vertexColor [[attribute(1)]];
+    float2 vertexTCoord [[attribute(2)]];
     float3 vertexNormal [[attribute(3)]];
 };
 struct vs_out {

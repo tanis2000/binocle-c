@@ -605,7 +605,7 @@ binocle_resource_state binocle_backend_create_buffer(binocle_buffer_t* buf, cons
 #if defined(BINOCLE_GL)
   return binocle_backend_gl_create_buffer(&backend.gl, buf, desc);
 #elif defined(BINOCLE_METAL)
-  return binocle_backend_mtl_create_buffer(buf, desc);
+  return binocle_backend_mtl_create_buffer(&backend.mtl, buf, desc);
 #else
 #error("INVALID BACKEND");
 #endif
@@ -1369,7 +1369,7 @@ void _binocle_backend_activate_context(binocle_context_t* ctx) {
 #if defined(BINOCLE_GL)
   binocle_backend_gl_activate_context(&backend.gl, ctx);
 #elif defined(BINOCLE_METAL)
-  binocle_backend_mtl_activate_context(ctx);
+  binocle_backend_mtl_activate_context(&backend.mtl, ctx);
 #else
 #error("INVALID BACKEND");
 #endif

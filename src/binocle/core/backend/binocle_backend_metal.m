@@ -6,6 +6,8 @@
 
 #include "binocle_backend_metal.h"
 #import <QuartzCore/CAMetalLayer.h>
+#import <Metal/Metal.h>
+#import <MetalKit/MetalKit.h>
 #include <stdbool.h>
 #include "binocle_sampler_cache.h"
 #include "binocle_backend.h"
@@ -476,6 +478,24 @@ MTLLoadAction binocle_backend_mtl_load_action(binocle_action a) {
   }
 }
 
+MTLResourceOptions
+binocle_backend_mtl_buffer_resource_options(binocle_usage usg) {
+  switch (usg) {
+  case BINOCLE_USAGE_IMMUTABLE:
+    return MTLResourceStorageModeShared;
+  case BINOCLE_USAGE_DYNAMIC:
+  case BINOCLE_USAGE_STREAM:
+#if defined(BINOCLE_MACOS)
+    return MTLCPUCacheModeWriteCombined | MTLResourceStorageModeManaged;
+#else
+    return MTLCPUCacheModeWriteCombined;
+#endif
+  default:
+    assert(false);
+    return 0;
+  }
+}
+
 void binocle_backend_mtl_init_pool(binocle_mtl_backend_t *mtl, binocle_backend_desc *desc) {
   mtl->idpool.num_slots = 2 *
                              (
@@ -652,8 +672,24 @@ binocle_backend_mtl_create_sampler(binocle_mtl_backend_t *mtl,
   }
 }
 
+
+// TODO: (VAlerio) hack for the renderpass
 void binocle_backend_mtl_clear_state_cache(binocle_mtl_backend_t *mtl) {
   memset(&mtl->state_cache, 0, sizeof(mtl->state_cache));
+}
+
+static id<CAMetalDrawable> cached_drawable_hack;
+
+void *binocle_backend_mtl_renderpass_descriptor_cb_hack(CAMetalLayer *metal_layer) {
+  MTLRenderPassDescriptor *desc = [MTLRenderPassDescriptor renderPassDescriptor];
+  cached_drawable_hack = [metal_layer nextDrawable];
+  desc.colorAttachments[0].texture = cached_drawable_hack.texture;
+  return desc;
+}
+// END hack
+
+void *binocle_backend_mtl_drawable_cb_hack(CAMetalLayer *metal_layer) {
+  return cached_drawable_hack;
 }
 
 void binocle_backend_mtl_setup_backend(binocle_mtl_backend_t *mtl, binocle_backend_desc *desc) {
@@ -676,6 +712,12 @@ void binocle_backend_mtl_setup_backend(binocle_mtl_backend_t *mtl, binocle_backe
   mtl->cmd_queue = [mtl->device newCommandQueue];
   mtl->cmd_buffer = [mtl->cmd_queue commandBuffer];
 
+  // TODO: (Valerio) hack to avoid having to initialize the callbacks
+  mtl->renderpass_descriptor_userdata_cb = binocle_backend_mtl_renderpass_descriptor_cb_hack;
+  mtl->drawable_userdata_cb = binocle_backend_mtl_drawable_cb_hack;
+  mtl->user_data = (void *)metal_layer;
+  // END hack
+
   MTLResourceOptions res_opts = MTLResourceCPUCacheModeWriteCombined;
 #if defined(BINOCLE_MACOS)
   res_opts |= MTLResourceStorageModeManaged;
@@ -687,6 +729,53 @@ void binocle_backend_mtl_setup_backend(binocle_mtl_backend_t *mtl, binocle_backe
     ];
   }
   binocle_backend_mtl_init_caps();
+}
+
+binocle_resource_state binocle_backend_mtl_create_context(binocle_context_t* ctx) {
+assert(ctx);
+  (void)(ctx);
+return BINOCLE_RESOURCESTATE_VALID;
+}
+
+void binocle_backend_mtl_destroy_context(binocle_context_t* ctx) {
+  assert(ctx);
+  (void)(ctx);
+  /* empty */
+}
+
+void binocle_backend_mtl_activate_context(binocle_mtl_backend_t *mtl, binocle_context_t* ctx) {
+  (void)(ctx);
+  binocle_backend_mtl_clear_state_cache(mtl);
+}
+
+binocle_resource_state
+binocle_backend_mtl_create_buffer(binocle_mtl_backend_t *mtl,
+                                  binocle_buffer_t *buf,
+                                  const binocle_buffer_desc *desc) {
+  assert(buf && desc);
+  binocle_backend_buffer_common_init(&buf->cmn, desc);
+  const bool injected = (0 != desc->mtl_buffers[0]);
+  MTLResourceOptions mtl_options =
+    binocle_backend_mtl_buffer_resource_options(buf->cmn.usage);
+  for (int slot = 0; slot < buf->cmn.num_slots; slot++) {
+    id<MTLBuffer> mtl_buf;
+    if (injected) {
+      assert(desc->mtl_buffers[slot]);
+      mtl_buf = (__bridge id<MTLBuffer>)desc->mtl_buffers[slot];
+    } else {
+      if (buf->cmn.usage == BINOCLE_USAGE_IMMUTABLE) {
+        assert(desc->data.ptr);
+        mtl_buf = [mtl->device newBufferWithBytes:desc->data.ptr
+                                           length:(NSUInteger)buf->cmn.size
+                                          options:mtl_options];
+      } else {
+        mtl_buf = [mtl->device newBufferWithLength:(NSUInteger)buf->cmn.size
+                                           options:mtl_options];
+      }
+    }
+    buf->mtl.buf[slot] = binocle_backend_mtl_add_resource(mtl, mtl_buf);
+  }
+  return BINOCLE_RESOURCESTATE_VALID;
 }
 
 void binocle_backend_image_common_init(binocle_image_common_t* cmn, const binocle_image_desc* desc) {

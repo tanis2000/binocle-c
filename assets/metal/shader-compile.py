@@ -61,8 +61,8 @@ for SDK in ['macosx', 'iphoneos']:
     link(fs_lib_tmp, fs_out_tmp)
     with open('default-metal-{}.h'.format(SDK), 'w') as f:
         f.write('#pragma once\n')
-        write_hexdump(f, 'vs_bytecode', vs_out_tmp)
-        write_hexdump(f, 'fs_bytecode', fs_out_tmp)
+        write_hexdump(f, 'default_vs_bytecode', vs_out_tmp)
+        write_hexdump(f, 'default_fs_bytecode', fs_out_tmp)
 
     cc('screen-vs.metal', vs_air_tmp)
     ar(vs_air_tmp, vs_lib_tmp)
@@ -72,5 +72,5 @@ for SDK in ['macosx', 'iphoneos']:
     link(fs_lib_tmp, fs_out_tmp)
     with open('screen-metal-{}.h'.format(SDK), 'w') as f:
         f.write('#pragma once\n')
-        write_hexdump(f, 'vs_bytecode', vs_out_tmp)
-        write_hexdump(f, 'fs_bytecode', fs_out_tmp)
+        write_hexdump(f, 'screen_vs_bytecode', vs_out_tmp)
+        write_hexdump(f, 'screen_fs_bytecode', fs_out_tmp)

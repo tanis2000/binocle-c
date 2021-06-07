@@ -71,7 +71,9 @@ void binocle_window_refresh(binocle_window *win) {
   glBindFramebuffer(GL_FRAMEBUFFER, info.info.uikit.framebuffer);
   glBindRenderbuffer(GL_RENDERBUFFER,info.info.uikit.colorbuffer);
 #endif
+#if defined(BINOCLE_GL)
   SDL_GL_SwapWindow(win->window);
+#endif
 }
 
 void binocle_window_create(binocle_window *win, char *title, uint32_t width, uint32_t height) {

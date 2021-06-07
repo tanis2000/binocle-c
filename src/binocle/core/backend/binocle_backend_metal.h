@@ -97,6 +97,11 @@ typedef struct binocle_mtl_pass_t {
 typedef binocle_mtl_pass_t binocle_pass_t;
 typedef binocle_pass_attachment_common_t binocle_pass_attachment_t;
 
+typedef struct binocle_mtl_context_t {
+  binocle_slot_t slot;
+} binocle_mtl_context_t;
+typedef binocle_mtl_context_t binocle_context_t;
+
 typedef struct binocle_mtl_release_item_t {
   uint32_t frame_index;   /* frame index at which it is safe to release this resource */
   uint32_t slot_index;
@@ -187,4 +192,11 @@ void binocle_backend_mtl_apply_bindings(
 void binocle_backend_mtl_apply_uniforms(binocle_mtl_backend_t *mtl, binocle_shader_stage stage_index, int ub_index, const binocle_range* data);
 void binocle_backend_mtl_draw(binocle_mtl_backend_t *mtl, int base_element, int num_elements, int num_instances);
 void binocle_backend_mtl_commit(binocle_mtl_backend_t *mtl);
+binocle_resource_state
+binocle_backend_mtl_create_buffer(binocle_mtl_backend_t *mtl,
+                                  binocle_buffer_t *buf,
+                                  const binocle_buffer_desc *desc);
+void binocle_backend_mtl_activate_context(binocle_mtl_backend_t *mtl, binocle_context_t* ctx);
+binocle_resource_state binocle_backend_mtl_create_context(binocle_context_t* ctx);
+void binocle_backend_mtl_destroy_context(binocle_context_t* ctx);
 #endif // BINOCLE_BACKEND_METAL_H
