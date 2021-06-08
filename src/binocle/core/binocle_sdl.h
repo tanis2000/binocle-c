@@ -19,6 +19,7 @@
 #elif defined(__APPLE__)
 
 #if defined(BINOCLE_GL)
+//#define GL_GLEXT_PROTOTYPES 1
 //#include <SDL_opengl.h>
 #include <OpenGL/gl.h>
 #elif defined(BINOCLE_METAL)

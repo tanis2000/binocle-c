@@ -1162,11 +1162,6 @@ void binocle_backend_image_common_init(binocle_image_common_t* cmn, const binocl
   cmn->active_slot = 0;
 }
 
-void binocle_backend_gl_init_attr(binocle_gl_attr_t* attr) {
-  attr->vb_index = -1;
-  attr->divisor = -1;
-}
-
 /*-- state cache implementation ----------------------------------------------*/
 void binocle_backend_gl_cache_clear_buffer_bindings(binocle_gl_backend_t *gl, bool force) {
   if (force || (gl->cache.vertex_buffer != 0)) {
@@ -1344,7 +1339,7 @@ void binocle_backend_gl_reset_state_cache(binocle_gl_backend_t *gl) {
 //#if !defined(SOKOL_GLES2)
 //    if (!gl->gles2) {
 //      glBindVertexArray(gl->cur_context->vao);
-//      _BINOCLE_GL_CHECK_ERROR();
+//      assert(glGetError() == GL_NO_ERROR);
 //    }
 //#endif
     memset(&gl->cache, 0, sizeof(gl->cache));
@@ -1353,8 +1348,10 @@ void binocle_backend_gl_reset_state_cache(binocle_gl_backend_t *gl) {
     binocle_backend_gl_cache_clear_texture_bindings(gl, true);
     assert(glGetError() == GL_NO_ERROR);
     for (uint32_t i = 0; i < BINOCLE_MAX_VERTEX_ATTRIBUTES/*backend.limits.max_vertex_attrs*/; i++) {
-      binocle_backend_gl_init_attr(&gl->cache.attrs[i].gl_attr);
-      glDisableVertexAttribArray(i);
+      binocle_gl_attr_t* attr = &gl->cache.attrs[i].gl_attr;
+      attr->vb_index = -1;
+      attr->divisor = -1;
+      glDisableVertexAttribArray((GLuint)i);
       assert(glGetError() == GL_NO_ERROR);
     }
     gl->cache.cur_primitive_type = GL_TRIANGLES;
@@ -1364,7 +1361,15 @@ void binocle_backend_gl_reset_state_cache(binocle_gl_backend_t *gl) {
     assert(glGetError() == GL_NO_ERROR);
 
     /* depth-stencil state */
-//    binocle_backend_gl_init_depth_stencil_state(&gl->cache.ds);
+    gl->cache.depth.compare = BINOCLE_COMPAREFUNC_ALWAYS;
+    gl->cache.stencil.front.compare = BINOCLE_COMPAREFUNC_ALWAYS;
+    gl->cache.stencil.front.fail_op = BINOCLE_STENCILOP_KEEP;
+    gl->cache.stencil.front.depth_fail_op = BINOCLE_STENCILOP_KEEP;
+    gl->cache.stencil.front.pass_op = BINOCLE_STENCILOP_KEEP;
+    gl->cache.stencil.back.compare = BINOCLE_COMPAREFUNC_ALWAYS;
+    gl->cache.stencil.back.fail_op = BINOCLE_STENCILOP_KEEP;
+    gl->cache.stencil.back.depth_fail_op = BINOCLE_STENCILOP_KEEP;
+    gl->cache.stencil.back.pass_op = BINOCLE_STENCILOP_KEEP;
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_ALWAYS);
     glDepthMask(GL_FALSE);
@@ -1374,15 +1379,26 @@ void binocle_backend_gl_reset_state_cache(binocle_gl_backend_t *gl) {
     glStencilMask(0);
 
     /* blend state */
-//    binocle_backend_gl_init_blend_state(&gl->cache.blend);
+    gl->cache.blend.src_factor_rgb = BINOCLE_BLENDFACTOR_ONE;
+    gl->cache.blend.dst_factor_rgb = BINOCLE_BLENDFACTOR_ZERO;
+    gl->cache.blend.op_rgb = BINOCLE_BLENDOP_ADD;
+    gl->cache.blend.src_factor_alpha = BINOCLE_BLENDFACTOR_ONE;
+    gl->cache.blend.dst_factor_alpha = BINOCLE_BLENDFACTOR_ZERO;
+    gl->cache.blend.op_alpha = BINOCLE_BLENDOP_ADD;
     glDisable(GL_BLEND);
     glBlendFuncSeparate(GL_ONE, GL_ZERO, GL_ONE, GL_ZERO);
     glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glBlendColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-    /* rasterizer state */
-//    binocle_backend_gl_init_rasterizer_state(&gl->cache.rast);
+    /* standalone state */
+    for (int i = 0; i < BINOCLE_MAX_COLOR_ATTACHMENTS; i++) {
+      gl->cache.color_write_mask[i] = BINOCLE_COLORMASK_RGBA;
+    }
+    gl->cache.cull_mode = BINOCLE_CULLMODE_NONE;
+    gl->cache.face_winding = BINOCLE_FACEWINDING_CW;
+    gl->cache.sample_count = 1;
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glPolygonOffset(0.0f, 0.0f);
     glDisable(GL_POLYGON_OFFSET_FILL);
     glDisable(GL_CULL_FACE);
@@ -2231,7 +2247,7 @@ void binocle_backend_gl_begin_pass(binocle_gl_backend_t *gl, binocle_pass_t* pas
 //    assert(pass);
 //    for (int i = 0; i < num_color_atts; i++) {
 //      if (action->colors[i].action == BINOCLE_ACTION_CLEAR) {
-//        glClearBufferfv(GL_COLOR, i, &action->colors[i].value.r);
+//        glCheck(glClearBufferfv(GL_COLOR, i, &action->colors[i].value.r));
 //      }
 //    }
 //    if (pass->gl.ds_att.image) {

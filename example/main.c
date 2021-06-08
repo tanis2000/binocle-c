@@ -543,14 +543,14 @@ int main(int argc, char *argv[])
 #ifdef BINOCLE_GL
     .vs.source = shader_vs_src,
 #else
+    .vs.byte_code = default_vs_bytecode,
+    .vs.byte_code_size = sizeof(default_vs_bytecode),
+#endif
     .attrs = {
       [0].name = "vertexPosition",
       [1].name = "vertexColor",
       [2].name = "vertexTCoord",
     },
-    .vs.byte_code = default_vs_bytecode,
-    .vs.byte_code_size = sizeof(default_vs_bytecode),
-#endif
     .vs.uniform_blocks[0] = {
       .size = sizeof(default_shader_params_t),
       .uniforms = {
@@ -798,6 +798,7 @@ int main(int argc, char *argv[])
     },
     .shader = screen_shader,
     .index_type = BINOCLE_INDEXTYPE_UINT16,
+#if !defined(BINOCLE_GL)
     .depth = {
       .pixel_format = BINOCLE_PIXELFORMAT_NONE,
       .compare = BINOCLE_COMPAREFUNC_NEVER,
@@ -806,6 +807,7 @@ int main(int argc, char *argv[])
     .stencil = {
       .enabled = false,
     },
+#endif
     .colors = {
 #ifdef BINOCLE_GL
       [0] = { .pixel_format = BINOCLE_PIXELFORMAT_RGBA8 }
