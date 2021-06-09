@@ -527,6 +527,14 @@ void binocle_backend_reset_slot(binocle_slot_t* slot) {
   memset(slot, 0, sizeof(binocle_slot_t));
 }
 
+void binocle_backend_reset_buffer(binocle_buffer_t* buf) {
+  assert(buf);
+  binocle_slot_t slot = buf->slot;
+  memset(buf, 0, sizeof(binocle_buffer_t));
+  buf->slot = slot;
+  buf->slot.state = BINOCLE_RESOURCESTATE_ALLOC;
+}
+
 void binocle_backend_reset_image(binocle_image_t* img) {
   assert(img);
   binocle_slot_t slot = img->slot;
@@ -639,6 +647,25 @@ binocle_buffer binocle_backend_make_buffer(const binocle_buffer_desc* desc) {
   }
 //  BINOCLE_TRACE_ARGS(make_buffer, &desc_def, buf_id);
   return buf_id;
+}
+
+void binocle_backend_destroy_buffer_t(binocle_buffer_t* buf) {
+#if defined(BINOCLE_GL)
+  binocle_backend_gl_destroy_buffer(&backend.gl, buf);
+#elif defined(BINOCLE_METAL)
+  binocle_backend_mtl_destroy_buffer(&backend.mtl, buf);
+#else
+#error("no backend defined")
+#endif
+}
+
+void binocle_backend_destroy_buffer(binocle_buffer buf) {
+  binocle_buffer_t* buffer = binocle_backend_lookup_buffer(&backend.pools, buf.id);
+  if (buffer) {
+    binocle_backend_destroy_buffer_t(buffer);
+    binocle_backend_reset_buffer(buffer);
+    binocle_pool_free_index(&backend.pools.buffer_pool, binocle_pool_slot_index(buf.id));
+  }
 }
 
 

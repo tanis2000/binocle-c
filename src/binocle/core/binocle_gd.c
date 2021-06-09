@@ -19,7 +19,23 @@
 
 binocle_gd binocle_gd_new() {
   binocle_gd res = {};
+  res.vertices = malloc(sizeof(binocle_vpct) * BINOCLE_GD_MAX_VERTICES);
+  res.commands = malloc(sizeof(binocle_gd_command_t) * BINOCLE_GD_MAX_COMMANDS);
   return res;
+}
+
+void binocle_gd_destroy(binocle_gd *gd) {
+  if (gd->vertices != NULL) {
+    free(gd->vertices);
+    gd->vertices = NULL;
+  }
+
+  if (gd->commands != NULL) {
+    free(gd->commands);
+    gd->commands = NULL;
+  }
+
+  // TODO: deinitialize the pipeline, pass and backend
 }
 
 void binocle_gd_init(binocle_gd *gd, binocle_window *win) {
@@ -110,7 +126,7 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
   binocle_buffer_desc vbuf_desc = {
     .type = BINOCLE_BUFFERTYPE_VERTEXBUFFER,
     .usage = BINOCLE_USAGE_STREAM,
-    .size = sizeof(binocle_vpct) * 6,
+    .size = sizeof(binocle_vpct) * BINOCLE_GD_MAX_VERTICES,
   };
   gd->offscreen.vbuf = binocle_backend_make_buffer(&vbuf_desc);
 
@@ -134,44 +150,65 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
 
 void binocle_gd_draw(binocle_gd *gd, const struct binocle_vpct *vertices, size_t vertex_count, binocle_material material,
                      kmAABB2 viewport, binocle_camera *camera) {
+  binocle_gd_command_t *cmd = &gd->commands[gd->num_commands];
+  cmd->num_vertices = vertex_count;
+  cmd->base_vertex = gd->num_vertices;
+  cmd->img = material.albedo_texture;
 
   kmMat4 *cameraTransformMatrix = NULL;
   if (camera != NULL) {
     cameraTransformMatrix = binocle_camera_get_transform_matrix(camera);
   }
 
-  typedef struct default_vs_params_t {
-    kmMat4 projectionMatrix;
-    kmMat4 viewMatrix;
-    kmMat4 modelMatrix;
-  } default_vs_params_t;
-
-  default_vs_params_t default_vs_params;
-
-  default_vs_params.projectionMatrix = binocle_math_create_orthographic_matrix_off_center(viewport.min.x, viewport.max.x,
-                                                                               viewport.min.y, viewport.max.y, -1000.0f,
-                                                                               1000.0f);
-  kmMat4Identity(&default_vs_params.viewMatrix);
+  cmd->uniforms.projectionMatrix = binocle_math_create_orthographic_matrix_off_center(viewport.min.x, viewport.max.x,
+                                                                                          viewport.min.y, viewport.max.y, -1000.0f,
+                                                                                          1000.0f);
+  kmMat4Identity(&cmd->uniforms.viewMatrix);
 
   if (cameraTransformMatrix != NULL) {
-    kmMat4Multiply(&default_vs_params.viewMatrix, &default_vs_params.viewMatrix, cameraTransformMatrix);
+    kmMat4Multiply(&cmd->uniforms.viewMatrix, &cmd->uniforms.viewMatrix, cameraTransformMatrix);
   }
 
-  kmMat4Identity(&default_vs_params.modelMatrix);
+  kmMat4Identity(&cmd->uniforms.modelMatrix);
 
-  binocle_backend_update_buffer(gd->offscreen.vbuf, &(binocle_range){ .ptr=vertices, .size=vertex_count * sizeof(binocle_vpct) });
+  gd->num_commands++;
 
-  gd->offscreen.bind.fs_images[0] = material.albedo_texture;
-  gd->offscreen.bind.vertex_buffers[0] = gd->offscreen.vbuf;
-
-  binocle_backend_begin_pass(gd->offscreen.pass, &gd->offscreen.action);
-  binocle_backend_apply_pipeline(gd->offscreen.pip);
-  binocle_backend_apply_bindings(&gd->offscreen.bind);
-  binocle_backend_apply_uniforms(BINOCLE_SHADERSTAGE_VS, 0, &BINOCLE_RANGE(default_vs_params));
-  binocle_backend_draw(0, 6, 1);
-  binocle_backend_end_pass();
+  for (uint32_t i = 0 ; i < vertex_count ; i++) {
+    binocle_vpct *v = &gd->vertices[gd->num_vertices];
+    v->pos.x = vertices[i].pos.x;
+    v->pos.y = vertices[i].pos.y;
+    v->color.r = vertices[i].color.r;
+    v->color.g = vertices[i].color.g;
+    v->color.b = vertices[i].color.b;
+    v->color.a = vertices[i].color.a;
+    v->tex.x = vertices[i].tex.x;
+    v->tex.y = vertices[i].tex.y;
+    gd->num_vertices++;
+  }
 
 //  LEGACY_binocle_backend_draw(vertices, vertex_count, material, viewport, cameraTransformMatrix);
+}
+
+void binocle_gd_render(binocle_gd *gd) {
+  binocle_backend_update_buffer(gd->offscreen.vbuf, &(binocle_range){ .ptr=gd->vertices, .size=gd->num_vertices * sizeof(binocle_vpct) });
+
+  binocle_backend_begin_pass(gd->offscreen.pass, &gd->offscreen.action);
+
+  for (uint32_t i = 0 ; i < gd->num_commands ; i++) {
+    binocle_gd_command_t *cmd = &gd->commands[i];
+
+    gd->offscreen.bind.fs_images[0] = cmd->img;
+    gd->offscreen.bind.vertex_buffers[0] = gd->offscreen.vbuf;
+
+    binocle_backend_apply_pipeline(gd->offscreen.pip);
+    binocle_backend_apply_bindings(&gd->offscreen.bind);
+    binocle_backend_apply_uniforms(BINOCLE_SHADERSTAGE_VS, 0, &BINOCLE_RANGE(cmd->uniforms));
+    binocle_backend_draw(cmd->base_vertex, cmd->num_vertices, 1);
+
+  }
+  binocle_backend_end_pass();
+  gd->num_commands = 0;
+  gd->num_vertices = 0;
 }
 
 kmMat4 binocle_gd_create_model_view_matrix(float x, float y, float scale, float rotation) {

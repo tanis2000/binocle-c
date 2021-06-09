@@ -2789,3 +2789,17 @@ void binocle_backend_gl_update_buffer(binocle_gl_backend_t *gl, binocle_buffer_t
   binocle_backend_gl_cache_restore_buffer_binding(gl, gl_tgt);
   assert(glGetError() == GL_NO_ERROR);
 }
+
+void binocle_backend_gl_destroy_buffer(binocle_gl_backend_t *gl, binocle_buffer_t* buf) {
+  assert(buf);
+  assert(glGetError() == GL_NO_ERROR);
+  for (int slot = 0; slot < buf->cmn.num_slots; slot++) {
+    if (buf->gl.buf[slot]) {
+      binocle_backend_gl_cache_invalidate_buffer(gl, buf->gl.buf[slot]);
+      if (!buf->gl.ext_buffers) {
+        glDeleteBuffers(1, &buf->gl.buf[slot]);
+      }
+    }
+  }
+  assert(glGetError() == GL_NO_ERROR);
+}

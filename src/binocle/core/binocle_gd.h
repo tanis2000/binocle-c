@@ -17,6 +17,9 @@
 //#include "backend/binocle_backend_metal.h"
 //#endif
 
+#define BINOCLE_GD_MAX_VERTICES (16535 * 6)
+#define BINOCLE_GD_MAX_COMMANDS (16535)
+
 struct binocle_blend;
 struct binocle_camera;
 struct binocle_color;
@@ -42,11 +45,28 @@ typedef struct binocle_gd_gfx_t {
   binocle_buffer ibuf;
 } binocle_gd_gfx_t;
 
+typedef struct binocle_gd_uniform_t {
+  kmMat4 projectionMatrix;
+  kmMat4 viewMatrix;
+  kmMat4 modelMatrix;
+} binocle_gd_uniform_t;
+
+typedef struct binocle_gd_command_t {
+  binocle_image img;
+  uint32_t base_vertex;
+  uint32_t num_vertices;
+  binocle_gd_uniform_t uniforms;
+} binocle_gd_command_t;
+
 /**
  * \brief a graphic device used to perform OpenGL calls and store the needed state
  */
 typedef struct binocle_gd {
   binocle_gd_gfx_t offscreen;
+  binocle_vpct *vertices;
+  uint32_t num_vertices;
+  binocle_gd_command_t *commands;
+  uint32_t num_commands;
 } binocle_gd;
 
 /**
@@ -54,6 +74,8 @@ typedef struct binocle_gd {
  * @return the instance of the graphic device
  */
 binocle_gd binocle_gd_new();
+
+void binocle_gd_destroy(binocle_gd *gd);
 
 /**
  * Initializes a graphic device
@@ -63,6 +85,8 @@ binocle_gd binocle_gd_new();
 void binocle_gd_init(binocle_gd *gd, struct binocle_window *win);
 
 void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width, uint32_t offscreen_height, binocle_shader shader);
+
+void binocle_gd_render(binocle_gd *gd);
 
 /**
  * Creates a 2D model view matrix
