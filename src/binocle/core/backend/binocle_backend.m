@@ -2373,3 +2373,47 @@ void binocle_backend_buffer_common_init(binocle_buffer_common_t* cmn, const bino
   cmn->num_slots = (cmn->usage == BINOCLE_USAGE_IMMUTABLE) ? 1 : BINOCLE_NUM_INFLIGHT_FRAMES;
   cmn->active_slot = 0;
 }
+
+static inline void _binocle_backend_update_buffer(binocle_buffer_t* buf, const binocle_range* data) {
+#if defined(BINOCLE_GL)
+  binocle_backend_gl_update_buffer(&backend, buf, data);
+#elif defined(BINOCLE_METAL)
+  binocle_backend_mtl_update_buffer(&buf, data);
+#else
+#error("INVALID BACKEND");
+#endif
+}
+
+bool binocle_backend_validate_update_buffer(const binocle_buffer_t* buf, const binocle_range* data) {
+#if !defined(BINOCLE_DEBUG)
+  (void)(buf);
+  (void)(data);
+  return true;
+#else
+  SOKOL_ASSERT(buf && data && data->ptr);
+        SOKOL_VALIDATE_BEGIN();
+        SOKOL_VALIDATE(buf->cmn.usage != SG_USAGE_IMMUTABLE, _SG_VALIDATE_UPDATEBUF_USAGE);
+        SOKOL_VALIDATE(buf->cmn.size >= (int)data->size, _SG_VALIDATE_UPDATEBUF_SIZE);
+        SOKOL_VALIDATE(buf->cmn.update_frame_index != _sg.frame_index, _SG_VALIDATE_UPDATEBUF_ONCE);
+        SOKOL_VALIDATE(buf->cmn.append_frame_index != _sg.frame_index, _SG_VALIDATE_UPDATEBUF_APPEND);
+        return SOKOL_VALIDATE_END();
+#endif
+}
+
+void binocle_backend_update_buffer(binocle_buffer buf_id, const binocle_range* data) {
+  assert(backend.valid);
+  assert(data && data->ptr && (data->size > 0));
+  binocle_buffer_t* buf = binocle_backend_lookup_buffer(&backend.pools, buf_id.id);
+  if ((data->size > 0) && buf && (buf->slot.state == BINOCLE_RESOURCESTATE_VALID)) {
+    if (binocle_backend_validate_update_buffer(buf, data)) {
+      assert(data->size <= (size_t)buf->cmn.size);
+      /* only one update allowed per buffer and frame */
+      assert(buf->cmn.update_frame_index != backend.frame_index);
+      /* update and append on same buffer in same frame not allowed */
+      assert(buf->cmn.append_frame_index != backend.frame_index);
+      _binocle_backend_update_buffer(buf, data);
+      buf->cmn.update_frame_index = backend.frame_index;
+    }
+  }
+//  _SG_TRACE_ARGS(update_buffer, buf_id, data);
+}

@@ -315,5 +315,6 @@ void binocle_backend_gl_draw(binocle_gl_backend_t *gl, int base_element, int num
 void binocle_backend_gl_commit(binocle_gl_backend_t *gl);
 void binocle_backend_gl_setup_backend(binocle_gl_backend_t *gl, const binocle_backend_desc* desc);
 binocle_resource_state binocle_backend_gl_create_buffer(binocle_gl_backend_t *gl, binocle_buffer_t* buf, const binocle_buffer_desc* desc);
+void binocle_backend_gl_update_buffer(binocle_gl_backend_t *gl, binocle_buffer_t* buf, const binocle_range* data);
 
 #endif // BINOCLE_BACKEND_GL_H

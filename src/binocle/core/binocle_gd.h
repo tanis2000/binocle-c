@@ -32,19 +32,21 @@ struct binocle_window;
 enum binocle_blend_factor;
 enum binocle_blend_equation;
 
+typedef struct binocle_gd_gfx_t {
+  binocle_pass pass;
+  binocle_pipeline pip;
+  binocle_bindings bind;
+  binocle_pass_action action;
+  binocle_image render_target;
+  binocle_buffer vbuf;
+  binocle_buffer ibuf;
+} binocle_gd_gfx_t;
+
 /**
  * \brief a graphic device used to perform OpenGL calls and store the needed state
  */
 typedef struct binocle_gd {
-//  GLuint vbo;
-//  GLuint vertex_attribute;
-//  GLuint color_attribute;
-//  GLuint tex_coord_attribute;
-//  GLuint normal_attribute;
-//  GLint image_uniform;
-//  GLint projection_matrix_uniform;
-//  GLint view_matrix_uniform;
-//  GLint model_matrix_uniform;
+  binocle_gd_gfx_t offscreen;
 } binocle_gd;
 
 /**
@@ -59,6 +61,8 @@ binocle_gd binocle_gd_new();
  * @param wind the pointer to the window
  */
 void binocle_gd_init(binocle_gd *gd, struct binocle_window *win);
+
+void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width, uint32_t offscreen_height, binocle_shader shader);
 
 /**
  * Creates a 2D model view matrix

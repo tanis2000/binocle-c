@@ -34,6 +34,104 @@ void binocle_gd_init(binocle_gd *gd, binocle_window *win) {
   binocle_backend_setup(&desc);
 }
 
+void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width, uint32_t offscreen_height, binocle_shader shader) {
+  // Create the render target image
+  binocle_image_desc rt_desc = {
+      .render_target = true,
+      .width = offscreen_width,
+      .height = offscreen_height,
+      .min_filter = BINOCLE_FILTER_LINEAR,
+      .mag_filter = BINOCLE_FILTER_LINEAR,
+#ifdef BINOCLE_GL
+      .pixel_format = BINOCLE_PIXELFORMAT_RGBA8,
+#else
+      .pixel_format = BINOCLE_PIXELFORMAT_BGRA8,
+#endif
+      .sample_count = 1,
+  };
+  gd->offscreen.render_target = binocle_backend_make_image(&rt_desc);
+
+  // Clear screen action for the offscreen render target
+  binocle_color off_clear_color = binocle_color_azure();
+  binocle_pass_action offscreen_action = {
+      .colors[0] = {
+          .action = BINOCLE_ACTION_CLEAR,
+          .value = {
+              .r = off_clear_color.r,
+              .g = off_clear_color.g,
+              .b = off_clear_color.b,
+              .a = off_clear_color.a,
+          }
+      }
+  };
+  gd->offscreen.action = offscreen_action;
+
+  // Render pass that renders to the offscreen render target
+  gd->offscreen.pass = binocle_backend_make_pass(&(binocle_pass_desc){
+      .color_attachments[0].image = gd->offscreen.render_target,
+  });
+
+  // Pipeline state object for the offscreen rendered sprite
+  gd->offscreen.pip = binocle_backend_make_pipeline(&(binocle_pipeline_desc) {
+      .layout = {
+          .attrs = {
+              [0] = { .format = BINOCLE_VERTEXFORMAT_FLOAT2 }, // position
+              [1] = { .format = BINOCLE_VERTEXFORMAT_FLOAT4 }, // color
+              [2] = { .format = BINOCLE_VERTEXFORMAT_FLOAT2 }, // texture uv
+          },
+      },
+      .shader = shader,
+//      .index_type = BINOCLE_INDEXTYPE_UINT16,
+      .index_type = BINOCLE_INDEXTYPE_NONE,
+      .depth = {
+          .pixel_format = BINOCLE_PIXELFORMAT_NONE,
+          .compare = BINOCLE_COMPAREFUNC_NEVER,
+          .write_enabled = false,
+      },
+      .stencil = {
+          .enabled = false,
+      },
+      .colors = {
+        [0] = {
+#ifdef BINOCLE_GL
+            .pixel_format = BINOCLE_PIXELFORMAT_RGBA8,
+#else
+            .pixel_format = BINOCLE_PIXELFORMAT_BGRA8,
+#endif
+          .blend = {
+          .enabled = true,
+          .src_factor_rgb = BINOCLE_BLENDFACTOR_SRC_ALPHA,
+          .dst_factor_rgb = BINOCLE_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+        }
+        }
+      }
+  });
+
+  binocle_buffer_desc vbuf_desc = {
+    .type = BINOCLE_BUFFERTYPE_VERTEXBUFFER,
+    .usage = BINOCLE_USAGE_STREAM,
+    .size = sizeof(binocle_vpct) * 6,
+  };
+  gd->offscreen.vbuf = binocle_backend_make_buffer(&vbuf_desc);
+
+  binocle_buffer_desc ibuf_desc = {
+    .type = BINOCLE_BUFFERTYPE_INDEXBUFFER,
+    .usage = BINOCLE_USAGE_STREAM,
+  };
+  gd->offscreen.ibuf = binocle_backend_make_buffer(&ibuf_desc);
+
+  gd->offscreen.bind = (binocle_bindings){
+      .vertex_buffers = {
+          [0] = gd->offscreen.vbuf,
+      },
+//      .index_buffer = gd->offscreen.ibuf,
+      .fs_images = {
+//          [0] = wabbit_image,
+      }
+  };
+
+}
+
 void binocle_gd_draw(binocle_gd *gd, const struct binocle_vpct *vertices, size_t vertex_count, binocle_material material,
                      kmAABB2 viewport, binocle_camera *camera) {
 
@@ -42,7 +140,38 @@ void binocle_gd_draw(binocle_gd *gd, const struct binocle_vpct *vertices, size_t
     cameraTransformMatrix = binocle_camera_get_transform_matrix(camera);
   }
 
-  LEGACY_binocle_backend_draw(vertices, vertex_count, material, viewport, cameraTransformMatrix);
+  typedef struct default_vs_params_t {
+    kmMat4 projectionMatrix;
+    kmMat4 viewMatrix;
+    kmMat4 modelMatrix;
+  } default_vs_params_t;
+
+  default_vs_params_t default_vs_params;
+
+  default_vs_params.projectionMatrix = binocle_math_create_orthographic_matrix_off_center(viewport.min.x, viewport.max.x,
+                                                                               viewport.min.y, viewport.max.y, -1000.0f,
+                                                                               1000.0f);
+  kmMat4Identity(&default_vs_params.viewMatrix);
+
+  if (cameraTransformMatrix != NULL) {
+    kmMat4Multiply(&default_vs_params.viewMatrix, &default_vs_params.viewMatrix, cameraTransformMatrix);
+  }
+
+  kmMat4Identity(&default_vs_params.modelMatrix);
+
+  binocle_backend_update_buffer(gd->offscreen.vbuf, &(binocle_range){ .ptr=vertices, .size=vertex_count * sizeof(binocle_vpct) });
+
+  gd->offscreen.bind.fs_images[0] = material.albedo_texture;
+  gd->offscreen.bind.vertex_buffers[0] = gd->offscreen.vbuf;
+
+  binocle_backend_begin_pass(gd->offscreen.pass, &gd->offscreen.action);
+  binocle_backend_apply_pipeline(gd->offscreen.pip);
+  binocle_backend_apply_bindings(&gd->offscreen.bind);
+  binocle_backend_apply_uniforms(BINOCLE_SHADERSTAGE_VS, 0, &BINOCLE_RANGE(default_vs_params));
+  binocle_backend_draw(0, 6, 1);
+  binocle_backend_end_pass();
+
+//  LEGACY_binocle_backend_draw(vertices, vertex_count, material, viewport, cameraTransformMatrix);
 }
 
 kmMat4 binocle_gd_create_model_view_matrix(float x, float y, float scale, float rotation) {

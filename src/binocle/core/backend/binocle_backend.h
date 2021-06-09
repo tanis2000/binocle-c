@@ -90,5 +90,5 @@ void binocle_backend_begin_default_pass(const binocle_pass_action* pass_action, 
 void binocle_backend_commit(void);
 void binocle_backend_buffer_common_init(binocle_buffer_common_t* cmn, const binocle_buffer_desc* desc);
 binocle_buffer binocle_backend_make_buffer(const binocle_buffer_desc* desc);
-
+void binocle_backend_update_buffer(binocle_buffer buf_id, const binocle_range* data);
 #endif // BINOCLE_BACKEND_H

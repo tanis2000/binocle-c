@@ -1175,18 +1175,19 @@ void binocle_backend_gl_cache_clear_buffer_bindings(binocle_gl_backend_t *gl, bo
 }
 
 void binocle_backend_gl_cache_bind_buffer(binocle_gl_backend_t *gl, GLenum target, GLuint buffer) {
+// TODO: (Valerio) find out why if we assume the buffers have not been bound by something else it breaks
   assert((GL_ARRAY_BUFFER == target) || (GL_ELEMENT_ARRAY_BUFFER == target));
   if (target == GL_ARRAY_BUFFER) {
-    if (gl->cache.vertex_buffer != buffer) {
+//    if (gl->cache.vertex_buffer != buffer) {
       gl->cache.vertex_buffer = buffer;
       glBindBuffer(target, buffer);
-    }
+//    }
   }
   else {
-    if (gl->cache.index_buffer != buffer) {
+//    if (gl->cache.index_buffer != buffer) {
       gl->cache.index_buffer = buffer;
       glBindBuffer(target, buffer);
-    }
+//    }
   }
 }
 
@@ -2737,32 +2738,54 @@ void binocle_backend_gl_commit(binocle_gl_backend_t *gl) {
   binocle_backend_gl_cache_clear_texture_bindings(gl, false);
 }
 
-binocle_resource_state binocle_backend_gl_create_buffer(binocle_gl_backend_t *gl, binocle_buffer_t* buf, const binocle_buffer_desc* desc) {
-assert(buf && desc);
+binocle_resource_state
+binocle_backend_gl_create_buffer(binocle_gl_backend_t *gl,
+                                 binocle_buffer_t *buf,
+                                 const binocle_buffer_desc *desc) {
+  assert(buf && desc);
   assert(glGetError() == GL_NO_ERROR);
-binocle_backend_buffer_common_init(&buf->cmn, desc);
-buf->gl.ext_buffers = (0 != desc->gl_buffers[0]);
-GLenum gl_target = binocle_backend_gl_buffer_target(buf->cmn.type);
-GLenum gl_usage  = binocle_backend_gl_usage(buf->cmn.usage);
-for (int slot = 0; slot < buf->cmn.num_slots; slot++) {
-GLuint gl_buf = 0;
-if (buf->gl.ext_buffers) {
-  assert(desc->gl_buffers[slot]);
-gl_buf = desc->gl_buffers[slot];
-}
-else {
-glGenBuffers(1, &gl_buf);
-  binocle_backend_gl_cache_store_buffer_binding(gl, gl_target);
-  binocle_backend_gl_cache_bind_buffer(gl, gl_target, gl_buf);
-glBufferData(gl_target, buf->cmn.size, 0, gl_usage);
-if (buf->cmn.usage == BINOCLE_USAGE_IMMUTABLE) {
-  assert(desc->data.ptr);
-glBufferSubData(gl_target, 0, buf->cmn.size, desc->data.ptr);
-}
-  binocle_backend_gl_cache_restore_buffer_binding(gl, gl_target);
-}
-buf->gl.buf[slot] = gl_buf;
-}
+  binocle_backend_buffer_common_init(&buf->cmn, desc);
+  buf->gl.ext_buffers = (0 != desc->gl_buffers[0]);
+  GLenum gl_target = binocle_backend_gl_buffer_target(buf->cmn.type);
+  GLenum gl_usage = binocle_backend_gl_usage(buf->cmn.usage);
+  for (int slot = 0; slot < buf->cmn.num_slots; slot++) {
+    GLuint gl_buf = 0;
+    if (buf->gl.ext_buffers) {
+      assert(desc->gl_buffers[slot]);
+      gl_buf = desc->gl_buffers[slot];
+    } else {
+      glGenBuffers(1, &gl_buf);
+      binocle_backend_gl_cache_store_buffer_binding(gl, gl_target);
+      binocle_backend_gl_cache_bind_buffer(gl, gl_target, gl_buf);
+      glBufferData(gl_target, buf->cmn.size, 0, gl_usage);
+      if (buf->cmn.usage == BINOCLE_USAGE_IMMUTABLE) {
+        assert(desc->data.ptr);
+        glBufferSubData(gl_target, 0, buf->cmn.size, desc->data.ptr);
+      }
+      binocle_backend_gl_cache_restore_buffer_binding(gl, gl_target);
+    }
+    buf->gl.buf[slot] = gl_buf;
+  }
   assert(glGetError() == GL_NO_ERROR);
-return BINOCLE_RESOURCESTATE_VALID;
+  return BINOCLE_RESOURCESTATE_VALID;
+}
+
+void binocle_backend_gl_update_buffer(binocle_gl_backend_t *gl, binocle_buffer_t* buf, const binocle_range* data) {
+  assert(buf && data && data->ptr && (data->size > 0));
+  /* only one update per buffer per frame allowed */
+  if (++buf->cmn.active_slot >= buf->cmn.num_slots) {
+    buf->cmn.active_slot = 0;
+  }
+  GLenum gl_tgt = binocle_backend_gl_buffer_target(buf->cmn.type);
+  assert(buf->cmn.active_slot < BINOCLE_NUM_INFLIGHT_FRAMES);
+  GLuint gl_buf = buf->gl.buf[buf->cmn.active_slot];
+  assert(gl_buf);
+  assert(glGetError() == GL_NO_ERROR);
+  binocle_backend_gl_cache_store_buffer_binding(gl, gl_tgt);
+  binocle_backend_gl_cache_bind_buffer(gl, gl_tgt, gl_buf);
+  assert(glGetError() == GL_NO_ERROR);
+  glBufferSubData(gl_tgt, 0, (GLsizeiptr)data->size, data->ptr);
+  assert(glGetError() == GL_NO_ERROR);
+  binocle_backend_gl_cache_restore_buffer_binding(gl, gl_tgt);
+  assert(glGetError() == GL_NO_ERROR);
 }
