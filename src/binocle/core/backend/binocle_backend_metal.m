@@ -778,6 +778,14 @@ binocle_backend_mtl_create_buffer(binocle_mtl_backend_t *mtl,
   return BINOCLE_RESOURCESTATE_VALID;
 }
 
+void binocle_backend_mtl_destroy_buffer(binocle_mtl_backend_t *mtl, binocle_buffer_t* buf) {
+  assert(buf);
+  for (int slot = 0; slot < buf->cmn.num_slots; slot++) {
+    /* it's valid to call release resource with '0' */
+    binocle_backend_mtl_release_resource(mtl, mtl->frame_index, buf->mtl.buf[slot]);
+  }
+}
+
 void binocle_backend_image_common_init(binocle_image_common_t* cmn, const binocle_image_desc* desc) {
   cmn->type = desc->type;
   cmn->render_target = desc->render_target;
@@ -1676,4 +1684,17 @@ void binocle_backend_mtl_draw(binocle_mtl_backend_t *mtl, int base_element, int 
                             vertexCount:(NSUInteger)num_elements
                           instanceCount:(NSUInteger)num_instances];
   }
+}
+
+void binocle_backend_mtl_update_buffer(binocle_mtl_backend_t *mtl, binocle_buffer_t* buf, const binocle_range* data) {
+    assert(buf && data && data->ptr && (data->size > 0));
+    if (++buf->cmn.active_slot >= buf->cmn.num_slots) {
+        buf->cmn.active_slot = 0;
+    }
+    __unsafe_unretained id<MTLBuffer> mtl_buf = binocle_backend_mtl_id(mtl, buf->mtl.buf[buf->cmn.active_slot]);
+    void* dst_ptr = [mtl_buf contents];
+    memcpy(dst_ptr, data->ptr, data->size);
+    #if defined(BINOCLE_MACOS)
+    [mtl_buf didModifyRange:NSMakeRange(0, data->size)];
+    #endif
 }

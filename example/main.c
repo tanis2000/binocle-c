@@ -231,6 +231,11 @@ void main_loop() {
   viewport.max.x = DESIGN_WIDTH;
   viewport.max.y = DESIGN_HEIGHT;
 
+  wren_update(dt);
+#ifdef WITH_PHYSICS
+  advance_simulation(dt);
+#endif
+
   kmVec2 scale;
   scale.x = 1.0f;
   scale.y = 1.0f;
@@ -299,79 +304,12 @@ void main_loop() {
 
   binocle_window_refresh(window);
   binocle_window_end_frame(window);
-
-
-
-
-
-
-
-
-#ifdef PIPPO
-  // Set the render target we will draw to
-  binocle_backend_set_render_target(render_target);
-
-  // Clear the render target
-  binocle_gd_clear(binocle_color_azure());
-
-  // Create a viewport that corresponds to the size of our render target
-  kmAABB2 viewport;
-  viewport.min.x = 0;
-  viewport.min.y = 0;
-  viewport.max.x = DESIGN_WIDTH;
-  viewport.max.y = DESIGN_HEIGHT;
-
-  wren_update(dt);
-#ifdef WITH_PHYSICS
-  advance_simulation(dt);
-#endif
-
-  kmVec2 scale;
-  scale.x = 1.0f;
-  scale.y = 1.0f;
-  binocle_sprite_draw(player, &gd, (uint64_t)player_pos.x, (uint64_t)player_pos.y, &viewport, 0, &scale, &camera);
-
-  kmMat4 view_matrix;
-  kmMat4Identity(&view_matrix);
-
-#ifdef WITH_PHYSICS
-  binocle_sprite_draw(ball_sprite, &gd, (uint64_t)pos.x, (uint64_t)pos.y, &viewport, 0, &scale, &camera);
-  char mouse_str[256];
-  sprintf(mouse_str, "x: %.0f y:%.0f %d", mouse_world_pos.x, mouse_world_pos.y, dragging_ball);
-  binocle_bitmapfont_draw_string(font, mouse_str, 32, &gd, 0, DESIGN_HEIGHT - 70, viewport, binocle_color_white(), view_matrix);
-#endif
-
-  char fps_str[256];
-  sprintf(fps_str, "FPS: %llu", binocle_window_get_fps(window));
-  binocle_bitmapfont_draw_string(font, fps_str, 32, &gd, 0, DESIGN_HEIGHT - 32, viewport, binocle_color_white(), view_matrix);
-  //binocle_sprite_draw(font_sprite, &gd, (uint64_t)font_sprite_pos.x, (uint64_t)font_sprite_pos.y, adapter.viewport);
-
-  // Gets the viewport calculated by the adapter
-  kmAABB2 vp = binocle_viewport_adapter_get_viewport(*adapter);
-  float vp_x = vp.min.x;
-  float vp_y = vp.min.y;
-  // Reset the render target to the screen
-  binocle_backend_unset_render_target();
-  // Clear the screen with an azure
-  binocle_gd_clear(binocle_color_green());
-  binocle_gd_apply_viewport(vp);
-  binocle_gd_apply_shader(&gd, screen_shader);
-  binocle_gd_set_uniform_float2(screen_shader, "resolution", DESIGN_WIDTH,
-                                DESIGN_HEIGHT);
-  binocle_gd_set_uniform_mat4(screen_shader, "transform", view_matrix);
-  binocle_gd_set_uniform_float2(screen_shader, "scale", adapter->inverse_multiplier, adapter->inverse_multiplier);
-  binocle_gd_set_uniform_float2(screen_shader, "viewport", vp_x, vp_y);
-  binocle_gd_draw_quad_to_screen(screen_shader, render_target);
-
-  binocle_window_refresh(window);
-  binocle_window_end_frame(window);
   //binocle_log_info("FPS: %d", binocle_window_get_fps(&window));
 
 #ifdef WITH_PHYSICS
   mouse_prev_pos = mouse_world_pos;
 #endif
 
-#endif
 }
 #endif
 

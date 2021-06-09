@@ -199,4 +199,6 @@ binocle_backend_mtl_create_buffer(binocle_mtl_backend_t *mtl,
 void binocle_backend_mtl_activate_context(binocle_mtl_backend_t *mtl, binocle_context_t* ctx);
 binocle_resource_state binocle_backend_mtl_create_context(binocle_context_t* ctx);
 void binocle_backend_mtl_destroy_context(binocle_context_t* ctx);
+void binocle_backend_mtl_destroy_buffer(binocle_mtl_backend_t *mtl, binocle_buffer_t* buf);
+void binocle_backend_mtl_update_buffer(binocle_mtl_backend_t *mtl, binocle_buffer_t* buf, const binocle_range* data);
 #endif // BINOCLE_BACKEND_METAL_H

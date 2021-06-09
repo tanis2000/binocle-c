@@ -2405,7 +2405,7 @@ static inline void _binocle_backend_update_buffer(binocle_buffer_t* buf, const b
 #if defined(BINOCLE_GL)
   binocle_backend_gl_update_buffer(&backend, buf, data);
 #elif defined(BINOCLE_METAL)
-  binocle_backend_mtl_update_buffer(&buf, data);
+  binocle_backend_mtl_update_buffer(&backend.mtl, buf, data);
 #else
 #error("INVALID BACKEND");
 #endif
