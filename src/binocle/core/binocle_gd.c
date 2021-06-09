@@ -579,57 +579,35 @@ void binocle_gd_draw_circle(binocle_gd *gd, kmVec2 center, float radius, binocle
 }
 
 void binocle_gd_draw_with_state(binocle_gd *gd, const binocle_vpct *vertices, size_t vertex_count, binocle_render_state *render_state) {
-//  binocle_backend_apply_default_state();
-//  binocle_gd_apply_viewport(render_state->viewport);
-//  binocle_gd_apply_blend_mode(render_state->blend_mode);
-//  binocle_gd_apply_shader(gd, render_state->shader);
-//  binocle_gd_apply_texture(*render_state->texture);
-//
-//  kmMat4 projectionMatrix = binocle_math_create_orthographic_matrix_off_center(render_state->viewport.min.x, render_state->viewport.max.x,
-//                                                                               render_state->viewport.min.y, render_state->viewport.max.y, -1000.0f,
-//                                                                               1000.0f);
-//  //kmMat4 modelViewMatrix = binocle_gd_create_model_view_matrix(0.0f, 0.0f, 1.0f, 0.0f);
-//  kmMat4 viewMatrix;
-//  kmMat4Identity(&viewMatrix);
-//  // TODO: apply the viewport_adapter scale_matrix here
-//  //kmMat4Scaling(&viewMatrix, 2.0f, 2.0f, 2.0f);
-//
-//  kmMat4 modelMatrix;
-//  kmMat4Identity(&modelMatrix);
-//
-//  glCheck(glEnableVertexAttribArray(gd->vertex_attribute));
-//  glCheck(glEnableVertexAttribArray(gd->color_attribute));
-//  glCheck(glEnableVertexAttribArray(gd->tex_coord_attribute));
-//
-//  glCheck(glBindBuffer(GL_ARRAY_BUFFER, gd->vbo));
-//  glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(binocle_vpct) * vertex_count, vertices, GL_STATIC_DRAW));
-//
-//  glCheck(glVertexAttribPointer(gd->vertex_attribute, 2, GL_FLOAT, GL_FALSE, sizeof(binocle_vpct), 0));
-//  glCheck(glVertexAttribPointer(gd->color_attribute, 4, GL_FLOAT, GL_FALSE, sizeof(binocle_vpct),
-//                                (void *) (2 * sizeof(GLfloat))));
-//  glCheck(glVertexAttribPointer(gd->tex_coord_attribute, 2, GL_FLOAT, GL_FALSE, sizeof(binocle_vpct),
-//                                (void *) (4 * sizeof(GLfloat) + 2 * sizeof(GLfloat))));
-//
-//  //kmMat4 finalMatrix = Matrix4::mul(state.transform,projectionMatrix);
-//  //kmMat4 inverseMatrix: Matrix4<f32> = Matrix4::from_nonuniform_scale(1.0, 1.0, 1.0);
-//
-//  glCheck(glUniformMatrix4fv(gd->projection_matrix_uniform, 1, GL_FALSE, projectionMatrix.mat));
-//  //glCheck(glUniformMatrix4fv(gd->model_view_matrix_uniform, 1, GL_FALSE, modelViewMatrix.mat));
-//  glCheck(glUniformMatrix4fv(gd->view_matrix_uniform, 1, GL_FALSE, viewMatrix.mat));
-//  glCheck(glUniformMatrix4fv(gd->model_matrix_uniform, 1, GL_FALSE, modelMatrix.mat));
-//
-//  glCheck(glUniform1i(gd->image_uniform, 0));
-//
-//  glCheck(glDrawArrays(GL_TRIANGLES, 0, vertex_count));
-//
-//  glCheck(glDisableVertexAttribArray(gd->vertex_attribute));
-//  glCheck(glDisableVertexAttribArray(gd->color_attribute));
-//  glCheck(glDisableVertexAttribArray(gd->tex_coord_attribute));
-//  glCheck(glUseProgram(GL_ZERO));
-//
-//  glCheck(glBindTexture(GL_TEXTURE_2D, 0));
-//  glCheck(glBindBuffer(GL_ARRAY_BUFFER, 0));
+  binocle_gd_command_t *cmd = &gd->commands[gd->num_commands];
+  cmd->num_vertices = vertex_count;
+  cmd->base_vertex = gd->num_vertices;
+  cmd->img = *render_state->texture;
 
+  kmMat4 cameraTransformMatrix = render_state->transform;
+
+  cmd->uniforms.projectionMatrix = binocle_math_create_orthographic_matrix_off_center(render_state->viewport.min.x, render_state->viewport.max.x,
+                                                                                      render_state->viewport.min.y, render_state->viewport.max.y, -1000.0f,
+                                                                                      1000.0f);
+  kmMat4Identity(&cmd->uniforms.viewMatrix);
+  kmMat4Multiply(&cmd->uniforms.viewMatrix, &cmd->uniforms.viewMatrix, &cameraTransformMatrix);
+
+  kmMat4Identity(&cmd->uniforms.modelMatrix);
+
+  gd->num_commands++;
+
+  for (uint32_t i = 0 ; i < vertex_count ; i++) {
+    binocle_vpct *v = &gd->vertices[gd->num_vertices];
+    v->pos.x = vertices[i].pos.x;
+    v->pos.y = vertices[i].pos.y;
+    v->color.r = vertices[i].color.r;
+    v->color.g = vertices[i].color.g;
+    v->color.b = vertices[i].color.b;
+    v->color.a = vertices[i].color.a;
+    v->tex.x = vertices[i].tex.x;
+    v->tex.y = vertices[i].tex.y;
+    gd->num_vertices++;
+  }
 }
 
 void binocle_gd_draw_mesh(binocle_gd *gd, const struct binocle_mesh *mesh, kmAABB2 viewport, struct binocle_camera_3d *camera) {
