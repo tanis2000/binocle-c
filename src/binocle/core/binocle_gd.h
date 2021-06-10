@@ -31,6 +31,7 @@ struct binocle_vpct;
 struct binocle_mesh;
 struct binocle_camera_3d;
 struct binocle_window;
+struct binocle_viewport_adapter;
 
 enum binocle_blend_factor;
 enum binocle_blend_equation;
@@ -63,6 +64,7 @@ typedef struct binocle_gd_command_t {
  */
 typedef struct binocle_gd {
   binocle_gd_gfx_t offscreen;
+  binocle_gd_gfx_t display;
   binocle_vpct *vertices;
   uint32_t num_vertices;
   binocle_gd_command_t *commands;
@@ -84,9 +86,9 @@ void binocle_gd_destroy(binocle_gd *gd);
  */
 void binocle_gd_init(binocle_gd *gd, struct binocle_window *win);
 
-void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width, uint32_t offscreen_height, binocle_shader shader);
+void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width, uint32_t offscreen_height, binocle_shader offscreen_shader, binocle_shader display_shader);
 
-void binocle_gd_render(binocle_gd *gd);
+void binocle_gd_render(binocle_gd *gd, struct binocle_window *window, float design_width, float design_height, kmAABB2 viewport);
 
 /**
  * Creates a 2D model view matrix

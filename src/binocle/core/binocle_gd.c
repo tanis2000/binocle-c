@@ -50,7 +50,7 @@ void binocle_gd_init(binocle_gd *gd, binocle_window *win) {
   binocle_backend_setup(&desc);
 }
 
-void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width, uint32_t offscreen_height, binocle_shader shader) {
+void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width, uint32_t offscreen_height, binocle_shader offscreen_shader, binocle_shader display_shader) {
   // Create the render target image
   binocle_image_desc rt_desc = {
       .render_target = true,
@@ -96,7 +96,7 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
               [2] = { .format = BINOCLE_VERTEXFORMAT_FLOAT2 }, // texture uv
           },
       },
-      .shader = shader,
+      .shader = offscreen_shader,
 //      .index_type = BINOCLE_INDEXTYPE_UINT16,
       .index_type = BINOCLE_INDEXTYPE_NONE,
       .depth = {
@@ -146,6 +146,84 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
       }
   };
 
+
+  // Render to screen pipeline
+
+  // Clear screen action for the actual screen
+  binocle_color clear_color = binocle_color_green();
+  binocle_pass_action default_action = {
+    .colors[0] = {
+      .action = BINOCLE_ACTION_CLEAR,
+      .value = {
+        .r = clear_color.r,
+        .g = clear_color.g,
+        .b = clear_color.b,
+        .a = clear_color.a,
+      }
+    }
+  };
+  gd->display.action = default_action;
+
+  // Pipeline state object for the screen (default) pass
+  gd->display.pip = binocle_backend_make_pipeline(&(binocle_pipeline_desc){
+    .layout = {
+      .attrs = {
+        [0] = { .format = BINOCLE_VERTEXFORMAT_FLOAT3 }, // position
+        [1] = { .format = BINOCLE_VERTEXFORMAT_FLOAT4 }, // color
+        [2] = { .format = BINOCLE_VERTEXFORMAT_FLOAT2 }, // texture uv
+      }
+    },
+    .shader = display_shader,
+    .index_type = BINOCLE_INDEXTYPE_UINT16,
+#if !defined(BINOCLE_GL)
+    .depth = {
+      .pixel_format = BINOCLE_PIXELFORMAT_NONE,
+      .compare = BINOCLE_COMPAREFUNC_NEVER,
+      .write_enabled = false,
+    },
+    .stencil = {
+      .enabled = false,
+    },
+#endif
+    .colors = {
+#ifdef BINOCLE_GL
+      [0] = { .pixel_format = BINOCLE_PIXELFORMAT_RGBA8 }
+#else
+      [0] = { .pixel_format = BINOCLE_PIXELFORMAT_BGRA8 }
+#endif
+    }
+  });
+
+  float vertices[] = {
+    /* pos                  color                       uvs */
+    -1.0f, -1.0f, 0.0f,    1.0f, 1.0f, 1.0f, 1.0f,     0.0f, 0.0f,
+    1.0f, -1.0f, 0.0f,    1.0f, 1.0f, 1.0f, 1.0f,     1.0f, 0.0f,
+    1.0f,  1.0f, 0.0f,    1.0f, 1.0f, 1.0f, 1.0f,     1.0f, 1.0f,
+    -1.0f,  1.0f, 0.0f,    1.0f, 1.0f, 1.0f, 1.0f,     0.0f, 1.0f,
+  };
+  binocle_buffer_desc display_vbuf_desc = {
+    .data = BINOCLE_RANGE(vertices)
+  };
+  gd->display.vbuf = binocle_backend_make_buffer(&display_vbuf_desc);
+
+  uint16_t indices[] = {
+    0, 1, 2,  0, 2, 3,
+  };
+  binocle_buffer_desc display_ibuf_desc = {
+    .type = BINOCLE_BUFFERTYPE_INDEXBUFFER,
+    .data = BINOCLE_RANGE(indices)
+  };
+  gd->display.ibuf = binocle_backend_make_buffer(&display_ibuf_desc);
+
+  gd->display.bind = (binocle_bindings){
+    .vertex_buffers = {
+      [0] = gd->display.vbuf,
+    },
+    .index_buffer = gd->display.ibuf,
+    .fs_images = {
+      [0] = gd->offscreen.render_target,
+    }
+  };
 }
 
 void binocle_gd_draw(binocle_gd *gd, const struct binocle_vpct *vertices, size_t vertex_count, binocle_material material,
@@ -189,7 +267,7 @@ void binocle_gd_draw(binocle_gd *gd, const struct binocle_vpct *vertices, size_t
 //  LEGACY_binocle_backend_draw(vertices, vertex_count, material, viewport, cameraTransformMatrix);
 }
 
-void binocle_gd_render(binocle_gd *gd) {
+void binocle_gd_render(binocle_gd *gd, struct binocle_window *window, float design_width, float design_height, kmAABB2 viewport) {
   binocle_backend_update_buffer(gd->offscreen.vbuf, &(binocle_range){ .ptr=gd->vertices, .size=gd->num_vertices * sizeof(binocle_vpct) });
 
   binocle_backend_begin_pass(gd->offscreen.pass, &gd->offscreen.action);
@@ -209,6 +287,45 @@ void binocle_gd_render(binocle_gd *gd) {
   binocle_backend_end_pass();
   gd->num_commands = 0;
   gd->num_vertices = 0;
+
+
+  // Render the offscreen to the display
+
+  typedef struct screen_vs_params_t {
+    kmMat4 transform;
+  } screen_vs_params_t;
+
+  typedef struct screen_fs_params_t {
+    float resolution[2];
+    float scale[2];
+    float viewport[2];
+  } screen_fs_params_t;
+
+  screen_vs_params_t screen_vs_params;
+  screen_fs_params_t screen_fs_params;
+
+  kmMat4Identity(&screen_vs_params.transform);
+
+  screen_fs_params.resolution[0] = design_width;
+  screen_fs_params.resolution[1] = design_height;
+  screen_fs_params.scale[0] = 1;
+  screen_fs_params.scale[1] = 1;
+  screen_fs_params.viewport[0] = viewport.min.x;
+  screen_fs_params.viewport[1] = viewport.min.y;
+
+
+  gd->display.bind.fs_images[0] = gd->offscreen.render_target;
+
+  binocle_backend_begin_default_pass(&gd->display.action, window->width, window->height);
+  binocle_backend_apply_pipeline(gd->display.pip);
+  binocle_backend_apply_bindings(&gd->display.bind);
+  binocle_backend_apply_uniforms(BINOCLE_SHADERSTAGE_VS, 0, &BINOCLE_RANGE(screen_vs_params));
+  binocle_backend_apply_uniforms(BINOCLE_SHADERSTAGE_FS, 0, &BINOCLE_RANGE(screen_fs_params));
+  binocle_backend_draw(0, 6, 1);
+  binocle_backend_end_pass();
+
+  binocle_backend_commit();
+
 }
 
 kmMat4 binocle_gd_create_model_view_matrix(float x, float y, float scale, float rotation) {
