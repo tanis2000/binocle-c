@@ -2411,6 +2411,16 @@ static inline void _binocle_backend_update_buffer(binocle_buffer_t* buf, const b
 #endif
 }
 
+static inline int _binocle_backend_append_buffer(binocle_buffer_t* buf, const binocle_range* data, bool new_frame) {
+#if defined(BINOCLE_GL)
+  binocle_backend_gl_append_buffer(&backend, buf, data, new_frame);
+#elif defined(BINOCLE_METAL)
+  binocle_backend_mtl_append_buffer(&backend.mtl, buf, data, new_frame);
+#else
+#error("INVALID BACKEND");
+#endif
+}
+
 bool binocle_backend_validate_update_buffer(const binocle_buffer_t* buf, const binocle_range* data) {
 #if !defined(BINOCLE_DEBUG)
   (void)(buf);
@@ -2426,6 +2436,22 @@ bool binocle_backend_validate_update_buffer(const binocle_buffer_t* buf, const b
         return SOKOL_VALIDATE_END();
 #endif
 }
+
+bool binocle_backend_validate_append_buffer(const binocle_buffer_t* buf, const binocle_range* data) {
+#if !defined(SOKOL_DEBUG)
+  (void)(buf);
+  (void)(data);
+  return true;
+#else
+  assert(buf && data && data->ptr);
+        SOKOL_VALIDATE_BEGIN();
+        SOKOL_VALIDATE(buf->cmn.usage != SG_USAGE_IMMUTABLE, _SG_VALIDATE_APPENDBUF_USAGE);
+        SOKOL_VALIDATE(buf->cmn.size >= (buf->cmn.append_pos + (int)data->size), _SG_VALIDATE_APPENDBUF_SIZE);
+        SOKOL_VALIDATE(buf->cmn.update_frame_index != _sg.frame_index, _SG_VALIDATE_APPENDBUF_UPDATE);
+        return SOKOL_VALIDATE_END();
+#endif
+}
+
 
 void binocle_backend_update_buffer(binocle_buffer buf_id, const binocle_range* data) {
   assert(backend.valid);
@@ -2443,4 +2469,40 @@ void binocle_backend_update_buffer(binocle_buffer buf_id, const binocle_range* d
     }
   }
 //  _SG_TRACE_ARGS(update_buffer, buf_id, data);
+}
+
+int binocle_backend_append_buffer(binocle_buffer buf_id, const binocle_range* data) {
+  assert(backend.valid);
+  assert(data && data->ptr);
+  binocle_buffer_t* buf = binocle_backend_lookup_buffer(&backend.pools, buf_id.id);
+  int result;
+  if (buf) {
+    /* rewind append cursor in a new frame */
+    if (buf->cmn.append_frame_index != backend.frame_index) {
+      buf->cmn.append_pos = 0;
+      buf->cmn.append_overflow = false;
+    }
+    if ((buf->cmn.append_pos + BINOCLE_ROUNDUP((int)data->size, 4)) > buf->cmn.size) {
+      buf->cmn.append_overflow = true;
+    }
+    const int start_pos = buf->cmn.append_pos;
+    if (buf->slot.state == BINOCLE_RESOURCESTATE_VALID) {
+      if (binocle_backend_validate_append_buffer(buf, data)) {
+        if (!buf->cmn.append_overflow && (data->size > 0)) {
+          /* update and append on same buffer in same frame not allowed */
+          assert(buf->cmn.update_frame_index != backend.frame_index);
+          int copied_num_bytes = _binocle_backend_append_buffer(buf, data, buf->cmn.append_frame_index != backend.frame_index);
+          buf->cmn.append_pos += copied_num_bytes;
+          buf->cmn.append_frame_index = backend.frame_index;
+        }
+      }
+    }
+    result = start_pos;
+  }
+  else {
+    /* FIXME: should we return -1 here? */
+    result = 0;
+  }
+//  _SG_TRACE_ARGS(append_buffer, buf_id, data, result);
+  return result;
 }

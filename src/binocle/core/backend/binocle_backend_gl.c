@@ -2790,6 +2790,27 @@ void binocle_backend_gl_update_buffer(binocle_gl_backend_t *gl, binocle_buffer_t
   assert(glGetError() == GL_NO_ERROR);
 }
 
+int binocle_backend_gl_append_buffer(binocle_gl_backend_t *gl, binocle_buffer_t* buf, const binocle_range* data, bool new_frame) {
+  assert(buf && data && data->ptr && (data->size > 0));
+  if (new_frame) {
+    if (++buf->cmn.active_slot >= buf->cmn.num_slots) {
+      buf->cmn.active_slot = 0;
+    }
+  }
+  GLenum gl_tgt = binocle_backend_gl_buffer_target(buf->cmn.type);
+  assert(buf->cmn.active_slot < BINOCLE_NUM_INFLIGHT_FRAMES);
+  GLuint gl_buf = buf->gl.buf[buf->cmn.active_slot];
+  assert(gl_buf);
+  assert(glGetError() == GL_NO_ERROR);
+  binocle_backend_gl_cache_store_buffer_binding(gl, gl_tgt);
+  binocle_backend_gl_cache_bind_buffer(gl, gl_tgt, gl_buf);
+  glBufferSubData(gl_tgt, buf->cmn.append_pos, (GLsizeiptr)data->size, data->ptr);
+  binocle_backend_gl_cache_restore_buffer_binding(gl, gl_tgt);
+  assert(glGetError() == GL_NO_ERROR);
+  /* NOTE: this is a requirement from WebGPU, but we want identical behaviour across all backend */
+  return BINOCLE_ROUNDUP((int)data->size, 4);
+}
+
 void binocle_backend_gl_destroy_buffer(binocle_gl_backend_t *gl, binocle_buffer_t* buf) {
   assert(buf);
   assert(glGetError() == GL_NO_ERROR);
