@@ -357,13 +357,6 @@ kmMat4 binocle_gd_create_model_view_matrix(float x, float y, float scale, float 
   return m;
 }
 
-void binocle_gd_apply_3d_gl_states() {
-//  glCheck(glEnable(GL_CULL_FACE));
-//  glCheck(glEnable(GL_DEPTH_TEST));
-//  glCheck(glEnable(GL_BLEND));
-//  glCheck(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-}
-
 void binocle_gd_apply_viewport(kmAABB2 viewport) {
   binocle_backend_apply_viewport(viewport.min.x, viewport.min.y, viewport.max.x, viewport.max.y);
 }

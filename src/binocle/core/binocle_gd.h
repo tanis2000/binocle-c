@@ -314,6 +314,5 @@ void binocle_gd_draw_with_state(binocle_gd *gd, const struct binocle_vpct *verti
 void binocle_gd_draw_mesh(binocle_gd *gd, const struct binocle_mesh *mesh, kmAABB2 viewport, struct binocle_camera_3d *camera);
 void binocle_gd_draw_test_triangle(struct binocle_shader *shader);
 void binocle_gd_draw_test_cube(struct binocle_shader *shader);
-void binocle_gd_apply_3d_gl_states();
 
 #endif // BINOCLE_GD_H
