@@ -60,7 +60,7 @@ file(GLOB CORE_SOURCE
         core/backend/binocle_texture.c
         core/backend/binocle_vpct.c
 
-        core/backend/binocle_backend.m
+        core/backend/binocle_backend.c
         )
 file(GLOB REMOVE_CORE_SOURCE
         "core/binocle.c"
@@ -78,7 +78,7 @@ set(METAL_SOURCE
         core/backend/binocle_backend_metal.m
         )
 
-set(CORE_SOURCE ${CORE_SOURCE} core/binocle_miniaudio.m)
+set(CORE_SOURCE ${CORE_SOURCE} core/binocle_miniaudio.c)
 
 if(BINOCLE_GL)
     set(CORE_SOURCE ${CORE_SOURCE} ${GL_SOURCE})

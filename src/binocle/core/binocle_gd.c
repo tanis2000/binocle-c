@@ -18,7 +18,7 @@
 #include "binocle_window.h"
 
 binocle_gd binocle_gd_new() {
-  binocle_gd res = {};
+  binocle_gd res = {0};
   res.vertices = malloc(sizeof(binocle_vpct) * BINOCLE_GD_MAX_VERTICES);
   res.commands = malloc(sizeof(binocle_gd_command_t) * BINOCLE_GD_MAX_COMMANDS);
   return res;
@@ -40,8 +40,7 @@ void binocle_gd_destroy(binocle_gd *gd) {
 
 void binocle_gd_init(binocle_gd *gd, binocle_window *win) {
 #if defined(BINOCLE_GL)
-  binocle_backend_desc desc = {
-  };
+  binocle_backend_desc desc = {0};
 #elif defined(BINOCLE_METAL)
   binocle_backend_desc desc = {
     .context.mtl = win->mtl_view
@@ -140,10 +139,6 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
       .vertex_buffers = {
           [0] = gd->offscreen.vbuf,
       },
-//      .index_buffer = gd->offscreen.ibuf,
-      .fs_images = {
-//          [0] = wabbit_image,
-      }
   };
 
 

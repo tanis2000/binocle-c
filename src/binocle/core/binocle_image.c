@@ -58,7 +58,8 @@ binocle_image binocle_image_load(const char *filename) {
     }
   };
   img = binocle_backend_make_image(&desc);
-  stbi_image_free(buffer);
+  stbi_image_free(data);
+//  free(buffer); // if this is commented out, we leak memory. But on Windows it crashes if you uncomment this line.
   return img;
 }
 

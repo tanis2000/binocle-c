@@ -103,9 +103,9 @@ file(GLOB_RECURSE SOURCES
 		src/video/yuv2rgb/yuv_rgb.c
         src/audio/disk/SDL_diskaudio.c
         src/loadso/dlopen/SDL_sysloadso.c
-		src/render/metal/SDL_render_metal.m
-		src/render/opengl/SDL_render_gl.c
-		src/render/opengl/SDL_shaders_gl.c
+#		src/render/metal/SDL_render_metal.m
+#		src/render/opengl/SDL_render_gl.c
+#		src/render/opengl/SDL_shaders_gl.c
         src/render/software/SDL_blendfillrect.c
         src/render/software/SDL_blendline.c
         src/render/software/SDL_blendpoint.c
@@ -128,18 +128,18 @@ file(GLOB_RECURSE HEADERS
 	include/*.h
 	)
 
-#if(BINOCLE_GL)
-#	file(GLOB_RECURSE GL_SOURCES
-#			src/render/opengl/SDL_render_gl.c
-#			src/render/opengl/SDL_shaders_gl.c
-#			)
-#	list(APPEND SOURCES ${GL_SOURCES})
-#elseif(BINOCLE_METAL)
-#	file(GLOB_RECURSE METAL_SOURCES
-#			src/render/metal/SDL_render_metal.m
-#			)
-#	list(APPEND SOURCES ${METAL_SOURCES})
-#endif(BINOCLE_METAL)
+if(BINOCLE_GL)
+	file(GLOB_RECURSE GL_SOURCES
+			src/render/opengl/SDL_render_gl.c
+			src/render/opengl/SDL_shaders_gl.c
+			)
+	list(APPEND SOURCES ${GL_SOURCES})
+elseif(BINOCLE_METAL)
+	file(GLOB_RECURSE METAL_SOURCES
+			src/render/metal/SDL_render_metal.m
+			)
+	list(APPEND SOURCES ${METAL_SOURCES})
+endif(BINOCLE_GL)
 
 if(APPLE)
 	if(IOS)
@@ -366,7 +366,7 @@ if(MSVC)
             src/render/direct3d11/SDL_shaders_d3d11.c
 
             #include/*.h
-            include/SDL_config_windows.h
+#            include/SDL_config_windows.h
 		)
 	list(APPEND SOURCES ${WIN32_SOURCES})
         add_definitions(-DHX_WINDOWS)
@@ -408,7 +408,9 @@ if (ANDROID)
 endif(ANDROID)
 
 #set_property(TARGET sdl PROPERTY C_STANDARD 11)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
+if (NOT MSVC)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
+endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 if (IOS)

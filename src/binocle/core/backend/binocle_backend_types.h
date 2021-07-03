@@ -8,7 +8,7 @@
 #define BINOCLE_BINOCLE_BACKEND_TYPES_H
 
 #include <stdbool.h>
-#import <stddef.h>
+#include <stddef.h>
 #include <stdint.h>
 #include "binocle_color.h"
 #include "binocle_blend.h"
@@ -661,6 +661,7 @@ typedef struct binocle_shader_common_t {
 } binocle_shader_common_t;
 
 typedef struct binocle_gl_context_desc {
+    void *dummy; // just to satisfy MSVC
 } binocle_gl_context_desc;
 
 typedef struct binocle_mtl_context_desc {
