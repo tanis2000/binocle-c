@@ -443,15 +443,16 @@ void binocle_gd_set_render_target(binocle_image render_target) {
   binocle_backend_set_render_target(render_target);
 }
 
-void binocle_gd_draw_quad(struct binocle_shader *shader) {
-//  static const GLfloat g_quad_vertex_buffer_data[] = {
-//      -1.0f, -1.0f,
-//      1.0f, -1.0f,
-//      -1.0f, 1.0f,
-//      -1.0f, 1.0f,
-//      1.0f, -1.0f,
-//      1.0f, 1.0f,
-//  };
+void binocle_gd_draw_quad(binocle_gd *gd, binocle_image image) {
+  static const GLfloat g_quad_vertex_buffer_data[] = {
+      -1.0f, -1.0f,
+      1.0f, -1.0f,
+      -1.0f, 1.0f,
+      -1.0f, 1.0f,
+      1.0f, -1.0f,
+      1.0f, 1.0f,
+  };
+
 //
 //  GLuint quad_vertexbuffer;
 //  glCheck(glGenBuffers(1, &quad_vertexbuffer));

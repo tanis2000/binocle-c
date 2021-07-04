@@ -218,7 +218,7 @@ void binocle_gd_set_render_target(binocle_image render_target);
  * \brief Draws a quad to the current buffer using the given shader
  * @param shader the shader
  */
-void binocle_gd_draw_quad(struct binocle_shader *shader);
+void binocle_gd_draw_quad(binocle_gd *gd, binocle_image image);
 
 /**
  * \brief Draws a quad to the screen buffer using the given shader and render target
