@@ -13,7 +13,6 @@
 #include "binocle_sdl_wrap.h"
 #include "binocle_image_wrap.h"
 #include "binocle_texture_wrap.h"
-#include "binocle_shader_wrap.h"
 #include "binocle_material_wrap.h"
 #include "binocle_sprite_wrap.h"
 #include "binocle_input_wrap.h"
@@ -49,7 +48,6 @@ bool binocle_lua_init(binocle_lua *lua) {
   luaopen_sdl(lua->L);
   luaopen_image(lua->L);
   luaopen_texture(lua->L);
-  luaopen_shader(lua->L);
   luaopen_material(lua->L);
   luaopen_sprite(lua->L);
   luaopen_sprite_batch(lua->L);
@@ -95,15 +93,13 @@ bool binocle_lua_run_script(binocle_lua *lua, char *filename) {
 }
 
 int binocle_lua_enumerate_callback(void *user_data, const char *path, const char *filename) {
-  char *search_path = NULL;
+  char search_path[4096];
   uint64_t mod_time;
   binocle_lua *lua = (binocle_lua *)user_data;
   if (!binocle_sdl_filename_ends_with(filename, ".lua")) {
     return 1;
   }
-  int needed = SDL_snprintf(NULL, 0, "%s/%s", path, filename);
-  search_path = malloc(needed);
-  sprintf(search_path, "%s/%s", path, filename);
+  int len = SDL_snprintf(search_path, SDL_arraysize(search_path), "%s/%s", path, filename);
   binocle_fs_get_last_modification_time(search_path, &mod_time);
   if (mod_time > lua->last_check_time) {
     binocle_lua_destroy(lua);
@@ -111,20 +107,15 @@ int binocle_lua_enumerate_callback(void *user_data, const char *path, const char
     if (lua->last_script_run != NULL){
       binocle_lua_run_script(lua, lua->last_script_run);
     }
-    free(search_path);
     return 1; // No more files please
   }
-  free(search_path);
   return 1; // 1 means get more files, 0 means no more files please
 }
 
 void binocle_lua_check_scripts_modification_time(binocle_lua *lua, char *path) {
-  char *search_path;
-  int needed = SDL_snprintf(NULL, 0, "%s/*.lua", path);
-  search_path = malloc(needed);
-  sprintf(search_path, "%s/*.lua", path);
+  char search_path[4096];
+  int len = SDL_snprintf(search_path, SDL_arraysize(search_path), "%s/*.lua", path);
   binocle_fs_enumerate(path, binocle_lua_enumerate_callback, lua);
-  free(search_path);
 }
 
 static void close_state(lua_State **L) { lua_close(*L); }

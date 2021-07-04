@@ -7,7 +7,6 @@
 #include "binocle_backend_gl.h"
 #include "binocle_blend.h"
 #include "../binocle_log.h"
-#include "binocle_texture.h"
 #include "binocle_material.h"
 #include "binocle_vpct.h"
 #include "binocle_backend.h"

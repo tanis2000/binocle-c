@@ -11,7 +11,6 @@
 #include "binocle_viewport_adapter.h"
 #include "binocle_render_state.h"
 #include "backend/binocle_backend.h"
-#include "backend/binocle_texture.h"
 #include "binocle_camera.h"
 #include "binocle_log.h"
 #include "binocle_model.h"

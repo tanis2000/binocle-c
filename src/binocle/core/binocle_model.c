@@ -11,7 +11,6 @@
 #include "binocle_sdl.h"
 #include "binocle_log.h"
 #include "backend/binocle_material.h"
-#include "backend/binocle_texture.h"
 #include "binocle_image.h"
 #include "backend/binocle_backend.h"
 #include "backend/binocle_vpct.h"

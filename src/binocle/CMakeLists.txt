@@ -48,16 +48,12 @@ file(GLOB CORE_SOURCE
         core/backend/binocle_color.h
         core/backend/binocle_material.h
         core/backend/binocle_sampler_cache.h
-        #core/backend/binocle_shader.h
-        core/backend/binocle_texture.h
         core/backend/binocle_vpct.h
 
         core/backend/binocle_blend.c
         core/backend/binocle_color.c
         core/backend/binocle_material.c
         core/backend/binocle_sampler_cache.c
-        #core/backend/binocle_shader.c
-        core/backend/binocle_texture.c
         core/backend/binocle_vpct.c
 
         core/backend/binocle_backend.c

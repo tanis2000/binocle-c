@@ -9,7 +9,6 @@
 
 #include "../binocle_pool.h"
 #include "binocle_backend_types.h"
-#include "binocle_texture.h"
 #include "binocle_vpct.h"
 
 #include <memory.h>
