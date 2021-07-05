@@ -261,7 +261,7 @@ void binocle_gd_draw(binocle_gd *gd, const struct binocle_vpct *vertices, size_t
 //  LEGACY_binocle_backend_draw(vertices, vertex_count, material, viewport, cameraTransformMatrix);
 }
 
-void binocle_gd_render(binocle_gd *gd, struct binocle_window *window, float design_width, float design_height, kmAABB2 viewport) {
+void binocle_gd_render_offscreen(binocle_gd *gd) {
   binocle_backend_update_buffer(gd->offscreen.vbuf, &(binocle_range){ .ptr=gd->vertices, .size=gd->num_vertices * sizeof(binocle_vpct) });
 
   binocle_backend_begin_pass(gd->offscreen.pass, &gd->offscreen.action);
@@ -281,8 +281,9 @@ void binocle_gd_render(binocle_gd *gd, struct binocle_window *window, float desi
   binocle_backend_end_pass();
   gd->num_commands = 0;
   gd->num_vertices = 0;
+}
 
-
+void binocle_gd_render_screen(binocle_gd *gd, struct binocle_window *window, float design_width, float design_height, kmAABB2 viewport) {
   // Render the offscreen to the display
 
   typedef struct screen_vs_params_t {
@@ -319,7 +320,11 @@ void binocle_gd_render(binocle_gd *gd, struct binocle_window *window, float desi
   binocle_backend_end_pass();
 
   binocle_backend_commit();
+}
 
+void binocle_gd_render(binocle_gd *gd, struct binocle_window *window, float design_width, float design_height, kmAABB2 viewport) {
+  binocle_gd_render_offscreen(gd);
+  binocle_gd_render_screen(gd, window, design_width, design_height, viewport);
 }
 
 kmMat4 binocle_gd_create_model_view_matrix(float x, float y, float scale, float rotation) {

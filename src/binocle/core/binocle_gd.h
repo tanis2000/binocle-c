@@ -88,6 +88,8 @@ void binocle_gd_init(binocle_gd *gd, struct binocle_window *win);
 
 void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width, uint32_t offscreen_height, binocle_shader offscreen_shader, binocle_shader display_shader);
 
+void binocle_gd_render_offscreen(binocle_gd *gd);
+void binocle_gd_render_screen(binocle_gd *gd, struct binocle_window *window, float design_width, float design_height, kmAABB2 viewport);
 void binocle_gd_render(binocle_gd *gd, struct binocle_window *window, float design_width, float design_height, kmAABB2 viewport);
 
 /**

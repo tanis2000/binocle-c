@@ -893,6 +893,12 @@ void binocle_backend_gl_apply_viewport(uint32_t x, uint32_t y, uint32_t w, uint3
   glCheck(glViewport(x, y, w, h));
 }
 
+void binocle_backend_gl_apply_scissor_rect(binocle_gl_backend_t *gl, int x, int y, int w, int h, bool origin_top_left) {
+  assert(gl->in_pass);
+  y = origin_top_left ? (gl->cur_pass_height - (y+h)) : y;
+  glScissor(x, y, w, h);
+}
+
 void binocle_backend_gl_apply_blend_mode(const struct binocle_blend blend_mode) {
   glCheck(glBlendFunc(
     binocle_backend_gl_blend_factor(blend_mode.color_src_factor),

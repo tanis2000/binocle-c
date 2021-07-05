@@ -1533,6 +1533,32 @@ void binocle_backend_mtl_commit(binocle_mtl_backend_t *mtl) {
   mtl->cmd_buffer = nil;
 }
 
+void binocle_backend_mtl_apply_scissor_rect(binocle_mtl_backend_t *mtl, int x, int y, int w, int h, bool origin_top_left) {
+  assert(mtl->in_pass);
+  if (!mtl->pass_valid) {
+    return;
+  }
+  assert(nil != mtl->cmd_encoder);
+  /* clip against framebuffer rect */
+  x = BINOCLE_MIN(BINOCLE_MAX(0, x), mtl->cur_width-1);
+  y = BINOCLE_MIN(BINOCLE_MAX(0, y), mtl->cur_height-1);
+  if ((x + w) > mtl->cur_width) {
+    w = mtl->cur_width - x;
+  }
+  if ((y + h) > mtl->cur_height) {
+    h = mtl->cur_height - y;
+  }
+  w = BINOCLE_MAX(w, 1);
+  h = BINOCLE_MAX(h, 1);
+
+  MTLScissorRect r;
+  r.x = (NSUInteger)x;
+  r.y = (NSUInteger) (origin_top_left ? y : (mtl->cur_height - (y + h)));
+  r.width = (NSUInteger)w;
+  r.height = (NSUInteger)h;
+  [mtl->cmd_encoder setScissorRect:r];
+}
+
 void binocle_backend_mtl_apply_pipeline(binocle_mtl_backend_t *mtl, binocle_pipeline_t* pip) {
   assert(pip);
   assert(pip->shader && (pip->cmn.shader_id.id == pip->shader->slot.id));

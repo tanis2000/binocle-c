@@ -318,5 +318,6 @@ binocle_resource_state binocle_backend_gl_create_buffer(binocle_gl_backend_t *gl
 void binocle_backend_gl_update_buffer(binocle_gl_backend_t *gl, binocle_buffer_t* buf, const binocle_range* data);
 void binocle_backend_gl_destroy_buffer(binocle_gl_backend_t *gl, binocle_buffer_t* buf);
 int binocle_backend_gl_append_buffer(binocle_gl_backend_t *gl, binocle_buffer_t* buf, const binocle_range* data, bool new_frame);
+void binocle_backend_gl_apply_scissor_rect(binocle_gl_backend_t *gl, int x, int y, int w, int h, bool origin_top_left);
 
 #endif // BINOCLE_BACKEND_GL_H

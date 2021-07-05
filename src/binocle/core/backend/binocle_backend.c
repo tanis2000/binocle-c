@@ -1960,6 +1960,28 @@ void binocle_backend_apply_viewport(uint32_t x, uint32_t y, uint32_t w, uint32_t
 #endif
 }
 
+static inline void _binocle_backend_apply_scissor_rect(int x, int y, int w, int h, bool origin_top_left) {
+#if defined(BINOCLE_GL)
+  binocle_backend_gl_apply_scissor_rect(&backend.gl, x, y, w, h, origin_top_left);
+#elif defined(BINOCLE_METAL)
+  binocle_backend_mtl_apply_scissor_rect(&backend.mtl, x, y, w, h, origin_top_left);
+#else
+#error("no backend defined")
+#endif
+}
+
+void binocle_backend_apply_scissor_rect(int x, int y, int width, int height, bool origin_top_left) {
+  assert(backend.valid);
+  if (!backend.pass_valid) {
+    return;
+  }
+  _binocle_backend_apply_scissor_rect(x, y, width, height, origin_top_left);
+}
+
+void binocle_backned_apply_scissor_rectf(float x, float y, float width, float height, bool origin_top_left) {
+  binocle_backend_apply_scissor_rect((int)x, (int)y, (int)width, (int)height, origin_top_left);
+}
+
 void binocle_backend_apply_blend_mode(struct binocle_blend blend_mode) {
 #if defined(BINOCLE_GL)
   binocle_backend_gl_apply_blend_mode(blend_mode);
@@ -2419,6 +2441,13 @@ static inline int _binocle_backend_append_buffer(binocle_buffer_t* buf, const bi
 #else
 #error("INVALID BACKEND");
 #endif
+}
+
+bool binocle_backend_query_buffer_overflow(binocle_buffer buf_id) {
+  assert(backend.valid);
+  binocle_buffer_t* buf = binocle_backend_lookup_buffer(&backend.pools, buf_id.id);
+  bool result = buf ? buf->cmn.append_overflow : false;
+  return result;
 }
 
 bool binocle_backend_validate_update_buffer(const binocle_buffer_t* buf, const binocle_range* data) {
