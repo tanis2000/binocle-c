@@ -37,7 +37,6 @@
 #define BINOCLE_MAX(a,b) ((a>b)?a:b)
 #define BINOCLE_CLAMP(v,v0,v1) ((v<v0)?(v0):((v>v1)?(v1):(v)))
 #define BINOCLE_FEQUAL(val,cmp,delta) (((val-cmp)> -delta)&&((val-cmp)<delta))
-#define BINOCLE_ROUNDUP(val, round_to) (((val)+((round_to)-1))&~((round_to)-1))
 #define BINOCLE_RANGE(x) (binocle_range){ &x, sizeof(x) }
 #define BINOCLE_RANGE_REF(x) &(binocle_range){ &x, sizeof(x) }
 

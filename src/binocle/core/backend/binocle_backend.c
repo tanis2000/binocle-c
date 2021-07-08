@@ -211,7 +211,7 @@ uint32_t binocle_backend_row_pitch(binocle_pixel_format fmt, uint32_t width,
     pitch = width * binocle_pixelformat_bytesize(fmt);
     break;
   }
-  pitch = BINOCLE_ROUNDUP(pitch, row_align);
+  pitch = binocle_backend_roundup(pitch, row_align);
   return pitch;
 }
 
@@ -2435,9 +2435,9 @@ static inline void _binocle_backend_update_buffer(binocle_buffer_t* buf, const b
 
 static inline int _binocle_backend_append_buffer(binocle_buffer_t* buf, const binocle_range* data, bool new_frame) {
 #if defined(BINOCLE_GL)
-  binocle_backend_gl_append_buffer(&backend, buf, data, new_frame);
+  return binocle_backend_gl_append_buffer(&backend.gl, buf, data, new_frame);
 #elif defined(BINOCLE_METAL)
-  binocle_backend_mtl_append_buffer(&backend.mtl, buf, data, new_frame);
+  return binocle_backend_mtl_append_buffer(&backend.mtl, buf, data, new_frame);
 #else
 #error("INVALID BACKEND");
 #endif
@@ -2511,7 +2511,7 @@ int binocle_backend_append_buffer(binocle_buffer buf_id, const binocle_range* da
       buf->cmn.append_pos = 0;
       buf->cmn.append_overflow = false;
     }
-    if ((buf->cmn.append_pos + BINOCLE_ROUNDUP((int)data->size, 4)) > buf->cmn.size) {
+    if ((buf->cmn.append_pos + binocle_backend_roundup((int)data->size, 4)) > buf->cmn.size) {
       buf->cmn.append_overflow = true;
     }
     const int start_pos = buf->cmn.append_pos;
@@ -2534,4 +2534,8 @@ int binocle_backend_append_buffer(binocle_buffer buf_id, const binocle_range* da
   }
 //  _SG_TRACE_ARGS(append_buffer, buf_id, data, result);
   return result;
+}
+
+int binocle_backend_roundup(int val, int round_to) {
+  return (val+(round_to-1)) & ~(round_to-1);
 }

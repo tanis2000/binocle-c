@@ -94,4 +94,5 @@ void binocle_backend_destroy_buffer(binocle_buffer buf);
 int binocle_backend_append_buffer(binocle_buffer buf_id, const binocle_range* data);
 void binocle_backend_apply_scissor_rect(int x, int y, int width, int height, bool origin_top_left);
 bool binocle_backend_query_buffer_overflow(binocle_buffer buf_id);
+int binocle_backend_roundup(int val, int round_to);
 #endif // BINOCLE_BACKEND_H

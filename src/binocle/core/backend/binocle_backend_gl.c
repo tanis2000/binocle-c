@@ -2813,7 +2813,7 @@ int binocle_backend_gl_append_buffer(binocle_gl_backend_t *gl, binocle_buffer_t*
   binocle_backend_gl_cache_restore_buffer_binding(gl, gl_tgt);
   assert(glGetError() == GL_NO_ERROR);
   /* NOTE: this is a requirement from WebGPU, but we want identical behaviour across all backend */
-  return BINOCLE_ROUNDUP((int)data->size, 4);
+  return binocle_backend_roundup((int)data->size, 4);
 }
 
 void binocle_backend_gl_destroy_buffer(binocle_gl_backend_t *gl, binocle_buffer_t* buf) {

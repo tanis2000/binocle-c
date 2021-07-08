@@ -228,19 +228,29 @@ bool binocle_input_quit_requested(binocle_input input) { return (input.quit_requ
 bool binocle_input_pause_requested(binocle_input input) { return (input.willPause); }
 
 bool binocle_input_is_mouse_inside(binocle_input input, kmAABB2 rectangle) {
-  if ((input.mouseX >= rectangle.min.x) &&
-      (input.mouseX <= rectangle.min.x + rectangle.max.x) &&
-      (input.mouseY >= rectangle.min.y) &&
-      (input.mouseY <= rectangle.min.y + rectangle.max.y))
+  int mouse_x = input.mouseX;
+  int mouse_y = input.mouseY;
+  if (input.inverted_mouse_position) {
+    mouse_y = input.screen_height - mouse_y;
+  }
+  if ((mouse_x >= rectangle.min.x) &&
+      (mouse_x <= rectangle.min.x + rectangle.max.x) &&
+      (mouse_y >= rectangle.min.y) &&
+      (mouse_y <= rectangle.min.y + rectangle.max.y))
     return true;
 
   return false;
 }
 
 kmVec2 binocle_input_get_mouse_position(binocle_input input, binocle_camera camera) {
+  int mouse_x = input.mouseX;
+  int mouse_y = input.mouseY;
+  if (input.inverted_mouse_position) {
+    mouse_y = input.screen_height - mouse_y;
+  }
   kmVec2 res = {
-      .x = input.mouseX + camera.origin.x,
-      .y = input.mouseY + camera.origin.y
+      .x = mouse_x + camera.origin.x,
+      .y = mouse_y + camera.origin.y
   };
   return res;
 }
@@ -274,4 +284,13 @@ kmVec2 binocle_input_get_touch_position(binocle_input input, unsigned int finger
   world_pos.x = input.touch.x + camera.origin.x;
   world_pos.y = input.touch.y + camera.origin.y;
   return world_pos;
+}
+
+void binocle_input_invert_mouse_position(binocle_input *input, uint32_t screen_height) {
+  input->inverted_mouse_position = true;
+  input->screen_height = screen_height;
+}
+
+void binocle_input_default_mouse_position(binocle_input *input) {
+  input->inverted_mouse_position = false;
 }

@@ -250,6 +250,13 @@ int binocle_sprite_get_current_frame(binocle_sprite *sprite);
 void binocle_sprite_set_current_frame(binocle_sprite *sprite, int frame);
 
 /**
+ * \brief Sets the current frame to display by name
+ * @param sprite the sprite
+ * @param name the name of the frame as set in its subtexture
+ */
+void binocle_sprite_set_current_frame_by_name(binocle_sprite *sprite, const char *name);
+
+/**
  * \brief Gets the ID of the current animation
  * @param sprite the sprite
  * @return the ID of the current animation

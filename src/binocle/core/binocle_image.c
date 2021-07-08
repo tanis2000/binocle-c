@@ -14,7 +14,7 @@
 #include "binocle_sdl.h"
 #include "binocle_log.h"
 
-binocle_image binocle_image_load(const char *filename) {
+binocle_image binocle_image_load_with_filter(const char *filename, binocle_filter filter) {
 //  binocle_image *res = malloc(sizeof(binocle_image));
 //  memset(res, 0, sizeof(*res));
 
@@ -50,8 +50,8 @@ binocle_image binocle_image_load(const char *filename) {
     .width = width,
     .height = height,
     .pixel_format = BINOCLE_PIXELFORMAT_RGBA8,
-    .min_filter = BINOCLE_FILTER_LINEAR,
-    .mag_filter = BINOCLE_FILTER_LINEAR,
+    .min_filter = filter,
+    .mag_filter = filter,
     .data.subimage[0][0] = {
       .ptr = data,
       .size = width * height * 4 // forced to 4bpp as we use the same format all the time no matter what we read from the asset
@@ -61,6 +61,10 @@ binocle_image binocle_image_load(const char *filename) {
   stbi_image_free(data);
 //  free(buffer); // if this is commented out, we leak memory. But on Windows it crashes if you uncomment this line.
   return img;
+}
+
+binocle_image binocle_image_load(const char *filename) {
+  return binocle_image_load_with_filter(filename, BINOCLE_FILTER_LINEAR);
 }
 
 void binocle_image_destroy(binocle_image image) {

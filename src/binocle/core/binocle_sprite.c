@@ -273,6 +273,26 @@ void binocle_sprite_set_current_frame(binocle_sprite *sprite, int frame) {
   }
 }
 
+void binocle_sprite_set_current_frame_by_name(binocle_sprite *sprite, const char *name) {
+  if (name == NULL) {
+    return;
+  }
+  if (sprite->playing) {
+    binocle_sprite_stop(sprite);
+  }
+  for (int i = 0 ; i < sprite->frames_number ; i++) {
+    binocle_sprite_frame *frame = &sprite->frames[i];
+    if (frame->subtexture == NULL) {
+      continue;
+    }
+    if (strcmp(frame->subtexture->name, name) == 0) {
+      if (i != sprite->current_frame) {
+        sprite->current_frame = i;
+      }
+    }
+  }
+}
+
 int binocle_sprite_get_current_animation(binocle_sprite *sprite) {
   return sprite->current_animation_id;
 }

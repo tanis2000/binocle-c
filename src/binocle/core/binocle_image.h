@@ -22,11 +22,20 @@
 //} binocle_image;
 
 /**
- * \brief Loads an image file (.png or .jpg) through stb image
+ * \brief Loads an image file (.png or .jpg) through stb image.
+ * It applies linear filtering by default.
  * @param filename the full filename of the image we want to load
  * @return the actual image data
  */
 binocle_image binocle_image_load(const char *filename);
+
+/**
+ * \brief Loads an image file (.png or .jpg) through stb image
+ * @param filename the full filename of the image we want to load
+ * @param filter the filter to use (linear or nearest)
+ * @return the actual image data
+ */
+binocle_image binocle_image_load_with_filter(const char *filename, binocle_filter filter);
 
 /**
  * \brief Frees the memory allocated for the image
