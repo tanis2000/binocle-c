@@ -95,27 +95,44 @@ bool binocle_lua_run_script(binocle_lua *lua, char *filename) {
 int binocle_lua_enumerate_callback(void *user_data, const char *path, const char *filename) {
   char search_path[4096];
   uint64_t mod_time;
-  binocle_lua *lua = (binocle_lua *)user_data;
+  binocle_lua_fs_enumerate_user_data_t *ud = (binocle_lua_fs_enumerate_user_data_t *)user_data;
+  int len = SDL_snprintf(search_path, SDL_arraysize(search_path), "%s/%s", path, filename);
+  if (binocle_fs_is_directory(search_path)) {
+    binocle_fs_enumerate(search_path, binocle_lua_enumerate_callback, user_data);
+  }
   if (!binocle_sdl_filename_ends_with(filename, ".lua")) {
     return 1;
   }
-  int len = SDL_snprintf(search_path, SDL_arraysize(search_path), "%s/%s", path, filename);
   binocle_fs_get_last_modification_time(search_path, &mod_time);
-  if (mod_time > lua->last_check_time) {
-    binocle_lua_destroy(lua);
-    binocle_lua_init(lua);
-    if (lua->last_script_run != NULL){
-      binocle_lua_run_script(lua, lua->last_script_run);
+  if (mod_time > ud->lua->last_check_time) {
+    binocle_lua_destroy(ud->lua);
+    binocle_lua_init(ud->lua);
+    if (ud->lua->last_script_run != NULL){
+      if (ud->pre_run_callback != NULL) {
+        ud->pre_run_callback();
+      }
+      binocle_lua_run_script(ud->lua, ud->lua->last_script_run);
+      if (ud->post_run_callback != NULL) {
+        ud->post_run_callback();
+      }
     }
+    ud->reloaded = true;
     return 1; // No more files please
   }
   return 1; // 1 means get more files, 0 means no more files please
 }
 
-void binocle_lua_check_scripts_modification_time(binocle_lua *lua, char *path) {
+bool binocle_lua_check_scripts_modification_time(binocle_lua *lua, char *path, binocle_lua_fs_enumerate_pre_run_callback *pre_run_callback, binocle_lua_fs_enumerate_post_run_callback *post_run_callback) {
   char search_path[4096];
   int len = SDL_snprintf(search_path, SDL_arraysize(search_path), "%s/*.lua", path);
-  binocle_fs_enumerate(path, binocle_lua_enumerate_callback, lua);
+  binocle_lua_fs_enumerate_user_data_t ud = {
+    .lua = lua,
+    .reloaded = false,
+    .pre_run_callback = pre_run_callback,
+    .post_run_callback = post_run_callback,
+    };
+  binocle_fs_enumerate(path, binocle_lua_enumerate_callback, &ud);
+  return ud.reloaded;
 }
 
 static void close_state(lua_State **L) { lua_close(*L); }

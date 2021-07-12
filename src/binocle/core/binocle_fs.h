@@ -22,5 +22,6 @@ void binocle_fs_destroy(binocle_fs *fs);
 bool binocle_fs_mount(char *path, char *mount_point, bool prepend_to_search_path);
 bool binocle_fs_get_last_modification_time(char *filename, uint64_t *modtime);
 void binocle_fs_enumerate(char * path, PHYSFS_EnumerateCallback callback, void *user_data);
+bool binocle_fs_is_directory(const char *filename);
 
 #endif //BINOCLE_FS_H
