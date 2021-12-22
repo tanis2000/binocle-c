@@ -401,8 +401,9 @@ void main_loop() {
 
 int main(int argc, char *argv[])
 {
+  binocle_app_desc_t app_desc = {0};
   app = binocle_app_new();
-  binocle_app_init(&app);
+  binocle_app_init(&app, &app_desc);
   binocle_sdl_init();
   window = binocle_window_new(DESIGN_WIDTH, DESIGN_HEIGHT, "Binocle Test Game");
   binocle_window_set_background_color(window, binocle_color_azure());

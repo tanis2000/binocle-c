@@ -162,3 +162,8 @@ endif ()
 if(NOT MSVC)
     add_subdirectory(gameplay)
 endif(NOT MSVC)
+
+file(GLOB RESOURCES_LIST ${CMAKE_SOURCE_DIR}/assets/*)
+set(ASSETS ${RESOURCES_LIST})
+message("Assets: ${ASSETS}")
+FILE(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/src)
