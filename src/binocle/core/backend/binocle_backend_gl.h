@@ -60,7 +60,7 @@ typedef struct binocle_gl_image {
     GLuint depth_render_buffer;
     GLuint msaa_render_buffer;
     GLuint tex[BINOCLE_NUM_INFLIGHT_FRAMES];
-    bool ext_textures;  /* if true, external textures were injected with sg_image_desc.gl_textures */
+    bool ext_textures;  /* if true, external textures were injected with binocle_image_desc.gl_textures */
     GLuint frame_buffer; // TODO: remove this if we implement render passes as it would belong there
   } gl;
 } binocle_gl_image;

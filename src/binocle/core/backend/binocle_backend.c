@@ -589,23 +589,23 @@ bool binocle_backend_validate_buffer_desc(const binocle_buffer_desc* desc) {
 #if !defined(BINOCLE_DEBUG)
   return true;
 #else
-  SOKOL_ASSERT(desc);
-        SOKOL_VALIDATE_BEGIN();
-        SOKOL_VALIDATE(desc->_start_canary == 0, _SG_VALIDATE_BUFFERDESC_CANARY);
-        SOKOL_VALIDATE(desc->_end_canary == 0, _SG_VALIDATE_BUFFERDESC_CANARY);
-        SOKOL_VALIDATE(desc->size > 0, _SG_VALIDATE_BUFFERDESC_SIZE);
+  BINOCLE_ASSERT(desc);
+        BINOCLE_VALIDATE_BEGIN();
+        BINOCLE_VALIDATE(desc->_start_canary == 0, BINOCLE_VALIDATE_BUFFERDESC_CANARY);
+        BINOCLE_VALIDATE(desc->_end_canary == 0, BINOCLE_VALIDATE_BUFFERDESC_CANARY);
+        BINOCLE_VALIDATE(desc->size > 0, BINOCLE_VALIDATE_BUFFERDESC_SIZE);
         bool injected = (0 != desc->gl_buffers[0]) ||
                         (0 != desc->mtl_buffers[0]) ||
                         (0 != desc->d3d11_buffer) ||
                         (0 != desc->wgpu_buffer);
-        if (!injected && (desc->usage == SG_USAGE_IMMUTABLE)) {
-            SOKOL_VALIDATE((0 != desc->data.ptr) && (desc->data.size > 0), _SG_VALIDATE_BUFFERDESC_DATA);
-            SOKOL_VALIDATE(desc->size == desc->data.size, _SG_VALIDATE_BUFFERDESC_DATA_SIZE);
+        if (!injected && (desc->usage == BINOCLE_USAGE_IMMUTABLE)) {
+          BINOCLE_VALIDATE((0 != desc->data.ptr) && (desc->data.size > 0), BINOCLE_VALIDATE_BUFFERDESC_DATA);
+          BINOCLE_VALIDATE(desc->size == desc->data.size, BINOCLE_VALIDATE_BUFFERDESC_DATA_SIZE);
         }
         else {
-            SOKOL_VALIDATE(0 == desc->data.ptr, _SG_VALIDATE_BUFFERDESC_NO_DATA);
+          BINOCLE_VALIDATE(0 == desc->data.ptr, BINOCLE_VALIDATE_BUFFERDESC_NO_DATA);
         }
-        return SOKOL_VALIDATE_END();
+        return BINOCLE_VALIDATE_END();
 #endif
 }
 
@@ -711,61 +711,61 @@ bool binocle_backend_validate_image_desc(const binocle_image_desc* desc) {
 #if !defined(XXX)
   return true;
 #else
-  SOKOL_ASSERT(desc);
-        SOKOL_VALIDATE_BEGIN();
-        SOKOL_VALIDATE(desc->_start_canary == 0, _SG_VALIDATE_IMAGEDESC_CANARY);
-        SOKOL_VALIDATE(desc->_end_canary == 0, _SG_VALIDATE_IMAGEDESC_CANARY);
-        SOKOL_VALIDATE(desc->width > 0, _SG_VALIDATE_IMAGEDESC_WIDTH);
-        SOKOL_VALIDATE(desc->height > 0, _SG_VALIDATE_IMAGEDESC_HEIGHT);
-        const sg_pixel_format fmt = desc->pixel_format;
-        const sg_usage usage = desc->usage;
+  BINOCLE_ASSERT(desc);
+  BINOCLE_VALIDATE_BEGIN();
+  BINOCLE_VALIDATE(desc->_start_canary == 0, BINOCLE_VALIDATE_IMAGEDESC_CANARY);
+  BINOCLE_VALIDATE(desc->_end_canary == 0, BINOCLE_VALIDATE_IMAGEDESC_CANARY);
+  BINOCLE_VALIDATE(desc->width > 0, BINOCLE_VALIDATE_IMAGEDESC_WIDTH);
+  BINOCLE_VALIDATE(desc->height > 0, BINOCLE_VALIDATE_IMAGEDESC_HEIGHT);
+        const binocle_pixel_format fmt = desc->pixel_format;
+        const binocle_usage usage = desc->usage;
         const bool injected = (0 != desc->gl_textures[0]) ||
                               (0 != desc->mtl_textures[0]) ||
                               (0 != desc->d3d11_texture) ||
                               (0 != desc->wgpu_texture);
         if (desc->render_target) {
-            SOKOL_ASSERT(((int)fmt >= 0) && ((int)fmt < _SG_PIXELFORMAT_NUM));
-            SOKOL_VALIDATE(_sg.formats[fmt].render, _SG_VALIDATE_IMAGEDESC_RT_PIXELFORMAT);
+          BINOCLE_ASSERT(((int)fmt >= 0) && ((int)fmt < BINOCLE_PIXELFORMAT_NUM));
+          BINOCLE_VALIDATE(backend.formats[fmt].render, BINOCLE_VALIDATE_IMAGEDESC_RT_PIXELFORMAT);
             /* on GLES2, sample count for render targets is completely ignored */
-            #if defined(SOKOL_GLES2) || defined(SOKOL_GLES3)
-            if (!_sg.gl.gles2) {
+            #if defined(BINOCLE_GLES2) || defined(BINOCLE_GLES3)
+            if (!backend.gl.gles2) {
             #endif
                 if (desc->sample_count > 1) {
-                    SOKOL_VALIDATE(_sg.features.msaa_render_targets && _sg.formats[fmt].msaa, _SG_VALIDATE_IMAGEDESC_NO_MSAA_RT_SUPPORT);
+                  BINOCLE_VALIDATE(backend.features.msaa_render_targets && backend.formats[fmt].msaa, BINOCLE_VALIDATE_IMAGEDESC_NO_MSAA_RT_SUPPORT);
                 }
-            #if defined(SOKOL_GLES2) || defined(SOKOL_GLES3)
+            #if defined(BINOCLE_GLES2) || defined(BINOCLE_GLES3)
             }
             #endif
-            SOKOL_VALIDATE(usage == SG_USAGE_IMMUTABLE, _SG_VALIDATE_IMAGEDESC_RT_IMMUTABLE);
-            SOKOL_VALIDATE(desc->content.subimage[0][0].ptr==0, _SG_VALIDATE_IMAGEDESC_RT_NO_CONTENT);
+            BINOCLE_VALIDATE(usage == BINOCLE_USAGE_IMMUTABLE, BINOCLE_VALIDATE_IMAGEDESC_RT_IMMUTABLE);
+            BINOCLE_VALIDATE(desc->content.subimage[0][0].ptr==0, BINOCLE_VALIDATE_IMAGEDESC_RT_NO_CONTENT);
         }
         else {
-            SOKOL_VALIDATE(desc->sample_count <= 1, _SG_VALIDATE_IMAGEDESC_MSAA_BUT_NO_RT);
-            const bool valid_nonrt_fmt = !_sg_is_valid_rendertarget_depth_format(fmt);
-            SOKOL_VALIDATE(valid_nonrt_fmt, _SG_VALIDATE_IMAGEDESC_NONRT_PIXELFORMAT);
-            /* FIXME: should use the same "expected size" computation as in _sg_validate_update_image() here */
-            if (!injected && (usage == SG_USAGE_IMMUTABLE)) {
-                const int num_faces = desc->type == SG_IMAGETYPE_CUBE ? 6:1;
+          BINOCLE_VALIDATE(desc->sample_count <= 1, BINOCLE_VALIDATE_IMAGEDESC_MSAA_BUT_NO_RT);
+            const bool valid_nonrt_fmt = !binocle_backend_is_valid_rendertarget_depth_format(fmt);
+            BINOCLE_VALIDATE(valid_nonrt_fmt, BINOCLE_VALIDATE_IMAGEDESC_NONRT_PIXELFORMAT);
+            /* FIXME: should use the same "expected size" computation as in binocle_backend_validate_update_image() here */
+            if (!injected && (usage == BINOCLE_USAGE_IMMUTABLE)) {
+                const int num_faces = desc->type == BINOCLE_IMAGETYPE_CUBE ? 6:1;
                 const int num_mips = desc->num_mipmaps;
                 for (int face_index = 0; face_index < num_faces; face_index++) {
                     for (int mip_index = 0; mip_index < num_mips; mip_index++) {
                         const bool has_data = desc->content.subimage[face_index][mip_index].ptr != 0;
                         const bool has_size = desc->content.subimage[face_index][mip_index].size > 0;
-                        SOKOL_VALIDATE(has_data && has_size, _SG_VALIDATE_IMAGEDESC_CONTENT);
+                        BINOCLE_VALIDATE(has_data && has_size, BINOCLE_VALIDATE_IMAGEDESC_CONTENT);
                     }
                 }
             }
             else {
-                for (int face_index = 0; face_index < SG_CUBEFACE_NUM; face_index++) {
-                    for (int mip_index = 0; mip_index < SG_MAX_MIPMAPS; mip_index++) {
+                for (int face_index = 0; face_index < BINOCLE_CUBEFACE_NUM; face_index++) {
+                    for (int mip_index = 0; mip_index < BINOCLE_MAX_MIPMAPS; mip_index++) {
                         const bool no_data = 0 == desc->content.subimage[face_index][mip_index].ptr;
                         const bool no_size = 0 == desc->content.subimage[face_index][mip_index].size;
-                        SOKOL_VALIDATE(no_data && no_size, _SG_VALIDATE_IMAGEDESC_NO_CONTENT);
+                        BINOCLE_VALIDATE(no_data && no_size, BINOCLE_VALIDATE_IMAGEDESC_NO_CONTENT);
                     }
                 }
             }
         }
-        return SOKOL_VALIDATE_END();
+        return BINOCLE_VALIDATE_END();
 #endif
 }
 
@@ -829,72 +829,72 @@ bool binocle_backend_validate_shader_desc(const binocle_shader_desc* desc) {
   return true;
 #else
   assert(desc);
-        SOKOL_VALIDATE_BEGIN();
-        SOKOL_VALIDATE(desc->_start_canary == 0, _SG_VALIDATE_SHADERDESC_CANARY);
-        SOKOL_VALIDATE(desc->_end_canary == 0, _SG_VALIDATE_SHADERDESC_CANARY);
-        #if defined(SOKOL_GLES2)
-            SOKOL_VALIDATE(0 != desc->attrs[0].name, _SG_VALIDATE_SHADERDESC_ATTR_NAMES);
-        #elif defined(SOKOL_D3D11)
-            SOKOL_VALIDATE(0 != desc->attrs[0].sem_name, _SG_VALIDATE_SHADERDESC_ATTR_SEMANTICS);
+  BINOCLE_VALIDATE_BEGIN();
+  BINOCLE_VALIDATE(desc->_start_canary == 0, BINOCLE_VALIDATE_SHADERDESC_CANARY);
+  BINOCLE_VALIDATE(desc->_end_canary == 0, BINOCLE_VALIDATE_SHADERDESC_CANARY);
+        #if defined(BINOCLE_GLES2)
+  BINOCLE_VALIDATE(0 != desc->attrs[0].name, BINOCLE_VALIDATE_SHADERDESC_ATTR_NAMES);
+        #elif defined(BINOCLE_D3D11)
+            BINOCLE_VALIDATE(0 != desc->attrs[0].sem_name, BINOCLE_VALIDATE_SHADERDESC_ATTR_SEMANTICS);
         #endif
-        #if defined(SOKOL_GLCORE33) || defined(SOKOL_GLES2) || defined(SOKOL_GLES3)
+        #if defined(BINOCLE_GLCORE33) || defined(BINOCLE_GLES2) || defined(BINOCLE_GLES3)
             /* on GL, must provide shader source code */
-            SOKOL_VALIDATE(0 != desc->vs.source, _SG_VALIDATE_SHADERDESC_SOURCE);
-            SOKOL_VALIDATE(0 != desc->fs.source, _SG_VALIDATE_SHADERDESC_SOURCE);
-        #elif defined(SOKOL_METAL) || defined(SOKOL_D3D11)
+            BINOCLE_VALIDATE(0 != desc->vs.source, BINOCLE_VALIDATE_SHADERDESC_SOURCE);
+            BINOCLE_VALIDATE(0 != desc->fs.source, BINOCLE_VALIDATE_SHADERDESC_SOURCE);
+        #elif defined(BINOCLE_METAL) || defined(BINOCLE_D3D11)
             /* on Metal or D3D11, must provide shader source code or byte code */
-            SOKOL_VALIDATE((0 != desc->vs.source)||(0 != desc->vs.byte_code), _SG_VALIDATE_SHADERDESC_SOURCE_OR_BYTECODE);
-            SOKOL_VALIDATE((0 != desc->fs.source)||(0 != desc->fs.byte_code), _SG_VALIDATE_SHADERDESC_SOURCE_OR_BYTECODE);
-        #elif defined(SOKOL_WGPU)
+            BINOCLE_VALIDATE((0 != desc->vs.source)||(0 != desc->vs.byte_code), BINOCLE_VALIDATE_SHADERDESC_SOURCE_OR_BYTECODE);
+            BINOCLE_VALIDATE((0 != desc->fs.source)||(0 != desc->fs.byte_code), BINOCLE_VALIDATE_SHADERDESC_SOURCE_OR_BYTECODE);
+        #elif defined(BINOCLE_WGPU)
             /* on WGPU byte code must be provided */
-            SOKOL_VALIDATE((0 != desc->vs.byte_code), _SG_VALIDATE_SHADERDESC_BYTECODE);
-            SOKOL_VALIDATE((0 != desc->fs.byte_code), _SG_VALIDATE_SHADERDESC_BYTECODE);
+            BINOCLE_VALIDATE((0 != desc->vs.byte_code), BINOCLE_VALIDATE_SHADERDESC_BYTECODE);
+            BINOCLE_VALIDATE((0 != desc->fs.byte_code), BINOCLE_VALIDATE_SHADERDESC_BYTECODE);
         #else
             /* Dummy Backend, don't require source or bytecode */
         #endif
-        for (int i = 0; i < SG_MAX_VERTEX_ATTRIBUTES; i++) {
+        for (int i = 0; i < BINOCLE_MAX_VERTEX_ATTRIBUTES; i++) {
             if (desc->attrs[i].name) {
-                SOKOL_VALIDATE(strlen(desc->attrs[i].name) < _SG_STRING_SIZE, _SG_VALIDATE_SHADERDESC_ATTR_STRING_TOO_LONG);
+                BINOCLE_VALIDATE(strlen(desc->attrs[i].name) < BINOCLE_STRING_SIZE, BINOCLE_VALIDATE_SHADERDESC_ATTR_STRING_TOO_LONG);
             }
             if (desc->attrs[i].sem_name) {
-                SOKOL_VALIDATE(strlen(desc->attrs[i].sem_name) < _SG_STRING_SIZE, _SG_VALIDATE_SHADERDESC_ATTR_STRING_TOO_LONG);
+                BINOCLE_VALIDATE(strlen(desc->attrs[i].sem_name) < BINOCLE_STRING_SIZE, BINOCLE_VALIDATE_SHADERDESC_ATTR_STRING_TOO_LONG);
             }
         }
         /* if shader byte code, the size must also be provided */
         if (0 != desc->vs.byte_code) {
-            SOKOL_VALIDATE(desc->vs.byte_code_size > 0, _SG_VALIDATE_SHADERDESC_NO_BYTECODE_SIZE);
+            BINOCLE_VALIDATE(desc->vs.byte_code_size > 0, BINOCLE_VALIDATE_SHADERDESC_NO_BYTECODE_SIZE);
         }
         if (0 != desc->fs.byte_code) {
-            SOKOL_VALIDATE(desc->fs.byte_code_size > 0, _SG_VALIDATE_SHADERDESC_NO_BYTECODE_SIZE);
+            BINOCLE_VALIDATE(desc->fs.byte_code_size > 0, BINOCLE_VALIDATE_SHADERDESC_NO_BYTECODE_SIZE);
         }
-        for (int stage_index = 0; stage_index < SG_NUM_SHADER_STAGES; stage_index++) {
-            const sg_shader_stage_desc* stage_desc = (stage_index == 0)? &desc->vs : &desc->fs;
+        for (int stage_index = 0; stage_index < BINOCLE_NUM_SHADER_STAGES; stage_index++) {
+            const binocle_shader_stage_desc* stage_desc = (stage_index == 0)? &desc->vs : &desc->fs;
             bool uniform_blocks_continuous = true;
-            for (int ub_index = 0; ub_index < SG_MAX_SHADERSTAGE_UBS; ub_index++) {
-                const sg_shader_uniform_block_desc* ub_desc = &stage_desc->uniform_blocks[ub_index];
+            for (int ub_index = 0; ub_index < BINOCLE_MAX_SHADERSTAGE_UBS; ub_index++) {
+                const binocle_shader_uniform_block_desc* ub_desc = &stage_desc->uniform_blocks[ub_index];
                 if (ub_desc->size > 0) {
-                    SOKOL_VALIDATE(uniform_blocks_continuous, _SG_VALIDATE_SHADERDESC_NO_CONT_UBS);
+                    BINOCLE_VALIDATE(uniform_blocks_continuous, BINOCLE_VALIDATE_SHADERDESC_NO_CONT_UBS);
                     bool uniforms_continuous = true;
                     int uniform_offset = 0;
                     int num_uniforms = 0;
-                    for (int u_index = 0; u_index < SG_MAX_UB_MEMBERS; u_index++) {
-                        const sg_shader_uniform_desc* u_desc = &ub_desc->uniforms[u_index];
-                        if (u_desc->type != SG_UNIFORMTYPE_INVALID) {
-                            SOKOL_VALIDATE(uniforms_continuous, _SG_VALIDATE_SHADERDESC_NO_CONT_UB_MEMBERS);
-                            #if defined(SOKOL_GLES2) || defined(SOKOL_GLES3)
-                            SOKOL_VALIDATE(0 != u_desc->name, _SG_VALIDATE_SHADERDESC_UB_MEMBER_NAME);
+                    for (int u_index = 0; u_index < BINOCLE_MAX_UB_MEMBERS; u_index++) {
+                        const binocle_shader_uniform_desc* u_desc = &ub_desc->uniforms[u_index];
+                        if (u_desc->type != BINOCLE_UNIFORMTYPE_INVALID) {
+                            BINOCLE_VALIDATE(uniforms_continuous, BINOCLE_VALIDATE_SHADERDESC_NO_CONT_UB_MEMBERS);
+                            #if defined(BINOCLE_GLES2) || defined(BINOCLE_GLES3)
+                            BINOCLE_VALIDATE(0 != u_desc->name, BINOCLE_VALIDATE_SHADERDESC_UB_MEMBER_NAME);
                             #endif
                             const int array_count = u_desc->array_count;
-                            uniform_offset += _sg_uniform_size(u_desc->type, array_count);
+                            uniform_offset += binocle_uniform_size(u_desc->type, array_count);
                             num_uniforms++;
                         }
                         else {
                             uniforms_continuous = false;
                         }
                     }
-                    #if defined(SOKOL_GLCORE33) || defined(SOKOL_GLES2) || defined(SOKOL_GLES3)
-                    SOKOL_VALIDATE(uniform_offset == ub_desc->size, _SG_VALIDATE_SHADERDESC_UB_SIZE_MISMATCH);
-                    SOKOL_VALIDATE(num_uniforms > 0, _SG_VALIDATE_SHADERDESC_NO_UB_MEMBERS);
+                    #if defined(BINOCLE_GLCORE33) || defined(BINOCLE_GLES2) || defined(BINOCLE_GLES3)
+                    BINOCLE_VALIDATE(uniform_offset == ub_desc->size, BINOCLE_VALIDATE_SHADERDESC_UB_SIZE_MISMATCH);
+                    BINOCLE_VALIDATE(num_uniforms > 0, BINOCLE_VALIDATE_SHADERDESC_NO_UB_MEMBERS);
                     #endif
                 }
                 else {
@@ -902,12 +902,12 @@ bool binocle_backend_validate_shader_desc(const binocle_shader_desc* desc) {
                 }
             }
             bool images_continuous = true;
-            for (int img_index = 0; img_index < SG_MAX_SHADERSTAGE_IMAGES; img_index++) {
-                const sg_shader_image_desc* img_desc = &stage_desc->images[img_index];
-                if (img_desc->type != _SG_IMAGETYPE_DEFAULT) {
-                    SOKOL_VALIDATE(images_continuous, _SG_VALIDATE_SHADERDESC_NO_CONT_IMGS);
-                    #if defined(SOKOL_GLES2)
-                    SOKOL_VALIDATE(0 != img_desc->name, _SG_VALIDATE_SHADERDESC_IMG_NAME);
+            for (int img_index = 0; img_index < BINOCLE_MAX_SHADERSTAGE_IMAGES; img_index++) {
+                const binocle_shader_image_desc* img_desc = &stage_desc->images[img_index];
+                if (img_desc->type != BINOCLE_IMAGETYPE_DEFAULT) {
+                    BINOCLE_VALIDATE(images_continuous, BINOCLE_VALIDATE_SHADERDESC_NO_CONT_IMGS);
+                    #if defined(BINOCLE_GLES2)
+                    BINOCLE_VALIDATE(0 != img_desc->name, BINOCLE_VALIDATE_SHADERDESC_IMG_NAME);
                     #endif
                 }
                 else {
@@ -915,7 +915,7 @@ bool binocle_backend_validate_shader_desc(const binocle_shader_desc* desc) {
                 }
             }
         }
-        return SOKOL_VALIDATE_END();
+        return BINOCLE_VALIDATE_END();
 #endif
 }
 
@@ -1129,42 +1129,42 @@ bool binocle_backend_validate_pipeline_desc(const binocle_pipeline_desc* desc) {
 #if !defined(BINOCLE_DEBUG)
   return true;
 #else
-  SOKOL_ASSERT(desc);
-        SOKOL_VALIDATE_BEGIN();
-        SOKOL_VALIDATE(desc->_start_canary == 0, _SG_VALIDATE_PIPELINEDESC_CANARY);
-        SOKOL_VALIDATE(desc->_end_canary == 0, _SG_VALIDATE_PIPELINEDESC_CANARY);
-        SOKOL_VALIDATE(desc->shader.id != SG_INVALID_ID, _SG_VALIDATE_PIPELINEDESC_SHADER);
-        for (int buf_index = 0; buf_index < SG_MAX_SHADERSTAGE_BUFFERS; buf_index++) {
-            const sg_buffer_layout_desc* l_desc = &desc->layout.buffers[buf_index];
+  BINOCLE_ASSERT(desc);
+        BINOCLE_VALIDATE_BEGIN();
+        BINOCLE_VALIDATE(desc->_start_canary == 0, BINOCLE_VALIDATE_PIPELINEDESC_CANARY);
+        BINOCLE_VALIDATE(desc->_end_canary == 0, BINOCLE_VALIDATE_PIPELINEDESC_CANARY);
+        BINOCLE_VALIDATE(desc->shader.id != BINOCLE_INVALID_ID, BINOCLE_VALIDATE_PIPELINEDESC_SHADER);
+        for (int buf_index = 0; buf_index < BINOCLE_MAX_SHADERSTAGE_BUFFERS; buf_index++) {
+            const binocle_buffer_layout_desc* l_desc = &desc->layout.buffers[buf_index];
             if (l_desc->stride == 0) {
                 continue;
             }
-            SOKOL_VALIDATE((l_desc->stride & 3) == 0, _SG_VALIDATE_PIPELINEDESC_LAYOUT_STRIDE4);
+            BINOCLE_VALIDATE((l_desc->stride & 3) == 0, BINOCLE_VALIDATE_PIPELINEDESC_LAYOUT_STRIDE4);
         }
-        SOKOL_VALIDATE(desc->layout.attrs[0].format != SG_VERTEXFORMAT_INVALID, _SG_VALIDATE_PIPELINEDESC_NO_ATTRS);
-        const _sg_shader_t* shd = _sg_lookup_shader(&_sg.pools, desc->shader.id);
-        SOKOL_VALIDATE(0 != shd, _SG_VALIDATE_PIPELINEDESC_SHADER);
+        BINOCLE_VALIDATE(desc->layout.attrs[0].format != BINOCLE_VERTEXFORMAT_INVALID, BINOCLE_VALIDATE_PIPELINEDESC_NO_ATTRS);
+        const binocle_shader_t* shd = binocle_lookup_shader(&backend.pools, desc->shader.id);
+        BINOCLE_VALIDATE(0 != shd, BINOCLE_VALIDATE_PIPELINEDESC_SHADER);
         if (shd) {
-            SOKOL_VALIDATE(shd->slot.state == SG_RESOURCESTATE_VALID, _SG_VALIDATE_PIPELINEDESC_SHADER);
+            BINOCLE_VALIDATE(shd->slot.state == BINOCLE_RESOURCESTATE_VALID, BINOCLE_VALIDATE_PIPELINEDESC_SHADER);
             bool attrs_cont = true;
-            for (int attr_index = 0; attr_index < SG_MAX_VERTEX_ATTRIBUTES; attr_index++) {
-                const sg_vertex_attr_desc* a_desc = &desc->layout.attrs[attr_index];
-                if (a_desc->format == SG_VERTEXFORMAT_INVALID) {
+            for (int attr_index = 0; attr_index < BINOCLE_MAX_VERTEX_ATTRIBUTES; attr_index++) {
+                const binocle_vertex_attr_desc* a_desc = &desc->layout.attrs[attr_index];
+                if (a_desc->format == BINOCLE_VERTEXFORMAT_INVALID) {
                     attrs_cont = false;
                     continue;
                 }
-                SOKOL_VALIDATE(attrs_cont, _SG_VALIDATE_PIPELINEDESC_NO_ATTRS);
-                SOKOL_ASSERT(a_desc->buffer_index < SG_MAX_SHADERSTAGE_BUFFERS);
-                #if defined(SOKOL_GLES2)
+                BINOCLE_VALIDATE(attrs_cont, BINOCLE_VALIDATE_PIPELINEDESC_NO_ATTRS);
+                BINOCLE_ASSERT(a_desc->buffer_index < BINOCLE_MAX_SHADERSTAGE_BUFFERS);
+                #if defined(BINOCLE_GLES2)
                 /* on GLES2, vertex attribute names must be provided */
-                SOKOL_VALIDATE(!_sg_strempty(&shd->gl.attrs[attr_index].name), _SG_VALIDATE_PIPELINEDESC_ATTR_NAME);
-                #elif defined(SOKOL_D3D11)
+                BINOCLE_VALIDATE(!binocle_strempty(&shd->gl.attrs[attr_index].name), BINOCLE_VALIDATE_PIPELINEDESC_ATTR_NAME);
+                #elif defined(BINOCLE_D3D11)
                 /* on D3D11, semantic names (and semantic indices) must be provided */
-                SOKOL_VALIDATE(!_sg_strempty(&shd->d3d11.attrs[attr_index].sem_name), _SG_VALIDATE_PIPELINEDESC_ATTR_SEMANTICS);
+                BINOCLE_VALIDATE(!binocle_strempty(&shd->d3d11.attrs[attr_index].sem_name), BINOCLE_VALIDATE_PIPELINEDESC_ATTR_SEMANTICS);
                 #endif
             }
         }
-        return SOKOL_VALIDATE_END();
+        return BINOCLE_VALIDATE_END();
 #endif
 }
 
@@ -1225,68 +1225,68 @@ bool binocle_backend_validate_pass_desc(const binocle_pass_desc* desc) {
 #if !defined(BINOCLE_DEBUG)
   return true;
 #else
-  SOKOL_ASSERT(desc);
-        SOKOL_VALIDATE_BEGIN();
-        SOKOL_VALIDATE(desc->_start_canary == 0, _SG_VALIDATE_PASSDESC_CANARY);
-        SOKOL_VALIDATE(desc->_end_canary == 0, _SG_VALIDATE_PASSDESC_CANARY);
+  BINOCLE_ASSERT(desc);
+        BINOCLE_VALIDATE_BEGIN();
+        BINOCLE_VALIDATE(desc->_start_canary == 0, BINOCLE_VALIDATE_PASSDESC_CANARY);
+        BINOCLE_VALIDATE(desc->_end_canary == 0, BINOCLE_VALIDATE_PASSDESC_CANARY);
         bool atts_cont = true;
         int width = -1, height = -1, sample_count = -1;
-        for (int att_index = 0; att_index < SG_MAX_COLOR_ATTACHMENTS; att_index++) {
-            const sg_pass_attachment_desc* att = &desc->color_attachments[att_index];
-            if (att->image.id == SG_INVALID_ID) {
-                SOKOL_VALIDATE(att_index > 0, _SG_VALIDATE_PASSDESC_NO_COLOR_ATTS);
+        for (int att_index = 0; att_index < BINOCLE_MAX_COLOR_ATTACHMENTS; att_index++) {
+            const binocle_pass_attachment_desc* att = &desc->color_attachments[att_index];
+            if (att->image.id == BINOCLE_INVALID_ID) {
+                BINOCLE_VALIDATE(att_index > 0, BINOCLE_VALIDATE_PASSDESC_NO_COLOR_ATTS);
                 atts_cont = false;
                 continue;
             }
-            SOKOL_VALIDATE(atts_cont, _SG_VALIDATE_PASSDESC_NO_CONT_COLOR_ATTS);
-            const _sg_image_t* img = _sg_lookup_image(&_sg.pools, att->image.id);
-            SOKOL_ASSERT(img);
-            SOKOL_VALIDATE(img->slot.state == SG_RESOURCESTATE_VALID, _SG_VALIDATE_PASSDESC_IMAGE);
-            SOKOL_VALIDATE(att->mip_level < img->cmn.num_mipmaps, _SG_VALIDATE_PASSDESC_MIPLEVEL);
-            if (img->cmn.type == SG_IMAGETYPE_CUBE) {
-                SOKOL_VALIDATE(att->slice < 6, _SG_VALIDATE_PASSDESC_FACE);
+            BINOCLE_VALIDATE(atts_cont, BINOCLE_VALIDATE_PASSDESC_NO_CONT_COLOR_ATTS);
+            const binocle_image_t* img = binocle_lookup_image(&backend.pools, att->image.id);
+            BINOCLE_ASSERT(img);
+            BINOCLE_VALIDATE(img->slot.state == BINOCLE_RESOURCESTATE_VALID, BINOCLE_VALIDATE_PASSDESC_IMAGE);
+            BINOCLE_VALIDATE(att->mip_level < img->cmn.num_mipmaps, BINOCLE_VALIDATE_PASSDESC_MIPLEVEL);
+            if (img->cmn.type == BINOCLE_IMAGETYPE_CUBE) {
+                BINOCLE_VALIDATE(att->slice < 6, BINOCLE_VALIDATE_PASSDESC_FACE);
             }
-            else if (img->cmn.type == SG_IMAGETYPE_ARRAY) {
-                SOKOL_VALIDATE(att->slice < img->cmn.num_slices, _SG_VALIDATE_PASSDESC_LAYER);
+            else if (img->cmn.type == BINOCLE_IMAGETYPE_ARRAY) {
+                BINOCLE_VALIDATE(att->slice < img->cmn.num_slices, BINOCLE_VALIDATE_PASSDESC_LAYER);
             }
-            else if (img->cmn.type == SG_IMAGETYPE_3D) {
-                SOKOL_VALIDATE(att->slice < img->cmn.num_slices, _SG_VALIDATE_PASSDESC_SLICE);
+            else if (img->cmn.type == BINOCLE_IMAGETYPE_3D) {
+                BINOCLE_VALIDATE(att->slice < img->cmn.num_slices, BINOCLE_VALIDATE_PASSDESC_SLICE);
             }
-            SOKOL_VALIDATE(img->cmn.render_target, _SG_VALIDATE_PASSDESC_IMAGE_NO_RT);
+            BINOCLE_VALIDATE(img->cmn.render_target, BINOCLE_VALIDATE_PASSDESC_IMAGE_NO_RT);
             if (att_index == 0) {
                 width = img->cmn.width >> att->mip_level;
                 height = img->cmn.height >> att->mip_level;
                 sample_count = img->cmn.sample_count;
             }
             else {
-                SOKOL_VALIDATE(width == img->cmn.width >> att->mip_level, _SG_VALIDATE_PASSDESC_IMAGE_SIZES);
-                SOKOL_VALIDATE(height == img->cmn.height >> att->mip_level, _SG_VALIDATE_PASSDESC_IMAGE_SIZES);
-                SOKOL_VALIDATE(sample_count == img->cmn.sample_count, _SG_VALIDATE_PASSDESC_IMAGE_SAMPLE_COUNTS);
+                BINOCLE_VALIDATE(width == img->cmn.width >> att->mip_level, BINOCLE_VALIDATE_PASSDESC_IMAGE_SIZES);
+                BINOCLE_VALIDATE(height == img->cmn.height >> att->mip_level, BINOCLE_VALIDATE_PASSDESC_IMAGE_SIZES);
+                BINOCLE_VALIDATE(sample_count == img->cmn.sample_count, BINOCLE_VALIDATE_PASSDESC_IMAGE_SAMPLE_COUNTS);
             }
-            SOKOL_VALIDATE(_sg_is_valid_rendertarget_color_format(img->cmn.pixel_format), _SG_VALIDATE_PASSDESC_COLOR_INV_PIXELFORMAT);
+            BINOCLE_VALIDATE(binocle_is_valid_rendertarget_color_format(img->cmn.pixel_format), BINOCLE_VALIDATE_PASSDESC_COLOR_INV_PIXELFORMAT);
         }
-        if (desc->depth_stencil_attachment.image.id != SG_INVALID_ID) {
-            const sg_pass_attachment_desc* att = &desc->depth_stencil_attachment;
-            const _sg_image_t* img = _sg_lookup_image(&_sg.pools, att->image.id);
-            SOKOL_ASSERT(img);
-            SOKOL_VALIDATE(img->slot.state == SG_RESOURCESTATE_VALID, _SG_VALIDATE_PASSDESC_IMAGE);
-            SOKOL_VALIDATE(att->mip_level < img->cmn.num_mipmaps, _SG_VALIDATE_PASSDESC_MIPLEVEL);
-            if (img->cmn.type == SG_IMAGETYPE_CUBE) {
-                SOKOL_VALIDATE(att->slice < 6, _SG_VALIDATE_PASSDESC_FACE);
+        if (desc->depth_stencil_attachment.image.id != BINOCLE_INVALID_ID) {
+            const binocle_pass_attachment_desc* att = &desc->depth_stencil_attachment;
+            const binocle_image_t* img = binocle_lookup_image(&backend.pools, att->image.id);
+            BINOCLE_ASSERT(img);
+            BINOCLE_VALIDATE(img->slot.state == BINOCLE_RESOURCESTATE_VALID, BINOCLE_VALIDATE_PASSDESC_IMAGE);
+            BINOCLE_VALIDATE(att->mip_level < img->cmn.num_mipmaps, BINOCLE_VALIDATE_PASSDESC_MIPLEVEL);
+            if (img->cmn.type == BINOCLE_IMAGETYPE_CUBE) {
+                BINOCLE_VALIDATE(att->slice < 6, BINOCLE_VALIDATE_PASSDESC_FACE);
             }
-            else if (img->cmn.type == SG_IMAGETYPE_ARRAY) {
-                SOKOL_VALIDATE(att->slice < img->cmn.num_slices, _SG_VALIDATE_PASSDESC_LAYER);
+            else if (img->cmn.type == BINOCLE_IMAGETYPE_ARRAY) {
+                BINOCLE_VALIDATE(att->slice < img->cmn.num_slices, BINOCLE_VALIDATE_PASSDESC_LAYER);
             }
-            else if (img->cmn.type == SG_IMAGETYPE_3D) {
-                SOKOL_VALIDATE(att->slice < img->cmn.num_slices, _SG_VALIDATE_PASSDESC_SLICE);
+            else if (img->cmn.type == BINOCLE_IMAGETYPE_3D) {
+                BINOCLE_VALIDATE(att->slice < img->cmn.num_slices, BINOCLE_VALIDATE_PASSDESC_SLICE);
             }
-            SOKOL_VALIDATE(img->cmn.render_target, _SG_VALIDATE_PASSDESC_IMAGE_NO_RT);
-            SOKOL_VALIDATE(width == img->cmn.width >> att->mip_level, _SG_VALIDATE_PASSDESC_IMAGE_SIZES);
-            SOKOL_VALIDATE(height == img->cmn.height >> att->mip_level, _SG_VALIDATE_PASSDESC_IMAGE_SIZES);
-            SOKOL_VALIDATE(sample_count == img->cmn.sample_count, _SG_VALIDATE_PASSDESC_IMAGE_SAMPLE_COUNTS);
-            SOKOL_VALIDATE(_sg_is_valid_rendertarget_depth_format(img->cmn.pixel_format), _SG_VALIDATE_PASSDESC_DEPTH_INV_PIXELFORMAT);
+            BINOCLE_VALIDATE(img->cmn.render_target, BINOCLE_VALIDATE_PASSDESC_IMAGE_NO_RT);
+            BINOCLE_VALIDATE(width == img->cmn.width >> att->mip_level, BINOCLE_VALIDATE_PASSDESC_IMAGE_SIZES);
+            BINOCLE_VALIDATE(height == img->cmn.height >> att->mip_level, BINOCLE_VALIDATE_PASSDESC_IMAGE_SIZES);
+            BINOCLE_VALIDATE(sample_count == img->cmn.sample_count, BINOCLE_VALIDATE_PASSDESC_IMAGE_SAMPLE_COUNTS);
+            BINOCLE_VALIDATE(binocle_is_valid_rendertarget_depth_format(img->cmn.pixel_format), BINOCLE_VALIDATE_PASSDESC_DEPTH_INV_PIXELFORMAT);
         }
-        return SOKOL_VALIDATE_END();
+        return BINOCLE_VALIDATE_END();
 #endif
 }
 
@@ -1515,24 +1515,24 @@ bool binocle_backend_validate_begin_pass(binocle_pass_t* pass) {
 #if !defined(BINOCLE_DEBUG)
   return true;
 #else
-  SOKOL_VALIDATE_BEGIN();
-        SOKOL_VALIDATE(pass->slot.state == SG_RESOURCESTATE_VALID, _SG_VALIDATE_BEGINPASS_PASS);
+  BINOCLE_VALIDATE_BEGIN();
+        BINOCLE_VALIDATE(pass->slot.state == BINOCLE_RESOURCESTATE_VALID, BINOCLE_VALIDATE_BEGINPASS_PASS);
 
-        for (int i = 0; i < SG_MAX_COLOR_ATTACHMENTS; i++) {
-            const _sg_pass_attachment_t* att = &pass->cmn.color_atts[i];
-            const _sg_image_t* img = _sg_pass_color_image(pass, i);
+        for (int i = 0; i < BINOCLE_MAX_COLOR_ATTACHMENTS; i++) {
+            const binocle_pass_attachment_t* att = &pass->cmn.color_atts[i];
+            const binocle_image_t* img = binocle_pass_color_image(pass, i);
             if (img) {
-                SOKOL_VALIDATE(img->slot.state == SG_RESOURCESTATE_VALID, _SG_VALIDATE_BEGINPASS_IMAGE);
-                SOKOL_VALIDATE(img->slot.id == att->image_id.id, _SG_VALIDATE_BEGINPASS_IMAGE);
+                BINOCLE_VALIDATE(img->slot.state == BINOCLE_RESOURCESTATE_VALID, BINOCLE_VALIDATE_BEGINPASS_IMAGE);
+                BINOCLE_VALIDATE(img->slot.id == att->image_id.id, BINOCLE_VALIDATE_BEGINPASS_IMAGE);
             }
         }
-        const _sg_image_t* ds_img = _sg_pass_ds_image(pass);
+        const binocle_image_t* ds_img = binocle_pass_ds_image(pass);
         if (ds_img) {
-            const _sg_pass_attachment_t* att = &pass->cmn.ds_att;
-            SOKOL_VALIDATE(ds_img->slot.state == SG_RESOURCESTATE_VALID, _SG_VALIDATE_BEGINPASS_IMAGE);
-            SOKOL_VALIDATE(ds_img->slot.id == att->image_id.id, _SG_VALIDATE_BEGINPASS_IMAGE);
+            const binocle_pass_attachment_t* att = &pass->cmn.ds_att;
+            BINOCLE_VALIDATE(ds_img->slot.state == BINOCLE_RESOURCESTATE_VALID, BINOCLE_VALIDATE_BEGINPASS_IMAGE);
+            BINOCLE_VALIDATE(ds_img->slot.id == att->image_id.id, BINOCLE_VALIDATE_BEGINPASS_IMAGE);
         }
-        return SOKOL_VALIDATE_END();
+        return BINOCLE_VALIDATE_END();
 #endif
 }
 
@@ -1605,45 +1605,45 @@ bool binocle_backend_validate_apply_pipeline(binocle_pipeline pip_id) {
 #if !defined(BINOCLE_DEBUG)
   return true;
 #else
-  SOKOL_VALIDATE_BEGIN();
+  BINOCLE_VALIDATE_BEGIN();
         /* the pipeline object must be alive and valid */
-        SOKOL_VALIDATE(pip_id.id != SG_INVALID_ID, _SG_VALIDATE_APIP_PIPELINE_VALID_ID);
-        const _sg_pipeline_t* pip = _sg_lookup_pipeline(&_sg.pools, pip_id.id);
-        SOKOL_VALIDATE(pip != 0, _SG_VALIDATE_APIP_PIPELINE_EXISTS);
+        BINOCLE_VALIDATE(pip_id.id != BINOCLE_INVALID_ID, BINOCLE_VALIDATE_APIP_PIPELINE_VALID_ID);
+        const binocle_pipeline_t* pip = binocle_lookup_pipeline(&backend.pools, pip_id.id);
+        BINOCLE_VALIDATE(pip != 0, BINOCLE_VALIDATE_APIP_PIPELINE_EXISTS);
         if (!pip) {
-            return SOKOL_VALIDATE_END();
+            return BINOCLE_VALIDATE_END();
         }
-        SOKOL_VALIDATE(pip->slot.state == SG_RESOURCESTATE_VALID, _SG_VALIDATE_APIP_PIPELINE_VALID);
+        BINOCLE_VALIDATE(pip->slot.state == BINOCLE_RESOURCESTATE_VALID, BINOCLE_VALIDATE_APIP_PIPELINE_VALID);
         /* the pipeline's shader must be alive and valid */
-        SOKOL_ASSERT(pip->shader);
-        SOKOL_VALIDATE(pip->shader->slot.id == pip->cmn.shader_id.id, _SG_VALIDATE_APIP_SHADER_EXISTS);
-        SOKOL_VALIDATE(pip->shader->slot.state == SG_RESOURCESTATE_VALID, _SG_VALIDATE_APIP_SHADER_VALID);
+        BINOCLE_ASSERT(pip->shader);
+        BINOCLE_VALIDATE(pip->shader->slot.id == pip->cmn.shader_id.id, BINOCLE_VALIDATE_APIP_SHADER_EXISTS);
+        BINOCLE_VALIDATE(pip->shader->slot.state == BINOCLE_RESOURCESTATE_VALID, BINOCLE_VALIDATE_APIP_SHADER_VALID);
         /* check that pipeline attributes match current pass attributes */
-        const _sg_pass_t* pass = _sg_lookup_pass(&_sg.pools, _sg.cur_pass.id);
+        const binocle_pass_t* pass = binocle_lookup_pass(&backend.pools, backend.cur_pass.id);
         if (pass) {
             /* an offscreen pass */
-            SOKOL_VALIDATE(pip->cmn.color_attachment_count == pass->cmn.num_color_atts, _SG_VALIDATE_APIP_ATT_COUNT);
+            BINOCLE_VALIDATE(pip->cmn.color_attachment_count == pass->cmn.num_color_atts, BINOCLE_VALIDATE_APIP_ATT_COUNT);
             for (int i = 0; i < pip->cmn.color_attachment_count; i++) {
-                const _sg_image_t* att_img = _sg_pass_color_image(pass, i);
-                SOKOL_VALIDATE(pip->cmn.color_formats[i] == att_img->cmn.pixel_format, _SG_VALIDATE_APIP_COLOR_FORMAT);
-                SOKOL_VALIDATE(pip->cmn.sample_count == att_img->cmn.sample_count, _SG_VALIDATE_APIP_SAMPLE_COUNT);
+                const binocle_image_t* att_img = binocle_pass_color_image(pass, i);
+                BINOCLE_VALIDATE(pip->cmn.color_formats[i] == att_img->cmn.pixel_format, BINOCLE_VALIDATE_APIP_COLOR_FORMAT);
+                BINOCLE_VALIDATE(pip->cmn.sample_count == att_img->cmn.sample_count, BINOCLE_VALIDATE_APIP_SAMPLE_COUNT);
             }
-            const _sg_image_t* att_dsimg = _sg_pass_ds_image(pass);
+            const binocle_image_t* att_dsimg = binocle_pass_ds_image(pass);
             if (att_dsimg) {
-                SOKOL_VALIDATE(pip->cmn.depth_format == att_dsimg->cmn.pixel_format, _SG_VALIDATE_APIP_DEPTH_FORMAT);
+                BINOCLE_VALIDATE(pip->cmn.depth_format == att_dsimg->cmn.pixel_format, BINOCLE_VALIDATE_APIP_DEPTH_FORMAT);
             }
             else {
-                SOKOL_VALIDATE(pip->cmn.depth_format == SG_PIXELFORMAT_NONE, _SG_VALIDATE_APIP_DEPTH_FORMAT);
+                BINOCLE_VALIDATE(pip->cmn.depth_format == BINOCLE_PIXELFORMAT_NONE, BINOCLE_VALIDATE_APIP_DEPTH_FORMAT);
             }
         }
         else {
             /* default pass */
-            SOKOL_VALIDATE(pip->cmn.color_attachment_count == 1, _SG_VALIDATE_APIP_ATT_COUNT);
-            SOKOL_VALIDATE(pip->cmn.color_formats[0] == _sg.desc.context.color_format, _SG_VALIDATE_APIP_COLOR_FORMAT);
-            SOKOL_VALIDATE(pip->cmn.depth_format == _sg.desc.context.depth_format, _SG_VALIDATE_APIP_DEPTH_FORMAT);
-            SOKOL_VALIDATE(pip->cmn.sample_count == _sg.desc.context.sample_count, _SG_VALIDATE_APIP_SAMPLE_COUNT);
+            BINOCLE_VALIDATE(pip->cmn.color_attachment_count == 1, BINOCLE_VALIDATE_APIP_ATT_COUNT);
+            BINOCLE_VALIDATE(pip->cmn.color_formats[0] == backend.desc.context.color_format, BINOCLE_VALIDATE_APIP_COLOR_FORMAT);
+            BINOCLE_VALIDATE(pip->cmn.depth_format == backend.desc.context.depth_format, BINOCLE_VALIDATE_APIP_DEPTH_FORMAT);
+            BINOCLE_VALIDATE(pip->cmn.sample_count == backend.desc.context.sample_count, BINOCLE_VALIDATE_APIP_SAMPLE_COUNT);
         }
-        return SOKOL_VALIDATE_END();
+        return BINOCLE_VALIDATE_END();
 #endif
 }
 
@@ -1651,87 +1651,87 @@ bool binocle_backend_validate_apply_bindings(const binocle_bindings* bindings) {
 #if !defined(BINOCLE_DEBUG)
   return true;
 #else
-  SOKOL_VALIDATE_BEGIN();
+  BINOCLE_VALIDATE_BEGIN();
 
         /* a pipeline object must have been applied */
-        SOKOL_VALIDATE(_sg.cur_pipeline.id != SG_INVALID_ID, _SG_VALIDATE_ABND_PIPELINE);
-        const _sg_pipeline_t* pip = _sg_lookup_pipeline(&_sg.pools, _sg.cur_pipeline.id);
-        SOKOL_VALIDATE(pip != 0, _SG_VALIDATE_ABND_PIPELINE_EXISTS);
+        BINOCLE_VALIDATE(backend.cur_pipeline.id != BINOCLE_INVALID_ID, BINOCLE_VALIDATE_ABND_PIPELINE);
+        const BINOCLE_pipeline_t* pip = binocle_lookup_pipeline(&backend.pools, backend.cur_pipeline.id);
+        BINOCLE_VALIDATE(pip != 0, BINOCLE_VALIDATE_ABND_PIPELINE_EXISTS);
         if (!pip) {
-            return SOKOL_VALIDATE_END();
+            return BINOCLE_VALIDATE_END();
         }
-        SOKOL_VALIDATE(pip->slot.state == SG_RESOURCESTATE_VALID, _SG_VALIDATE_ABND_PIPELINE_VALID);
-        SOKOL_ASSERT(pip->shader && (pip->cmn.shader_id.id == pip->shader->slot.id));
+        BINOCLE_VALIDATE(pip->slot.state == BINOCLE_RESOURCESTATE_VALID, BINOCLE_VALIDATE_ABND_PIPELINE_VALID);
+        BINOCLE_ASSERT(pip->shader && (pip->cmn.shader_id.id == pip->shader->slot.id));
 
         /* has expected vertex buffers, and vertex buffers still exist */
-        for (int i = 0; i < SG_MAX_SHADERSTAGE_BUFFERS; i++) {
-            if (bindings->vertex_buffers[i].id != SG_INVALID_ID) {
-                SOKOL_VALIDATE(pip->cmn.vertex_layout_valid[i], _SG_VALIDATE_ABND_VBS);
-                /* buffers in vertex-buffer-slots must be of type SG_BUFFERTYPE_VERTEXBUFFER */
-                const _sg_buffer_t* buf = _sg_lookup_buffer(&_sg.pools, bindings->vertex_buffers[i].id);
-                SOKOL_VALIDATE(buf != 0, _SG_VALIDATE_ABND_VB_EXISTS);
-                if (buf && buf->slot.state == SG_RESOURCESTATE_VALID) {
-                    SOKOL_VALIDATE(SG_BUFFERTYPE_VERTEXBUFFER == buf->cmn.type, _SG_VALIDATE_ABND_VB_TYPE);
-                    SOKOL_VALIDATE(!buf->cmn.append_overflow, _SG_VALIDATE_ABND_VB_OVERFLOW);
+        for (int i = 0; i < BINOCLE_MAX_SHADERSTAGE_BUFFERS; i++) {
+            if (bindings->vertex_buffers[i].id != BINOCLE_INVALID_ID) {
+                BINOCLE_VALIDATE(pip->cmn.vertex_layout_valid[i], BINOCLE_VALIDATE_ABND_VBS);
+                /* buffers in vertex-buffer-slots must be of type BINOCLE_BUFFERTYPE_VERTEXBUFFER */
+                const binocle_buffer_t* buf = binocle_lookup_buffer(&backend.pools, bindings->vertex_buffers[i].id);
+                BINOCLE_VALIDATE(buf != 0, BINOCLE_VALIDATE_ABND_VB_EXISTS);
+                if (buf && buf->slot.state == BINOCLE_RESOURCESTATE_VALID) {
+                    BINOCLE_VALIDATE(BINOCLE_BUFFERTYPE_VERTEXBUFFER == buf->cmn.type, BINOCLE_VALIDATE_ABND_VB_TYPE);
+                    BINOCLE_VALIDATE(!buf->cmn.append_overflow, BINOCLE_VALIDATE_ABND_VB_OVERFLOW);
                 }
             }
             else {
                 /* vertex buffer provided in a slot which has no vertex layout in pipeline */
-                SOKOL_VALIDATE(!pip->cmn.vertex_layout_valid[i], _SG_VALIDATE_ABND_VBS);
+                BINOCLE_VALIDATE(!pip->cmn.vertex_layout_valid[i], BINOCLE_VALIDATE_ABND_VBS);
             }
         }
 
         /* index buffer expected or not, and index buffer still exists */
-        if (pip->cmn.index_type == SG_INDEXTYPE_NONE) {
+        if (pip->cmn.index_type == BINOCLE_INDEXTYPE_NONE) {
             /* pipeline defines non-indexed rendering, but index buffer provided */
-            SOKOL_VALIDATE(bindings->index_buffer.id == SG_INVALID_ID, _SG_VALIDATE_ABND_IB);
+            BINOCLE_VALIDATE(bindings->index_buffer.id == BINOCLE_INVALID_ID, BINOCLE_VALIDATE_ABND_IB);
         }
         else {
             /* pipeline defines indexed rendering, but no index buffer provided */
-            SOKOL_VALIDATE(bindings->index_buffer.id != SG_INVALID_ID, _SG_VALIDATE_ABND_NO_IB);
+            BINOCLE_VALIDATE(bindings->index_buffer.id != BINOCLE_INVALID_ID, BINOCLE_VALIDATE_ABND_NO_IB);
         }
-        if (bindings->index_buffer.id != SG_INVALID_ID) {
-            /* buffer in index-buffer-slot must be of type SG_BUFFERTYPE_INDEXBUFFER */
-            const _sg_buffer_t* buf = _sg_lookup_buffer(&_sg.pools, bindings->index_buffer.id);
-            SOKOL_VALIDATE(buf != 0, _SG_VALIDATE_ABND_IB_EXISTS);
-            if (buf && buf->slot.state == SG_RESOURCESTATE_VALID) {
-                SOKOL_VALIDATE(SG_BUFFERTYPE_INDEXBUFFER == buf->cmn.type, _SG_VALIDATE_ABND_IB_TYPE);
-                SOKOL_VALIDATE(!buf->cmn.append_overflow, _SG_VALIDATE_ABND_IB_OVERFLOW);
+        if (bindings->index_buffer.id != BINOCLE_INVALID_ID) {
+            /* buffer in index-buffer-slot must be of type BINOCLE_BUFFERTYPE_INDEXBUFFER */
+            const binocle_buffer_t* buf = binocle_lookup_buffer(&backend.pools, bindings->index_buffer.id);
+            BINOCLE_VALIDATE(buf != 0, BINOCLE_VALIDATE_ABND_IB_EXISTS);
+            if (buf && buf->slot.state == BINOCLE_RESOURCESTATE_VALID) {
+                BINOCLE_VALIDATE(BINOCLE_BUFFERTYPE_INDEXBUFFER == buf->cmn.type, BINOCLE_VALIDATE_ABND_IB_TYPE);
+                BINOCLE_VALIDATE(!buf->cmn.append_overflow, BINOCLE_VALIDATE_ABND_IB_OVERFLOW);
             }
         }
 
         /* has expected vertex shader images */
-        for (int i = 0; i < SG_MAX_SHADERSTAGE_IMAGES; i++) {
-            _sg_shader_stage_t* stage = &pip->shader->cmn.stage[SG_SHADERSTAGE_VS];
-            if (bindings->vs_images[i].id != SG_INVALID_ID) {
-                SOKOL_VALIDATE(i < stage->num_images, _SG_VALIDATE_ABND_VS_IMGS);
-                const _sg_image_t* img = _sg_lookup_image(&_sg.pools, bindings->vs_images[i].id);
-                SOKOL_VALIDATE(img != 0, _SG_VALIDATE_ABND_VS_IMG_EXISTS);
-                if (img && img->slot.state == SG_RESOURCESTATE_VALID) {
-                    SOKOL_VALIDATE(img->cmn.type == stage->images[i].image_type, _SG_VALIDATE_ABND_VS_IMG_TYPES);
+        for (int i = 0; i < BINOCLE_MAX_SHADERSTAGE_IMAGES; i++) {
+            binocle_shader_stage_t* stage = &pip->shader->cmn.stage[BINOCLE_SHADERSTAGE_VS];
+            if (bindings->vs_images[i].id != BINOCLE_INVALID_ID) {
+                BINOCLE_VALIDATE(i < stage->num_images, BINOCLE_VALIDATE_ABND_VS_IMGS);
+                const binocle_image_t* img = binocle_lookup_image(&backend.pools, bindings->vs_images[i].id);
+                BINOCLE_VALIDATE(img != 0, BINOCLE_VALIDATE_ABND_VS_IMG_EXISTS);
+                if (img && img->slot.state == BINOCLE_RESOURCESTATE_VALID) {
+                    BINOCLE_VALIDATE(img->cmn.type == stage->images[i].image_type, BINOCLE_VALIDATE_ABND_VS_IMG_TYPES);
                 }
             }
             else {
-                SOKOL_VALIDATE(i >= stage->num_images, _SG_VALIDATE_ABND_VS_IMGS);
+                BINOCLE_VALIDATE(i >= stage->num_images, BINOCLE_VALIDATE_ABND_VS_IMGS);
             }
         }
 
         /* has expected fragment shader images */
-        for (int i = 0; i < SG_MAX_SHADERSTAGE_IMAGES; i++) {
-            _sg_shader_stage_t* stage = &pip->shader->cmn.stage[SG_SHADERSTAGE_FS];
-            if (bindings->fs_images[i].id != SG_INVALID_ID) {
-                SOKOL_VALIDATE(i < stage->num_images, _SG_VALIDATE_ABND_FS_IMGS);
-                const _sg_image_t* img = _sg_lookup_image(&_sg.pools, bindings->fs_images[i].id);
-                SOKOL_VALIDATE(img != 0, _SG_VALIDATE_ABND_FS_IMG_EXISTS);
-                if (img && img->slot.state == SG_RESOURCESTATE_VALID) {
-                    SOKOL_VALIDATE(img->cmn.type == stage->images[i].image_type, _SG_VALIDATE_ABND_FS_IMG_TYPES);
+        for (int i = 0; i < BINOCLE_MAX_SHADERSTAGE_IMAGES; i++) {
+            binocle_shader_stage_t* stage = &pip->shader->cmn.stage[BINOCLE_SHADERSTAGE_FS];
+            if (bindings->fs_images[i].id != BINOCLE_INVALID_ID) {
+                BINOCLE_VALIDATE(i < stage->num_images, BINOCLE_VALIDATE_ABND_FS_IMGS);
+                const binocle_image_t* img = binocle_lookup_image(&backend.pools, bindings->fs_images[i].id);
+                BINOCLE_VALIDATE(img != 0, BINOCLE_VALIDATE_ABND_FS_IMG_EXISTS);
+                if (img && img->slot.state == BINOCLE_RESOURCESTATE_VALID) {
+                    BINOCLE_VALIDATE(img->cmn.type == stage->images[i].image_type, BINOCLE_VALIDATE_ABND_FS_IMG_TYPES);
                 }
             }
             else {
-                SOKOL_VALIDATE(i >= stage->num_images, _SG_VALIDATE_ABND_FS_IMGS);
+                BINOCLE_VALIDATE(i >= stage->num_images, BINOCLE_VALIDATE_ABND_FS_IMGS);
             }
         }
-        return SOKOL_VALIDATE_END();
+        return BINOCLE_VALIDATE_END();
 #endif
 }
 
@@ -1739,22 +1739,22 @@ bool binocle_backend_validate_apply_uniforms(binocle_shader_stage stage_index, i
 #if !defined(BINOCLE_DEBUG)
   return true;
 #else
-  SOKOL_ASSERT((stage_index == SG_SHADERSTAGE_VS) || (stage_index == SG_SHADERSTAGE_FS));
-        SOKOL_ASSERT((ub_index >= 0) && (ub_index < SG_MAX_SHADERSTAGE_UBS));
-        SOKOL_VALIDATE_BEGIN();
-        SOKOL_VALIDATE(_sg.cur_pipeline.id != SG_INVALID_ID, _SG_VALIDATE_AUB_NO_PIPELINE);
-        const _sg_pipeline_t* pip = _sg_lookup_pipeline(&_sg.pools, _sg.cur_pipeline.id);
-        SOKOL_ASSERT(pip && (pip->slot.id == _sg.cur_pipeline.id));
-        SOKOL_ASSERT(pip->shader && (pip->shader->slot.id == pip->cmn.shader_id.id));
+  BINOCLE_ASSERT((stage_index == BINOCLE_SHADERSTAGE_VS) || (stage_index == BINOCLE_SHADERSTAGE_FS));
+        BINOCLE_ASSERT((ub_index >= 0) && (ub_index < BINOCLE_MAX_SHADERSTAGE_UBS));
+        BINOCLE_VALIDATE_BEGIN();
+        BINOCLE_VALIDATE(backend.cur_pipeline.id != BINOCLE_INVALID_ID, BINOCLE_VALIDATE_AUB_NO_PIPELINE);
+        const binocle_pipeline_t* pip = binocle_lookup_pipeline(&backend.pools, backend.cur_pipeline.id);
+        BINOCLE_ASSERT(pip && (pip->slot.id == backend.cur_pipeline.id));
+        BINOCLE_ASSERT(pip->shader && (pip->shader->slot.id == pip->cmn.shader_id.id));
 
         /* check that there is a uniform block at 'stage' and 'ub_index' */
-        const _sg_shader_stage_t* stage = &pip->shader->cmn.stage[stage_index];
-        SOKOL_VALIDATE(ub_index < stage->num_uniform_blocks, _SG_VALIDATE_AUB_NO_UB_AT_SLOT);
+        const binocle_shader_stage_t* stage = &pip->shader->cmn.stage[stage_index];
+        BINOCLE_VALIDATE(ub_index < stage->num_uniform_blocks, BINOCLE_VALIDATE_AUB_NO_UB_AT_SLOT);
 
         /* check that the provided data size doesn't exceed the uniform block size */
-        SOKOL_VALIDATE(data->size <= stage->uniform_blocks[ub_index].size, _SG_VALIDATE_AUB_SIZE);
+        BINOCLE_VALIDATE(data->size <= stage->uniform_blocks[ub_index].size, BINOCLE_VALIDATE_AUB_SIZE);
 
-        return SOKOL_VALIDATE_END();
+        return BINOCLE_VALIDATE_END();
 #endif
 }
 
@@ -2259,7 +2259,7 @@ void binocle_backend_mtl_init_caps(void) {
 //  backend.features.msaa_render_targets = true;
 //  backend.features.imagetype_3d = true;
 //  backend.features.imagetype_array = true;
-//#if defined(_SG_TARGET_MACOS)
+//#if defined(BINOCLE_TARGET_MACOS)
 //  backend.features.image_clamp_to_border = true;
 //#else
 //  backend.features.image_clamp_to_border = false;
@@ -2267,7 +2267,7 @@ void binocle_backend_mtl_init_caps(void) {
 //  backend.features.mrt_independent_blend_state = true;
 //  backend.features.mrt_independent_write_mask = true;
 //
-//#if defined(_SG_TARGET_MACOS)
+//#if defined(BINOCLE_TARGET_MACOS)
 //  backend.limits.max_image_size_2d = 16 * 1024;
 //        backend.limits.max_image_size_cube = 16 * 1024;
 //        backend.limits.max_image_size_3d = 2 * 1024;
@@ -2281,7 +2281,7 @@ void binocle_backend_mtl_init_caps(void) {
 //  backend.limits.max_image_size_array = 8 * 1024;
 //  backend.limits.max_image_array_layers = 2 * 1024;
 //#endif
-//  backend.limits.max_vertex_attrs = SG_MAX_VERTEX_ATTRIBUTES;
+//  backend.limits.max_vertex_attrs = BINOCLE_MAX_VERTEX_ATTRIBUTES;
 
   binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_R8]);
   binocle_backend_pixelformat_all(&backend.formats[BINOCLE_PIXELFORMAT_R8SN]);
@@ -2456,28 +2456,28 @@ bool binocle_backend_validate_update_buffer(const binocle_buffer_t* buf, const b
   (void)(data);
   return true;
 #else
-  SOKOL_ASSERT(buf && data && data->ptr);
-        SOKOL_VALIDATE_BEGIN();
-        SOKOL_VALIDATE(buf->cmn.usage != SG_USAGE_IMMUTABLE, _SG_VALIDATE_UPDATEBUF_USAGE);
-        SOKOL_VALIDATE(buf->cmn.size >= (int)data->size, _SG_VALIDATE_UPDATEBUF_SIZE);
-        SOKOL_VALIDATE(buf->cmn.update_frame_index != _sg.frame_index, _SG_VALIDATE_UPDATEBUF_ONCE);
-        SOKOL_VALIDATE(buf->cmn.append_frame_index != _sg.frame_index, _SG_VALIDATE_UPDATEBUF_APPEND);
-        return SOKOL_VALIDATE_END();
+  BINOCLE_ASSERT(buf && data && data->ptr);
+        BINOCLE_VALIDATE_BEGIN();
+        BINOCLE_VALIDATE(buf->cmn.usage != BINOCLE_USAGE_IMMUTABLE, BINOCLE_VALIDATE_UPDATEBUF_USAGE);
+        BINOCLE_VALIDATE(buf->cmn.size >= (int)data->size, BINOCLE_VALIDATE_UPDATEBUF_SIZE);
+        BINOCLE_VALIDATE(buf->cmn.update_frame_index != backend.frame_index, BINOCLE_VALIDATE_UPDATEBUF_ONCE);
+        BINOCLE_VALIDATE(buf->cmn.append_frame_index != backend.frame_index, BINOCLE_VALIDATE_UPDATEBUF_APPEND);
+        return BINOCLE_VALIDATE_END();
 #endif
 }
 
 bool binocle_backend_validate_append_buffer(const binocle_buffer_t* buf, const binocle_range* data) {
-#if !defined(SOKOL_DEBUG)
+#if !defined(BINOCLE_DEBUG)
   (void)(buf);
   (void)(data);
   return true;
 #else
   assert(buf && data && data->ptr);
-        SOKOL_VALIDATE_BEGIN();
-        SOKOL_VALIDATE(buf->cmn.usage != SG_USAGE_IMMUTABLE, _SG_VALIDATE_APPENDBUF_USAGE);
-        SOKOL_VALIDATE(buf->cmn.size >= (buf->cmn.append_pos + (int)data->size), _SG_VALIDATE_APPENDBUF_SIZE);
-        SOKOL_VALIDATE(buf->cmn.update_frame_index != _sg.frame_index, _SG_VALIDATE_APPENDBUF_UPDATE);
-        return SOKOL_VALIDATE_END();
+        BINOCLE_VALIDATE_BEGIN();
+        BINOCLE_VALIDATE(buf->cmn.usage != BINOCLE_USAGE_IMMUTABLE, BINOCLE_VALIDATE_APPENDBUF_USAGE);
+        BINOCLE_VALIDATE(buf->cmn.size >= (buf->cmn.append_pos + (int)data->size), BINOCLE_VALIDATE_APPENDBUF_SIZE);
+        BINOCLE_VALIDATE(buf->cmn.update_frame_index != backend.frame_index, BINOCLE_VALIDATE_APPENDBUF_UPDATE);
+        return BINOCLE_VALIDATE_END();
 #endif
 }
 
@@ -2497,7 +2497,7 @@ void binocle_backend_update_buffer(binocle_buffer buf_id, const binocle_range* d
       buf->cmn.update_frame_index = backend.frame_index;
     }
   }
-//  _SG_TRACE_ARGS(update_buffer, buf_id, data);
+//  BINOCLE_TRACE_ARGS(update_buffer, buf_id, data);
 }
 
 int binocle_backend_append_buffer(binocle_buffer buf_id, const binocle_range* data) {
@@ -2532,7 +2532,7 @@ int binocle_backend_append_buffer(binocle_buffer buf_id, const binocle_range* da
     /* FIXME: should we return -1 here? */
     result = 0;
   }
-//  _SG_TRACE_ARGS(append_buffer, buf_id, data, result);
+//  BINOCLE_TRACE_ARGS(append_buffer, buf_id, data, result);
   return result;
 }
 

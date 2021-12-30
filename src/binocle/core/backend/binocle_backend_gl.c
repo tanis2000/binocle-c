@@ -155,7 +155,7 @@ GLenum binocle_backend_gl_teximage_format(binocle_pixel_format fmt) {
   case BINOCLE_PIXELFORMAT_R16SN:
   case BINOCLE_PIXELFORMAT_R16F:
   case BINOCLE_PIXELFORMAT_R32F:
-#if defined(SOKOL_GLES2)
+#if defined(BINOCLE_GLES2)
     return GL_LUMINANCE;
 #else
 //    if (backend.gl.gles2) {
@@ -166,7 +166,7 @@ GLenum binocle_backend_gl_teximage_format(binocle_pixel_format fmt) {
       return GL_RED;
     }
 #endif
-#if !defined(SOKOL_GLES2)
+#if !defined(BINOCLE_GLES2)
   case BINOCLE_PIXELFORMAT_R8UI:
   case BINOCLE_PIXELFORMAT_R8SI:
   case BINOCLE_PIXELFORMAT_R16UI:
@@ -199,7 +199,7 @@ GLenum binocle_backend_gl_teximage_format(binocle_pixel_format fmt) {
   case BINOCLE_PIXELFORMAT_RGBA32F:
   case BINOCLE_PIXELFORMAT_RGB10A2:
     return GL_RGBA;
-#if !defined(SOKOL_GLES2)
+#if !defined(BINOCLE_GLES2)
   case BINOCLE_PIXELFORMAT_RGBA8UI:
   case BINOCLE_PIXELFORMAT_RGBA8SI:
   case BINOCLE_PIXELFORMAT_RGBA16UI:
@@ -337,7 +337,7 @@ GLenum binocle_backend_gl_teximage_internal_format(binocle_pixel_format fmt) {
 //      return GL_R8_SNORM;
     case BINOCLE_PIXELFORMAT_R8UI:       return GL_R8UI;
     case BINOCLE_PIXELFORMAT_R8SI:       return GL_R8I;
-#if !defined(SOKOL_GLES3)
+#if !defined(BINOCLE_GLES3)
     case BINOCLE_PIXELFORMAT_R16:        return GL_R16;
     case BINOCLE_PIXELFORMAT_R16SN:
       assert(false);
@@ -357,7 +357,7 @@ GLenum binocle_backend_gl_teximage_internal_format(binocle_pixel_format fmt) {
     case BINOCLE_PIXELFORMAT_R32UI:      return GL_R32UI;
     case BINOCLE_PIXELFORMAT_R32SI:      return GL_R32I;
     case BINOCLE_PIXELFORMAT_R32F:       return GL_R32F;
-#if !defined(SOKOL_GLES3)
+#if !defined(BINOCLE_GLES3)
     case BINOCLE_PIXELFORMAT_RG16:       return GL_RG16;
     case BINOCLE_PIXELFORMAT_RG16SN:
       assert(false);
@@ -388,7 +388,7 @@ GLenum binocle_backend_gl_teximage_internal_format(binocle_pixel_format fmt) {
     case BINOCLE_PIXELFORMAT_RG32UI:     return GL_RG32UI;
     case BINOCLE_PIXELFORMAT_RG32SI:     return GL_RG32I;
     case BINOCLE_PIXELFORMAT_RG32F:      return GL_RG32F;
-#if !defined(SOKOL_GLES3)
+#if !defined(BINOCLE_GLES3)
     case BINOCLE_PIXELFORMAT_RGBA16:     return GL_RGBA16;
     case BINOCLE_PIXELFORMAT_RGBA16SN:
       assert(false);
@@ -492,7 +492,7 @@ GLenum binocle_backend_gl_wrap(binocle_wrap w) {
   switch (w) {
   case BINOCLE_WRAP_CLAMP_TO_EDGE:
     return GL_CLAMP_TO_EDGE;
-#if defined(SOKOL_GLCORE33)
+#if defined(BINOCLE_GLCORE33)
   case BINOCLE_WRAP_CLAMP_TO_BORDER:
     return GL_CLAMP_TO_BORDER;
 #else
@@ -576,7 +576,7 @@ GLenum binocle_backend_gl_teximage_type(binocle_pixel_format fmt) {
   case BINOCLE_PIXELFORMAT_RG32F:
   case BINOCLE_PIXELFORMAT_RGBA32F:
     return GL_FLOAT;
-#if !defined(SOKOL_GLES2)
+#if !defined(BINOCLE_GLES2)
   case BINOCLE_PIXELFORMAT_RGB10A2:
     return GL_UNSIGNED_INT_2_10_10_10_REV;
   case BINOCLE_PIXELFORMAT_RG11B10F:
@@ -804,7 +804,7 @@ void binocle_backend_gl_init_limits(binocle_gl_backend_t *gl) {
     gl_int = BINOCLE_MAX_VERTEX_ATTRIBUTES;
   }
   gl->limits.max_vertex_attrs = gl_int;
-#if !defined(SOKOL_GLES2)
+#if !defined(BINOCLE_GLES2)
   if (!gl->gles2) {
     glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &gl_int);
     assert(glGetError() == GL_NO_ERROR);
@@ -835,12 +835,12 @@ void binocle_backend_gl_init(binocle_gl_backend_t *gl) {
 }
 
 void binocle_backend_gl_setup_backend(binocle_gl_backend_t *gl, const binocle_backend_desc* desc) {
-  /* assumes that _sg.gl is already zero-initialized */
+  /* assumes that backend.gl is already zero-initialized */
   gl->valid = true;
 #if defined(BINOCLE_GLES2) || defined(BINOCLE_GLES3)
   gl->gles2 = desc->context.gl.force_gles2;
 #else
-//  _SOKOL_UNUSED(desc);
+//  BINOCLE_UNUSED(desc);
   gl->gles2 = false;
 #endif
 
@@ -1222,7 +1222,7 @@ void binocle_backend_gl_cache_restore_buffer_binding(binocle_gl_backend_t *gl, G
   }
 }
 
-/* called when from _sg_gl_destroy_buffer() */
+/* called when from binocle_backend_gl_destroy_buffer() */
 void binocle_backend_gl_cache_invalidate_buffer(binocle_gl_backend_t *gl, GLuint buf) {
   if (buf == gl->cache.vertex_buffer) {
     gl->cache.vertex_buffer = 0;
@@ -1259,7 +1259,7 @@ void binocle_backend_gl_cache_clear_texture_bindings(binocle_gl_backend_t *gl, b
       glActiveTexture(gl_texture_slot);
       glBindTexture(GL_TEXTURE_2D, 0);
       glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-//#if !defined(SOKOL_GLES2)
+//#if !defined(BINOCLE_GLES2)
 //      if (!gl->gles2) {
 //        glBindTexture(GL_TEXTURE_3D, 0);
 //        glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
@@ -1314,7 +1314,7 @@ void binocle_backend_gl_cache_restore_texture_binding(binocle_gl_backend_t *gl, 
   }
 }
 
-/* called from _sg_gl_destroy_texture() */
+/* called from binocle_backend_gl_destroy_texture() */
 void binocle_backend_gl_cache_invalidate_texture(binocle_gl_backend_t *gl, GLuint tex) {
   for (int i = 0; i < BINOCLE_MAX_SHADERSTAGE_IMAGES; i++) {
     binocle_gl_texture_bind_slot* slot = &gl->cache.textures[i];
@@ -1331,7 +1331,7 @@ void binocle_backend_gl_cache_invalidate_texture(binocle_gl_backend_t *gl, GLuin
   }
 }
 
-/* called from _sg_gl_destroy_shader() */
+/* called from binocle_backend_gl_destroy_shader() */
 void binocle_backend_gl_cache_invalidate_program(binocle_gl_backend_t *gl, GLuint prog) {
   if (prog == gl->cache.prog) {
     gl->cache.prog = 0;
@@ -1342,7 +1342,7 @@ void binocle_backend_gl_cache_invalidate_program(binocle_gl_backend_t *gl, GLuin
 void binocle_backend_gl_reset_state_cache(binocle_gl_backend_t *gl) {
   if (true /*gl->cur_context*/) {
     assert(glGetError() == GL_NO_ERROR);
-//#if !defined(SOKOL_GLES2)
+//#if !defined(BINOCLE_GLES2)
 //    if (!gl->gles2) {
 //      glBindVertexArray(gl->cur_context->vao);
 //      assert(glGetError() == GL_NO_ERROR);
@@ -1414,7 +1414,7 @@ void binocle_backend_gl_reset_state_cache(binocle_gl_backend_t *gl) {
     glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
     glEnable(GL_DITHER);
     glDisable(GL_POLYGON_OFFSET_FILL);
-#if defined(SOKOL_GLCORE33)
+#if defined(BINOCLE_GLCORE33)
     glEnable(GL_MULTISAMPLE);
             glEnable(GL_PROGRAM_POINT_SIZE);
 #endif
@@ -1435,11 +1435,11 @@ binocle_backend_gl_create_image(binocle_gl_backend_t *gl, binocle_image_t *img,
 //    return BINOCLE_RESOURCESTATE_FAILED;
 //  }
   /* check for optional texture types */
-//  if ((img->cmn.type == BINOCLE_IMAGETYPE_3D) && !_sg.features.imagetype_3d) {
+//  if ((img->cmn.type == BINOCLE_IMAGETYPE_3D) && !backend.features.imagetype_3d) {
 //    binocle_log_error("3D textures not supported by GL context\n");
 //    return BINOCLE_RESOURCESTATE_FAILED;
 //  }
-//  if ((img->cmn.type == BINOCLE_IMAGETYPE_ARRAY) && !_sg.features.imagetype_array) {
+//  if ((img->cmn.type == BINOCLE_IMAGETYPE_ARRAY) && !backend.features.imagetype_array) {
 //    binocle_log_error("array textures not supported by GL context\n");
 //    return BINOCLE_RESOURCESTATE_FAILED;
 //  }
@@ -1447,7 +1447,7 @@ binocle_backend_gl_create_image(binocle_gl_backend_t *gl, binocle_image_t *img,
 #if !defined(BINOCLE_GLES2)
   bool msaa = false;
   if (!gl->gles2) {
-    msaa = (img->cmn.sample_count > 1) /*&& (_sg.features.msaa_render_targets)*/;
+    msaa = (img->cmn.sample_count > 1) /*&& (backend.features.msaa_render_targets)*/;
   }
 #endif
 
@@ -1939,7 +1939,7 @@ void binocle_backend_gl_destroy_pipeline(binocle_pipeline_t *pip) {
 /*
     binocle_backend_gl_create_pass
 
-    att_imgs must point to a _sg_image* att_imgs[BINOCLE_MAX_COLOR_ATTACHMENTS+1] array,
+    att_imgs must point to a binocle_image* att_imgs[BINOCLE_MAX_COLOR_ATTACHMENTS+1] array,
     first entries are the color attachment images (or nullptr), last entry
     is the depth-stencil image (or nullptr).
 */
@@ -2017,7 +2017,7 @@ binocle_backend_gl_create_pass(binocle_gl_backend_t *gl, binocle_pass_t *pass,
           break;
         default:
 /* 3D- or array-texture */
-#if !defined(SOKOL_GLES2)
+#if !defined(BINOCLE_GLES2)
           if (!gl->gles2) {
             glFramebufferTextureLayer(GL_FRAMEBUFFER, gl_att, gl_tex, mip_level,
                                       slice);
@@ -2050,7 +2050,7 @@ binocle_backend_gl_create_pass(binocle_gl_backend_t *gl, binocle_pass_t *pass,
   }
 
 /* setup color attachments for the framebuffer */
-#if !defined(SOKOL_GLES2)
+#if !defined(BINOCLE_GLES2)
   if (!gl->gles2) {
     GLenum att[BINOCLE_MAX_COLOR_ATTACHMENTS] = {
       GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2,
@@ -2082,7 +2082,7 @@ binocle_backend_gl_create_pass(binocle_gl_backend_t *gl, binocle_pass_t *pass,
             cmn_att->mip_level);
           break;
         default:
-#if !defined(SOKOL_GLES2)
+#if !defined(BINOCLE_GLES2)
           if (!gl->gles2) {
             glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                                       gl_tex, cmn_att->mip_level,
@@ -2099,7 +2099,7 @@ binocle_backend_gl_create_pass(binocle_gl_backend_t *gl, binocle_pass_t *pass,
           return BINOCLE_RESOURCESTATE_FAILED;
         }
 /* setup color attachments for the framebuffer */
-#if !defined(SOKOL_GLES2)
+#if !defined(BINOCLE_GLES2)
         if (!gl->gles2) {
           const GLenum gl_draw_bufs = GL_COLOR_ATTACHMENT0;
           glDrawBuffers(1, &gl_draw_bufs);
@@ -2213,12 +2213,12 @@ void binocle_backend_gl_begin_pass(binocle_gl_backend_t *gl, binocle_pass_t* pas
   }
   if (need_pip_cache_flush) {
     /* we messed with the state cache directly, need to clear cached
-       pipeline to force re-evaluation in next sg_apply_pipeline() */
+       pipeline to force re-evaluation in next binocle_backend_apply_pipeline() */
     gl->cache.cur_pipeline = 0;
     gl->cache.cur_pipeline_id.id = BINOCLE_INVALID_ID;
   }
   bool use_mrt_clear = (0 != pass);
-//#if defined(SOKOL_GLES2)
+//#if defined(BINOCLE_GLES2)
   use_mrt_clear = false;
 //#else
 //  if (gl->gles2) {
@@ -2234,7 +2234,7 @@ void binocle_backend_gl_begin_pass(binocle_gl_backend_t *gl, binocle_pass_t* pas
     }
     if (clear_depth) {
       clear_mask |= GL_DEPTH_BUFFER_BIT;
-//#ifdef SOKOL_GLCORE33
+//#ifdef BINOCLE_GLCORE33
       glClearDepth(action->depth.value);
 //#else
 //      glClearDepthf(action->depth.value);
@@ -2248,7 +2248,7 @@ void binocle_backend_gl_begin_pass(binocle_gl_backend_t *gl, binocle_pass_t* pas
       glClear(clear_mask);
     }
   }
-//#if !defined SOKOL_GLES2
+//#if !defined BINOCLE_GLES2
 //  else {
 //    assert(pass);
 //    for (int i = 0; i < num_color_atts; i++) {
@@ -2285,7 +2285,7 @@ void binocle_backend_gl_end_pass(binocle_gl_backend_t *gl) {
 
   /* if this was an offscreen pass, and MSAA rendering was used, need
      to resolve into the pass images */
-#if !defined(SOKOL_GLES2)
+#if !defined(BINOCLE_GLES2)
   if (!gl->gles2 && gl->cur_pass) {
     /* check if the pass object is still valid */
     const binocle_pass_t* pass = gl->cur_pass;
@@ -2463,7 +2463,7 @@ void binocle_backend_gl_apply_pipeline(binocle_gl_backend_t *gl, binocle_pipelin
       if (pip->gl.color_write_mask[i] != gl->cache.color_write_mask[i]) {
         const binocle_color_mask cm = pip->gl.color_write_mask[i];
         gl->cache.color_write_mask[i] = cm;
-#ifdef SOKOL_GLCORE33
+#ifdef BINOCLE_GLCORE33
         glColorMaski(i,
                                 (cm & BINOCLE_COLORMASK_R) != 0,
                                 (cm & BINOCLE_COLORMASK_G) != 0,
@@ -2514,7 +2514,7 @@ void binocle_backend_gl_apply_pipeline(binocle_gl_backend_t *gl, binocle_pipelin
         glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
       }
     }
-#ifdef SOKOL_GLCORE33
+#ifdef BINOCLE_GLCORE33
     if (pip->gl.sample_count != gl->cache.sample_count) {
             gl->cache.sample_count = pip->gl.sample_count;
             if (pip->gl.sample_count > 1) {
@@ -2544,9 +2544,9 @@ void binocle_backend_gl_apply_bindings(
   binocle_image_t** fs_imgs, int num_fs_imgs)
 {
   assert(pip);
-//  _SOKOL_UNUSED(num_fs_imgs);
-//  _SOKOL_UNUSED(num_vs_imgs);
-//  _SOKOL_UNUSED(num_vbs);
+//  BINOCLE_UNUSED(num_fs_imgs);
+//  BINOCLE_UNUSED(num_vs_imgs);
+//  BINOCLE_UNUSED(num_vbs);
   assert(glGetError() == GL_NO_ERROR);
 
   /* bind textures */
@@ -2575,7 +2575,7 @@ void binocle_backend_gl_apply_bindings(
   gl->cache.cur_ib_offset = ib_offset;
 
   /* vertex attributes */
-  for (GLuint attr_index = 0; attr_index < (GLuint)BINOCLE_MAX_VERTEX_ATTRIBUTES/*_sg.limits.max_vertex_attrs*/; attr_index++) {
+  for (GLuint attr_index = 0; attr_index < (GLuint)BINOCLE_MAX_VERTEX_ATTRIBUTES/*backend.limits.max_vertex_attrs*/; attr_index++) {
     binocle_gl_attr_t* attr = &pip->gl.attrs[attr_index];
     binocle_gl_cache_attr_t* cache_attr = &gl->cache.attrs[attr_index];
     bool cache_attr_dirty = false;
@@ -2600,8 +2600,8 @@ void binocle_backend_gl_apply_bindings(
         glVertexAttribPointer(attr_index, attr->size, attr->type,
                               attr->normalized, attr->stride,
                               (const GLvoid*)(GLintptr)vb_offset);
-#ifdef SOKOL_INSTANCING_ENABLED
-        if (_sg.features.instancing) {
+#ifdef BINOCLE_INSTANCING_ENABLED
+        if (backend.features.instancing) {
                         glVertexAttribDivisor(attr_index, (GLuint)attr->divisor);
                     }
 #endif
@@ -2641,7 +2641,7 @@ assert(ctx);
   assert(glGetError() == GL_NO_ERROR);
 glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*)&ctx->default_framebuffer);
   assert(glGetError() == GL_NO_ERROR);
-//#if !defined(SOKOL_GLES2)
+//#if !defined(BINOCLE_GLES2)
 //if (!gl->gles2) {
 //assert(0 == ctx->vao);
 //glGenVertexArrays(1, &ctx->vao);
@@ -2654,7 +2654,7 @@ return BINOCLE_RESOURCESTATE_VALID;
 
 void binocle_backend_gl_destroy_context(binocle_gl_backend_t *gl, binocle_context_t* ctx) {
   assert(ctx);
-//#if !defined(SOKOL_GLES2)
+//#if !defined(BINOCLE_GLES2)
 //  if (!gl->gles2) {
 //    if (ctx->vao) {
 //      glDeleteVertexArrays(1, &ctx->vao);
@@ -2662,7 +2662,7 @@ void binocle_backend_gl_destroy_context(binocle_gl_backend_t *gl, binocle_contex
 //    assert(glGetError() == GL_NO_ERROR);
 //  }
 //#else
-//  _SOKOL_UNUSED(ctx);
+//  BINOCLE_UNUSED(ctx);
 //#endif
 }
 
@@ -2718,7 +2718,7 @@ void binocle_backend_gl_draw(binocle_gl_backend_t *gl, int base_element, int num
       glDrawElements(p_type, num_elements, i_type, indices);
     }
     else {
-//      if (_sg.features.instancing) {
+//      if (backend.features.instancing) {
 //        glDrawElementsInstanced(p_type, num_elements, i_type, indices, num_instances);
 //      }
     }
@@ -2729,7 +2729,7 @@ void binocle_backend_gl_draw(binocle_gl_backend_t *gl, int base_element, int num
       glDrawArrays(p_type, base_element, num_elements);
     }
     else {
-//      if (_sg.features.instancing) {
+//      if (backend.features.instancing) {
 //        glDrawArraysInstanced(p_type, base_element, num_elements, num_instances);
 //      }
     }

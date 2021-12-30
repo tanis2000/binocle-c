@@ -36,7 +36,7 @@
     in the VALID state is attempted to be used for rendering, rendering
     operations will silently be dropped.
 
-    The special INVALID state is returned in sg_query_xxx_state() if no
+    The special INVALID state is returned in binocle_query_xxx_state() if no
     resource object exists for the provided resource id.
 */
 typedef enum binocle_resource_state {

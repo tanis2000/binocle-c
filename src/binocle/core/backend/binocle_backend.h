@@ -19,13 +19,13 @@ struct binocle_material;
 
 typedef struct binocle_slot_info {
   binocle_resource_state state;    /* the current state of this resource slot */
-  uint32_t res_id;        /* type-neutral resource if (e.g. sg_buffer.id) */
+  uint32_t res_id;        /* type-neutral resource if (e.g. binocle_buffer.id) */
   uint32_t ctx_id;        /* the context this resource belongs to */
 } binocle_slot_info;
 
 typedef struct binocle_image_info {
   binocle_slot_info slot;              /* resource pool slot info */
-  uint32_t upd_frame_index;       /* frame index of last sg_update_image() */
+  uint32_t upd_frame_index;       /* frame index of last binocle_update_image() */
   int num_slots;                  /* number of renaming-slots for dynamically updated images */
   int active_slot;                /* currently active write-slot for dynamically updated images */
   int width;                      /* image width */

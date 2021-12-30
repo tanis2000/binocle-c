@@ -312,13 +312,13 @@ typedef enum binocle_compare_func {
 } binocle_compare_func;
 
 /*
-    sg_stencil_op
+    binocle_stencil_op
 
     The operation performed on a currently stored stencil-value when a
     comparison test passes or fails. This is used when creating a pipeline
     object in the members:
 
-    sg_pipeline_desc
+    binocle_pipeline_desc
         .stencil
             .front
                 .fail_op
@@ -329,7 +329,7 @@ typedef enum binocle_compare_func {
                 .depth_fail_op
                 .pass_op
 
-    The default value is SG_STENCILOP_KEEP.
+    The default value is BINOCLE_STENCILOP_KEEP.
 */
 typedef enum binocle_stencil_op {
   BINOCLE_STENCILOP_DEFAULT,      /* value 0 reserved for default-init */
@@ -407,7 +407,7 @@ typedef enum binocle_color_mask {
     binocle_primitive_type
 
     This is the common subset of 3D primitive types supported across all 3D
-    APIs. This is used in the sg_pipeline_desc.primitive_type member when
+    APIs. This is used in the binocle_pipeline_desc.primitive_type member when
     creating a pipeline object.
 
     The default primitive type is BINOCLE_PRIMITIVETYPE_TRIANGLES.
@@ -571,7 +571,7 @@ typedef enum binocle_uniform_type {
 
     Indicates the basic data type of a shader's texture sampler which
     can be float , unsigned integer or signed integer. The sampler
-    type is used in the sg_shader_image_desc to describe the
+    type is used in the binocle_shader_image_desc to describe the
     sampler type of a shader's texture sampler binding.
 
     The default sampler type is BINOCLE_SAMPLERTYPE_FLOAT.
@@ -931,7 +931,7 @@ typedef struct binocle_bindings {
     ADVANCED TOPIC: Injecting native 3D-API buffers:
 
     The following struct members allow to inject your own GL, Metal
-    or D3D11 buffers into sokol_gfx:
+    or D3D11 buffers into the backend:
 
     .gl_buffers[BINOCLE_NUM_INFLIGHT_FRAMES]
     .mtl_buffers[BINOCLE_NUM_INFLIGHT_FRAMES]
@@ -939,17 +939,17 @@ typedef struct binocle_bindings {
 
     You must still provide all other struct items except the .data item, and
     these must match the creation parameters of the native buffers you
-    provide. For SG_USAGE_IMMUTABLE, only provide a single native 3D-API
-    buffer, otherwise you need to provide SG_NUM_INFLIGHT_FRAMES buffers
+    provide. For BINOCLE_USAGE_IMMUTABLE, only provide a single native 3D-API
+    buffer, otherwise you need to provide BINOCLE_NUM_INFLIGHT_FRAMES buffers
     (only for GL and Metal, not D3D11). Providing multiple buffers for GL and
-    Metal is necessary because sokol_gfx will rotate through them when
+    Metal is necessary because the backend will rotate through them when
     calling binocle_update_buffer() to prevent lock-stalls.
 
     Note that it is expected that immutable injected buffer have already been
     initialized with content, and the .content member must be 0!
 
     Also you need to call binocle_reset_state_cache() after calling native 3D-API
-    functions, and before calling any sokol_gfx function.
+    functions, and before calling any backend function.
 */
 typedef struct binocle_buffer_desc {
   uint32_t _start_canary;

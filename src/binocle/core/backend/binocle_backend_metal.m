@@ -563,7 +563,7 @@ uint32_t binocle_backend_mtl_add_resource(binocle_mtl_backend_t *mtl, id res) {
 /*  mark an MTLResource for release, this will put the resource into the
     deferred-release queue, and the resource will then be released N frames later,
     the special pool index 0 will be ignored (this means that a nil
-    value was provided to _sg_mtl_add_resource()
+    value was provided to binocle_backend_mtl_add_resource()
 */
 void binocle_backend_mtl_release_resource(binocle_mtl_backend_t *mtl, uint32_t frame_index, uint32_t slot_index) {
   if (slot_index == BINOCLE_MTL_INVALID_SLOT_INDEX) {
@@ -1082,7 +1082,7 @@ binocle_backend_mtl_create_shader(binocle_mtl_backend_t *mtl, binocle_shader_t *
     binocle_log_error("fragment shader entry function not found\n");
     return BINOCLE_RESOURCESTATE_FAILED;
   }
-  /* it is legal to call _sg_mtl_add_resource with a nil value, this will return
+  /* it is legal to call binocle_backend_mtl_add_resource with a nil value, this will return
    * a special 0xFFFFFFFF index */
   shd->mtl.stage[BINOCLE_SHADERSTAGE_VS].mtl_lib = binocle_backend_mtl_add_resource(mtl, vs_lib);
   shd->mtl.stage[BINOCLE_SHADERSTAGE_FS].mtl_lib = binocle_backend_mtl_add_resource(mtl, fs_lib);
@@ -1094,7 +1094,7 @@ binocle_backend_mtl_create_shader(binocle_mtl_backend_t *mtl, binocle_shader_t *
 void binocle_backend_mtl_destroy_shader(binocle_mtl_backend_t *mtl,
                                         binocle_shader_t *shd) {
   assert(shd);
-  /* it is valid to call _sg_mtl_release_resource with a 'null resource' */
+  /* it is valid to call binocle_backend_mtl_release_resource with a 'null resource' */
   binocle_backend_mtl_release_resource(
     mtl, mtl->frame_index, shd->mtl.stage[BINOCLE_SHADERSTAGE_VS].mtl_func);
   binocle_backend_mtl_release_resource(
@@ -1592,14 +1592,14 @@ void binocle_backend_mtl_apply_bindings(
   binocle_image_t** vs_imgs, int num_vs_imgs,
   binocle_image_t** fs_imgs, int num_fs_imgs)
 {
-//  _SOKOL_UNUSED(pip);
+//  BINOCLE_UNUSED(pip);
   assert(mtl->in_pass);
   if (!mtl->pass_valid) {
     return;
   }
   assert(nil != mtl->cmd_encoder);
 
-  /* store index buffer binding, this will be needed later in sg_draw() */
+  /* store index buffer binding, this will be needed later in binocle_backend_draw() */
   mtl->state_cache.cur_indexbuffer = ib;
   mtl->state_cache.cur_indexbuffer_offset = ib_offset;
   if (ib) {
