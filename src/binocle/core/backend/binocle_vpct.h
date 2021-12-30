@@ -7,7 +7,7 @@
 #ifndef BINOCLE_VPCT_H
 #define BINOCLE_VPCT_H
 
-#include "binocle_math.h"
+#include "../binocle_math.h"
 #include "binocle_color.h"
 
 /**

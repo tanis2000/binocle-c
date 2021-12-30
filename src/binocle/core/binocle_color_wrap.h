@@ -6,7 +6,7 @@
 #define LUA_BINOCLE_COLOR_WRAP_H
 
 #include "binocle_lua.h"
-#include "binocle_color.h"
+#include "backend/binocle_color.h"
 
 typedef struct l_binocle_color_t {
   struct binocle_color color;

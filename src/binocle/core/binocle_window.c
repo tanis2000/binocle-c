@@ -6,7 +6,7 @@
 
 #include <inttypes.h>
 #include "binocle_sdl.h"
-#include "binocle_color.h"
+#include "backend/binocle_color.h"
 #include "binocle_window.h"
 #include "binocle_log.h"
 
@@ -34,7 +34,6 @@ binocle_window *binocle_window_new(uint32_t width, uint32_t height, char *title)
 
   binocle_timer_start(&res->framerate_timer);
 
-  binocle_window_clear(res);
   binocle_window_refresh(res);
   return res;
 }
@@ -54,16 +53,13 @@ void binocle_window_destroy(binocle_window *win) {
     SDL_free(win->title);
     win->title = NULL;
   }
+
+  if (win->mtl_view != NULL) {
+    SDL_Metal_DestroyView(win->mtl_view);
+    win->mtl_view = NULL;
+  }
+
   free(win);
-}
-
-void binocle_window_fill(binocle_color color) {
-  glClearColor(color.r, color.g, color.b, color.a);
-  glClear(GL_COLOR_BUFFER_BIT);
-}
-
-void binocle_window_clear(binocle_window *win) {
-  binocle_window_fill(win->bg_color);
 }
 
 void binocle_window_refresh(binocle_window *win) {
@@ -75,7 +71,9 @@ void binocle_window_refresh(binocle_window *win) {
   glBindFramebuffer(GL_FRAMEBUFFER, info.info.uikit.framebuffer);
   glBindRenderbuffer(GL_RENDERBUFFER,info.info.uikit.colorbuffer);
 #endif
+#if defined(BINOCLE_GL)
   SDL_GL_SwapWindow(win->window);
+#endif
 }
 
 void binocle_window_create(binocle_window *win, char *title, uint32_t width, uint32_t height) {
@@ -83,9 +81,17 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+#else
+//  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+//  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+//  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+#endif
+#if defined(BINOCLE_GL)
+  int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN;
+#elif defined(BINOCLE_METAL)
+  int flags = SDL_WINDOW_SHOWN;
 #endif
 
-  int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN;
 #if defined(__IPHONEOS__) || defined(__ANDROID__)
   flags |= SDL_WINDOW_BORDERLESS | SDL_WINDOW_FULLSCREEN;
 #else
@@ -116,12 +122,17 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
   SDL_SetWindowFullscreen(win->window, SDL_TRUE);
 #endif
 
+#if defined(BINOCLE_GL)
   win->gl_context = SDL_GL_CreateContext(win->window);
   if (win->gl_context == 0) {
     binocle_log_error("Window::resize: Couldn't create GL Context");
     binocle_log_error(SDL_GetError());
     return;
   }
+#elif defined(BINOCLE_METAL)
+  win->mtl_view = SDL_Metal_CreateView(win->window);
+#endif
+
 
   //Use Vsync (0 = no vsync, 1 = vsync)
 #if !defined(__EMSCRIPTEN__)
@@ -167,9 +178,12 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
   }
   binocle_log_info("Status: Using GLEW %s", glewGetString(GLEW_VERSION));
 #endif
-
+#if defined(BINOCLE_GL)
   binocle_log_info("OpenGL version supported by this platform (%s): \n",
                    glGetString(GL_VERSION));
+#elif defined(BINOCLE_METAL)
+  binocle_log_info("Using Metal backend\n");
+#endif
 }
 
 void binocle_window_set_background_color(binocle_window *win, binocle_color color) {

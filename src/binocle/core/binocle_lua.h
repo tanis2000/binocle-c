@@ -33,13 +33,21 @@ typedef struct binocle_lua {
   char *last_script_run;
 } binocle_lua;
 
+typedef int (binocle_lua_fs_enumerate_pre_run_callback)();
+typedef int (binocle_lua_fs_enumerate_post_run_callback)();
 
+typedef struct binocle_lua_fs_enumerate_user_data_t {
+  binocle_lua *lua;
+  bool reloaded;
+  binocle_lua_fs_enumerate_pre_run_callback *pre_run_callback;
+  binocle_lua_fs_enumerate_post_run_callback *post_run_callback;
+} binocle_lua_fs_enumerate_user_data_t;
 
 binocle_lua binocle_lua_new();
 bool binocle_lua_init(binocle_lua *lua);
 void binocle_lua_destroy(binocle_lua *lua);
 bool binocle_lua_run_script(binocle_lua *lua, char *filename);
-void binocle_lua_check_scripts_modification_time(binocle_lua *lua, char *path);
+bool binocle_lua_check_scripts_modification_time(binocle_lua *lua, char *path, binocle_lua_fs_enumerate_pre_run_callback *pre_run_callback, binocle_lua_fs_enumerate_post_run_callback *post_run_callback);
 
 int lua_test(const char *arg);
 int lua_test2(const char *arg);

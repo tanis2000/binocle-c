@@ -5,7 +5,7 @@
 #include "binocle_color_wrap.h"
 #include "binocle_lua.h"
 #include "binocle_sdl.h"
-#include "binocle_color.h"
+#include "backend/binocle_color.h"
 
 int l_binocle_color_new(lua_State *L) {
   float r = luaL_checknumber(L, 1);

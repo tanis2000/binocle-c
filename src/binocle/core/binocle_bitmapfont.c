@@ -7,9 +7,9 @@
 #include "binocle_bitmapfont.h"
 #include "binocle_sdl.h"
 #include "binocle_log.h"
-#include "binocle_vpct.h"
+#include "backend/binocle_vpct.h"
 #include "binocle_gd.h"
-#include "binocle_color.h"
+#include "backend/binocle_color.h"
 
 binocle_bitmapfont *binocle_bitmapfont_new() {
   binocle_bitmapfont *res = SDL_malloc(sizeof(binocle_bitmapfont));

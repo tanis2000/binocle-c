@@ -9,6 +9,16 @@
 
 #include "binocle_sdl.h"
 #include <kazmath/kazmath.h>
+#include "backend/binocle_backend.h"
+
+//#if defined(BINOCLE_GL)
+//#include "backend/binocle_backend_gl.h"
+//#elif defined(BINOCLE_METAL)
+//#include "backend/binocle_backend_metal.h"
+//#endif
+
+#define BINOCLE_GD_MAX_VERTICES (16535 * 6)
+#define BINOCLE_GD_MAX_COMMANDS (16535)
 
 struct binocle_blend;
 struct binocle_camera;
@@ -20,51 +30,47 @@ struct binocle_texture;
 struct binocle_vpct;
 struct binocle_mesh;
 struct binocle_camera_3d;
+struct binocle_window;
+struct binocle_viewport_adapter;
 
 enum binocle_blend_factor;
 enum binocle_blend_equation;
+
+typedef struct binocle_gd_gfx_t {
+  binocle_pass pass;
+  binocle_pipeline pip;
+  binocle_bindings bind;
+  binocle_pass_action action;
+  binocle_image render_target;
+  binocle_buffer vbuf;
+  binocle_buffer ibuf;
+} binocle_gd_gfx_t;
+
+typedef struct binocle_gd_uniform_t {
+  kmMat4 projectionMatrix;
+  kmMat4 viewMatrix;
+  kmMat4 modelMatrix;
+} binocle_gd_uniform_t;
+
+typedef struct binocle_gd_command_t {
+  binocle_image img;
+  uint32_t base_vertex;
+  uint32_t num_vertices;
+  binocle_gd_uniform_t uniforms;
+} binocle_gd_command_t;
 
 /**
  * \brief a graphic device used to perform OpenGL calls and store the needed state
  */
 typedef struct binocle_gd {
-  GLuint vbo;
-  GLuint vertex_attribute;
-  GLuint color_attribute;
-  GLuint tex_coord_attribute;
-  GLuint normal_attribute;
-  GLint image_uniform;
-  GLint projection_matrix_uniform;
-  // GLint model_view_matrix_uniform;
-  GLint view_matrix_uniform;
-  GLint model_matrix_uniform;
+  binocle_gd_gfx_t offscreen;
+  binocle_gd_gfx_t display;
+  binocle_gd_gfx_t flat;
+  binocle_vpct *vertices;
+  uint32_t num_vertices;
+  binocle_gd_command_t *commands;
+  uint32_t num_commands;
 } binocle_gd;
-
-/**
- * \brief a render target
- */
-typedef struct binocle_render_target {
-  GLuint frame_buffer;
-  GLuint render_buffer; // used for depth
-  GLuint texture;
-} binocle_render_target;
-
-#ifdef DEBUG
-// In debug mode, perform a test on every OpenGL call
-// The do-while loop is needed so that glCheck can be used as a single statement
-// in if/else branches
-#define glCheck(expr)                                                          \
-  do {                                                                         \
-    expr;                                                                      \
-    binocle_gd_gl_check_error(__FILE__, __LINE__, #expr);                      \
-  } while (false)
-#else
-// Else, we don't add any overhead
-#define glCheck(expr) (expr)
-#endif
-
-void binocle_gd_gl_check_error(const char *file, unsigned int line,
-                               const char *expression);
 
 /**
  * \brief Creates a new graphic device
@@ -72,11 +78,20 @@ void binocle_gd_gl_check_error(const char *file, unsigned int line,
  */
 binocle_gd binocle_gd_new();
 
+void binocle_gd_destroy(binocle_gd *gd);
+
 /**
  * Initializes a graphic device
  * @param gd the pointer to the graphics device
+ * @param wind the pointer to the window
  */
-void binocle_gd_init(binocle_gd *gd);
+void binocle_gd_init(binocle_gd *gd, struct binocle_window *win);
+
+void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width, uint32_t offscreen_height, binocle_shader offscreen_shader, binocle_shader display_shader);
+
+void binocle_gd_render_offscreen(binocle_gd *gd);
+void binocle_gd_render_screen(binocle_gd *gd, struct binocle_window *window, float design_width, float design_height, kmAABB2 viewport);
+void binocle_gd_render(binocle_gd *gd, struct binocle_window *window, float design_width, float design_height, kmAABB2 viewport);
 
 /**
  * Creates a 2D model view matrix
@@ -124,13 +139,13 @@ void binocle_gd_apply_blend_mode(const struct binocle_blend blend_mode);
  * @param gd the graphics device instance
  * @param shader the shader
  */
-void binocle_gd_apply_shader(binocle_gd *gd, struct binocle_shader *shader);
+void binocle_gd_apply_shader(binocle_gd *gd, binocle_shader shader);
 
 /**
  * \brief Applies the given texture
  * @param texture the texture to use
  */
-void binocle_gd_apply_texture(struct binocle_texture texture);
+void binocle_gd_apply_texture(struct binocle_image texture);
 
 GLuint binocle_gd_factor_to_gl_constant(enum binocle_blend_factor blend_factor);
 
@@ -141,25 +156,6 @@ GLuint binocle_gd_factor_to_gl_constant(enum binocle_blend_factor blend_factor);
  */
 GLuint
 binocle_gd_equation_to_gl_constant(enum binocle_blend_equation blend_equation);
-
-/**
- * \brief Creates a new render target
- * @param width the width of the render target texture
- * @param height the height of the render target texture
- * @param use_depth true if you want to enable the depth buffer
- * @param format the texture format
- * @return
- */
-binocle_render_target *binocle_gd_create_render_target(uint32_t width,
-                                                      uint32_t height,
-                                                      bool use_depth,
-                                                      GLenum format);
-
-/**
- * \brief Destroys a render target and releases all its resources
- * @param render_target the render target
- */
-void binocle_gd_destroy_render_target(binocle_render_target *render_target);
 
 /**
  * \brief Sets a uniform float value for the given shader
@@ -177,7 +173,7 @@ void binocle_gd_set_uniform_float(struct binocle_shader *shader,
  * @param value1 the first float value
  * @param value2 the second float value
  */
-void binocle_gd_set_uniform_float2(struct binocle_shader *shader,
+void binocle_gd_set_uniform_float2(binocle_shader shader,
                                    const char *name, float value1,
                                    float value2);
 
@@ -219,21 +215,21 @@ void binocle_gd_clear(struct binocle_color color);
  * \brief Binds the frame buffer and the render buffer of a render target
  * @param render_target the render target. If NULL, it sets both the frame buffer and render buffer to 0.
  */
-void binocle_gd_set_render_target(binocle_render_target *render_target);
+void binocle_gd_set_render_target(binocle_image render_target);
 
 /**
  * \brief Draws a quad to the current buffer using the given shader
  * @param shader the shader
  */
-void binocle_gd_draw_quad(struct binocle_shader *shader);
+void binocle_gd_draw_quad(binocle_gd *gd, binocle_image image);
 
 /**
  * \brief Draws a quad to the screen buffer using the given shader and render target
  * @param shader the shader
  * @param render_target the render target to use as source
  */
-void binocle_gd_draw_quad_to_screen(struct binocle_shader *shader,
-                                    binocle_render_target render_target);
+void binocle_gd_draw_quad_to_screen(binocle_shader shader,
+                                    binocle_image render_target);
 
 /**
  * \brief Sets a render target as the texture for a given uniform
@@ -243,7 +239,7 @@ void binocle_gd_draw_quad_to_screen(struct binocle_shader *shader,
  */
 void binocle_gd_set_uniform_render_target_as_texture(
     struct binocle_shader *shader, const char *name,
-    binocle_render_target render_target);
+    binocle_image render_target);
 
 /**
  * \brief Sets a uniform vec3 value
@@ -259,7 +255,7 @@ void binocle_gd_set_uniform_vec3(struct binocle_shader *shader, const char *name
  * @param name the name of the uniform
  * @param mat the mat4 value
  */
-void binocle_gd_set_uniform_mat4(struct binocle_shader *shader, const char *name,
+void binocle_gd_set_uniform_mat4(binocle_shader shader, const char *name,
                                  kmMat4 mat);
 /**
  * \brief Draws a rectangle to the current buffer
@@ -321,6 +317,6 @@ void binocle_gd_draw_with_state(binocle_gd *gd, const struct binocle_vpct *verti
 void binocle_gd_draw_mesh(binocle_gd *gd, const struct binocle_mesh *mesh, kmAABB2 viewport, struct binocle_camera_3d *camera);
 void binocle_gd_draw_test_triangle(struct binocle_shader *shader);
 void binocle_gd_draw_test_cube(struct binocle_shader *shader);
-void binocle_gd_apply_3d_gl_states();
+void binocle_gd_setup_flat_pipeline(binocle_gd *gd);
 
 #endif // BINOCLE_GD_H

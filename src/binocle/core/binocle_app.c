@@ -17,7 +17,7 @@ binocle_app binocle_app_new() {
   return res;
 }
 
-bool binocle_app_init(binocle_app *app) {
+bool binocle_app_init(binocle_app *app, binocle_app_desc_t *desc) {
   // Initialize time stuff
   stm_setup();
 
@@ -25,7 +25,11 @@ bool binocle_app_init(binocle_app *app) {
   app->fs = binocle_fs_new();
   binocle_fs_init(&app->fs);
 
-  binocle_fs_mount(binocle_sdl_assets_dir(), app->assets_mount_path, false);
+  if (desc->forced_asset_origin_path != NULL) {
+    binocle_fs_mount(desc->forced_asset_origin_path, app->assets_mount_path, false);
+  } else {
+    binocle_fs_mount(binocle_sdl_assets_dir(), app->assets_mount_path, false);
+  }
 
   binocle_sdl_init();
   return true;

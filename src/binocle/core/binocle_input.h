@@ -327,6 +327,15 @@ typedef struct binocle_input {
   binocle_input_touch touch;
 
   char text[SDL_TEXTINPUTEVENT_TEXT_SIZE];
+
+  /**
+   * By default the mouse position has the origin at the top-left of the screen.
+   * When this is set to true, we consider the origin at the bottom-left instead.
+   */
+  bool inverted_mouse_position;
+
+  /// The screen height, used to calculate the inverted mouse position
+  uint32_t screen_height;
 } binocle_input;
 
 /**
@@ -504,5 +513,19 @@ bool binocle_input_is_touch_down(binocle_input input, unsigned int finger);
  * @return the position of the finger in world coordinates
  */
 kmVec2 binocle_input_get_touch_position(binocle_input input, unsigned int finger, struct binocle_camera camera);
+
+/**
+ * \brief Inverts the mouse position setting the origin at the bottom-left of the screen.
+ * If the window/screen size changes you have to call this function again to set the new height.
+ * @param input the iunput manager
+ * @param screen_height the height of the screen, used to calculate the mouse origin
+ */
+void binocle_input_invert_mouse_position(binocle_input *input, uint32_t screen_height);
+
+/**
+ * \brief Sets the mouse position to have the origin at the top-left of the screen
+ * @param input the input manager
+ */
+void binocle_input_default_mouse_position(binocle_input *input);
 
 #endif //BINOCLE_INPUT_H

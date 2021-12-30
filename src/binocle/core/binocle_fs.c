@@ -49,3 +49,9 @@ void binocle_fs_enumerate(char * path, PHYSFS_EnumerateCallback callback, void *
     binocle_log_error(PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
   }
 }
+
+bool binocle_fs_is_directory(const char *filename) {
+  PHYSFS_Stat stat = {0};
+  PHYSFS_stat(filename, &stat);
+  return (stat.filetype == PHYSFS_FILETYPE_DIRECTORY);
+}

@@ -1,6 +1,7 @@
 #include (BundleUtilities)
 
 add_definitions (-D__ANDROID__)
+add_definitions (-DBINOCLE_GL)
 
 #set(CMAKE_SYSTEM_NAME Android)
 #set(CMAKE_SYSTEM_VERSION 17)

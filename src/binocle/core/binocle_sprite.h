@@ -9,7 +9,7 @@
 
 #include "binocle_render_state.h"
 #include "binocle_subtexture.h"
-#include "binocle_vpct.h"
+#include "backend/binocle_vpct.h"
 #include <kazmath/kazmath.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -20,7 +20,7 @@
 struct binocle_camera;
 struct binocle_material;
 struct binocle_gd;
-struct binocle_texture;
+struct binocle_image;
 
 /**
  * The sort mode used when running through the sprite batcher
@@ -97,7 +97,7 @@ typedef struct binocle_sprite {
  * An item of the sprite batch
  */
 typedef struct binocle_sprite_batch_item {
-  struct binocle_texture *texture;
+  struct binocle_image *texture;
   binocle_vpct vertex_tl;
   binocle_vpct vertex_tr;
   binocle_vpct vertex_bl;
@@ -250,6 +250,13 @@ int binocle_sprite_get_current_frame(binocle_sprite *sprite);
 void binocle_sprite_set_current_frame(binocle_sprite *sprite, int frame);
 
 /**
+ * \brief Sets the current frame to display by name
+ * @param sprite the sprite
+ * @param name the name of the frame as set in its subtexture
+ */
+void binocle_sprite_set_current_frame_by_name(binocle_sprite *sprite, const char *name);
+
+/**
  * \brief Gets the ID of the current animation
  * @param sprite the sprite
  * @return the ID of the current animation
@@ -355,7 +362,7 @@ binocle_sprite_batch_item binocle_sprite_batch_item_new();
  * @param depth the depth of the sprite
  * @param texture the texture
  */
-void binocle_sprite_batch_item_set(binocle_sprite_batch_item *item, float x, float y, float dx, float dy, float w, float h, float sin, float cos, binocle_color color, kmVec2 tex_coord_tl, kmVec2 tex_coord_br, float depth, struct binocle_texture *texture);
+void binocle_sprite_batch_item_set(binocle_sprite_batch_item *item, float x, float y, float dx, float dy, float w, float h, float sin, float cos, binocle_color color, kmVec2 tex_coord_tl, kmVec2 tex_coord_br, float depth, struct binocle_image *texture);
 
 /**
  * \brief Creates a new sprite batcher
@@ -396,7 +403,7 @@ void binocle_sprite_batcher_draw_batch(binocle_sprite_batcher *batcher, binocle_
  * @param render_state the current render state
  * @param gd the graphics device
  */
-void binocle_sprite_batcher_flush_vertex_array(binocle_sprite_batcher *batcher, uint64_t start, uint64_t end, struct binocle_texture *texture, struct binocle_render_state *render_state, struct binocle_gd *gd);
+void binocle_sprite_batcher_flush_vertex_array(binocle_sprite_batcher *batcher, uint64_t start, uint64_t end, struct binocle_image *texture, struct binocle_render_state *render_state, struct binocle_gd *gd);
 
 /**
  * \brief Creates a new sprite batch
@@ -446,7 +453,7 @@ void binocle_sprite_batch_setup(binocle_sprite_batch *batch, kmAABB2 viewport);
  * @param depth the depth of the sprite
  * @param auto_flush true if this should be flushed as soon as the draw call is issued
  */
-void binocle_sprite_batch_draw_internal(binocle_sprite_batch *batch, struct binocle_texture *texture, kmAABB2 *source_rectangle, binocle_color color, float rotation, float depth, bool auto_flush);
+void binocle_sprite_batch_draw_internal(binocle_sprite_batch *batch, struct binocle_image *texture, kmAABB2 *source_rectangle, binocle_color color, float rotation, float depth, bool auto_flush);
 
 /**
  * \brief Flushes the batch if the requirements are met
@@ -467,7 +474,7 @@ void binocle_sprite_batch_flush_if_needed(binocle_sprite_batch *batch);
  * @param color the color
  * @param layer_depth the depth of the sprite
  */
-void binocle_sprite_batch_draw(binocle_sprite_batch *batch, struct binocle_texture *texture, kmVec2 *position,
+void binocle_sprite_batch_draw(binocle_sprite_batch *batch, struct binocle_image *texture, kmVec2 *position,
                                kmAABB2 *destination_rectangle,
                                kmAABB2 *source_rectangle, kmVec2 *origin,
                                float rotation, kmVec2 *scale, binocle_color color,
@@ -485,7 +492,7 @@ void binocle_sprite_batch_draw(binocle_sprite_batch *batch, struct binocle_textu
  * @param scale the scale
  * @param layer_depth the depth of the sprite
  */
-void binocle_sprite_batch_draw_vector_scale(binocle_sprite_batch *batch, struct binocle_texture *texture, kmVec2 *position,
+void binocle_sprite_batch_draw_vector_scale(binocle_sprite_batch *batch, struct binocle_image *texture, kmVec2 *position,
                                             kmAABB2 *source_rectangle, binocle_color color,
                                             float rotation, kmVec2 origin, kmVec2 scale,
                                             float layer_depth);
@@ -502,7 +509,7 @@ void binocle_sprite_batch_draw_vector_scale(binocle_sprite_batch *batch, struct 
  * @param scale the scale
  * @param layer_depth the depth of the sprite
  */
-void binocle_sprite_batch_draw_float_scale(binocle_sprite_batch *batch, struct binocle_texture *texture, kmVec2 position,
+void binocle_sprite_batch_draw_float_scale(binocle_sprite_batch *batch, struct binocle_image *texture, kmVec2 position,
                                            kmAABB2 source_rectangle, binocle_color color,
                                            float rotation, kmVec2 origin, float scale,
                                            float layer_depth);
@@ -513,7 +520,7 @@ void binocle_sprite_batch_draw_float_scale(binocle_sprite_batch *batch, struct b
  * @param texture the texture
  * @param position the position
  */
-void binocle_sprite_batch_draw_position(binocle_sprite_batch *batch, struct binocle_texture *texture, kmVec2 position);
+void binocle_sprite_batch_draw_position(binocle_sprite_batch *batch, struct binocle_image *texture, kmVec2 position);
 
 /**
  * \brief Draws a sprite to the batch
@@ -527,7 +534,7 @@ void binocle_sprite_batch_draw_position(binocle_sprite_batch *batch, struct bino
  * @param layer_depth the depth of the sprite
  */
 void
-binocle_sprite_batch_draw_noscale(binocle_sprite_batch *batch, struct binocle_texture *texture, kmAABB2 destination_rectangle,
+binocle_sprite_batch_draw_noscale(binocle_sprite_batch *batch, struct binocle_image *texture, kmAABB2 destination_rectangle,
                                   kmAABB2 *source_rectangle, binocle_color color,
                                   float rotation, kmVec2 origin,
                                   float layer_depth);
@@ -541,7 +548,7 @@ binocle_sprite_batch_draw_noscale(binocle_sprite_batch *batch, struct binocle_te
  * @param color the color
  */
 void
-binocle_sprite_draw_dst_src_color(binocle_sprite_batch *batch, struct binocle_texture *texture, kmAABB2 destination_rectangle,
+binocle_sprite_draw_dst_src_color(binocle_sprite_batch *batch, struct binocle_image *texture, kmAABB2 destination_rectangle,
                                   kmAABB2 source_rectangle, binocle_color color);
 
 #endif // BINOCLE_SPRITE_H

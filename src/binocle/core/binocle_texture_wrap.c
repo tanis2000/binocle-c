@@ -6,7 +6,7 @@
 #include "binocle_texture_wrap.h"
 #include "binocle_lua.h"
 #include "binocle_image.h"
-#include "binocle_texture.h"
+#include "backend/binocle_backend.h"
 #include "binocle_sdl.h"
 
 int l_binocle_texture_from_image(lua_State *L) {
@@ -15,8 +15,7 @@ int l_binocle_texture_from_image(lua_State *L) {
   lua_getfield(L, LUA_REGISTRYINDEX, "binocle_texture");
   lua_setmetatable(L, -2);
   SDL_memset(texture, 0, sizeof(*texture));
-  binocle_texture *tex = binocle_texture_from_image(image->img);
-  texture->texture = tex;
+  texture->texture = image->img;
   return 1;
 }
 

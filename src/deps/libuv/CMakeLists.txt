@@ -23,7 +23,7 @@ file(GLOB_RECURSE HEADERS
 if(MSVC)
 	file(GLOB_RECURSE WIN32_SOURCES
 			src/win/async.c
-			src/win/atomicops-inl.h
+#			src/win/atomicops-inl.h
 			src/win/core.c
 			src/win/detect-wakeup.c
 			src/win/dl.c
@@ -33,18 +33,18 @@ if(MSVC)
 			src/win/getaddrinfo.c
 			src/win/getnameinfo.c
 			src/win/handle.c
-			src/win/handle-inl.h
-			src/win/internal.h
+#			src/win/handle-inl.h
+#			src/win/internal.h
 			src/win/loop-watcher.c
 			src/win/pipe.c
 			src/win/poll.c
 			src/win/process-stdio.c
 			src/win/process.c
 			src/win/req.c
-			src/win/req-inl.h
+#			src/win/req-inl.h
 			src/win/signal.c
 			src/win/stream.c
-			src/win/stream-inl.h
+#			src/win/stream-inl.h
 			src/win/tcp.c
 			src/win/thread.c
 			src/win/timer.c
@@ -52,9 +52,9 @@ if(MSVC)
 			src/win/udp.c
 			src/win/util.c
 			src/win/winapi.c
-			src/win/winapi.h
+#			src/win/winapi.h
 			src/win/winsock.c
-			src/win/winsock.h
+#			src/win/winsock.h
 
 	)
 	list(APPEND SOURCES ${WIN32_SOURCES})
@@ -122,7 +122,9 @@ set_source_files_properties (${CPP_SOURCES} PROPERTIES LANGUAGE CXX)
 add_library(libuv OBJECT ${SOURCES})
 
 #set_property(TARGET sdl PROPERTY C_STANDARD 11)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
+if (NOT MSVC)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
+endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 if (IOS)

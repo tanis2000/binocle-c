@@ -43,7 +43,9 @@ set_source_files_properties (${CPP_SOURCES} PROPERTIES LANGUAGE CXX)
 add_library(wren OBJECT ${SOURCES})
 
 #set_property(TARGET wren PROPERTY C_STANDARD 11)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
+if (NOT MSVC)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
+endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 if (IOS)

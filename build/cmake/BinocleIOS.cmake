@@ -3,6 +3,7 @@
 set (CMAKE_SYSTEM_NAME iOS)
 
 add_definitions (-DIOS -D__IPHONEOS__)
+add_definitions (-DBINOCLE_METAL)
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-offsetof -std=gnu++0x")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
@@ -25,7 +26,7 @@ execute_process (COMMAND xcodebuild -version -sdk ${CMAKE_OSX_SYSROOT} Path OUTP
 
 set (CMAKE_FIND_ROOT_PATH ${IOS_SYSROOT})
 
-set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework AudioToolbox -framework AVFoundation -framework CoreAudio -framework CoreGraphics -framework CoreMotion -framework Foundation -framework GameController -framework Metal -framework MobileCoreServices -framework OpenGLES -framework QuartzCore -framework UIKit")
+set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework AudioToolbox -framework AVFoundation -framework CoreAudio -framework CoreGraphics -framework CoreMotion -framework Foundation -framework GameController -framework Metal -framework MobileCoreServices -framework OpenGLES -framework QuartzCore -framework UIKit -framework MetalKit")
 
 # globally silence the GLES deprecation warning
 add_definitions(-DGLES_SILENCE_DEPRECATION)

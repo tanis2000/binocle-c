@@ -13,8 +13,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <kazmath/kazmath.h>
-#include "binocle_vpct.h"
-#include "binocle_material.h"
+#include "backend/binocle_vpct.h"
+#include "backend/binocle_material.h"
 
 #define BINOCLE_MAX_CHARACTERS 256
 #define BINOCLE_MAX_FONT_VERTICES 65535

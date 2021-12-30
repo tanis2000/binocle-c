@@ -8,17 +8,16 @@
 #include "emscripten.h"
 #endif
 #include "binocle_sdl.h"
-#include "binocle_color.h"
+#include "backend/binocle_color.h"
 #include "binocle_window.h"
 #include "binocle_game.h"
 #include "binocle_viewport_adapter.h"
 #include "binocle_camera.h"
 #include <binocle_input.h>
 #include <binocle_image.h>
-#include <binocle_texture.h>
+#include <backend/binocle_backend.h>
 #include <binocle_sprite.h>
-#include <binocle_shader.h>
-#include <binocle_material.h>
+#include <backend/binocle_material.h>
 #include <binocle_lua.h>
 #include <binocle_app.h>
 #include <binocle_wren.h>
@@ -36,6 +35,27 @@
 #define DESIGN_WIDTH 320
 #define DESIGN_HEIGHT 240
 
+#if defined(BINOCLE_MACOS) && defined(BINOCLE_METAL)
+#include "../../assets/metal/default-metal-macosx.h"
+#include "../../assets/metal/screen-metal-macosx.h"
+#endif
+
+typedef struct default_shader_params_t {
+  float projectionMatrix[16];
+  float modelMatrix[16];
+  float viewMatrix[16];
+} default_shader_params_t;
+
+typedef struct screen_shader_fs_params_t {
+  float resolution[2];
+  float scale[2];
+  float viewport[2];
+} screen_shader_fs_params_t;
+
+typedef struct screen_shader_vs_params_t {
+  float transform[16];
+} screen_shader_vs_params_t;
+
 binocle_window *window;
 binocle_input input;
 binocle_viewport_adapter *adapter;
@@ -44,8 +64,7 @@ binocle_sprite *player;
 kmVec2 player_pos;
 binocle_gd gd;
 binocle_bitmapfont *font;
-binocle_image *font_image;
-binocle_texture *font_texture;
+binocle_image font_texture;
 binocle_material *font_material;
 binocle_sprite *font_sprite;
 kmVec2 font_sprite_pos;
@@ -63,8 +82,10 @@ binocle_app app;
 struct binocle_wren_t *wren;
 WrenHandle* gameClass;
 WrenHandle* method;
-binocle_render_target *render_target;
-binocle_shader *screen_shader;
+binocle_image render_target;
+binocle_shader default_shader;
+binocle_shader screen_shader;
+binocle_image wabbit_image;
 
 #if defined(__APPLE__) && !defined(__IPHONEOS__)
 #define WITH_PHYSICS
@@ -102,15 +123,15 @@ void main_loop() {
 
 
   if (binocle_input_is_key_pressed(&input, KEY_RIGHT)) {
-    player_pos.x += 50 * (1.0/window->frame_time);
+    player_pos.x += 50.0f * (1.0f/window->frame_time);
   } else if (binocle_input_is_key_pressed(&input, KEY_LEFT)) {
-    player_pos.x -= 50 * (1.0/window->frame_time);
+    player_pos.x -= 50.0f * (1.0f/window->frame_time);
   }
 
   if (binocle_input_is_key_pressed(&input, KEY_UP)) {
-    player_pos.y += 50 * (1.0/window->frame_time);
+    player_pos.y += 50.0f * (1.0f/window->frame_time);
   } else if (binocle_input_is_key_pressed(&input, KEY_DOWN)) {
-    player_pos.y -= 50 * (1.0/window->frame_time);
+    player_pos.y -= 50.0f * (1.0f/window->frame_time);
   }
 
   if (binocle_input_is_key_pressed(&input, KEY_SPACE)) {
@@ -169,12 +190,7 @@ void main_loop() {
   }
 #endif
 
-
-  // Set the render target we will draw to
-  binocle_gd_set_render_target(render_target);
-
-  // Clear the render target
-  binocle_window_clear(window);
+  // Main render loop
 
   // Create a viewport that corresponds to the size of our render target
   kmAABB2 viewport;
@@ -191,13 +207,13 @@ void main_loop() {
   kmVec2 scale;
   scale.x = 1.0f;
   scale.y = 1.0f;
-  binocle_sprite_draw(player, &gd, (uint64_t)player_pos.x, (uint64_t)player_pos.y, &viewport, 0, &scale, &camera);
+  binocle_sprite_draw(player, &gd, (int64_t)player_pos.x, (int64_t)player_pos.y, &viewport, 0, &scale, &camera);
 
   kmMat4 view_matrix;
   kmMat4Identity(&view_matrix);
 
 #ifdef WITH_PHYSICS
-  binocle_sprite_draw(ball_sprite, &gd, (uint64_t)pos.x, (uint64_t)pos.y, &viewport, 0, &scale, &camera);
+  binocle_sprite_draw(ball_sprite, &gd, (int64_t)pos.x, (int64_t)pos.y, &viewport, 0, &scale, &camera);
   char mouse_str[256];
   sprintf(mouse_str, "x: %.0f y:%.0f %d", mouse_world_pos.x, mouse_world_pos.y, dragging_ball);
   binocle_bitmapfont_draw_string(font, mouse_str, 32, &gd, 0, DESIGN_HEIGHT - 70, viewport, binocle_color_white(), view_matrix);
@@ -210,20 +226,9 @@ void main_loop() {
 
   // Gets the viewport calculated by the adapter
   kmAABB2 vp = binocle_viewport_adapter_get_viewport(*adapter);
-  float vp_x = vp.min.x;
-  float vp_y = vp.min.y;
-  // Reset the render target to the screen
-  binocle_gd_set_render_target(NULL);
-  // Clear the screen with an azure
-  binocle_gd_clear(binocle_color_black());
-  binocle_gd_apply_viewport(vp);
-  binocle_gd_apply_shader(&gd, screen_shader);
-  binocle_gd_set_uniform_float2(screen_shader, "resolution", DESIGN_WIDTH,
-                                DESIGN_HEIGHT);
-  binocle_gd_set_uniform_mat4(screen_shader, "transform", view_matrix);
-  binocle_gd_set_uniform_float2(screen_shader, "scale", adapter->inverse_multiplier, adapter->inverse_multiplier);
-  binocle_gd_set_uniform_float2(screen_shader, "viewport", vp_x, vp_y);
-  binocle_gd_draw_quad_to_screen(screen_shader, *render_target);
+
+  // Render to screen
+  binocle_gd_render(&gd, window, DESIGN_WIDTH, DESIGN_HEIGHT, vp);
 
   binocle_window_refresh(window);
   binocle_window_end_frame(window);
@@ -232,6 +237,7 @@ void main_loop() {
 #ifdef WITH_PHYSICS
   mouse_prev_pos = mouse_world_pos;
 #endif
+
 }
 #endif
 
@@ -395,8 +401,9 @@ void main_loop() {
 
 int main(int argc, char *argv[])
 {
+  binocle_app_desc_t app_desc = {0};
   app = binocle_app_new();
-  binocle_app_init(&app);
+  binocle_app_init(&app, &app_desc);
   binocle_sdl_init();
   window = binocle_window_new(DESIGN_WIDTH, DESIGN_HEIGHT, "Binocle Test Game");
   binocle_window_set_background_color(window, binocle_color_azure());
@@ -404,42 +411,124 @@ int main(int argc, char *argv[])
   adapter = binocle_viewport_adapter_new(window, BINOCLE_VIEWPORT_ADAPTER_KIND_SCALING, BINOCLE_VIEWPORT_ADAPTER_SCALING_TYPE_PIXEL_PERFECT, window->original_width, window->original_height, window->original_width, window->original_height);
   camera = binocle_camera_new(adapter);
   input = binocle_input_new();
+  gd = binocle_gd_new();
+  binocle_gd_init(&gd, window);
 
   binocle_data_dir = binocle_sdl_assets_dir();
   binocle_log_info("Current base path: %s", binocle_data_dir);
 
   char filename[1024];
   sprintf(filename, "%s%s", binocle_data_dir, "wabbit_alpha.png");
-  binocle_image *image = binocle_image_load(filename);
-  binocle_texture *texture = binocle_texture_from_image(image);
+  wabbit_image = binocle_image_load(filename);
 
   sprintf(filename, "%s%s", binocle_data_dir, "player.png");
-  binocle_image *ball_image = binocle_image_load(filename);
-  binocle_texture *ball_texture = binocle_texture_from_image(ball_image);
+  binocle_image ball_image = binocle_image_load(filename);
 
+#ifdef BINOCLE_GL
   // Default shader
   char vert[1024];
   sprintf(vert, "%s%s", binocle_data_dir, "default.vert");
   char frag[1024];
   sprintf(frag, "%s%s", binocle_data_dir, "default.frag");
-  binocle_shader *shader = binocle_shader_load_from_file(vert, frag);
 
+  char *shader_vs_src;
+  size_t shader_vs_src_size;
+  binocle_sdl_load_text_file(vert, &shader_vs_src, &shader_vs_src_size);
+
+  char *shader_fs_src;
+  size_t shader_fs_src_size;
+  binocle_sdl_load_text_file(frag, &shader_fs_src, &shader_fs_src_size);
+#endif
+
+  binocle_shader_desc default_shader_desc = {
+#ifdef BINOCLE_GL
+    .vs.source = shader_vs_src,
+#else
+    .vs.byte_code = default_vs_bytecode,
+    .vs.byte_code_size = sizeof(default_vs_bytecode),
+#endif
+    .attrs = {
+      [0].name = "vertexPosition",
+      [1].name = "vertexColor",
+      [2].name = "vertexTCoord",
+    },
+    .vs.uniform_blocks[0] = {
+      .size = sizeof(default_shader_params_t),
+      .uniforms = {
+        [0] = { .name = "projectionMatrix", .type = BINOCLE_UNIFORMTYPE_MAT4},
+        [1] = { .name = "viewMatrix", .type = BINOCLE_UNIFORMTYPE_MAT4},
+        [2] = { .name = "modelMatrix", .type = BINOCLE_UNIFORMTYPE_MAT4},
+      }
+    },
+#ifdef BINOCLE_GL
+    .fs.source = shader_fs_src,
+#else
+    .fs.byte_code = default_fs_bytecode,
+    .fs.byte_code_size = sizeof(default_fs_bytecode),
+#endif
+    .fs.images[0] = { .name = "tex0", .type = BINOCLE_IMAGETYPE_2D},
+  };
+  default_shader = binocle_backend_make_shader(&default_shader_desc);
+
+#ifdef BINOCLE_GL
   // Screen shader
   sprintf(vert, "%s%s", binocle_data_dir, "screen.vert");
   sprintf(frag, "%s%s", binocle_data_dir, "screen.frag");
-  screen_shader = binocle_shader_load_from_file(vert, frag);
+
+  char *screen_shader_vs_src;
+  size_t screen_shader_vs_src_size;
+  binocle_sdl_load_text_file(vert, &screen_shader_vs_src, &screen_shader_vs_src_size);
+
+  char *screen_shader_fs_src;
+  size_t screen_shader_fs_src_size;
+  binocle_sdl_load_text_file(frag, &screen_shader_fs_src, &screen_shader_fs_src_size);
+#endif
+
+  binocle_shader_desc screen_shader_desc = {
+#ifdef BINOCLE_GL
+    .vs.source = screen_shader_vs_src,
+#else
+    .vs.byte_code = screen_vs_bytecode,
+    .vs.byte_code_size = sizeof(screen_vs_bytecode),
+#endif
+    .attrs = {
+      [0].name = "position"
+    },
+    .vs.uniform_blocks[0] = {
+      .size = sizeof(screen_shader_vs_params_t),
+      .uniforms = {
+        [0] = { .name = "transform", .type = BINOCLE_UNIFORMTYPE_MAT4},
+      },
+    },
+#ifdef BINOCLE_GL
+    .fs.source = screen_shader_fs_src,
+#else
+    .fs.byte_code = screen_fs_bytecode,
+    .fs.byte_code_size = sizeof(screen_fs_bytecode),
+#endif
+    .fs.images[0] = { .name = "texture", .type = BINOCLE_IMAGETYPE_2D},
+    .fs.uniform_blocks[0] = {
+      .size = sizeof(screen_shader_fs_params_t),
+      .uniforms = {
+        [0] = { .name = "resolution", .type = BINOCLE_UNIFORMTYPE_FLOAT2 },
+        [1] = { .name = "scale", .type = BINOCLE_UNIFORMTYPE_FLOAT2 },
+        [2] = { .name = "viewport", .type = BINOCLE_UNIFORMTYPE_FLOAT2 },
+      },
+    },
+  };
+  screen_shader = binocle_backend_make_shader(&screen_shader_desc);
 
   binocle_material *material = binocle_material_new();
-  material->albedo_texture = texture;
-  material->shader = shader;
+  material->albedo_texture = wabbit_image;
+  material->shader = default_shader;
   player = binocle_sprite_from_material(material);
   player_pos.x = 50;
   player_pos.y = 50;
 
 #ifdef WITH_PHYSICS
   binocle_material *ball_material = binocle_material_new();
-  ball_material->albedo_texture = ball_texture;
-  ball_material->shader = shader;
+  ball_material->albedo_texture = ball_image;
+  ball_material->shader = default_shader;
   ball_sprite = binocle_sprite_from_material(ball_material);
 #endif
 
@@ -463,6 +552,7 @@ int main(int argc, char *argv[])
   gameClass = wrenGetSlotHandle(wren->vm, 0);
   method = wrenMakeCallHandle(wren->vm, "update(_)");
 
+#ifdef DEMOLOOP
   // Load the default quad shader
   sprintf(vert, "%s%s", binocle_data_dir, "screen.vert");
   sprintf(frag, "%s%s", binocle_data_dir, "screen.frag");
@@ -487,6 +577,7 @@ int main(int argc, char *argv[])
   sprintf(vert, "%s%s", binocle_data_dir, "dof.vert");
   sprintf(frag, "%s%s", binocle_data_dir, "bloom2.frag");
   bloom_shader = binocle_shader_load_from_file(vert, frag);
+#endif
 
   char font_filename[1024];
   sprintf(font_filename, "%s%s", binocle_data_dir, "font.fnt");
@@ -494,11 +585,10 @@ int main(int argc, char *argv[])
 
   char font_image_filename[1024];
   sprintf(font_image_filename, "%s%s", binocle_data_dir, "font.png");
-  font_image = binocle_image_load(font_image_filename);
-  font_texture = binocle_texture_from_image(font_image);
+  font_texture = binocle_image_load(font_image_filename);
   font_material = binocle_material_new();
   font_material->albedo_texture = font_texture;
-  font_material->shader = shader;
+  font_material->shader = default_shader;
   font->material = font_material;
   font_sprite = binocle_sprite_from_material(font_material);
   font_sprite_pos.x = 0;
@@ -513,16 +603,14 @@ int main(int argc, char *argv[])
   sprintf(music_filename, "%s%s", binocle_data_dir, "8bit.ogg");
   music = binocle_audio_load_music_stream(&audio, music_filename);
   binocle_audio_play_music_stream(music);
-  binocle_audio_set_music_volume(music, 0.01f);
+  binocle_audio_set_music_volume(music, 0.00f);
 
 #ifdef WITH_PHYSICS
   setup_world();
 #endif
 
-  render_target = binocle_gd_create_render_target(DESIGN_WIDTH, DESIGN_HEIGHT, true, GL_RGBA);
+  binocle_gd_setup_default_pipeline(&gd, DESIGN_WIDTH, DESIGN_HEIGHT, default_shader, screen_shader);
 
-  gd = binocle_gd_new();
-  binocle_gd_init(&gd);
   running_time = 0;
 #ifdef GAMELOOP
   binocle_game_run(window, input);
@@ -542,6 +630,7 @@ int main(int argc, char *argv[])
 #ifdef WITH_PHYSICS
   destroy_world();
 #endif
+  binocle_gd_destroy(&gd);
   binocle_app_destroy(&app);
   binocle_sdl_exit();
 }
