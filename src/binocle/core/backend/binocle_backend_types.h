@@ -660,7 +660,7 @@ typedef struct binocle_shader_common_t {
 } binocle_shader_common_t;
 
 typedef struct binocle_gl_context_desc {
-    void *dummy; // just to satisfy MSVC
+    bool force_gles2;
 } binocle_gl_context_desc;
 
 typedef struct binocle_mtl_context_desc {

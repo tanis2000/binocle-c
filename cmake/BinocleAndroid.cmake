@@ -2,6 +2,8 @@
 
 add_definitions (-D__ANDROID__)
 add_definitions (-DBINOCLE_GL)
+set(BINOCLE_GL true)
+add_definitions (-DBINOCLE_GLES2)
 
 #set(CMAKE_SYSTEM_NAME Android)
 #set(CMAKE_SYSTEM_VERSION 17)

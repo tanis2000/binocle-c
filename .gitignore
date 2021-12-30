@@ -1,13 +1,6 @@
-build/macosx/gen
-build/windows/gen
-build/ios/gen
-build/android/gen
-
-build/android/android-project/bin
-build/android/android-project/gen
-build/emscripten/gen
-build/android/android-project/libs
-build/android/android-project/obj
+platform/android/android-project/bin
+platform/android/android-project/libs
+platform/android/android-project/obj
 
 # emacs clangd extension cache
 .cache

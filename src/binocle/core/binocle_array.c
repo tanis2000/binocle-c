@@ -7,6 +7,7 @@
 #include "binocle_array.h"
 #include "binocle_sdl.h"
 #include "binocle_math.h"
+#include <string.h>
 
 void *binocle_array_set_capacity_internal(void *arr, uint64_t new_capacity, uint64_t item_size)
 {

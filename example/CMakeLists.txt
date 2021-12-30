@@ -107,17 +107,18 @@ if (APPLE)
             PROPERTIES
             MACOSX_PACKAGE_LOCATION Resources)
     if (IOS)
+        message("Using plist file: ${CMAKE_SOURCE_DIR}/platform/ios/Info.plist")
         set_target_properties(
                 ${PROJECT_NAME}
                 PROPERTIES
                 MACOSX_BUNDLE YES
-                MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/build/ios/Info.plist"
+                MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/platform/ios/Info.plist"
                 XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic"
                 XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iOS Developer"
                 XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER "Automatic"
                 XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${IOS_DEVELOPMENT_TEAM_ID}"
                 XCODE_ATTRIBUTE_INFOPLIST_PREPROCESS YES
-                XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 8.0
+                XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 9.0
                 RESOURCE "${RESOURCES}"
         )
 
@@ -133,29 +134,29 @@ endif ()
 
 if (MSVC)
     set(EXE_TYPE WIN32)
-    #    set (SOURCE_FILES ${SOURCE_FILES} ${CMAKE_SOURCE_DIR}/build/cmake/Binocle.rc)
+    #    set (SOURCE_FILES ${SOURCE_FILES} ${CMAKE_SOURCE_DIR}/cmake/Binocle.rc)
 elseif (APPLE)
     #ICNS
     set(MACOSX_BUNDLE_ICON_FILE ExampleProject.icns)
     if (NOT IOS)
-        set(BINOCLE_ICON ${CMAKE_SOURCE_DIR}/build/cmake/Binocle.icns)
+        set(BINOCLE_ICON ${CMAKE_SOURCE_DIR}/cmake/Binocle.icns)
     endif ()
     set_source_files_properties(${BINOCLE_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
     set(EXE_TYPE MACOSX_BUNDLE)
 endif ()
 
 if (ANDROID)
-    message("Post build will copy to ${CMAKE_CURRENT_BINARY_DIR}/../../android-project/app/libs/${ANDROID_ABI}/libmain.so")
+    message("Post build will copy to ${CMAKE_CURRENT_BINARY_DIR}/../../platform/android/android-project/app/libs/${ANDROID_ABI}/libmain.so")
     add_custom_command(TARGET ExampleProject
             POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ExampleProject> ${CMAKE_CURRENT_BINARY_DIR}/../../android-project/app/libs/${ANDROID_ABI}/libmain.so)
-    message("Post build will copy to ${CMAKE_CURRENT_BINARY_DIR}/../../android-project/app/libs/${ANDROID_ABI}/libhidapi.so")
+            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ExampleProject> ${CMAKE_CURRENT_BINARY_DIR}/../../platform/android/android-project/app/libs/${ANDROID_ABI}/libmain.so)
+    message("Post build will copy to ${CMAKE_CURRENT_BINARY_DIR}/../../platform/android/android-project/app/libs/${ANDROID_ABI}/libhidapi.so")
     add_custom_command(TARGET ExampleProject
             POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:hidapi> ${CMAKE_CURRENT_BINARY_DIR}/../../android-project/app/libs/${ANDROID_ABI}/libhidapi.so)
+            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:hidapi> ${CMAKE_CURRENT_BINARY_DIR}/../../platform/android/android-project/app/libs/${ANDROID_ABI}/libhidapi.so)
     add_custom_command(TARGET ExampleProject
             POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy ${ANDROID_NDK}/sources/cxx-stl/llvm-libc++/libs/${ANDROID_ABI}/libc++_shared.so ${CMAKE_CURRENT_BINARY_DIR}/../../android-project/app/libs/${ANDROID_ABI}/libc++_shared.so)
+            COMMAND ${CMAKE_COMMAND} -E copy ${ANDROID_NDK}/sources/cxx-stl/llvm-libc++/libs/${ANDROID_ABI}/libc++_shared.so ${CMAKE_CURRENT_BINARY_DIR}/../../platform/android/android-project/app/libs/${ANDROID_ABI}/libc++_shared.so)
     #	file(RENAME ${CMAKE_CURRENT_BINARY_DIR}/../android-project/libs/${ANDROID_ABI}/lib${PROJECT_NAME}.so ${CMAKE_CURRENT_BINARY_DIR}/../android-project/libs/${ANDROID_ABI}/libmain.so)
 endif ()
 

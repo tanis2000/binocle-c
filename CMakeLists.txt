@@ -9,7 +9,7 @@ if("${CMAKE_VERSION}" VERSION_GREATER 3.1)
 endif()
 
 # cmake modules directory
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/build/cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Enables CMake database for YCM
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
@@ -73,7 +73,7 @@ elseif(ANDROID)
 	include(BinocleAndroid)
 elseif(EMSCRIPTEN)
 	message("Setting BINOCLE_DATA_DIR before including web settings")
-	set(BINOCLE_DATA_DIR "../../../../assets/")
+	set(BINOCLE_DATA_DIR "${CMAKE_SOURCE_DIR}/assets/")
 	message("Including Emscripten defines")
 	include(BinocleWeb)
 endif()

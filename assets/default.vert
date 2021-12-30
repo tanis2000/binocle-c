@@ -1,4 +1,6 @@
-//precision mediump float;
+#ifdef GL_ES
+    precision mediump float;
+#endif
 attribute vec3 vertexPosition;
 attribute vec2 vertexTCoord;
 attribute vec4 vertexColor;

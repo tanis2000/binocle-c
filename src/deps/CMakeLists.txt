@@ -26,7 +26,8 @@ endif()
 
 if (ANDROID)
     add_subdirectory(vorbisidec)
-    add_subdirectory(luajit)
+    add_subdirectory(lua)
+    #add_subdirectory(luajit)
 endif()
 
 if (IOS)
