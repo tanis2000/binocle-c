@@ -201,7 +201,7 @@ elseif (APPLE)
     #ICNS
     set(MACOSX_BUNDLE_ICON_FILE ExampleProject.icns)
     if (NOT IOS)
-        set(BINOCLE_ICON ${CMAKE_SOURCE_DIR}/build/cmake/Binocle.icns)
+        set(BINOCLE_ICON ${CMAKE_SOURCE_DIR}/cmake/Binocle.icns)
     endif ()
     set_source_files_properties(${BINOCLE_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
     set(EXE_TYPE MACOSX_BUNDLE)

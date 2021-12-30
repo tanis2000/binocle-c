@@ -8,6 +8,7 @@ add_definitions (-DBINOCLE_MACOS)
 
 add_definitions (-DBINOCLE_GL)
 set(BINOCLE_GL true)
+add_definitions(-DBINOCLE_GLCORE33)
 
 list (APPEND BINOCLE_LINK_LIBRARIES "-l iconv")
 
