@@ -20,17 +20,28 @@ set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG")
 set(CMAKE_C_FLAGS_DEBUG "-O0 -D_DEBUG_ -D_DEBUG -g")
 
 #set (CMAKE_OSX_ARCHITECTURES $(ARCHS_STANDARD))
-set (CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
+if(BINOCLE_IOS_ARCH)
+    set (CMAKE_OSX_ARCHITECTURES ${BINOCLE_IOS_ARCH})
+else()
+    set (CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
+endif()
+
 set (CMAKE_XCODE_EFFECTIVE_PLATFORMS "-iphoneos;-iphonesimulator")
 set (CMAKE_CONFIGURATION_TYPES Debug Release)
 
 # Set Base SDK to "Latest iOS"
-set (CMAKE_OSX_SYSROOT iphoneos)
+set (BINOCLE_IOS_SDK "iphoneos")
 
 # Obtain iOS sysroot path
-execute_process (COMMAND xcodebuild -version -sdk ${CMAKE_OSX_SYSROOT} Path OUTPUT_VARIABLE IOS_SYSROOT OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process (COMMAND "xcodebuild" -version -sdk ${BINOCLE_IOS_SDK} Path
+        OUTPUT_VARIABLE IOS_SYSROOT
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        RESULT_VARIABLE SYSROOT_RESULT)
 
+message("iOS sysroot path found: ${IOS_SYSROOT}")
+message("iOS sysroot search result: ${SYSROOT_RESULT}")
 set (CMAKE_FIND_ROOT_PATH ${IOS_SYSROOT})
+set (CMAKE_OSX_SYSROOT ${IOS_SYSROOT})
 
 set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework AudioToolbox -framework AVFoundation -framework CoreAudio -framework CoreBluetooth -framework CoreGraphics -framework CoreMotion -framework Foundation -framework GameController -framework Metal -framework MobileCoreServices -framework OpenGLES -framework QuartzCore -framework UIKit -framework MetalKit")
 
@@ -59,5 +70,7 @@ set(CMAKE_C_CREATE_STATIC_LIBRARY
         "${IOS_LIBTOOL} -static -o <TARGET> <LINK_FLAGS> <OBJECTS> ")
 set(CMAKE_CXX_CREATE_STATIC_LIBRARY
         "${IOS_LIBTOOL} -static -o <TARGET> <LINK_FLAGS> <OBJECTS> ")
+
+message("Building with architecture ${CMAKE_OSX_ARCHITECTURES}")
 
 # Check https://ceres-solver.googlesource.com/ceres-solver/+/refs/heads/master/cmake/iOS.cmake for ideas

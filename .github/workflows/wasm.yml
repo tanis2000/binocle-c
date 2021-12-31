@@ -1,11 +1,11 @@
-name: iOS
+name: Wasm
 
 on:
   push:
     paths:
       - 'src/**'
       - 'example/**'
-      - '.github/workflows/ios.yml'
+      - '.github/workflows/wasm.yml'
       - 'CMakeList.txt'
       - 'CMakeOptions.txt'
       - 'cmake/**'
@@ -13,7 +13,7 @@ on:
     paths:
       - 'src/**'
       - 'example/**'
-      - '.github/workflows/ios.yml'
+      - '.github/workflows/wasm.yml'
       - 'CMakeList.txt'
       - 'CMakeOptions.txt'
       - 'cmake/**'
@@ -27,29 +27,23 @@ jobs:
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: macos-latest
 
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix:
-        APPLE_SDK: ["iphoneos", "iphonesimulator"]
-        ARCH: ["arm64", "x86_64"]
-        exclude:
-          - APPLE_SDK: iphoneos
-            ARCH: x86_64
-          - APPLE_SDK: iphonesimulator
-            ARCH: arm64
-
     env:
-      RELEASE_NAME: binocle-ios-${{ matrix.APPLE_SDK }}
+      RELEASE_NAME: binocle-wasm
       BUILD_TYPE: Release
 
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Setup emsdk
+        uses: mymindstorm/setup-emsdk@v11
+        with:
+          version: 3.0.0
+          actions-cache-folder: 'emsdk-cache'
+
       - name: Setup Release Version
         run: |
-          echo "RELEASE_NAME=binocle-${{ github.event.release.tag_name }}-ios-${{ matrix.APPLE_SDK }}" >> $GITHUB_ENV
+          echo "RELEASE_NAME=binocle-${{ github.event.release.tag_name }}-wasm" >> $GITHUB_ENV
         shell: bash
         if: github.event_name == 'release' && github.event.action == 'published'
 
@@ -71,13 +65,16 @@ jobs:
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
         # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
         run: |
-          cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -D IOS=1 -D BINOCLE_IOS_SDK=${{ matrix.APPLE_SDK }} -D BINOCLE_IOS_ARCH=${{ matrix.ARCH }}
+          emsdk_env.sh
+          cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: Build
         shell: bash
         working-directory: ${{github.workspace}}/build
         # Build your program with the given configuration
-        run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+        run: |
+          emsdk_env.sh
+          cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
       - name: Test
         working-directory: ${{github.workspace}}/build

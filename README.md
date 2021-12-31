@@ -142,6 +142,19 @@ cmake -G Xcode -D DEBUG=1 -D IOS=1 -D BUILD_EXAMPLE=1 ../
 open binocle.xcodeproj
 ```
 
+#### iOS without Xcode
+
+If you want to compile for the simulator replace:
+- BINOCLE_IOS_SDK=iphonesimulator
+- BINOCLE_IOS_ARCH=x86_64
+
+```sh
+mkdir build
+cd build
+cmake -D DEBUG=1 -D IOS=1 -D BUILD_EXAMPLE=1 -D BINOCLE_IOS_SDK=iphoneos -D BINOCLE_IOS_ARCH=arm64 ../
+make -j8
+```
+
 ### Emscripten (web)
 
 You need a recent version of Emscripten installed on your system.
