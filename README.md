@@ -104,7 +104,7 @@ If you want to work on the library itself, just clone this repository and compil
 ```sh
 mkdir build
 cd build
-cmake -G Xcode -D DEBUG=1 ../
+cmake -G Xcode -D DEBUG=1 -D BUILD_EXAMPLE=1 ../
 open binocle.xcodeproj
 ```
 
@@ -119,13 +119,13 @@ You will need the Android SDK and NDK and the correct environment variables for 
 ```sh
 mkdir build
 cd build
-cmake -D DEBUG=1 -D ANDROID_ABI=armeabi-v7a -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=../cmake/android.toolchain.cmake ../
+cmake -D DEBUG=1 -D BUILD_EXAMPLE=1 -D ANDROID_ABI=armeabi-v7a -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=../cmake/android.toolchain.cmake ../
 make -j8
-cmake -D DEBUG=1 -D ANDROID_ABI=arm64-v8a -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=../cmake/android.toolchain.cmake ../
+cmake -D DEBUG=1 -D BUILD_EXAMPLE=1 -D ANDROID_ABI=arm64-v8a -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=../cmake/android.toolchain.cmake ../
 make -j8
-cmake -D DEBUG=1 -D ANDROID_ABI=x86 -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=../cmake/android.toolchain.cmake ../
+cmake -D DEBUG=1 -D BUILD_EXAMPLE=1 -D ANDROID_ABI=x86 -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=../cmake/android.toolchain.cmake ../
 make -j8
-cmake -D DEBUG=1 -D ANDROID_ABI=x86_64 -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=../cmake/android.toolchain.cmake ../
+cmake -D DEBUG=1 -D BUILD_EXAMPLE=1 -D ANDROID_ABI=x86_64 -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=../cmake/android.toolchain.cmake ../
 make -j8
 cd ../platform/android/android-project
 ./gradlew installDebug
@@ -138,7 +138,7 @@ You will need the latest Xcode and its command line tools.
 ```sh
 mkdir build
 cd build
-cmake -G Xcode -D DEBUG=1 -D IOS=1 ../
+cmake -G Xcode -D DEBUG=1 -D IOS=1 -D BUILD_EXAMPLE=1 ../
 open binocle.xcodeproj
 ```
 
@@ -153,7 +153,7 @@ In the end you will have a shell script to run to setup all the environment vari
 mkdir build
 cd build
 source "/Users/tanis/Documents/emsdk/emsdk_env.sh"
-emcmake cmake ../ -DCMAKE_BUILD_TYPE=Release
+emcmake cmake ../ -DCMAKE_BUILD_TYPE=Release -D BUILD_EXAMPLE=1
 make -j8
 cd example/src
 python -m SimpleHTTPServer 8000
@@ -168,7 +168,7 @@ To generate the documentation just add the `-DBUILD_DOC=ON` option when running 
 
 Many of the concepts come from Matt Thorson's Monocle engine (the name of this project is a kind of joke around Matt's engine name as you can guess).
 
-Some of the code has been developed while Prime31 was working on its own C# engine called Nez so there will surely be similarities and lines of code that are almost the same.
+Some code has been developed while Prime31 was working on its own C# engine called Nez so there will surely be similarities and lines of code that are almost the same.
 
 The ECS has been inspired by [Artemis](https://github.com/junkdog/artemis-odb) and some parts have been taken from [Diana](https://github.com/discoloda/Diana)
 Other pieces of code have been taken here and there on the web and I can't recall where they come from. If you see some code that looks familiar, please let me know and I'll give full credits.
@@ -184,7 +184,10 @@ The idea of the final logo is from [@h_a_l_e_x](https://twitter.com/h_a_l_e_x)
 
 ## Examples
 
-Here's an [examples repository](https://github.com/tanis2000/binocle-c-examples) with a few examples to start with.
+Here's an [examples' repository](https://github.com/tanis2000/binocle-c-examples) with a few examples to start with.
+
+This repository also contains an example project that I use to debug and test new features.
+It can be compiled by using the `-D BUILD_EXAMPLE=1` CMake directive.
 
 ## Projects using Binocle
 
