@@ -29,8 +29,10 @@ endif()
 set (CMAKE_XCODE_EFFECTIVE_PLATFORMS "-iphoneos;-iphonesimulator")
 set (CMAKE_CONFIGURATION_TYPES Debug Release)
 
-# Set Base SDK to "Latest iOS"
-set (BINOCLE_IOS_SDK "iphoneos")
+if(NOT BINOCLE_IOS_SDK)
+    # Set Base SDK to "Latest iOS" for the device
+    set (BINOCLE_IOS_SDK "iphoneos")
+endif()
 
 # Obtain iOS sysroot path
 execute_process (COMMAND "xcodebuild" -version -sdk ${BINOCLE_IOS_SDK} Path
