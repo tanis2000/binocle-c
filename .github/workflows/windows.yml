@@ -78,6 +78,7 @@ jobs:
         run: ctest -C ${{env.BUILD_TYPE}}
 
       - name: Generate artefacts
+        shell: cmd
         run: |
           copy /Y .\src\binocle\core\*.h .\build\${{ env.RELEASE_NAME }}\include
           copy /Y .\src\binocle\core\backend\*.h .\build\${{ env.RELEASE_NAME }}\include\backend
