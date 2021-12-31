@@ -74,7 +74,6 @@ jobs:
         # Build your program with the given configuration
         run: |
           source emsdk_env.sh
-          cd build
           make -j8
 
       - name: Test
