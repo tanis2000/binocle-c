@@ -266,38 +266,37 @@ endif()
 
 if(ANDROID)
 	file(GLOB_RECURSE ANDROID_SOURCES
-            src/hidapi/android/hid.cpp
-            src/sensor/android/SDL_androidsensor.c
-            src/thread/pthread/SDL_syscond.c
-            src/thread/pthread/SDL_sysmutex.c
-            src/thread/pthread/SDL_syssem.c
-            src/thread/pthread/SDL_systhread.c
-            src/thread/pthread/SDL_systls.c
-            src/timer/unix/SDL_systimer.c
+			src/thread/pthread/SDL_syscond.c
+			src/thread/pthread/SDL_sysmutex.c
+			src/thread/pthread/SDL_syssem.c
+			src/thread/pthread/SDL_systhread.c
+			src/thread/pthread/SDL_systls.c
+			src/timer/unix/SDL_systimer.c
 
-            src/video/SDL_egl.c
-            src/render/opengles/SDL_render_gles.c
-            src/render/opengles2/SDL_render_gles2.c
-            src/render/opengles2/SDL_shaders_gles2.c
+			src/video/SDL_egl.c
+			src/render/opengles/SDL_render_gles.c
+			src/render/opengles2/SDL_render_gles2.c
+			src/render/opengles2/SDL_shaders_gles2.c
 
-            src/audio/android/SDL_androidaudio.c
-            src/core/android/SDL_android.c
-            src/joystick/android/SDL_sysjoystick.c
-            src/filesystem/android/SDL_sysfilesystem.c
-            #src/main/android/SDL_android_main.c
-            src/power/android/SDL_syspower.c
-            src/video/android/SDL_androidclipboard.c
-            src/video/android/SDL_androidevents.c
-            src/video/android/SDL_androidgl.c
-            src/video/android/SDL_androidkeyboard.c
-            src/video/android/SDL_androidtouch.c
-            src/video/android/SDL_androidvideo.c
-            src/video/android/SDL_androidwindow.c
-            src/video/android/SDL_androidmessagebox.c
-            src/video/android/SDL_androidmouse.c
-            src/video/android/SDL_androidvulkan.c
-            #src/haptic/dummy/SDL_syshaptic.c
+			src/audio/android/SDL_androidaudio.c
+			src/audio/openslES/SDL_openslES.c
+			src/core/android/SDL_android.c
+			src/joystick/android/SDL_sysjoystick.c
+			src/filesystem/android/SDL_sysfilesystem.c
 			src/haptic/android/SDL_syshaptic.c
+			src/hidapi/android/hid.cpp
+			src/power/android/SDL_syspower.c
+			src/sensor/android/SDL_androidsensor.c
+			src/video/android/SDL_androidclipboard.c
+			src/video/android/SDL_androidevents.c
+			src/video/android/SDL_androidgl.c
+			src/video/android/SDL_androidkeyboard.c
+			src/video/android/SDL_androidmessagebox.c
+			src/video/android/SDL_androidmouse.c
+			src/video/android/SDL_androidtouch.c
+			src/video/android/SDL_androidvideo.c
+			src/video/android/SDL_androidvulkan.c
+			src/video/android/SDL_androidwindow.c
 
             #include/*.h
             include/SDL_config_android.h
@@ -306,12 +305,13 @@ if(ANDROID)
 			src/hidapi/android/hid.cpp
 			)
 
-	list(APPEND SOURCES ${ANDROID_SOURCES})
+	list(APPEND SOURCES ${ANDROID_SOURCES} ${ANDROID_NDK}/sources/android/cpufeatures/cpu-features.c)
     add_definitions(-DGL_GLEXT_PROTOTYPES)
     add_definitions(-D__ANDROID__)
     add_definitions(-DHX_ANDROID)
     include_directories(include)
     include_directories(include/configs/default)
+	include_directories(${ANDROID_NDK}/sources/android/cpufeatures)
 endif()
 
 if(MSVC)
@@ -417,7 +417,7 @@ if (IOS)
     set_target_properties(
             sdl
             PROPERTIES
-            XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 8.0
+            XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 9.0
     )
 endif(IOS)
 

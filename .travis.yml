@@ -12,9 +12,10 @@ jobs:
         - GENERATOR="Visual Studio 15 2017 Win64"
 script:
   - if [ $TRAVIS_OS_NAME == osx ]; then brew install doxygen sphinx-doc graphviz; fi
-  - if [ $TRAVIS_OS_NAME == osx ]; then pip3 install sphinx; fi
+  - if [ $TRAVIS_OS_NAME == osx ]; then pip3 install sphinx breathe sphinx_rtd_theme; fi
   - if [ $TRAVIS_OS_NAME == windows ]; then choco install doxygen.install graphviz python; fi
 #  - if [ $TRAVIS_OS_NAME == windows ]; then pip install sphinx; fi
-  - cd build && mkdir gen && cd gen
-  - cmake ../.. -G "${GENERATOR}"
+  - mkdir build
+  - cd build
+  - cmake ../ -G "${GENERATOR}"
   - cmake --build . -j8

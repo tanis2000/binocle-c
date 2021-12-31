@@ -9,6 +9,7 @@
 #include "../binocle_pool.h"
 #include "binocle_material.h"
 #include <SDL.h>
+#include <stdlib.h>
 
 #if defined(BINOCLE_GL)
 #include "binocle_backend_gl.h"

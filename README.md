@@ -18,7 +18,8 @@ The API is evolving all the time but the core is pretty stable. I keep adding an
 ## Features
 
 - Cross-platform: macOS, Windows, iOS, Android, Web (Linux planned)
-- OpenGL API (ES 2/3 on mobile platforms)
+- OpenGL API (ES 2/3 on mobile platforms) on all platforms
+- Metal API available on iOS and macOS
 - 2D Sprites
 - Spritesheets (TexturePacker format. LibGDX format is in the works)
 - Sprite batching
@@ -101,8 +102,10 @@ If you want to work on the library itself, just clone this repository and compil
 ### macOS
 
 ```sh
-cd build/macosx/gen
-cmake -G Xcode -D DEBUG=1 ../../..
+mkdir build
+cd build
+cmake -G Xcode -D DEBUG=1 -D BUILD_EXAMPLE=1 ../
+open binocle.xcodeproj
 ```
 
 ### Windows
@@ -114,14 +117,17 @@ I usually run the CMake GUI tool and select the Visual Studio generator there. T
 You will need the Android SDK and NDK and the correct environment variables for this to work.
 
 ```sh
-cd build/android/gen
-cmake -D DEBUG=1 -D ANDROID_ABI=armeabi -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=../../cmake/android.toolchain.cmake ../../..
-make
-cmake -D DEBUG=1 -D ANDROID_ABI=armeabi-v7a -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=../../cmake/android.toolchain.cmake ../../..
-make
-cmake -D DEBUG=1 -D ANDROID_ABI=x86_64 -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=../../cmake/android.toolchain.cmake ../../..
-make
-cd ../android-project
+mkdir build
+cd build
+cmake -D DEBUG=1 -D BUILD_EXAMPLE=1 -D ANDROID_ABI=armeabi-v7a -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=../cmake/android.toolchain.cmake ../
+make -j8
+cmake -D DEBUG=1 -D BUILD_EXAMPLE=1 -D ANDROID_ABI=arm64-v8a -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=../cmake/android.toolchain.cmake ../
+make -j8
+cmake -D DEBUG=1 -D BUILD_EXAMPLE=1 -D ANDROID_ABI=x86 -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=../cmake/android.toolchain.cmake ../
+make -j8
+cmake -D DEBUG=1 -D BUILD_EXAMPLE=1 -D ANDROID_ABI=x86_64 -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=../cmake/android.toolchain.cmake ../
+make -j8
+cd ../platform/android/android-project
 ./gradlew installDebug
 ```
 
@@ -130,18 +136,37 @@ cd ../android-project
 You will need the latest Xcode and its command line tools.
 
 ```sh
-cd build/ios/gen
-cmake -G Xcode -D DEBUG=1 -D IOS=1 ../../..
+mkdir build
+cd build
+cmake -G Xcode -D DEBUG=1 -D IOS=1 -D BUILD_EXAMPLE=1 ../
+open binocle.xcodeproj
+```
+
+#### iOS without Xcode
+
+If you want to compile for the simulator replace:
+- BINOCLE_IOS_SDK=iphonesimulator
+- BINOCLE_IOS_ARCH=x86_64
+
+```sh
+mkdir build
+cd build
+cmake -D DEBUG=1 -D IOS=1 -D BUILD_EXAMPLE=1 -D BINOCLE_IOS_SDK=iphoneos -D BINOCLE_IOS_ARCH=arm64 ../
+make -j8
 ```
 
 ### Emscripten (web)
 
 You need a recent version of Emscripten installed on your system.
-If you're using macOS, just do a `brew install emscripten` to set it up.
+If you're using macOS, you can't just do a `brew install emscripten` to set it up. It will have issues.
+The best way is to clone emscripten's repository and follow its setup guide.
+In the end you will have a shell script to run to setup all the environment variables. Just replace its path in the script below.
 
 ```sh
-cd build/emscripten/gen
-emcmake cmake ../../.. -DCMAKE_BUILD_TYPE=Release
+mkdir build
+cd build
+source "/Users/tanis/Documents/emsdk/emsdk_env.sh"
+emcmake cmake ../ -DCMAKE_BUILD_TYPE=Release -D BUILD_EXAMPLE=1
 make -j8
 cd example/src
 python -m SimpleHTTPServer 8000
@@ -156,10 +181,12 @@ To generate the documentation just add the `-DBUILD_DOC=ON` option when running 
 
 Many of the concepts come from Matt Thorson's Monocle engine (the name of this project is a kind of joke around Matt's engine name as you can guess).
 
-Some of the code has been developed while Prime31 was working on its own C# engine called Nez so there will surely be similarities and lines of code that are almost the same.
+Some code has been developed while Prime31 was working on its own C# engine called Nez so there will surely be similarities and lines of code that are almost the same.
 
 The ECS has been inspired by [Artemis](https://github.com/junkdog/artemis-odb) and some parts have been taken from [Diana](https://github.com/discoloda/Diana)
 Other pieces of code have been taken here and there on the web and I can't recall where they come from. If you see some code that looks familiar, please let me know and I'll give full credits.
+
+The Metal backend and the glue code to keep both OpenGL and Metal as available backends has been taken from Andre Weissflog's exceptional Sokol library. I started implementing a first version based on it and I ended up reusing a lot of his code. In the future I will probably just adopt Sokol as the backend, but it was actually a good exercise to learn how to implement a cross-platform API with complete separation of platform-dependent code.
 
 The logo has been created using the following images:
 
@@ -170,7 +197,10 @@ The idea of the final logo is from [@h_a_l_e_x](https://twitter.com/h_a_l_e_x)
 
 ## Examples
 
-Here's an [examples repository](https://github.com/tanis2000/binocle-c-examples) with a few examples to start with.
+Here's an [examples' repository](https://github.com/tanis2000/binocle-c-examples) with a few examples to start with.
+
+This repository also contains an example project that I use to debug and test new features.
+It can be compiled by using the `-D BUILD_EXAMPLE=1` CMake directive.
 
 ## Projects using Binocle
 

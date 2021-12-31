@@ -46,7 +46,8 @@ endif()
 if (ANDROID)
     set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
             $<TARGET_OBJECTS:vorbisidec>
-            $<TARGET_OBJECTS:luajit-5.1>
+            #$<TARGET_OBJECTS:luajit-5.1>
+            $<TARGET_OBJECTS:lua>
             )
 endif()
 

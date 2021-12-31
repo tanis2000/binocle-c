@@ -32,7 +32,7 @@ int l_binocle_log_error(lua_State *L) {
   return 1;
 }
 
-static const struct luaL_Reg log [] = {
+static const struct luaL_Reg log_registry [] = {
   {"info", l_binocle_log_info},
   {"debug", l_binocle_log_debug},
   {"warning", l_binocle_log_warning},
@@ -41,7 +41,7 @@ static const struct luaL_Reg log [] = {
 };
 
 int luaopen_log(lua_State *L) {
-  luaL_newlib(L, log);
+  luaL_newlib(L, log_registry);
   lua_setglobal(L, "log");
   luaL_newmetatable(L, "binocle_log");
   return 1;

@@ -109,7 +109,7 @@ if (IOS)
     set_target_properties(
             binocle
             PROPERTIES
-            XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 8.0
+            XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 9.0
     )
 endif(IOS)
 

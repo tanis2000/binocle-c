@@ -1,0 +1,105 @@
+name: Android
+
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'example/**'
+      - '.github/workflows/android.yml'
+      - 'CMakeList.txt'
+      - 'CMakeOptions.txt'
+      - 'cmake/**'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'example/**'
+      - '.github/workflows/android.yml'
+      - 'CMakeList.txt'
+      - 'CMakeOptions.txt'
+      - 'cmake/**'
+  release:
+    types: [published]
+
+jobs:
+  build:
+    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
+    # You can convert this to a matrix build if you need cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: macos-latest
+
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        ABI: ["arm64-v8a", "x86_64"]
+
+    env:
+      RELEASE_NAME: binocle-android-${{ matrix.ABI }}
+      BUILD_TYPE: Release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Release Version
+        run: |
+          echo "RELEASE_NAME=binocle-${{ github.event.release.tag_name }}-android-${{ matrix.ABI }}" >> $GITHUB_ENV
+        shell: bash
+        if: github.event_name == 'release' && github.event.action == 'published'
+
+      - name: Setup Environment
+        run: |
+          mkdir ${{github.workspace}}/build
+          cd ${{github.workspace}}/build
+          mkdir ${{ env.RELEASE_NAME }}
+          cd ${{ env.RELEASE_NAME }}
+          mkdir include
+          mkdir include/backend
+          mkdir lib
+          cd ../..
+
+      - name: Install system dependencies
+        run: brew install doxygen sphinx-doc graphviz
+
+      - name: Configure CMake
+        # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+        # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+        run: |
+          cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -D ANDROID_ABI=${{ matrix.ABI }} -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=./cmake/android.toolchain.cmake
+
+      - name: Build
+        shell: bash
+        working-directory: ${{github.workspace}}/build
+        # Build your program with the given configuration
+        run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        # Execute tests defined by the CMake configuration.
+        # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+        run: ctest -C ${{env.BUILD_TYPE}}
+
+      - name: Generate artefacts
+        run: |
+          cp -v ./src/binocle/core/*.h ./build/${{ env.RELEASE_NAME }}/include
+          cp -v ./src/binocle/core/backend/*.h ./build/${{ env.RELEASE_NAME }}/include/backend
+          cp -v ./build/src/libbinocle-static.a ./build/${{ env.RELEASE_NAME }}/lib
+          cd build
+          tar -czvf ${{ env.RELEASE_NAME }}.tar.gz ${{ env.RELEASE_NAME }}
+
+      - name: Upload artefacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.RELEASE_NAME }}.tar.gz
+          path: ./build/${{ env.RELEASE_NAME }}.tar.gz
+
+      - name: Upload artefact to release
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./build/${{ env.RELEASE_NAME }}.tar.gz
+          asset_name: ${{ env.RELEASE_NAME }}.tar.gz
+          asset_content_type: application/gzip
+        if: github.event_name == 'release' && github.event.action == 'published'

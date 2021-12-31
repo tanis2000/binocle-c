@@ -4,6 +4,7 @@
 // All rights reserved.
 //
 
+#include <stdlib.h>
 #include "binocle_backend_gl.h"
 #include "binocle_blend.h"
 #include "../binocle_log.h"
@@ -139,8 +140,10 @@ GLenum binocle_backend_gl_depth_attachment_format(binocle_pixel_format fmt) {
   switch (fmt) {
   case BINOCLE_PIXELFORMAT_DEPTH:
     return GL_DEPTH_COMPONENT16;
+#if !defined(BINOCLE_GLES2)
   case BINOCLE_PIXELFORMAT_DEPTH_STENCIL:
     return GL_DEPTH24_STENCIL8;
+#endif
   default:
     assert(false);
     return 0;
@@ -214,6 +217,7 @@ GLenum binocle_backend_gl_teximage_format(binocle_pixel_format fmt) {
     return GL_RGB;
   case BINOCLE_PIXELFORMAT_DEPTH:
     return GL_DEPTH_COMPONENT;
+#if !defined(BINOCLE_GLES2)
   case BINOCLE_PIXELFORMAT_DEPTH_STENCIL:
     return GL_DEPTH_STENCIL;
   case BINOCLE_PIXELFORMAT_BC1_RGBA:
@@ -226,6 +230,7 @@ GLenum binocle_backend_gl_teximage_format(binocle_pixel_format fmt) {
     return GL_COMPRESSED_RED_RGTC1;
   case BINOCLE_PIXELFORMAT_BC4_RSN:
     return GL_COMPRESSED_SIGNED_RED_RGTC1;
+#endif
   case BINOCLE_PIXELFORMAT_BC5_RG:
     assert(false);
     return 0;
@@ -562,8 +567,10 @@ GLenum binocle_backend_gl_teximage_type(binocle_pixel_format fmt) {
     return GL_SHORT;
   case BINOCLE_PIXELFORMAT_R16F:
   case BINOCLE_PIXELFORMAT_RG16F:
+#if !defined(BINOCLE_GLES2)
   case BINOCLE_PIXELFORMAT_RGBA16F:
     return GL_HALF_FLOAT;
+#endif
   case BINOCLE_PIXELFORMAT_R32UI:
   case BINOCLE_PIXELFORMAT_RG32UI:
   case BINOCLE_PIXELFORMAT_RGBA32UI:
@@ -586,8 +593,10 @@ GLenum binocle_backend_gl_teximage_type(binocle_pixel_format fmt) {
 #endif
   case BINOCLE_PIXELFORMAT_DEPTH:
     return GL_UNSIGNED_SHORT;
+#if !defined(BINOCLE_GLES2)
   case BINOCLE_PIXELFORMAT_DEPTH_STENCIL:
     return GL_UNSIGNED_INT_24_8;
+#endif
   default:
     assert(false); return 0;
   }
@@ -684,8 +693,10 @@ GLenum binocle_backend_gl_vertexformat_type(binocle_vertex_format fmt) {
   case BINOCLE_VERTEXFORMAT_USHORT2N:
   case BINOCLE_VERTEXFORMAT_USHORT4N:
     return GL_UNSIGNED_SHORT;
+#if !defined(BINOCLE_GLES2)
   case BINOCLE_VERTEXFORMAT_UINT10_N2:
     return GL_UNSIGNED_INT_2_10_10_10_REV;
+#endif
   default:
     assert(false);
     return 0;
@@ -849,14 +860,20 @@ void binocle_backend_gl_setup_backend(binocle_gl_backend_t *gl, const binocle_ba
   while (glGetError() != GL_NO_ERROR);
 #endif
 #if defined(BINOCLE_GLCORE33)
-  binocle_backend_gl_init_caps_glcore33();
+  // for the time being we replace this with our own
+  binocle_backend_gl_init(gl);
+
+//  binocle_backend_gl_init_caps_glcore33();
 #elif defined(BINOCLE_GLES3)
-  if (gl->gles2) {
-            binocle_backend_gl_init_caps_gles2();
-        }
-        else {
-            binocle_backend_gl_init_caps_gles3();
-        }
+  // for the time being we replace this with our own
+  binocle_backend_gl_init(gl);
+
+//  if (gl->gles2) {
+//            binocle_backend_gl_init_caps_gles2();
+//        }
+//        else {
+//            binocle_backend_gl_init_caps_gles3();
+//        }
 #else
   // for the time being we replace this with our own
   binocle_backend_gl_init(gl);
@@ -1416,7 +1433,7 @@ void binocle_backend_gl_reset_state_cache(binocle_gl_backend_t *gl) {
     glDisable(GL_POLYGON_OFFSET_FILL);
 #if defined(BINOCLE_GLCORE33)
     glEnable(GL_MULTISAMPLE);
-            glEnable(GL_PROGRAM_POINT_SIZE);
+    //glEnable(GL_PROGRAM_POINT_SIZE);
 #endif
   }
 }
@@ -2234,11 +2251,11 @@ void binocle_backend_gl_begin_pass(binocle_gl_backend_t *gl, binocle_pass_t* pas
     }
     if (clear_depth) {
       clear_mask |= GL_DEPTH_BUFFER_BIT;
-//#ifdef BINOCLE_GLCORE33
+#ifdef BINOCLE_GLCORE33
       glClearDepth(action->depth.value);
-//#else
-//      glClearDepthf(action->depth.value);
-//#endif
+#else
+      glClearDepthf(action->depth.value);
+#endif
     }
     if (clear_stencil) {
       clear_mask |= GL_STENCIL_BUFFER_BIT;
@@ -2463,20 +2480,20 @@ void binocle_backend_gl_apply_pipeline(binocle_gl_backend_t *gl, binocle_pipelin
       if (pip->gl.color_write_mask[i] != gl->cache.color_write_mask[i]) {
         const binocle_color_mask cm = pip->gl.color_write_mask[i];
         gl->cache.color_write_mask[i] = cm;
-#ifdef BINOCLE_GLCORE33
-        glColorMaski(i,
-                                (cm & BINOCLE_COLORMASK_R) != 0,
-                                (cm & BINOCLE_COLORMASK_G) != 0,
-                                (cm & BINOCLE_COLORMASK_B) != 0,
-                                (cm & BINOCLE_COLORMASK_A) != 0);
-#else
+//#ifdef BINOCLE_GLCORE33
+//        glColorMaski(i,
+//                                (cm & BINOCLE_COLORMASK_R) != 0,
+//                                (cm & BINOCLE_COLORMASK_G) != 0,
+//                                (cm & BINOCLE_COLORMASK_B) != 0,
+//                                (cm & BINOCLE_COLORMASK_A) != 0);
+//#else
         if (0 == i) {
           glColorMask((cm & BINOCLE_COLORMASK_R) != 0,
                       (cm & BINOCLE_COLORMASK_G) != 0,
                       (cm & BINOCLE_COLORMASK_B) != 0,
                       (cm & BINOCLE_COLORMASK_A) != 0);
         }
-#endif
+//#endif
       }
     }
 

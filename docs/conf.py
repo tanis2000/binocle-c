@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'Binocle'
-copyright = '2019, Valerio Santinelli'
+copyright = '2019-2021, Valerio Santinelli'
 author = 'Valerio Santinelli'
 
 

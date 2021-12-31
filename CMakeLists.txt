@@ -9,7 +9,7 @@ if("${CMAKE_VERSION}" VERSION_GREATER 3.1)
 endif()
 
 # cmake modules directory
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/build/cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Enables CMake database for YCM
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
@@ -31,8 +31,8 @@ set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG")
 include(BinocleUtils)
 
 SET(VERSION_MAJOR "0")
-SET(VERSION_MINOR "1")
-SET(VERSION_PATCH "0")
+SET(VERSION_MINOR "2")
+SET(VERSION_PATCH "1")
 SET(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 set(BINOCLE_LINK_LIBRARIES binocle-static)
@@ -73,15 +73,22 @@ elseif(ANDROID)
 	include(BinocleAndroid)
 elseif(EMSCRIPTEN)
 	message("Setting BINOCLE_DATA_DIR before including web settings")
-	set(BINOCLE_DATA_DIR "../../../../assets/")
+	set(BINOCLE_DATA_DIR "${CMAKE_SOURCE_DIR}/assets/")
 	message("Including Emscripten defines")
 	include(BinocleWeb)
 endif()
 
 message("Including documentation defines")
 include(BinocleDocs)
+if(BUILD_DOC)
+	return()
+endif()
 
 add_subdirectory(src)
-add_subdirectory(example)
+
+if (${BUILD_EXAMPLE})
+	message("Building example project is enabled")
+	add_subdirectory(example)
+endif()
 
 message("Linking with the following libraries: ${BINOCLE_LINK_LIBRARIES}")
