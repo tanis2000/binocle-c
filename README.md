@@ -15,6 +15,12 @@ Nothing too fancy, but still something I always need when I make 2D or 3D games 
 
 The API is evolving all the time but the core is pretty stable. I keep adding and tweaking stuff based on my needs, so things may change without notice.
 
+[![Windows](https://github.com/tanis2000/binocle-c/actions/workflows/windows.yml/badge.svg)](https://github.com/tanis2000/binocle-c/actions/workflows/windows.yml)
+[![macOS](https://github.com/tanis2000/binocle-c/actions/workflows/macos.yml/badge.svg)](https://github.com/tanis2000/binocle-c/actions/workflows/macos.yml)
+[![Wasm](https://github.com/tanis2000/binocle-c/actions/workflows/wasm.yml/badge.svg)](https://github.com/tanis2000/binocle-c/actions/workflows/wasm.yml)
+[![iOS](https://github.com/tanis2000/binocle-c/actions/workflows/ios.yml/badge.svg)](https://github.com/tanis2000/binocle-c/actions/workflows/ios.yml)
+[![Android](https://github.com/tanis2000/binocle-c/actions/workflows/android.yml/badge.svg)](https://github.com/tanis2000/binocle-c/actions/workflows/android.yml)
+
 ## Features
 
 - Cross-platform: macOS, Windows, iOS, Android, Web (Linux planned)
