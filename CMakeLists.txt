@@ -80,6 +80,9 @@ endif()
 
 message("Including documentation defines")
 include(BinocleDocs)
+if(BUILD_DOC)
+	return()
+endif()
 
 add_subdirectory(src)
 
