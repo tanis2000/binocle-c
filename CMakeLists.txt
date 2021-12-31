@@ -82,6 +82,10 @@ message("Including documentation defines")
 include(BinocleDocs)
 
 add_subdirectory(src)
-add_subdirectory(example)
+
+if (${BUILD_EXAMPLE})
+	message("Building example project is enabled")
+	add_subdirectory(example)
+endif()
 
 message("Linking with the following libraries: ${BINOCLE_LINK_LIBRARIES}")
