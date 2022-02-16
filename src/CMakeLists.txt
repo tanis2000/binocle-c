@@ -33,7 +33,7 @@ if (APPLE AND NOT IOS)
             # we're using lua instead of luajit on macos to be able to test with valgrind
             #$<TARGET_OBJECTS:luajit-5.1>
             $<TARGET_OBJECTS:lua>
-            $<TARGET_OBJECTS:newton>
+#            $<TARGET_OBJECTS:newton>
             )
 endif()
 

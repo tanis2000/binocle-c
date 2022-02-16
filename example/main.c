@@ -76,7 +76,7 @@ binocle_shader *dof_shader;
 binocle_shader *bloom_shader;
 binocle_audio audio;
 binocle_audio_sound sound;
-binocle_audio_music *music;
+binocle_audio_music music;
 char *binocle_data_dir;
 binocle_app app;
 struct binocle_wren_t *wren;
@@ -88,7 +88,7 @@ binocle_shader screen_shader;
 binocle_image wabbit_image;
 
 #if defined(__APPLE__) && !defined(__IPHONEOS__)
-#define WITH_PHYSICS
+//#define WITH_PHYSICS
 #endif
 
 #ifdef WITH_PHYSICS
@@ -108,7 +108,7 @@ void main_loop() {
   float dt = binocle_window_get_frame_time(window) / 1000.0f;
 
   binocle_input_update(&input);
-  binocle_audio_update_music_stream(music);
+  binocle_audio_update_music_stream(&music);
 
   if (input.resized) {
     kmVec2 oldWindowSize;
@@ -602,8 +602,8 @@ int main(int argc, char *argv[])
   char music_filename[1024];
   sprintf(music_filename, "%s%s", binocle_data_dir, "8bit.ogg");
   music = binocle_audio_load_music_stream(&audio, music_filename);
-  binocle_audio_play_music_stream(music);
-  binocle_audio_set_music_volume(music, 0.00f);
+  binocle_audio_play_music_stream(&music);
+  binocle_audio_set_music_volume(&music, 0.00f);
 
 #ifdef WITH_PHYSICS
   setup_world();
@@ -625,7 +625,7 @@ int main(int argc, char *argv[])
   binocle_log_info("Quit requested");
 #endif // GAMELOOP
   binocle_audio_unload_sound(&audio, sound);
-  binocle_audio_unload_music_stream(&audio, music);
+  binocle_audio_unload_music_stream(&audio, &music);
   binocle_audio_destroy(&audio);
 #ifdef WITH_PHYSICS
   destroy_world();
