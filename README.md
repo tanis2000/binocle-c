@@ -84,6 +84,7 @@ The current libraries are the following:
 - libuv (Wren's dependency)
 - Wren
 - Newton Dynamics
+- Chipmunk (2D physics)
 
 ## Coordinate system
 
