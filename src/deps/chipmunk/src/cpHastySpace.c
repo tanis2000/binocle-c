@@ -50,7 +50,7 @@ typedef struct
 } pthread_cond_t;
 typedef CRITICAL_SECTION pthread_mutex_t;
 
-typedef struct {} pthread_condattr_t; // Dummy;
+typedef struct {UINT dummy;} pthread_condattr_t; // Dummy;
 
 int pthread_cond_destroy(pthread_cond_t* cv)
 {
