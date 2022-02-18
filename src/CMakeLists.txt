@@ -4,6 +4,7 @@ add_subdirectory(binocle/core/backend)
 
 set(BINOCLE_STATIC_LIBS
         $<TARGET_OBJECTS:binocle>
+        $<TARGET_OBJECTS:chipmunk>
         $<TARGET_OBJECTS:freetype>
         $<TARGET_OBJECTS:kazmath>
         $<TARGET_OBJECTS:parson>

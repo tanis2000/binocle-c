@@ -1,4 +1,4 @@
-
+add_subdirectory(chipmunk)
 add_subdirectory(freetype)
 add_subdirectory(kazmath)
 add_subdirectory(parson)

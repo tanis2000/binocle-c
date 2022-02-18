@@ -32,8 +32,8 @@
 //#define GAMELOOP 1
 //#define DEMOLOOP
 #define TWODLOOP
-#define DESIGN_WIDTH 320
-#define DESIGN_HEIGHT 240
+
+#include "constants.h"
 
 #if defined(BINOCLE_MACOS) && defined(BINOCLE_METAL)
 #include "../../assets/metal/default-metal-macosx.h"
@@ -88,11 +88,12 @@ binocle_shader screen_shader;
 binocle_image wabbit_image;
 
 #if defined(__APPLE__) && !defined(__IPHONEOS__)
-//#define WITH_PHYSICS
+#define WITH_PHYSICS
 #endif
 
 #ifdef WITH_PHYSICS
-#include "physics.c"
+#include "chipmunk/chipmunk.h"
+#include "physics.h"
 #endif
 
 void wren_update(float dt) {
@@ -151,38 +152,32 @@ void main_loop() {
   kmVec2 mouse_world_pos = binocle_camera_screen_to_world_point(camera, mouse_pos);
 
 #ifdef WITH_PHYSICS
-  kmMat4 matrix;
-  NewtonBodyGetMatrix(ball_body, matrix.mat);
-  kmVec3 pos;
-  kmMat4ExtractTranslationVec3(&matrix, &pos);
+  cpVect pos = cpBodyGetPosition(ball_body);
+  cpBB bb = cpShapeGetBB(ball_shape);
 
   kmAABB2 ball_bounds;
-  ball_bounds.min.x = pos.x;
-  ball_bounds.min.y = pos.y;
-  ball_bounds.max.x = pos.x + 32;
-  ball_bounds.max.y = pos.y + 32;
+  ball_bounds.min.x = bb.l;
+  ball_bounds.min.y = bb.b;
+  ball_bounds.max.x = bb.r;
+  ball_bounds.max.y = bb.t;
   if (kmAABB2ContainsPoint(&ball_bounds, &mouse_world_pos) && binocle_input_is_mouse_down(input, MOUSE_LEFT)) {
     dragging_ball = true;
+    binocle_log_info("caught");
   }
 
   if (dragging_ball && binocle_input_is_mouse_pressed(input, MOUSE_LEFT)) {
     // set position
-    kmMat4 identity;
-    kmMat4Identity(&identity);
-    kmMat4 trans;
-    kmMat4Translation(&trans, mouse_world_pos.x, mouse_world_pos.y, pos.z);
-    kmMat4Multiply(&identity, &identity, &trans);
-    NewtonBodySetMatrix(ball_body, &identity.mat[0]);
+    cpBodySetPosition(ball_body, cpv(mouse_world_pos.x, mouse_world_pos.y));
 
     // apply force
-    dFloat mass;
-    dFloat Ixx;
-    dFloat Iyy;
-    dFloat Izz;
-
-    NewtonBodyGetMass(ball_body, &mass, &Ixx, &Iyy, &Izz);
-    float gravityForce[4] = {10 * (mouse_world_pos.x - mouse_prev_pos.x), 0.0f, 0.0f, 0.0f};
-    NewtonBodySetVelocity(ball_body, &gravityForce[0]);
+//    dFloat mass;
+//    dFloat Ixx;
+//    dFloat Iyy;
+//    dFloat Izz;
+//
+//    NewtonBodyGetMass(ball_body, &mass, &Ixx, &Iyy, &Izz);
+//    float gravityForce[4] = {10 * (mouse_world_pos.x - mouse_prev_pos.x), 0.0f, 0.0f, 0.0f};
+//    NewtonBodySetVelocity(ball_body, &gravityForce[0]);
   }
 
   if (binocle_input_is_mouse_up(input, MOUSE_LEFT)) {
@@ -213,7 +208,7 @@ void main_loop() {
   kmMat4Identity(&view_matrix);
 
 #ifdef WITH_PHYSICS
-  binocle_sprite_draw(ball_sprite, &gd, (int64_t)pos.x, (int64_t)pos.y, &viewport, 0, &scale, &camera);
+  binocle_sprite_draw(ball_sprite, &gd, (int64_t)pos.x - 8, (int64_t)pos.y - 8, &viewport, 0, &scale, &camera);
   char mouse_str[256];
   sprintf(mouse_str, "x: %.0f y:%.0f %d", mouse_world_pos.x, mouse_world_pos.y, dragging_ball);
   binocle_bitmapfont_draw_string(font, mouse_str, 32, &gd, 0, DESIGN_HEIGHT - 70, viewport, binocle_color_white(), view_matrix);

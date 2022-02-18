@@ -1034,8 +1034,6 @@ void binocle_audio_unload_music_stream(binocle_audio *audio, binocle_audio_music
   else if (music->ctx_type == BINOCLE_AUDIO_MUSIC_AUDIO_MP3) drmp3_uninit(&music->ctx_mp3);
   else if (music->ctx_type == BINOCLE_AUDIO_MUSIC_MODULE_XM) jar_xm_free_context(music->ctx_xm);
   else if (music->ctx_type == BINOCLE_AUDIO_MUSIC_MODULE_MOD) jar_mod_unload(&music->ctx_mod);
-
-  free(music);
 }
 
 void binocle_audio_play_music_stream(binocle_audio_music *music) {
