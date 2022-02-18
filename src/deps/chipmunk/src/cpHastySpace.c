@@ -145,7 +145,7 @@ int pthread_cond_wait(pthread_cond_t* cv, pthread_mutex_t* external_mutex)
 	return result == WAIT_TIMEOUT ? ETIMEDOUT : 0;
 }
 
-typedef struct {} pthread_mutexattr_t; //< Dummy
+typedef struct { UINT dummy; } pthread_mutexattr_t; //< Dummy
 
 int pthread_mutex_init(pthread_mutex_t* mutex, const pthread_mutexattr_t* attr)
 {
