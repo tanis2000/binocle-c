@@ -171,7 +171,7 @@ int pthread_mutex_unlock(pthread_mutex_t* mutex)
 	return 0;
 }
 
-typedef struct {} pthread_attr_t;
+typedef struct { UINT dummy } pthread_attr_t;
 
 typedef struct
 {
