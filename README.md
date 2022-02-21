@@ -202,6 +202,9 @@ The logo has been created using the following images:
 
 The idea of the final logo is from [@h_a_l_e_x](https://twitter.com/h_a_l_e_x)
 
+A big thank you to JetBrains for providing us Open Source license of CLion. If you do not know about them, please check out their site by clicking on the logo below. They make the best tool for C developers, hands-down
+[<img alt="JetBrains Logo (Main) logo" src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png" width="200"/>](https://jb.gg/OpenSource)
+[<img alt="CLion logo" src="https://resources.jetbrains.com/storage/products/company/brand/logos/CLion.png" width="200"/>](https://jb.gg/OpenSource)
 ## Examples
 
 Here's an [examples' repository](https://github.com/tanis2000/binocle-c-examples) with a few examples to start with.
