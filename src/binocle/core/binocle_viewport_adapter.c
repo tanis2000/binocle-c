@@ -68,7 +68,7 @@ kmVec2 binocle_viewport_adapter_point_to_virtual_viewport(binocle_viewport_adapt
 kmVec2 binocle_viewport_adapter_screen_to_virtual_viewport(binocle_viewport_adapter adapter, kmVec2 point) {
   point.x = point.x - adapter.viewport.min.x;
   // NOTE: this is needed is the mouse is not inverted
-//  point.y = adapter.viewport.max.y - (point.y - adapter.viewport.min.y);
+  point.y = adapter.viewport.max.y - (point.y - adapter.viewport.min.y);
   point.y = point.y - adapter.viewport.min.y;
   return point;
 }

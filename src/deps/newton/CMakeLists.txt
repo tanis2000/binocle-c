@@ -61,6 +61,8 @@ file(GLOB_RECURSE HEADERS
 
 add_library(newton OBJECT ${HEADERS} ${SOURCES})
 
+#add_definitions(-DDG_SCALAR_VECTOR_CLASS)
+
 if (IOS)
 	set_target_properties(
 			newton

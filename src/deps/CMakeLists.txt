@@ -1,4 +1,4 @@
-
+add_subdirectory(chipmunk)
 add_subdirectory(freetype)
 add_subdirectory(kazmath)
 add_subdirectory(parson)
@@ -21,7 +21,7 @@ if (APPLE AND NOT IOS)
     # we're using lua instead of luajit on macos to be able to test with valgrind
     #add_subdirectory(luajit)
     add_subdirectory(lua)
-    add_subdirectory(newton)
+#    add_subdirectory(newton)
 endif()
 
 if (ANDROID)

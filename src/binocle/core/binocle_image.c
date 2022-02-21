@@ -7,7 +7,9 @@
 #include <inttypes.h>
 #include "binocle_image.h"
 
+#if !defined(__EMSCRIPTEN__)
 #define STB_IMAGE_IMPLEMENTATION
+#endif
 
 #include "stb_image.h"
 
@@ -35,7 +37,7 @@ binocle_image binocle_image_load_with_filter(const char *filename, binocle_filte
     binocle_log_error("Unable to load image file %s", filename);
     return img;
   }
-  unsigned char *data = stbi_load_from_memory(buffer, size, &width, &height, &bpp, STBI_rgb_alpha);
+  unsigned char *data = stbi_load_from_memory(buffer, (int)size, &width, &height, &bpp, STBI_rgb_alpha);
   if (data == NULL) {
     SDL_Log("Unable to load image %s", filename);
     return img;
@@ -45,7 +47,7 @@ binocle_image binocle_image_load_with_filter(const char *filename, binocle_filte
 //  res->width = width;
 //  res->height = height;
 
-  binocle_log_info("Texture size: %" PRIu64 "x%" PRIu64", BPP: %d", width, height, bpp);
+  binocle_log_info("Texture size: %" PRId32 "x%" PRId32", BPP: %d", width, height, bpp);
   binocle_image_desc desc = {
     .width = width,
     .height = height,

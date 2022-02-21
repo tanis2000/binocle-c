@@ -143,22 +143,31 @@ bool binocle_sdl_load_binary_file(char *filename, char **buffer, size_t *buffer_
   binocle_log_info("Loading binary file: %s", filename);
   SDL_RWops *file = SDL_RWFromFile(filename, "rb");
   if (file == NULL) {
-    binocle_log_error("Cannot open binary file: %s", filename);
+    binocle_log_error("Cannot open binary file: %s Reason: %s", filename, SDL_GetError());
     return false;
   }
 
   Sint64 res_size = SDL_RWsize(file);
+  if (res_size == 0) {
+    binocle_log_error("Stream size is zero.");
+    return false;
+  }
+  if (res_size < 0) {
+    binocle_log_error("Error getting size of stream: %s", SDL_GetError());
+    return false;
+  }
+
   char *res = (char *) SDL_malloc(res_size);
 
-  Sint64 nb_read_total = 0, nb_read = 1;
+  size_t nb_read_total = 0, nb_read = 1;
   char *buf = res;
   while (nb_read_total < res_size && nb_read != 0) {
-    nb_read = SDL_RWread(file, buf, 1, (res_size - nb_read_total));
+    nb_read = SDL_RWread(file, buf, 1, ((size_t)res_size - nb_read_total));
     nb_read_total += nb_read;
     buf += nb_read;
   }
   SDL_RWclose(file);
-  binocle_log_info("%d bytes read of %d", nb_read_total, res_size);
+  binocle_log_info("%d bytes read of %lld", nb_read_total, res_size);
   if (nb_read_total != res_size) {
     binocle_log_error("Size mismatch");
     SDL_free(res);

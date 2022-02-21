@@ -14,4 +14,4 @@ add_definitions (-DBINOCLE_GLES2)
 # Omitted: -stdlib=libc++ 
 # Might try using -std=gnu++0x instead of -std=c++11
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -Wall")
-set(BINOCLE_LINK_LIBRARIES ${BINOCLE_LINK_LIBRARIES} EGL GLESv1_CM GLESv2 android m stdc++ log dl vorbisidec OpenSLES "ogg" "-frtti" "-Wl,--no-undefined" "-Wl,-z,noexecstack" "-shared")
+set(BINOCLE_LINK_LIBRARIES ${BINOCLE_LINK_LIBRARIES} android dl EGL GLESv1_CM GLESv2 log m stdc++ vorbisidec ogg OpenSLES "-frtti" "-Wl,--no-undefined" "-Wl,-z,noexecstack" "-shared")

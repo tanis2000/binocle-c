@@ -1,6 +1,7 @@
 include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(
         ${CMAKE_SOURCE_DIR}/src/deps
+        ${CMAKE_SOURCE_DIR}/src/deps/chipmunk/include
         ${CMAKE_SOURCE_DIR}/src/deps/sdl/include
         ${CMAKE_SOURCE_DIR}/src/deps/sdl_mixer
         ${CMAKE_SOURCE_DIR}/src/deps/physfs
@@ -150,10 +151,10 @@ if (ANDROID)
     add_custom_command(TARGET ExampleProject
             POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ExampleProject> ${CMAKE_CURRENT_BINARY_DIR}/../../platform/android/android-project/app/libs/${ANDROID_ABI}/libmain.so)
-    message("Post build will copy to ${CMAKE_CURRENT_BINARY_DIR}/../../platform/android/android-project/app/libs/${ANDROID_ABI}/libhidapi.so")
-    add_custom_command(TARGET ExampleProject
-            POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:hidapi> ${CMAKE_CURRENT_BINARY_DIR}/../../platform/android/android-project/app/libs/${ANDROID_ABI}/libhidapi.so)
+#    message("Post build will copy to ${CMAKE_CURRENT_BINARY_DIR}/../../platform/android/android-project/app/libs/${ANDROID_ABI}/libhidapi.so")
+#    add_custom_command(TARGET ExampleProject
+#            POST_BUILD
+#            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:hidapi> ${CMAKE_CURRENT_BINARY_DIR}/../../platform/android/android-project/app/libs/${ANDROID_ABI}/libhidapi.so)
     add_custom_command(TARGET ExampleProject
             POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy ${ANDROID_NDK}/sources/cxx-stl/llvm-libc++/libs/${ANDROID_ABI}/libc++_shared.so ${CMAKE_CURRENT_BINARY_DIR}/../../platform/android/android-project/app/libs/${ANDROID_ABI}/libc++_shared.so)

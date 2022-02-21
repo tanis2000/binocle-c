@@ -56,6 +56,8 @@ set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework AudioToolbox -
 add_definitions(-DGLES_SILENCE_DEPRECATION)
 
 set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
+# Needed for Xcode 12+ on Apple Silicon M1
+set(CMAKE_XCODE_ATTRIBUTE_EXCLUDED_ARCHS[sdk=iphonesimulator*] arm64)
 
 # set the build type to use
 if (NOT CMAKE_BUILD_TYPE)
