@@ -26,14 +26,14 @@ int l_binocle_sprite_from_material(lua_State *L) {
 
 int l_binocle_sprite_draw(lua_State *L) {
   l_binocle_sprite_t *sprite = luaL_checkudata(L, 1, "binocle_sprite");
-  binocle_gd *gd = lua_touserdata(L, 2);
+  l_binocle_gd_t *gd = luaL_checkudata(L, 2, "binocle_gd");
   float player_x = luaL_checknumber(L, 3);
   float player_y = luaL_checknumber(L, 4);
-  kmAABB2 *viewport = lua_touserdata(L, 5);
+  kmAABB2 **viewport = lua_touserdata(L, 5);
   float rotation = luaL_checknumber(L, 6);
   kmVec2 **scale = lua_touserdata(L, 7);
   l_binocle_camera_t *camera = luaL_checkudata(L, 8, "binocle_camera");
-  binocle_sprite_draw(sprite->sprite, gd, player_x, player_y, viewport, rotation, *scale, camera->camera);
+  binocle_sprite_draw(sprite->sprite, gd->gd, player_x, player_y, *viewport, rotation, *scale, camera->camera);
   return 1;
 }
 

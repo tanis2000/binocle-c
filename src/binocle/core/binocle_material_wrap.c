@@ -25,9 +25,20 @@ int l_binocle_material_set_texture(lua_State *L) {
   return 0;
 }
 
+int l_binocle_material_set_shader(lua_State *L) {
+  l_binocle_material_t *material = luaL_checkudata(L, 1, "binocle_material");
+  binocle_shader *shader = lua_touserdata(L, 2);
+  if (shader == NULL) {
+    return -1;
+  }
+  material->material->shader = *shader;
+  return 0;
+}
+
 static const struct luaL_Reg image [] = {
   {"new", l_binocle_material_new},
   {"set_texture", l_binocle_material_set_texture},
+  {"set_shader", l_binocle_material_set_shader},
   {NULL, NULL}
 };
 

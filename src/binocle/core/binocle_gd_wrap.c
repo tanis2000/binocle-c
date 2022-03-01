@@ -7,6 +7,7 @@
 #include "binocle_gd.h"
 #include "backend/binocle_backend.h"
 #include "backend/binocle_color.h"
+#include "binocle_window_wrap.h"
 
 int l_binocle_gd_new(lua_State *L) {
   l_binocle_gd_t *gd = lua_newuserdata(L, sizeof(l_binocle_gd_t));
@@ -21,7 +22,8 @@ int l_binocle_gd_new(lua_State *L) {
 
 int l_binocle_gd_init(lua_State *L) {
   l_binocle_gd_t *gd = lua_touserdata(L, 1);
-  binocle_gd_init(gd->gd, gd->win);
+  l_binocle_window_t *win = lua_touserdata(L, 2);
+  binocle_gd_init(gd->gd, win->window);
   return 0;
 }
 

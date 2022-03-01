@@ -7,7 +7,7 @@
 
 #include "binocle_lua.h"
 
-typedef struct l_binocle_windw_t {
+typedef struct l_binocle_window_t {
   struct binocle_window *window;
 } l_binocle_window_t;
 
