@@ -52,6 +52,9 @@ sg_image binocle_image_load_with_filter(const char *filename, sg_filter filter) 
     .width = width,
     .height = height,
     .pixel_format = SG_PIXELFORMAT_RGBA8,
+    .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
+    .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
+    .wrap_w = SG_WRAP_CLAMP_TO_EDGE,
     .min_filter = filter,
     .mag_filter = filter,
     .data.subimage[0][0] = {
