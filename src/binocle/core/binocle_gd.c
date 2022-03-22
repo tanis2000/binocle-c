@@ -10,11 +10,11 @@
 #include "backend/binocle_material.h"
 #include "binocle_viewport_adapter.h"
 #include "binocle_render_state.h"
-#include "backend/binocle_backend.h"
 #include "binocle_camera.h"
 #include "binocle_log.h"
 #include "binocle_model.h"
 #include "binocle_window.h"
+#include "binocle_sokol.h"
 
 typedef struct binocle_gd_flat_shader_vs_params_t {
   kmMat4 projectionMatrix;
@@ -75,37 +75,39 @@ void binocle_gd_destroy(binocle_gd *gd) {
 
 void binocle_gd_init(binocle_gd *gd, binocle_window *win) {
 #if defined(BINOCLE_GL)
-  binocle_backend_desc desc = {0};
+  sg_desc desc = {0};
 #elif defined(BINOCLE_METAL)
-  binocle_backend_desc desc = {
-    .context.mtl = win->mtl_view
+  binocle_metal_init(win->mtl_view);
+  sg_desc desc = {
+    .context = binocle_metal_get_context(),
   };
 #endif
-  binocle_backend_setup(&desc);
+  sg_setup(&desc);
+  assert(sg_isvalid());
 }
 
-void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width, uint32_t offscreen_height, binocle_shader offscreen_shader, binocle_shader display_shader) {
+void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width, uint32_t offscreen_height, sg_shader offscreen_shader, sg_shader display_shader) {
   // Create the render target image
-  binocle_image_desc rt_desc = {
+  sg_image_desc rt_desc = {
       .render_target = true,
       .width = offscreen_width,
       .height = offscreen_height,
-      .min_filter = BINOCLE_FILTER_LINEAR,
-      .mag_filter = BINOCLE_FILTER_LINEAR,
+      .min_filter = SG_FILTER_LINEAR,
+      .mag_filter = SG_FILTER_LINEAR,
 #ifdef BINOCLE_GL
-      .pixel_format = BINOCLE_PIXELFORMAT_RGBA8,
+      .pixel_format = SG_PIXELFORMAT_RGBA8,
 #else
-      .pixel_format = BINOCLE_PIXELFORMAT_BGRA8,
+      .pixel_format = SG_PIXELFORMAT_BGRA8,
 #endif
       .sample_count = 1,
   };
-  gd->offscreen.render_target = binocle_backend_make_image(&rt_desc);
+  gd->offscreen.render_target = sg_make_image(&rt_desc);
 
   // Clear screen action for the offscreen render target
-  binocle_color off_clear_color = binocle_color_azure();
-  binocle_pass_action offscreen_action = {
+  sg_color off_clear_color = binocle_color_azure();
+  sg_pass_action offscreen_action = {
       .colors[0] = {
-          .action = BINOCLE_ACTION_CLEAR,
+          .action = SG_ACTION_CLEAR,
           .value = {
               .r = off_clear_color.r,
               .g = off_clear_color.g,
@@ -117,25 +119,25 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
   gd->offscreen.action = offscreen_action;
 
   // Render pass that renders to the offscreen render target
-  gd->offscreen.pass = binocle_backend_make_pass(&(binocle_pass_desc){
+  gd->offscreen.pass = sg_make_pass(&(sg_pass_desc){
       .color_attachments[0].image = gd->offscreen.render_target,
   });
 
   // Pipeline state object for the offscreen rendered sprite
-  gd->offscreen.pip = binocle_backend_make_pipeline(&(binocle_pipeline_desc) {
+  gd->offscreen.pip = sg_make_pipeline(&(sg_pipeline_desc) {
       .layout = {
           .attrs = {
-              [0] = { .format = BINOCLE_VERTEXFORMAT_FLOAT2 }, // position
-              [1] = { .format = BINOCLE_VERTEXFORMAT_FLOAT4 }, // color
-              [2] = { .format = BINOCLE_VERTEXFORMAT_FLOAT2 }, // texture uv
+              [0] = { .format = SG_VERTEXFORMAT_FLOAT2 }, // position
+              [1] = { .format = SG_VERTEXFORMAT_FLOAT4 }, // color
+              [2] = { .format = SG_VERTEXFORMAT_FLOAT2 }, // texture uv
           },
       },
       .shader = offscreen_shader,
-//      .index_type = BINOCLE_INDEXTYPE_UINT16,
-      .index_type = BINOCLE_INDEXTYPE_NONE,
+//      .index_type = SG_INDEXTYPE_UINT16,
+      .index_type = SG_INDEXTYPE_NONE,
       .depth = {
-          .pixel_format = BINOCLE_PIXELFORMAT_NONE,
-          .compare = BINOCLE_COMPAREFUNC_NEVER,
+          .pixel_format = SG_PIXELFORMAT_NONE,
+          .compare = SG_COMPAREFUNC_NEVER,
           .write_enabled = false,
       },
       .stencil = {
@@ -144,33 +146,34 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
       .colors = {
         [0] = {
 #ifdef BINOCLE_GL
-            .pixel_format = BINOCLE_PIXELFORMAT_RGBA8,
+            .pixel_format = SG_PIXELFORMAT_RGBA8,
 #else
-            .pixel_format = BINOCLE_PIXELFORMAT_BGRA8,
+            .pixel_format = SG_PIXELFORMAT_BGRA8,
 #endif
           .blend = {
           .enabled = true,
-          .src_factor_rgb = BINOCLE_BLENDFACTOR_SRC_ALPHA,
-          .dst_factor_rgb = BINOCLE_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+          .src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA,
+          .dst_factor_rgb = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
         }
         }
       }
   });
 
-  binocle_buffer_desc vbuf_desc = {
-    .type = BINOCLE_BUFFERTYPE_VERTEXBUFFER,
-    .usage = BINOCLE_USAGE_STREAM,
+  sg_buffer_desc vbuf_desc = {
+    .type = SG_BUFFERTYPE_VERTEXBUFFER,
+    .usage = SG_USAGE_STREAM,
     .size = sizeof(binocle_vpct) * BINOCLE_GD_MAX_VERTICES,
   };
-  gd->offscreen.vbuf = binocle_backend_make_buffer(&vbuf_desc);
+  gd->offscreen.vbuf = sg_make_buffer(&vbuf_desc);
 
-  binocle_buffer_desc ibuf_desc = {
-    .type = BINOCLE_BUFFERTYPE_INDEXBUFFER,
-    .usage = BINOCLE_USAGE_STREAM,
+  sg_buffer_desc ibuf_desc = {
+    .type = SG_BUFFERTYPE_INDEXBUFFER,
+    .usage = SG_USAGE_STREAM,
+    .size = sizeof(uint16_t) * BINOCLE_GD_MAX_INDICES,
   };
-  gd->offscreen.ibuf = binocle_backend_make_buffer(&ibuf_desc);
+  gd->offscreen.ibuf = sg_make_buffer(&ibuf_desc);
 
-  gd->offscreen.bind = (binocle_bindings){
+  gd->offscreen.bind = (sg_bindings){
       .vertex_buffers = {
           [0] = gd->offscreen.vbuf,
       },
@@ -180,10 +183,10 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
   // Render to screen pipeline
 
   // Clear screen action for the actual screen
-  binocle_color clear_color = binocle_color_green();
-  binocle_pass_action default_action = {
+  sg_color clear_color = binocle_color_green();
+  sg_pass_action default_action = {
     .colors[0] = {
-      .action = BINOCLE_ACTION_CLEAR,
+      .action = SG_ACTION_CLEAR,
       .value = {
         .r = clear_color.r,
         .g = clear_color.g,
@@ -195,20 +198,20 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
   gd->display.action = default_action;
 
   // Pipeline state object for the screen (default) pass
-  gd->display.pip = binocle_backend_make_pipeline(&(binocle_pipeline_desc){
+  gd->display.pip = sg_make_pipeline(&(sg_pipeline_desc){
     .layout = {
       .attrs = {
-        [0] = { .format = BINOCLE_VERTEXFORMAT_FLOAT3 }, // position
-        [1] = { .format = BINOCLE_VERTEXFORMAT_FLOAT4 }, // color
-        [2] = { .format = BINOCLE_VERTEXFORMAT_FLOAT2 }, // texture uv
+        [0] = { .format = SG_VERTEXFORMAT_FLOAT3 }, // position
+        [1] = { .format = SG_VERTEXFORMAT_FLOAT4 }, // color
+        [2] = { .format = SG_VERTEXFORMAT_FLOAT2 }, // texture uv
       }
     },
     .shader = display_shader,
-    .index_type = BINOCLE_INDEXTYPE_UINT16,
+    .index_type = SG_INDEXTYPE_UINT16,
 #if !defined(BINOCLE_GL)
     .depth = {
-      .pixel_format = BINOCLE_PIXELFORMAT_NONE,
-      .compare = BINOCLE_COMPAREFUNC_NEVER,
+      .pixel_format = SG_PIXELFORMAT_NONE,
+      .compare = SG_COMPAREFUNC_NEVER,
       .write_enabled = false,
     },
     .stencil = {
@@ -217,9 +220,9 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
 #endif
     .colors = {
 #ifdef BINOCLE_GL
-      [0] = { .pixel_format = BINOCLE_PIXELFORMAT_RGBA8 }
+      [0] = { .pixel_format = SG_PIXELFORMAT_RGBA8 }
 #else
-      [0] = { .pixel_format = BINOCLE_PIXELFORMAT_BGRA8 }
+      [0] = { .pixel_format = SG_PIXELFORMAT_BGRA8 }
 #endif
     }
   });
@@ -231,21 +234,21 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
     1.0f,  1.0f, 0.0f,    1.0f, 1.0f, 1.0f, 1.0f,     1.0f, 1.0f,
     -1.0f,  1.0f, 0.0f,    1.0f, 1.0f, 1.0f, 1.0f,     0.0f, 1.0f,
   };
-  binocle_buffer_desc display_vbuf_desc = {
-    .data = BINOCLE_RANGE(vertices)
+  sg_buffer_desc display_vbuf_desc = {
+    .data = SG_RANGE(vertices)
   };
-  gd->display.vbuf = binocle_backend_make_buffer(&display_vbuf_desc);
+  gd->display.vbuf = sg_make_buffer(&display_vbuf_desc);
 
   uint16_t indices[] = {
     0, 1, 2,  0, 2, 3,
   };
-  binocle_buffer_desc display_ibuf_desc = {
-    .type = BINOCLE_BUFFERTYPE_INDEXBUFFER,
-    .data = BINOCLE_RANGE(indices)
+  sg_buffer_desc display_ibuf_desc = {
+    .type = SG_BUFFERTYPE_INDEXBUFFER,
+    .data = SG_RANGE(indices)
   };
-  gd->display.ibuf = binocle_backend_make_buffer(&display_ibuf_desc);
+  gd->display.ibuf = sg_make_buffer(&display_ibuf_desc);
 
-  gd->display.bind = (binocle_bindings){
+  gd->display.bind = (sg_bindings){
     .vertex_buffers = {
       [0] = gd->display.vbuf,
     },
@@ -298,9 +301,9 @@ void binocle_gd_draw(binocle_gd *gd, const struct binocle_vpct *vertices, size_t
 }
 
 void binocle_gd_render_offscreen(binocle_gd *gd) {
-  binocle_backend_update_buffer(gd->offscreen.vbuf, &(binocle_range){ .ptr=gd->vertices, .size=gd->num_vertices * sizeof(binocle_vpct) });
+  sg_update_buffer(gd->offscreen.vbuf, &(sg_range){ .ptr=gd->vertices, .size=gd->num_vertices * sizeof(binocle_vpct) });
 
-  binocle_backend_begin_pass(gd->offscreen.pass, &gd->offscreen.action);
+  sg_begin_pass(gd->offscreen.pass, &gd->offscreen.action);
 
   for (uint32_t i = 0 ; i < gd->num_commands ; i++) {
     binocle_gd_command_t *cmd = &gd->commands[i];
@@ -308,13 +311,13 @@ void binocle_gd_render_offscreen(binocle_gd *gd) {
     gd->offscreen.bind.fs_images[0] = cmd->img;
     gd->offscreen.bind.vertex_buffers[0] = gd->offscreen.vbuf;
 
-    binocle_backend_apply_pipeline(gd->offscreen.pip);
-    binocle_backend_apply_bindings(&gd->offscreen.bind);
-    binocle_backend_apply_uniforms(BINOCLE_SHADERSTAGE_VS, 0, &BINOCLE_RANGE(cmd->uniforms));
-    binocle_backend_draw(cmd->base_vertex, cmd->num_vertices, 1);
+    sg_apply_pipeline(gd->offscreen.pip);
+    sg_apply_bindings(&gd->offscreen.bind);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, &SG_RANGE(cmd->uniforms));
+    sg_draw(cmd->base_vertex, cmd->num_vertices, 1);
 
   }
-  binocle_backend_end_pass();
+  sg_end_pass();
   gd->num_commands = 0;
   gd->num_vertices = 0;
 }
@@ -347,15 +350,15 @@ void binocle_gd_render_screen(binocle_gd *gd, struct binocle_window *window, flo
 
   gd->display.bind.fs_images[0] = gd->offscreen.render_target;
 
-  binocle_backend_begin_default_pass(&gd->display.action, window->width, window->height);
-  binocle_backend_apply_pipeline(gd->display.pip);
-  binocle_backend_apply_bindings(&gd->display.bind);
-  binocle_backend_apply_uniforms(BINOCLE_SHADERSTAGE_VS, 0, &BINOCLE_RANGE(screen_vs_params));
-  binocle_backend_apply_uniforms(BINOCLE_SHADERSTAGE_FS, 0, &BINOCLE_RANGE(screen_fs_params));
-  binocle_backend_draw(0, 6, 1);
-  binocle_backend_end_pass();
+  sg_begin_default_pass(&gd->display.action, window->width, window->height);
+  sg_apply_pipeline(gd->display.pip);
+  sg_apply_bindings(&gd->display.bind);
+  sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, &SG_RANGE(screen_vs_params));
+  sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, &SG_RANGE(screen_fs_params));
+  sg_draw(0, 6, 1);
+  sg_end_pass();
 
-  binocle_backend_commit();
+  sg_commit();
 }
 
 void binocle_gd_render(binocle_gd *gd, struct binocle_window *window, float design_width, float design_height, kmAABB2 viewport) {
@@ -364,20 +367,24 @@ void binocle_gd_render(binocle_gd *gd, struct binocle_window *window, float desi
 }
 
 void binocle_gd_setup_flat_pipeline(binocle_gd *gd) {
-  binocle_shader_desc screen_shader_desc = {
+#if defined(BINOCLE_MACOS) && defined(BINOCLE_METAL)
+#include "../../assets/metal/default-metal-macosx.h"
+#include "../../assets/metal/screen-metal-macosx.h"
+#endif
+  sg_shader_desc screen_shader_desc = {
 #ifdef BINOCLE_GL
     .vs.source = binocle_shader_flat_vertex_src,
     .vs.uniform_blocks[0] = {
       .size = sizeof(struct binocle_gd_flat_shader_vs_params_t),
       .uniforms = {
-        [0] = { .name = "projectionMatrix", .type = BINOCLE_UNIFORMTYPE_MAT4 },
-        [1] = { .name = "viewMatrix", .type = BINOCLE_UNIFORMTYPE_MAT4 },
-        [2] = { .name = "modelMatrix", .type = BINOCLE_UNIFORMTYPE_MAT4 },
+        [0] = { .name = "projectionMatrix", .type = SG_UNIFORMTYPE_MAT4 },
+        [1] = { .name = "viewMatrix", .type = SG_UNIFORMTYPE_MAT4 },
+        [2] = { .name = "modelMatrix", .type = SG_UNIFORMTYPE_MAT4 },
       },
     },
 #else
-    .vs.byte_code = screen_vs_bytecode,
-    .vs.byte_code_size = sizeof(screen_vs_bytecode),
+    .vs.bytecode.ptr = screen_vs_bytecode,
+    .vs.bytecode.size = sizeof(screen_vs_bytecode),
 #endif
     .attrs = {
       [0].name = "vertexPosition",
@@ -385,41 +392,41 @@ void binocle_gd_setup_flat_pipeline(binocle_gd *gd) {
 #ifdef BINOCLE_GL
     .fs.source = binocle_shader_flat_src,
 #else
-    .fs.byte_code = screen_fs_bytecode,
-    .fs.byte_code_size = sizeof(screen_fs_bytecode),
+    .fs.bytecode.ptr = screen_fs_bytecode,
+    .fs.bytecode.size = sizeof(screen_fs_bytecode),
 #endif
     .fs.uniform_blocks[0] = {
       .size = sizeof(struct binocle_gd_flat_shader_fs_params_t),
       .uniforms = {
-        [0] = { .name = "color", .type = BINOCLE_UNIFORMTYPE_FLOAT4 },
+        [0] = { .name = "color", .type = SG_UNIFORMTYPE_FLOAT4 },
       },
     },
   };
-  binocle_shader shader = binocle_backend_make_shader(&screen_shader_desc);
+  sg_shader shader = sg_make_shader(&screen_shader_desc);
 
-  binocle_pass_action action = {
+  sg_pass_action action = {
     .colors[0] = {
-      .action = BINOCLE_ACTION_DONTCARE,
+      .action = SG_ACTION_DONTCARE,
       .value = {0.0f, 1.0f, 0.0f, 1.0f},
     }
   };
   gd->flat.action = action;
 
-  gd->flat.pass = binocle_backend_make_pass(&(binocle_pass_desc){
+  gd->flat.pass = sg_make_pass(&(sg_pass_desc){
     .color_attachments[0].image = gd->offscreen.render_target,
   });
 
-  gd->flat.pip = binocle_backend_make_pipeline(&(binocle_pipeline_desc) {
+  gd->flat.pip = sg_make_pipeline(&(sg_pipeline_desc) {
     .layout = {
       .attrs = {
-        [0] = { .format = BINOCLE_VERTEXFORMAT_FLOAT2 }, // position
+        [0] = { .format = SG_VERTEXFORMAT_FLOAT2 }, // position
       },
     },
     .shader = shader,
-    .index_type = BINOCLE_INDEXTYPE_NONE,
+    .index_type = SG_INDEXTYPE_NONE,
     .depth = {
-      .pixel_format = BINOCLE_PIXELFORMAT_NONE,
-      .compare = BINOCLE_COMPAREFUNC_NEVER,
+      .pixel_format = SG_PIXELFORMAT_NONE,
+      .compare = SG_COMPAREFUNC_NEVER,
       .write_enabled = false,
     },
     .stencil = {
@@ -428,33 +435,33 @@ void binocle_gd_setup_flat_pipeline(binocle_gd *gd) {
     .colors = {
       [0] = {
 #ifdef BINOCLE_GL
-        .pixel_format = BINOCLE_PIXELFORMAT_RGBA8,
+        .pixel_format = SG_PIXELFORMAT_RGBA8,
 #else
-        .pixel_format = BINOCLE_PIXELFORMAT_BGRA8,
+        .pixel_format = SG_PIXELFORMAT_BGRA8,
 #endif
         .blend = {
           .enabled = false,
-          .src_factor_rgb = BINOCLE_BLENDFACTOR_SRC_ALPHA,
-          .dst_factor_rgb = BINOCLE_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+          .src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA,
+          .dst_factor_rgb = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
         }
       }
     }
   });
 
-  binocle_buffer_desc vbuf_desc = {
-    .type = BINOCLE_BUFFERTYPE_VERTEXBUFFER,
-    .usage = BINOCLE_USAGE_STREAM,
+  sg_buffer_desc vbuf_desc = {
+    .type = SG_BUFFERTYPE_VERTEXBUFFER,
+    .usage = SG_USAGE_STREAM,
     .size = sizeof(float) * 2 * 1024,
   };
-  gd->flat.vbuf = binocle_backend_make_buffer(&vbuf_desc);
+  gd->flat.vbuf = sg_make_buffer(&vbuf_desc);
 
-  binocle_buffer_desc ibuf_desc = {
-    .type = BINOCLE_BUFFERTYPE_INDEXBUFFER,
-    .usage = BINOCLE_USAGE_STREAM,
+  sg_buffer_desc ibuf_desc = {
+    .type = SG_BUFFERTYPE_INDEXBUFFER,
+    .usage = SG_USAGE_STREAM,
   };
-  gd->flat.ibuf = binocle_backend_make_buffer(&ibuf_desc);
+  gd->flat.ibuf = sg_make_buffer(&ibuf_desc);
 
-  gd->flat.bind = (binocle_bindings){
+  gd->flat.bind = (sg_bindings){
     .vertex_buffers = {
       [0] = gd->flat.vbuf,
     },
@@ -491,26 +498,26 @@ kmMat4 binocle_gd_create_model_view_matrix(float x, float y, float scale, float 
 }
 
 void binocle_gd_apply_viewport(kmAABB2 viewport) {
-  binocle_backend_apply_viewport(viewport.min.x, viewport.min.y, viewport.max.x, viewport.max.y);
+  sg_apply_viewport(viewport.min.x, viewport.min.y, viewport.max.x, viewport.max.y, false);
 }
 
-void binocle_gd_apply_blend_mode(const binocle_blend blend_mode) {
-  binocle_backend_apply_blend_mode(blend_mode);
+void binocle_gd_apply_blend_mode(const sg_blend_state blend_mode) {
+  assert(false);
 }
 
-void binocle_gd_apply_shader(binocle_gd *gd, binocle_shader shader) {
-  binocle_backend_apply_shader(shader);
+void binocle_gd_apply_shader(binocle_gd *gd, sg_shader shader) {
+  assert(false);
 }
 
-void binocle_gd_apply_texture(binocle_image texture) {
-  binocle_backend_apply_texture(texture);
+void binocle_gd_apply_texture(sg_image texture) {
+  assert(false);
 }
 
 void binocle_gd_apply_3d_texture(binocle_material *material) {
-  binocle_backend_apply_3d_texture(material);
+  assert(false);
 }
 
-void binocle_gd_set_uniform_float(struct binocle_shader *shader, const char *name, float value) {
+void binocle_gd_set_uniform_float(struct sg_shader *shader, const char *name, float value) {
 //  GLint id = 0;
 //  glCheck(id = glGetUniformLocation(shader->program_id, name));
 //  if (id == -1) {
@@ -520,11 +527,11 @@ void binocle_gd_set_uniform_float(struct binocle_shader *shader, const char *nam
 //  glCheck(glUniform1f(id, value));
 }
 
-void binocle_gd_set_uniform_float2(binocle_shader shader, const char *name, float value1, float value2) {
-  binocle_backend_set_uniform_float2(shader, name, value1, value2);
+void binocle_gd_set_uniform_float2(sg_shader shader, const char *name, float value1, float value2) {
+  assert(false);
 }
 
-void binocle_gd_set_uniform_float3(struct binocle_shader *shader, const char *name, float value1, float value2,
+void binocle_gd_set_uniform_float3(struct sg_shader *shader, const char *name, float value1, float value2,
                                    float value3) {
 //  GLint id = 0;
 //  glCheck(id = glGetUniformLocation(shader->program_id, name));
@@ -536,7 +543,7 @@ void binocle_gd_set_uniform_float3(struct binocle_shader *shader, const char *na
 }
 
 void
-binocle_gd_set_uniform_float4(struct binocle_shader *shader, const char *name, float value1, float value2, float value3,
+binocle_gd_set_uniform_float4(struct sg_shader *shader, const char *name, float value1, float value2, float value3,
                               float value4) {
 //  GLint id = 0;
 //  glCheck(id = glGetUniformLocation(shader->program_id, name));
@@ -547,8 +554,8 @@ binocle_gd_set_uniform_float4(struct binocle_shader *shader, const char *name, f
 //  glCheck(glUniform4f(id, value1, value2, value3, value4));
 }
 
-void binocle_gd_set_uniform_render_target_as_texture(struct binocle_shader *shader, const char *name,
-                                                     binocle_image render_target) {
+void binocle_gd_set_uniform_render_target_as_texture(struct sg_shader *shader, const char *name,
+                                                     sg_image render_target) {
 //  GLint id = 0;
 //  glCheck(id = glGetUniformLocation(shader->program_id, name));
 //  if (id == -1) {
@@ -560,7 +567,7 @@ void binocle_gd_set_uniform_render_target_as_texture(struct binocle_shader *shad
 //  glCheck(glBindTexture(GL_TEXTURE_2D, render_target.texture));
 }
 
-void binocle_gd_set_uniform_vec3(struct binocle_shader *shader, const char *name, kmVec3 vec) {
+void binocle_gd_set_uniform_vec3(struct sg_shader *shader, const char *name, kmVec3 vec) {
 //  GLint id = 0;
 //  glCheck(id = glGetUniformLocation(shader->program_id, name));
 //  if (id == -1) {
@@ -570,19 +577,19 @@ void binocle_gd_set_uniform_vec3(struct binocle_shader *shader, const char *name
 //  glCheck(glUniform3fv(id, 1, (GLfloat *)&vec));
 }
 
-void binocle_gd_set_uniform_mat4(binocle_shader shader, const char *name, kmMat4 mat) {
-  binocle_backend_set_uniform_mat4(shader, name, mat);
+void binocle_gd_set_uniform_mat4(sg_shader shader, const char *name, kmMat4 mat) {
+  assert(false);
 }
 
-void binocle_gd_clear(struct binocle_color color) {
-  binocle_backend_clear(color);
+void binocle_gd_clear(struct sg_color color) {
+  assert(false);
 }
 
-void binocle_gd_set_render_target(binocle_image render_target) {
-  binocle_backend_set_render_target(render_target);
+void binocle_gd_set_render_target(sg_image render_target) {
+  assert(false);
 }
 
-void binocle_gd_draw_quad(binocle_gd *gd, binocle_image image) {
+void binocle_gd_draw_quad(binocle_gd *gd, sg_image image) {
   static const GLfloat g_quad_vertex_buffer_data[] = {
       -1.0f, -1.0f,
       1.0f, -1.0f,
@@ -608,11 +615,60 @@ void binocle_gd_draw_quad(binocle_gd *gd, binocle_image image) {
 //  glCheck(glDeleteBuffers(1, &quad_vertexbuffer));
 }
 
-void binocle_gd_draw_quad_to_screen(binocle_shader shader, binocle_image render_target) {
-  binocle_backend_draw_quad_to_screen(shader, render_target);
+void binocle_gd_draw_quad_to_screen(binocle_gd *gd, sg_shader shader, sg_image render_target) {
+  float vertices[] = {
+    // positions            colors
+    -0.5f,  0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,
+    0.5f,  0.5f, 0.5f,     0.0f, 1.0f, 0.0f, 1.0f,
+    0.5f, -0.5f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f,
+    -0.5f, -0.5f, 0.5f,     1.0f, 1.0f, 0.0f, 1.0f,
+  };
+  sg_buffer_desc vbuf_desc = {
+    .data = SG_RANGE(vertices)
+  };
+  sg_buffer vbuf = sg_make_buffer(&vbuf_desc);
+
+  /* create an index buffer */
+  uint16_t indices[] = {
+    0, 1, 2,    // first triangle
+    0, 2, 3,    // second triangle
+  };
+  sg_buffer_desc ibuf_desc = {
+    .type = SG_BUFFERTYPE_INDEXBUFFER,
+    .data = SG_RANGE(indices)
+  };
+  sg_buffer ibuf = sg_make_buffer(&ibuf_desc);
+
+  /* define the resource bindings */
+  sg_bindings bind = {
+    .vertex_buffers[0] = vbuf,
+    .index_buffer = ibuf
+  };
+
+  /* create a pipeline object (default render state is fine) */
+  sg_pipeline pip = sg_make_pipeline(&(sg_pipeline_desc){
+    .shader = shader,
+    .index_type = SG_INDEXTYPE_UINT16,
+    .layout = {
+      /* test to provide attr offsets, but no buffer stride, this should compute the stride */
+      .attrs = {
+        /* vertex attrs can also be bound by location instead of name (but not in GLES2) */
+        [0] = { .offset=0, .format=SG_VERTEXFORMAT_FLOAT3 },
+        [1] = { .offset=12, .format=SG_VERTEXFORMAT_FLOAT4 }
+      }
+    }
+  });
+
+  /* default pass action */
+  sg_pass_action pass_action = { 0 };
+  sg_begin_pass(gd->display.pass, &pass_action);
+  sg_apply_pipeline(pip);
+  sg_apply_bindings(&bind);
+  sg_draw(0, 6, 1);
+  sg_end_pass();
 }
 
-void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect, binocle_color col, kmAABB2 viewport, kmMat4 viewMatrix) {
+void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect, sg_color col, kmAABB2 viewport, kmMat4 viewMatrix) {
   static GLfloat g_quad_vertex_buffer_data[6 * 2] = {0};
   g_quad_vertex_buffer_data[0] = rect.min.x;
   g_quad_vertex_buffer_data[1] = rect.min.y;
@@ -646,15 +702,15 @@ void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect, binocle_color col, kmAAB
     .color[2] = col.b,
     .color[3] = col.a,
   };
-  int offset = binocle_backend_append_buffer(gd->flat.vbuf, &(binocle_range){.ptr = g_quad_vertex_buffer_data, .size=sizeof(float)*6*2});
+  int offset = sg_append_buffer(gd->flat.vbuf, &(sg_range){.ptr = g_quad_vertex_buffer_data, .size=sizeof(float)*6*2});
   gd->flat.bind.vertex_buffer_offsets[0] = offset;
-  binocle_backend_begin_pass(gd->flat.pass, &gd->flat.action);
-  binocle_backend_apply_pipeline(gd->flat.pip);
-  binocle_backend_apply_bindings(&gd->flat.bind);
-  binocle_backend_apply_uniforms(BINOCLE_SHADERSTAGE_VS, 0, BINOCLE_RANGE_REF(vs_params));
-  binocle_backend_apply_uniforms(BINOCLE_SHADERSTAGE_FS, 0, BINOCLE_RANGE_REF(fs_params));
-  binocle_backend_draw(0, 6, 1);
-  binocle_backend_end_pass();
+  sg_begin_pass(gd->flat.pass, &gd->flat.action);
+  sg_apply_pipeline(gd->flat.pip);
+  sg_apply_bindings(&gd->flat.bind);
+  sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE_REF(vs_params));
+  sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE_REF(fs_params));
+  sg_draw(0, 6, 1);
+  sg_end_pass();
 
 //
 //  //GLuint quad_vertexbuffer;
@@ -693,7 +749,7 @@ void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect, binocle_color col, kmAAB
 //  glCheck(glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
-void binocle_gd_draw_rect_outline(binocle_gd *gd, kmAABB2 rect, binocle_color col, kmAABB2 viewport, kmMat4 viewMatrix) {
+void binocle_gd_draw_rect_outline(binocle_gd *gd, kmAABB2 rect, sg_color col, kmAABB2 viewport, kmMat4 viewMatrix) {
   kmAABB2 rect_bottom;
   kmAABB2 rect_top;
   kmAABB2 rect_left;
@@ -725,7 +781,7 @@ void binocle_gd_draw_rect_outline(binocle_gd *gd, kmAABB2 rect, binocle_color co
   binocle_gd_draw_rect(gd, rect_right, col, viewport, viewMatrix);
 }
 
-void binocle_gd_draw_line(binocle_gd *gd, kmVec2 start, kmVec2 end, binocle_color col, kmAABB2 viewport, kmMat4 viewMatrix) {
+void binocle_gd_draw_line(binocle_gd *gd, kmVec2 start, kmVec2 end, sg_color col, kmAABB2 viewport, kmMat4 viewMatrix) {
 
   float angle = atan2f(end.y - start.y, end.x - start.x);
   float length = kmVec2DistanceBetween(&start, &end);
@@ -751,7 +807,7 @@ void binocle_gd_draw_line(binocle_gd *gd, kmVec2 start, kmVec2 end, binocle_colo
   binocle_gd_draw_rect(gd, rect, col, viewport, viewMatrix);
 }
 
-void binocle_gd_draw_circle(binocle_gd *gd, kmVec2 center, float radius, binocle_color col, kmAABB2 viewport, kmMat4 viewMatrix) {
+void binocle_gd_draw_circle(binocle_gd *gd, kmVec2 center, float radius, sg_color col, kmAABB2 viewport, kmMat4 viewMatrix) {
   static GLfloat vertex_buffer_data[2 * 3 * 32] = {0};
 
   int circle_segments = 32;
@@ -809,15 +865,15 @@ void binocle_gd_draw_circle(binocle_gd *gd, kmVec2 center, float radius, binocle
     .color[2] = col.b,
     .color[3] = col.a,
   };
-  int offset = binocle_backend_append_buffer(gd->flat.vbuf, BINOCLE_RANGE_REF(vertex_buffer_data));
+  int offset = sg_append_buffer(gd->flat.vbuf, SG_RANGE_REF(vertex_buffer_data));
   gd->flat.bind.vertex_buffer_offsets[0] = offset;
-  binocle_backend_begin_pass(gd->flat.pass, &gd->flat.action);
-  binocle_backend_apply_pipeline(gd->flat.pip);
-  binocle_backend_apply_bindings(&gd->flat.bind);
-  binocle_backend_apply_uniforms(BINOCLE_SHADERSTAGE_VS, 0, BINOCLE_RANGE_REF(vs_params));
-  binocle_backend_apply_uniforms(BINOCLE_SHADERSTAGE_FS, 0, BINOCLE_RANGE_REF(fs_params));
-  binocle_backend_draw(0, 3 * 32, 1);
-  binocle_backend_end_pass();
+  sg_begin_pass(gd->flat.pass, &gd->flat.action);
+  sg_apply_pipeline(gd->flat.pip);
+  sg_apply_bindings(&gd->flat.bind);
+  sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE_REF(vs_params));
+  sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE_REF(fs_params));
+  sg_draw(0, 3 * 32, 1);
+  sg_end_pass();
 
 
 
@@ -1005,7 +1061,7 @@ void binocle_gd_draw_mesh(binocle_gd *gd, const struct binocle_mesh *mesh, kmAAB
 
 }
 
-void binocle_gd_draw_test_triangle(struct binocle_shader *shader) {
+void binocle_gd_draw_test_triangle(struct sg_shader *shader) {
 //  static const GLfloat g_quad_vertex_buffer_data[] = {
 //    -0.5f, -0.5f, 0.0f,
 //    0.5f, -0.5f, 0.0f,
@@ -1027,7 +1083,7 @@ void binocle_gd_draw_test_triangle(struct binocle_shader *shader) {
 //  glCheck(glDeleteBuffers(1, &quad_vertexbuffer));
 }
 
-void binocle_gd_draw_test_cube(struct binocle_shader *shader) {
+void binocle_gd_draw_test_cube(struct sg_shader *shader) {
 //  static GLfloat g_quad_vertex_buffer_data[] = {
 //    0.5f, -0.5f, -0.5f,
 //    0.5f, -0.5f, 0.5f,

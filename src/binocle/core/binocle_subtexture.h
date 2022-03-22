@@ -10,13 +10,13 @@
 #include <kazmath/kazmath.h>
 #include <stdint.h>
 
-struct binocle_image;
+struct sg_image;
 
 /**
  * A subtexture is a slice of a texture. Generally used for sprite sheets.
  */
 typedef struct binocle_subtexture {
-  struct binocle_image *texture;
+  struct sg_image *texture;
   kmAABB2 rect;
   char name[1024];
 } binocle_subtexture;
@@ -31,7 +31,7 @@ typedef struct binocle_subtexture {
  * @return the subtexture
  */
 binocle_subtexture
-binocle_subtexture_with_texture(struct binocle_image *texture, float x, float y, float width, float height);
+binocle_subtexture_with_texture(struct sg_image *texture, float x, float y, float width, float height);
 
 /**
  * \brief Creates a subtexture given a subtexture, coordinates and size

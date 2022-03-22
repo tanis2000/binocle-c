@@ -15,7 +15,6 @@
 #include "binocle_camera.h"
 #include <binocle_input.h>
 #include <binocle_image.h>
-#include <backend/binocle_backend.h>
 #include <binocle_sprite.h>
 #include <backend/binocle_material.h>
 #include <binocle_lua.h>
@@ -28,6 +27,7 @@
 #include "binocle_log.h"
 #include "binocle_bitmapfont.h"
 #include "binocle_audio.h"
+#include "sokol_gfx.h"
 
 //#define GAMELOOP 1
 //#define DEMOLOOP
@@ -38,6 +38,12 @@
 #if defined(BINOCLE_MACOS) && defined(BINOCLE_METAL)
 #include "../../assets/metal/default-metal-macosx.h"
 #include "../../assets/metal/screen-metal-macosx.h"
+#endif
+
+#if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
+#define SHADER_PATH "gles"
+#else
+#define SHADER_PATH "gl33"
 #endif
 
 typedef struct default_shader_params_t {
@@ -64,16 +70,11 @@ binocle_sprite *player;
 kmVec2 player_pos;
 binocle_gd gd;
 binocle_bitmapfont *font;
-binocle_image font_texture;
+sg_image font_texture;
 binocle_material *font_material;
 binocle_sprite *font_sprite;
 kmVec2 font_sprite_pos;
 float running_time;
-binocle_shader *quad_shader;
-binocle_shader *sdf_shader;
-binocle_shader *fxaa_shader;
-binocle_shader *dof_shader;
-binocle_shader *bloom_shader;
 binocle_audio audio;
 binocle_audio_sound sound;
 binocle_audio_music music;
@@ -82,10 +83,10 @@ binocle_app app;
 struct binocle_wren_t *wren;
 WrenHandle* gameClass;
 WrenHandle* method;
-binocle_image render_target;
-binocle_shader default_shader;
-binocle_shader screen_shader;
-binocle_image wabbit_image;
+sg_image render_target;
+sg_shader default_shader;
+sg_shader screen_shader;
+sg_image wabbit_image;
 
 #if defined(__APPLE__) && !defined(__IPHONEOS__)
 #define WITH_PHYSICS
@@ -417,14 +418,14 @@ int main(int argc, char *argv[])
   wabbit_image = binocle_image_load(filename);
 
   sprintf(filename, "%s%s", binocle_data_dir, "player.png");
-  binocle_image ball_image = binocle_image_load(filename);
+  sg_image ball_image = binocle_image_load(filename);
 
 #ifdef BINOCLE_GL
   // Default shader
   char vert[1024];
-  sprintf(vert, "%s%s", binocle_data_dir, "default.vert");
+  sprintf(vert, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, "default.vert");
   char frag[1024];
-  sprintf(frag, "%s%s", binocle_data_dir, "default.frag");
+  sprintf(frag, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, "default.frag");
 
   char *shader_vs_src;
   size_t shader_vs_src_size;
@@ -435,12 +436,12 @@ int main(int argc, char *argv[])
   binocle_sdl_load_text_file(frag, &shader_fs_src, &shader_fs_src_size);
 #endif
 
-  binocle_shader_desc default_shader_desc = {
+  sg_shader_desc default_shader_desc = {
 #ifdef BINOCLE_GL
     .vs.source = shader_vs_src,
 #else
-    .vs.byte_code = default_vs_bytecode,
-    .vs.byte_code_size = sizeof(default_vs_bytecode),
+    .vs.bytecode.ptr = default_vs_bytecode,
+    .vs.bytecode.size = sizeof(default_vs_bytecode),
 #endif
     .attrs = {
       [0].name = "vertexPosition",
@@ -450,25 +451,25 @@ int main(int argc, char *argv[])
     .vs.uniform_blocks[0] = {
       .size = sizeof(default_shader_params_t),
       .uniforms = {
-        [0] = { .name = "projectionMatrix", .type = BINOCLE_UNIFORMTYPE_MAT4},
-        [1] = { .name = "viewMatrix", .type = BINOCLE_UNIFORMTYPE_MAT4},
-        [2] = { .name = "modelMatrix", .type = BINOCLE_UNIFORMTYPE_MAT4},
+        [0] = { .name = "projectionMatrix", .type = SG_UNIFORMTYPE_MAT4},
+        [1] = { .name = "viewMatrix", .type = SG_UNIFORMTYPE_MAT4},
+        [2] = { .name = "modelMatrix", .type = SG_UNIFORMTYPE_MAT4},
       }
     },
 #ifdef BINOCLE_GL
     .fs.source = shader_fs_src,
 #else
-    .fs.byte_code = default_fs_bytecode,
-    .fs.byte_code_size = sizeof(default_fs_bytecode),
+    .fs.bytecode.ptr = default_fs_bytecode,
+    .fs.bytecode.size = sizeof(default_fs_bytecode),
 #endif
-    .fs.images[0] = { .name = "tex0", .type = BINOCLE_IMAGETYPE_2D},
+    .fs.images[0] = { .name = "tex0", .image_type = SG_IMAGETYPE_2D},
   };
-  default_shader = binocle_backend_make_shader(&default_shader_desc);
+  default_shader = sg_make_shader(&default_shader_desc);
 
 #ifdef BINOCLE_GL
   // Screen shader
-  sprintf(vert, "%s%s", binocle_data_dir, "screen.vert");
-  sprintf(frag, "%s%s", binocle_data_dir, "screen.frag");
+  sprintf(vert, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, "screen.vert");
+  sprintf(frag, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, "screen.frag");
 
   char *screen_shader_vs_src;
   size_t screen_shader_vs_src_size;
@@ -479,12 +480,12 @@ int main(int argc, char *argv[])
   binocle_sdl_load_text_file(frag, &screen_shader_fs_src, &screen_shader_fs_src_size);
 #endif
 
-  binocle_shader_desc screen_shader_desc = {
+  sg_shader_desc screen_shader_desc = {
 #ifdef BINOCLE_GL
     .vs.source = screen_shader_vs_src,
 #else
-    .vs.byte_code = screen_vs_bytecode,
-    .vs.byte_code_size = sizeof(screen_vs_bytecode),
+    .vs.bytecode.ptr = screen_vs_bytecode,
+    .vs.bytecode.size = sizeof(screen_vs_bytecode),
 #endif
     .attrs = {
       [0].name = "position"
@@ -492,26 +493,26 @@ int main(int argc, char *argv[])
     .vs.uniform_blocks[0] = {
       .size = sizeof(screen_shader_vs_params_t),
       .uniforms = {
-        [0] = { .name = "transform", .type = BINOCLE_UNIFORMTYPE_MAT4},
+        [0] = { .name = "transform", .type = SG_UNIFORMTYPE_MAT4},
       },
     },
 #ifdef BINOCLE_GL
     .fs.source = screen_shader_fs_src,
 #else
-    .fs.byte_code = screen_fs_bytecode,
-    .fs.byte_code_size = sizeof(screen_fs_bytecode),
+    .fs.bytecode.ptr = screen_fs_bytecode,
+    .fs.bytecode.size = sizeof(screen_fs_bytecode),
 #endif
-    .fs.images[0] = { .name = "texture", .type = BINOCLE_IMAGETYPE_2D},
+    .fs.images[0] = { .name = "tex0", .image_type = SG_IMAGETYPE_2D},
     .fs.uniform_blocks[0] = {
       .size = sizeof(screen_shader_fs_params_t),
       .uniforms = {
-        [0] = { .name = "resolution", .type = BINOCLE_UNIFORMTYPE_FLOAT2 },
-        [1] = { .name = "scale", .type = BINOCLE_UNIFORMTYPE_FLOAT2 },
-        [2] = { .name = "viewport", .type = BINOCLE_UNIFORMTYPE_FLOAT2 },
+        [0] = { .name = "resolution", .type = SG_UNIFORMTYPE_FLOAT2 },
+        [1] = { .name = "scale", .type = SG_UNIFORMTYPE_FLOAT2 },
+        [2] = { .name = "viewport", .type = SG_UNIFORMTYPE_FLOAT2 },
       },
     },
   };
-  screen_shader = binocle_backend_make_shader(&screen_shader_desc);
+  screen_shader = sg_make_shader(&screen_shader_desc);
 
   binocle_material *material = binocle_material_new();
   material->albedo_texture = wabbit_image;

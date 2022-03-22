@@ -6,7 +6,7 @@
 
 #include "binocle_vpct.h"
 
-binocle_vpct binocle_vpct_new(kmVec2 pos, binocle_color color, kmVec2 tex) {
+binocle_vpct binocle_vpct_new(kmVec2 pos, sg_color color, kmVec2 tex) {
   binocle_vpct res = {
       .pos = pos,
       .color = color,

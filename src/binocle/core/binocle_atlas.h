@@ -8,7 +8,7 @@
 #define BINOCLE_ATLAS_H
 
 struct binocle_subtexture;
-struct binocle_image;
+struct sg_image;
 
 /**
  * The format of the atlas. We currently support libGDX and TexturePacker
@@ -25,7 +25,7 @@ typedef enum binocle_atlas_file_format {
  * @param subtextures an array of subtextures to store those coming from the JSON
  * @param num_subtextures the number of subtextures that have been loaded by this function
  */
-void binocle_atlas_load_texturepacker(char *filename, struct binocle_image *texture,
+void binocle_atlas_load_texturepacker(char *filename, struct sg_image *texture,
                                       struct binocle_subtexture *subtextures, int *num_subtextures);
 
 /**
@@ -36,7 +36,7 @@ void binocle_atlas_load_texturepacker(char *filename, struct binocle_image *text
  * @param subtextures an array of subtextures to store those coming from the JSON
  * @param num_subtextures the number of subtextures that have been loaded by this function
  */
-void binocle_atlas_load_libgdx(char *filename, struct binocle_image *texture, struct binocle_subtexture *subtextures,
+void binocle_atlas_load_libgdx(char *filename, struct sg_image *texture, struct binocle_subtexture *subtextures,
                                int *num_subtextures);
 
 #endif //BINOCLE_ATLAS_H

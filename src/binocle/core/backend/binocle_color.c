@@ -6,8 +6,8 @@
 
 #include "binocle_color.h"
 
-binocle_color binocle_color_new(float r, float g, float b, float a) {
-  binocle_color res;
+sg_color binocle_color_new(float r, float g, float b, float a) {
+  sg_color res;
   res.r = r;
   res.g = g;
   res.b = b;

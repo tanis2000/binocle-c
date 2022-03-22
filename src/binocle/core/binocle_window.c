@@ -78,14 +78,14 @@ void binocle_window_refresh(binocle_window *win) {
 }
 
 void binocle_window_create(binocle_window *win, char *title, uint32_t width, uint32_t height) {
-#if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN)
+#if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 #else
-//  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-//  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-//  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 #endif
 #if defined(BINOCLE_GL)
   int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN;
@@ -136,7 +136,7 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
 
 
   //Use Vsync (0 = no vsync, 1 = vsync)
-#if !defined(__EMSCRIPTEN__)
+#if defined(BINOCLE_GL) && !defined(__EMSCRIPTEN__)
   // Try to enable VSYNC
   if (SDL_GL_SetSwapInterval(1) < 0) {
     binocle_log_warning("Warning: Unable to set VSync!");
@@ -187,7 +187,7 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
 #endif
 }
 
-void binocle_window_set_background_color(binocle_window *win, binocle_color color) {
+void binocle_window_set_background_color(binocle_window *win, sg_color color) {
   win->bg_color = color;
 }
 

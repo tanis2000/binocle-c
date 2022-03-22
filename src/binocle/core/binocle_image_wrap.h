@@ -6,10 +6,10 @@
 #define LUA_BINOCLE_IMAGE_WRAP_H
 
 #include "binocle_lua.h"
-#include "backend/binocle_backend.h"
+#include "sokol_gfx.h"
 
 typedef struct l_binocle_image_t {
-  binocle_image img;
+  sg_image img;
 } l_binocle_image_t;
 
 int luaopen_image(lua_State *L);

@@ -16,7 +16,7 @@ int l_binocle_color_new(lua_State *L) {
   lua_getfield(L, LUA_REGISTRYINDEX, "binocle_color");
   lua_setmetatable(L, -2);
   SDL_memset(color, 0, sizeof(*color));
-  binocle_color c = binocle_color_new(r, g, b, a);
+  sg_color c = binocle_color_new(r, g, b, a);
   color->color = c;
   return 1;
 }

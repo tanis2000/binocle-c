@@ -6,7 +6,7 @@
 #define LUA_BINOCLE_GD_WRAP_H
 
 #include "binocle_lua.h"
-#include "backend/binocle_backend.h"
+#include "sokol_gfx.h"
 
 typedef struct l_binocle_gd_t {
   struct binocle_gd *gd;
@@ -14,7 +14,7 @@ typedef struct l_binocle_gd_t {
 } l_binocle_gd_t;
 
 typedef struct l_binocle_render_target_t {
-  binocle_image rt;
+  sg_image rt;
 } l_binocle_render_target_t;
 
 int luaopen_gd(lua_State *L);

@@ -32,7 +32,13 @@ bool binocle_sdl_init() {
   //SDL_SetHint(SDL_HINT_ORIENTATIONS, "Portrait");
 #endif
 
-#if defined(BINOCLE_METAL)
+#if defined(BINOCLE_GL)
+#if defined(__IPHONEOS__) || defined(__ANDROID__)
+  SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengles2");
+#else
+  SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
+#endif
+#elif defined(BINOCLE_METAL)
   SDL_SetHint(SDL_HINT_RENDER_DRIVER, "metal");
 #endif
 
@@ -40,25 +46,21 @@ bool binocle_sdl_init() {
   SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);
 #endif
 
-  if (SDL_Init(0) < 0) {
+  uint32_t to_check = (SDL_INIT_VIDEO | SDL_INIT_EVENTS);
+  if (SDL_Init(to_check) < 0) {
     binocle_log_error("SDL_Init: Couldn't start SDL");
     binocle_log_error(SDL_GetError());
     binocle_sdl_exit();
   }
 
-  // Initializing everything related to VIDEO
-
-  // Subtle bug here: If VIDEO is initialized but EVENTS
-  //                  not or vice-versa.
-
-  int flags = (SDL_INIT_VIDEO | SDL_INIT_EVENTS);
-  if (SDL_WasInit(flags) != 0) {
-    binocle_log_error("SDL_WasInit: Tried to reinitailize Video");
+  uint32_t check_result = SDL_WasInit(to_check);
+  if (!(check_result & SDL_INIT_VIDEO)) {
+    binocle_log_error("SDL_WasInit: Video not initialized");
     binocle_log_error(SDL_GetError());
     binocle_sdl_exit();
   }
-  if (SDL_InitSubSystem(flags) < 0) {
-    binocle_log_error("SDL_Init: Couldn't start Video");
+  if (!(check_result & SDL_INIT_EVENTS)) {
+    binocle_log_error("SDL_WasInit: Events not initialized");
     binocle_log_error(SDL_GetError());
     binocle_sdl_exit();
   }
