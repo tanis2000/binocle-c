@@ -6,7 +6,7 @@
 #define BINOCLE_IMAGE_H
 
 #include <stdint.h>
-#include "backend/binocle_backend.h"
+#include "sokol_gfx.h"
 
 /**
  * \brief an image
@@ -27,7 +27,7 @@
  * @param filename the full filename of the image we want to load
  * @return the actual image data
  */
-binocle_image binocle_image_load(const char *filename);
+sg_image binocle_image_load(const char *filename);
 
 /**
  * \brief Loads an image file (.png or .jpg) through stb image
@@ -35,12 +35,12 @@ binocle_image binocle_image_load(const char *filename);
  * @param filter the filter to use (linear or nearest)
  * @return the actual image data
  */
-binocle_image binocle_image_load_with_filter(const char *filename, binocle_filter filter);
+sg_image binocle_image_load_with_filter(const char *filename, sg_filter filter);
 
 /**
  * \brief Frees the memory allocated for the image
  * @param image the image to destroy
  */
-void binocle_image_destroy(binocle_image image);
+void binocle_image_destroy(sg_image image);
 
 #endif //BINOCLE_IMAGE_H

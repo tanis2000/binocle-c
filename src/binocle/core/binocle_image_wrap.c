@@ -13,7 +13,7 @@ int l_binocle_image_load(lua_State *L) {
   lua_getfield(L, LUA_REGISTRYINDEX, "binocle_image");
   lua_setmetatable(L, -2);
   SDL_memset(img, 0, sizeof(*img));
-  binocle_image b_img = binocle_image_load(filename);
+  sg_image b_img = binocle_image_load(filename);
   img->img = b_img;
   return 1;
 }

@@ -9,19 +9,17 @@
 
 #include "backend/binocle_blend.h"
 #include <kazmath/kazmath.h>
-
-struct binocle_shader;
-struct binocle_image;
+#include "sokol_gfx.h"
 
 /**
  * \brief A snapshot of the current render state
  * At the moment it's being used only by the sprite batcher to optimize the number of draw calls.
  */
 typedef struct binocle_render_state {
-  binocle_blend blend_mode;
+  sg_blend_state blend_mode;
   kmMat4 transform;
-  struct binocle_image *texture;
-  struct binocle_shader *shader;
+  sg_image *texture;
+  sg_shader *shader;
   kmAABB2 viewport;
 } binocle_render_state;
 
@@ -32,6 +30,6 @@ typedef struct binocle_render_state {
  * @param shader  The current shader
  * @return the render state
  */
-binocle_render_state binocle_render_state_new(struct binocle_image *texture, struct binocle_shader *shader);
+binocle_render_state binocle_render_state_new(struct sg_image *texture, struct sg_shader *shader);
 
 #endif //BINOCLE_RENDER_STATE_H

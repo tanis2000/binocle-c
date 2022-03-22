@@ -15,13 +15,13 @@ struct vs_in {
 using namespace metal;
 fragment float4 _main(vs_in in [[stage_in]],
                       constant params_t& params [[buffer(0)]],
-                      texture2d<float, access::sample> texture [[texture(0)]],
+                      texture2d<float, access::sample> tex0 [[texture(0)]],
                       sampler texSampler [[sampler(0)]]
 ) {
     //return in.color;
     //return float4(0.5);
     float2 uv = (in.pos.xy - params.viewport.xy) / params.resolution.xy * params.scale;
-    float4 diffuseColor = texture.sample(texSampler, uv);
+    float4 diffuseColor = tex0.sample(texSampler, uv);
     return diffuseColor;
 }
 

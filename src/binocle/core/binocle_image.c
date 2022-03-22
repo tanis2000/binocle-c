@@ -16,7 +16,7 @@
 #include "binocle_sdl.h"
 #include "binocle_log.h"
 
-binocle_image binocle_image_load_with_filter(const char *filename, binocle_filter filter) {
+sg_image binocle_image_load_with_filter(const char *filename, sg_filter filter) {
 //  binocle_image *res = malloc(sizeof(binocle_image));
 //  memset(res, 0, sizeof(*res));
 
@@ -25,7 +25,7 @@ binocle_image binocle_image_load_with_filter(const char *filename, binocle_filte
   int bpp = 0;
   char *buffer;
   size_t size;
-  binocle_image img = { 0 };
+  sg_image img = { 0 };
 
 #if defined(BINOCLE_GL) || defined(BINOCLE_METAL)
   // Flip the y-coordinate because OpenGL expects the 0.0 coordinate on the y-axis to be on the bottom side of the
@@ -48,10 +48,10 @@ binocle_image binocle_image_load_with_filter(const char *filename, binocle_filte
 //  res->height = height;
 
   binocle_log_info("Texture size: %" PRId32 "x%" PRId32", BPP: %d", width, height, bpp);
-  binocle_image_desc desc = {
+  sg_image_desc desc = {
     .width = width,
     .height = height,
-    .pixel_format = BINOCLE_PIXELFORMAT_RGBA8,
+    .pixel_format = SG_PIXELFORMAT_RGBA8,
     .min_filter = filter,
     .mag_filter = filter,
     .data.subimage[0][0] = {
@@ -59,16 +59,16 @@ binocle_image binocle_image_load_with_filter(const char *filename, binocle_filte
       .size = width * height * 4 // forced to 4bpp as we use the same format all the time no matter what we read from the asset
     }
   };
-  img = binocle_backend_make_image(&desc);
+  img = sg_make_image(&desc);
   stbi_image_free(data);
 //  free(buffer); // if this is commented out, we leak memory. But on Windows it crashes if you uncomment this line.
   return img;
 }
 
-binocle_image binocle_image_load(const char *filename) {
-  return binocle_image_load_with_filter(filename, BINOCLE_FILTER_LINEAR);
+sg_image binocle_image_load(const char *filename) {
+  return binocle_image_load_with_filter(filename, SG_FILTER_LINEAR);
 }
 
-void binocle_image_destroy(binocle_image image) {
-  binocle_backend_destroy_image(image);
+void binocle_image_destroy(sg_image image) {
+  sg_dealloc_image(image);
 }

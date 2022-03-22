@@ -6,7 +6,6 @@
 #include "binocle_texture_wrap.h"
 #include "binocle_lua.h"
 #include "binocle_image.h"
-#include "backend/binocle_backend.h"
 #include "binocle_sdl.h"
 
 int l_binocle_texture_from_image(lua_State *L) {

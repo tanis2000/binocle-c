@@ -5,6 +5,7 @@ include_directories(
         ${CMAKE_SOURCE_DIR}/src/deps/sdl/include
         ${CMAKE_SOURCE_DIR}/src/deps/sdl_mixer
         ${CMAKE_SOURCE_DIR}/src/deps/physfs
+        ${CMAKE_SOURCE_DIR}/src/deps/sokol
         ${CMAKE_SOURCE_DIR}/src/binocle/core
         ${CMAKE_SOURCE_DIR}/src/example/gameplay
 )
@@ -49,10 +50,16 @@ file(GLOB SOURCE_FILES
 if (APPLE)
     #if(IOS)
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-    file(GLOB RESOURCES_LIST ${CMAKE_SOURCE_DIR}/assets/*)
-    set(RESOURCES
-            ${RESOURCES_LIST}
-            )
+    file(GLOB_RECURSE RESOURCES "${CMAKE_SOURCE_DIR}/assets/*")
+    foreach(RES_FILE ${RESOURCES})
+        message("RES_FILE: ${RES_FILE}")
+        file(RELATIVE_PATH RES_PATH "${CMAKE_SOURCE_DIR}/assets" ${RES_FILE})
+        message("RES_PATH: ${RES_PATH}")
+        get_filename_component(RES_FOLDER ${RES_PATH} DIRECTORY)
+        message("RES_FOLDER: ${RES_FOLDER}")
+        set_property(SOURCE ${RES_FILE} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/${RES_FOLDER}")
+    endforeach(RES_FILE)
+    #set_property(SOURCE ${RESOURCES} PROPERTY MACOSX_PACKAGE_LOCATION "Resources")
     message("Resources list: ${RESOURCES}")
     #endif()
 endif ()
@@ -103,10 +110,10 @@ if (APPLE)
     # 			PROPERTIES
     # 			MACOSX_PACKAGE_LOCATION Resources
     # )
-    set_source_files_properties(
-            ${RESOURCES}
-            PROPERTIES
-            MACOSX_PACKAGE_LOCATION Resources)
+#    set_source_files_properties(
+#            ${RESOURCES}
+#            PROPERTIES
+#            MACOSX_PACKAGE_LOCATION Resources)
     if (IOS)
         message("Using plist file: ${CMAKE_SOURCE_DIR}/platform/ios/Info.plist")
         set_target_properties(
@@ -164,8 +171,3 @@ endif ()
 if(NOT MSVC)
     add_subdirectory(gameplay)
 endif(NOT MSVC)
-
-file(GLOB RESOURCES_LIST ${CMAKE_SOURCE_DIR}/assets/*)
-set(ASSETS ${RESOURCES_LIST})
-message("Assets: ${ASSETS}")
-FILE(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/src)

@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include "binocle_app.h"
 #include "binocle_sdl.h"
+#include "sokol_gfx.h"
 
 #define SOKOL_IMPL
 #include <sokol_time.h>

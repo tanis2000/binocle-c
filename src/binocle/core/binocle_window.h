@@ -23,7 +23,7 @@ typedef struct binocle_window {
   uint32_t original_width;
   uint32_t original_height;
   bool is_fullscreen;
-  binocle_color bg_color;
+  sg_color bg_color;
 
   SDL_GLContext gl_context;
 
@@ -73,7 +73,7 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
  * @param win the window
  * @param color the color
  */
-void binocle_window_set_background_color(binocle_window *win, binocle_color color);
+void binocle_window_set_background_color(binocle_window *win, sg_color color);
 
 /**
  * \brief Switches the buffers as needed to show the new frame in the given window

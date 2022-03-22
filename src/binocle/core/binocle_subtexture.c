@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include "binocle_subtexture.h"
+#include "sokol_gfx.h"
 
 binocle_subtexture binocle_subtexture_new() {
   binocle_subtexture res = {
@@ -16,7 +17,7 @@ binocle_subtexture binocle_subtexture_new() {
 }
 
 binocle_subtexture
-binocle_subtexture_with_texture(struct binocle_image *texture, float x, float y, float width, float height) {
+binocle_subtexture_with_texture(struct sg_image *texture, float x, float y, float width, float height) {
   binocle_subtexture res = {
       .texture = texture,
       .rect = {.min.x = x, .min.y = y, .max.x = width, .max.y = height}
