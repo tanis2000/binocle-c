@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 #ifdef __EMSCRIPTEN__
-#include "emscripten.h"
+#include <emscripten.h>
 #endif
 #include "binocle_sdl.h"
 #include "backend/binocle_color.h"
@@ -444,9 +444,9 @@ int main(int argc, char *argv[])
     .vs.bytecode.size = sizeof(default_vs_bytecode),
 #endif
     .attrs = {
-      [0].name = "vertexPosition",
-      [1].name = "vertexColor",
-      [2].name = "vertexTCoord",
+      [0] = { .name = "vertexPosition"},
+      [1] = { .name = "vertexColor"},
+      [2] = { .name = "vertexTCoord"},
     },
     .vs.uniform_blocks[0] = {
       .size = sizeof(default_shader_params_t),
@@ -488,7 +488,9 @@ int main(int argc, char *argv[])
     .vs.bytecode.size = sizeof(screen_vs_bytecode),
 #endif
     .attrs = {
-      [0].name = "position"
+      [0] = {.name = "position"},
+//      [1] = {.name = "color"},
+//      [2] = {.name = "tex"},
     },
     .vs.uniform_blocks[0] = {
       .size = sizeof(screen_shader_vs_params_t),

@@ -202,8 +202,8 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
     .layout = {
       .attrs = {
         [0] = { .format = SG_VERTEXFORMAT_FLOAT3 }, // position
-        [1] = { .format = SG_VERTEXFORMAT_FLOAT4 }, // color
-        [2] = { .format = SG_VERTEXFORMAT_FLOAT2 }, // texture uv
+//        [1] = { .format = SG_VERTEXFORMAT_FLOAT4 }, // color
+//        [2] = { .format = SG_VERTEXFORMAT_FLOAT2 }, // texture uv
       }
     },
     .shader = display_shader,
@@ -227,12 +227,19 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
     }
   });
 
+//  float vertices[] = {
+//    /* pos                  color                       uvs */
+//    -1.0f, -1.0f, 0.0f,    1.0f, 1.0f, 1.0f, 1.0f,     0.0f, 0.0f,
+//    1.0f, -1.0f, 0.0f,    1.0f, 1.0f, 1.0f, 1.0f,     1.0f, 0.0f,
+//    1.0f,  1.0f, 0.0f,    1.0f, 1.0f, 1.0f, 1.0f,     1.0f, 1.0f,
+//    -1.0f,  1.0f, 0.0f,    1.0f, 1.0f, 1.0f, 1.0f,     0.0f, 1.0f,
+//  };
   float vertices[] = {
     /* pos                  color                       uvs */
-    -1.0f, -1.0f, 0.0f,    1.0f, 1.0f, 1.0f, 1.0f,     0.0f, 0.0f,
-    1.0f, -1.0f, 0.0f,    1.0f, 1.0f, 1.0f, 1.0f,     1.0f, 0.0f,
-    1.0f,  1.0f, 0.0f,    1.0f, 1.0f, 1.0f, 1.0f,     1.0f, 1.0f,
-    -1.0f,  1.0f, 0.0f,    1.0f, 1.0f, 1.0f, 1.0f,     0.0f, 1.0f,
+    -1.0f, -1.0f, 0.0f,
+    1.0f, -1.0f, 0.0f,
+    1.0f,  1.0f, 0.0f,
+    -1.0f,  1.0f, 0.0f,
   };
   sg_buffer_desc display_vbuf_desc = {
     .data = SG_RANGE(vertices)
