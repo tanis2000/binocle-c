@@ -9,7 +9,7 @@
 #include "backend/binocle_color.h"
 
 typedef struct l_binocle_color_t {
-  struct binocle_color color;
+  struct sg_color color;
 } l_binocle_color_t;
 
 int luaopen_color(lua_State *L);

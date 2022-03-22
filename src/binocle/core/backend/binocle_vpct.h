@@ -15,7 +15,7 @@
  */
 typedef struct binocle_vpct {
   kmVec2 pos;
-  binocle_color color;
+  sg_color color;
   kmVec2 tex;
 } binocle_vpct;
 
@@ -26,15 +26,15 @@ typedef struct binocle_vpct {
  * @param tex the texture coordinates
  * @return the vertex
  */
-binocle_vpct binocle_vpct_new(kmVec2 pos, binocle_color color, kmVec2 tex);
+binocle_vpct binocle_vpct_new(kmVec2 pos, sg_color color, kmVec2 tex);
 
 typedef struct binocle_vpctn {
   kmVec3 pos;
-  binocle_color color;
+  sg_color color;
   kmVec2 tex;
   kmVec3 normal;
 } binocle_vpctn;
 
-binocle_vpctn binocle_vpctn_new(kmVec3 pos, binocle_color color, kmVec2 tex, kmVec3 normal);
+binocle_vpctn binocle_vpctn_new(kmVec3 pos, sg_color color, kmVec2 tex, kmVec3 normal);
 
 #endif //BINOCLE_VPCT_H

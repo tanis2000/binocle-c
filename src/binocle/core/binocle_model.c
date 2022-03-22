@@ -12,7 +12,6 @@
 #include "binocle_log.h"
 #include "backend/binocle_material.h"
 #include "binocle_image.h"
-#include "backend/binocle_backend.h"
 #include "backend/binocle_vpct.h"
 
 
@@ -286,7 +285,7 @@ binocle_model binocle_model_load_obj(char *filename, char *mtl_filename) {
     model.materials[i] = mat;
     // We use diffuse only atm
     if (materials[i].diffuse_texname != NULL) {
-      binocle_image image = binocle_image_load(materials[i].diffuse_texname);
+      sg_image image = binocle_image_load(materials[i].diffuse_texname);
       model.materials[i]->albedo_texture = image;
       // TODO: fix this now that we no longer have default shaders
       //model.materials[i]->shader = &binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT];

@@ -10,8 +10,9 @@
 #include "binocle_log.h"
 #include "binocle_subtexture.h"
 #include <parson/parson.h>
+#include "sokol_gfx.h"
 
-void binocle_atlas_load_texturepacker(char *filename, struct binocle_image *texture,
+void binocle_atlas_load_texturepacker(char *filename, struct sg_image *texture,
                                       struct binocle_subtexture *subtextures, int *num_subtextures) {
   *num_subtextures = 0;
   binocle_log_info("Loading TexturePacker file: %s", filename);
@@ -101,7 +102,7 @@ void binocle_atlas_load_texturepacker(char *filename, struct binocle_image *text
   binocle_log_debug("Atlas loaded.");
 }
 
-void binocle_atlas_load_libgdx(char *filename, struct binocle_image *texture, struct binocle_subtexture *subtextures,
+void binocle_atlas_load_libgdx(char *filename, struct sg_image *texture, struct binocle_subtexture *subtextures,
                                int *num_subtextures) {
   *num_subtextures = 0;
   binocle_log_info("Loading LibGDX file: %s", filename);

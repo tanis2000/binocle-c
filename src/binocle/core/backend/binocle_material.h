@@ -7,27 +7,26 @@
 #ifndef BINOCLE_MATERIAL_H
 #define BINOCLE_MATERIAL_H
 
-#include "binocle_backend.h"
-#include "binocle_blend.h"
+#include "sokol_gfx.h"
 
 /**
  * \brief A material as used internally by the engine
  */
 typedef struct binocle_material {
   /// The blending mode
-  binocle_blend blend_mode;
+  sg_blend_state blend_mode;
   /// The albedo/diffuse texture
-  binocle_image albedo_texture;
+  sg_image albedo_texture;
   /// The normal/specular texture
-  binocle_image normal_texture;
+  sg_image normal_texture;
   /// The metallic texture
-  binocle_image metallic_texture;
+  sg_image metallic_texture;
   /// The roughness texture
-  binocle_image roughness_texture;
+  sg_image roughness_texture;
   /// The ambient occlusion texture
-  binocle_image ao_texture;
+  sg_image ao_texture;
   /// The shader (couple of VS/FS)
-  binocle_shader shader;
+  sg_shader shader;
 } binocle_material;
 
 /**

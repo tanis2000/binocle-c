@@ -64,28 +64,14 @@ file(GLOB REMOVE_CORE_SOURCE
 list(REMOVE_ITEM CORE_SOURCE ${REMOVE_CORE_SOURCE})
 file(GLOB UNITY_SOURCE core/binocle.c core/binocle.h)
 
-set(GL_SOURCE
-        core/backend/binocle_backend_gl.h
-        core/backend/binocle_backend_gl.c
-        )
-
-set(METAL_SOURCE
-        core/backend/binocle_backend_metal.h
-        core/backend/binocle_backend_metal.m
-        )
-
 set(CORE_SOURCE ${CORE_SOURCE} core/binocle_miniaudio.c)
 
-if(BINOCLE_GL)
-    set(CORE_SOURCE ${CORE_SOURCE} ${GL_SOURCE})
-endif()
-
-if(BINOCLE_METAL)
-    set(CORE_SOURCE ${CORE_SOURCE} ${METAL_SOURCE})
-endif()
-
 if (APPLE)
-    set(PLATFORM_SOURCE core/PlayerPrefs.mm)
+    set(PLATFORM_SOURCE core/PlayerPrefs.mm core/binocle_sokol.m)
+    file(GLOB REMOVE_CORE_SOURCE
+            "core/binocle_sokol.c"
+            )
+    list(REMOVE_ITEM CORE_SOURCE ${REMOVE_CORE_SOURCE})
 endif ()
 
 set(SOURCE_FILES

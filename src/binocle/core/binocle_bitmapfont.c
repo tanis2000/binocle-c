@@ -182,7 +182,7 @@ binocle_bitmapfont_make_square_t(float x1, float y1, float x2, float y2, float t
 
 void
 binocle_bitmapfont_create_vertice_and_tex_coords_for_string(binocle_bitmapfont *font, const char *str, float height,
-                                                            kmMat4 transformation_matrix, binocle_color color) {
+                                                            kmMat4 transformation_matrix, sg_color color) {
   memset(font->vertexes, BINOCLE_MAX_FONT_VERTICES, sizeof(binocle_vpct));
   float scale = height / (float) font->line_height;
   binocle_bitmapfont_square_t *char_squares = (binocle_bitmapfont_square_t *) malloc(
@@ -313,7 +313,7 @@ float binocle_bitmapfont_get_width_of_string(binocle_bitmapfont font, const char
 }
 
 void binocle_bitmapfont_draw_string(binocle_bitmapfont *font, const char *str, float height, binocle_gd *gd, uint64_t x,
-                                    uint64_t y, kmAABB2 viewport, binocle_color color, kmMat4 view_matrix) {
+                                    uint64_t y, kmAABB2 viewport, sg_color color, kmMat4 view_matrix) {
   kmMat4 transformation_matrix;
   kmMat4Identity(&transformation_matrix);
   kmMat4Translation(&transformation_matrix, x, y, 0);
