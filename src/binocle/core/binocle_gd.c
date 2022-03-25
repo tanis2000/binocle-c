@@ -94,9 +94,15 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
       .height = offscreen_height,
       .min_filter = SG_FILTER_LINEAR,
       .mag_filter = SG_FILTER_LINEAR,
+#ifdef SOKOL_GLES2
     .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
     .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
     .wrap_w = SG_WRAP_CLAMP_TO_EDGE,
+#else
+    .wrap_u = SG_WRAP_CLAMP_TO_BORDER,
+    .wrap_v = SG_WRAP_CLAMP_TO_BORDER,
+    .wrap_w = SG_WRAP_CLAMP_TO_BORDER,
+#endif
 #ifdef BINOCLE_GL
       .pixel_format = SG_PIXELFORMAT_RGBA8,
 #else
@@ -287,7 +293,8 @@ void binocle_gd_draw(binocle_gd *gd, const struct binocle_vpct *vertices, size_t
   kmMat4Identity(&cmd->uniforms.viewMatrix);
 
   if (cameraTransformMatrix != NULL) {
-    kmMat4Multiply(&cmd->uniforms.viewMatrix, &cmd->uniforms.viewMatrix, cameraTransformMatrix);
+    // TODO: if we bring the camera in, it starts screwing the rendering. think about it
+//    kmMat4Multiply(&cmd->uniforms.viewMatrix, &cmd->uniforms.viewMatrix, cameraTransformMatrix);
   }
 
   kmMat4Identity(&cmd->uniforms.modelMatrix);
@@ -332,7 +339,7 @@ void binocle_gd_render_offscreen(binocle_gd *gd) {
   gd->num_vertices = 0;
 }
 
-void binocle_gd_render_screen(binocle_gd *gd, struct binocle_window *window, float design_width, float design_height, kmAABB2 viewport) {
+void binocle_gd_render_screen(binocle_gd *gd, struct binocle_window *window, float design_width, float design_height, kmAABB2 viewport, kmMat4 matrix, float scale) {
   // Render the offscreen to the display
 
   typedef struct screen_vs_params_t {
@@ -348,15 +355,15 @@ void binocle_gd_render_screen(binocle_gd *gd, struct binocle_window *window, flo
   screen_vs_params_t screen_vs_params;
   screen_fs_params_t screen_fs_params;
 
+//  screen_vs_params.transform = matrix;
   kmMat4Identity(&screen_vs_params.transform);
 
   screen_fs_params.resolution[0] = design_width;
   screen_fs_params.resolution[1] = design_height;
-  screen_fs_params.scale[0] = 1;
-  screen_fs_params.scale[1] = 1;
+  screen_fs_params.scale[0] = scale;
+  screen_fs_params.scale[1] = scale;
   screen_fs_params.viewport[0] = viewport.min.x;
   screen_fs_params.viewport[1] = viewport.min.y;
-
 
   gd->display.bind.fs_images[0] = gd->offscreen.render_target;
 
@@ -371,9 +378,9 @@ void binocle_gd_render_screen(binocle_gd *gd, struct binocle_window *window, flo
   sg_commit();
 }
 
-void binocle_gd_render(binocle_gd *gd, struct binocle_window *window, float design_width, float design_height, kmAABB2 viewport) {
+void binocle_gd_render(binocle_gd *gd, struct binocle_window *window, float design_width, float design_height, kmAABB2 viewport, kmMat4 matrix, float scale) {
   binocle_gd_render_offscreen(gd);
-  binocle_gd_render_screen(gd, window, design_width, design_height, viewport);
+  binocle_gd_render_screen(gd, window, design_width, design_height, viewport, matrix, scale);
 }
 
 void binocle_gd_setup_flat_pipeline(binocle_gd *gd) {
@@ -591,8 +598,8 @@ void binocle_gd_set_uniform_mat4(sg_shader shader, const char *name, kmMat4 mat)
   assert(false);
 }
 
-void binocle_gd_clear(struct sg_color color) {
-  assert(false);
+void binocle_gd_set_offscreen_clear_color(binocle_gd *gd, struct sg_color color) {
+  gd->offscreen.action.colors[0].value = color;
 }
 
 void binocle_gd_set_render_target(sg_image render_target) {
