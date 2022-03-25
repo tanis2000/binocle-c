@@ -91,8 +91,8 @@ void binocle_gd_init(binocle_gd *gd, struct binocle_window *win);
 void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width, uint32_t offscreen_height, sg_shader offscreen_shader, sg_shader display_shader);
 
 void binocle_gd_render_offscreen(binocle_gd *gd);
-void binocle_gd_render_screen(binocle_gd *gd, struct binocle_window *window, float design_width, float design_height, kmAABB2 viewport);
-void binocle_gd_render(binocle_gd *gd, struct binocle_window *window, float design_width, float design_height, kmAABB2 viewport);
+void binocle_gd_render_screen(binocle_gd *gd, struct binocle_window *window, float design_width, float design_height, kmAABB2 viewport, kmMat4 matrix, float scale);
+void binocle_gd_render(binocle_gd *gd, struct binocle_window *window, float design_width, float design_height, kmAABB2 viewport, kmMat4 matrix, float scale);
 
 /**
  * Creates a 2D model view matrix
@@ -207,10 +207,10 @@ void binocle_gd_set_uniform_float4(struct sg_shader *shader,
                                    float value4);
 
 /**
- * \brief Clears the current buffer with the given color
+ * \brief Sets the clear color for the offscreen buffer
  * @param color the color
  */
-void binocle_gd_clear(struct sg_color color);
+void binocle_gd_set_offscreen_clear_color(binocle_gd *gd, struct sg_color color);
 
 /**
  * \brief Binds the frame buffer and the render buffer of a render target

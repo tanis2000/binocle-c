@@ -18,8 +18,17 @@ int l_binocle_image_load(lua_State *L) {
   return 1;
 }
 
+int l_binocle_image_get_info(lua_State *L) {
+  l_binocle_image_t *img = luaL_checkudata(L, 1, "binocle_image");
+  sg_image_info info = sg_query_image_info(img->img);
+  lua_pushnumber(L, info.width);
+  lua_pushnumber(L, info.height);
+  return 2;
+}
+
 static const struct luaL_Reg image [] = {
   {"load", l_binocle_image_load},
+  {"get_info", l_binocle_image_get_info},
   {NULL, NULL}
 };
 

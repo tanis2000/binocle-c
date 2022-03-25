@@ -79,8 +79,8 @@ void binocle_viewport_adapter_reset(binocle_viewport_adapter *adapter, kmVec2 ol
     //kmVec2 newWindowSize = { .x = window.width, .y = window.height };
     //float ratioX = newWindowSize.x / oldWindowSize.x;
     //float ratioY = newWindowSize.y / oldWindowSize.y;
-    float ratioX = newWindowSize.x / adapter->virtual_width;
-    float ratioY = newWindowSize.y / adapter->virtual_height;
+    float ratioX = newWindowSize.x / (float)adapter->virtual_width;
+    float ratioY = newWindowSize.y / (float)adapter->virtual_height;
     kmAABB2 originalViewport = binocle_viewport_adapter_get_original_viewport(*adapter);
     if (adapter->scaling_type == BINOCLE_VIEWPORT_ADAPTER_SCALING_TYPE_FREE) {
       adapter->viewport.min.x = originalViewport.min.x * ratioX;
@@ -96,8 +96,8 @@ void binocle_viewport_adapter_reset(binocle_viewport_adapter *adapter, kmVec2 ol
     } else if (adapter->scaling_type == BINOCLE_VIEWPORT_ADAPTER_SCALING_TYPE_PIXEL_PERFECT) {
       // minimum multiplier
       int multiplier = 1;
-      float scaleX = newWindowSize.x / adapter->virtual_width;
-      float scaleY = newWindowSize.y / adapter->virtual_height;
+      float scaleX = newWindowSize.x / (float)adapter->virtual_width;
+      float scaleY = newWindowSize.y / (float)adapter->virtual_height;
 
       // find the multiplier that fits both the new width and height
       int maxScale = (int) scaleX < (int) scaleY ? (int) scaleX : (int) scaleY;
@@ -106,22 +106,25 @@ void binocle_viewport_adapter_reset(binocle_viewport_adapter *adapter, kmVec2 ol
       }
 
       // viewport origin translation
-      float diffX = (newWindowSize.x / 2.0f) - ((float) adapter->virtual_width * multiplier / 2.0f);
-      float diffY = (newWindowSize.y / 2.0f) - ((float) adapter->virtual_height * multiplier / 2.0f);
+      float diffX = (newWindowSize.x / 2.0f) - ((float) adapter->virtual_width * (float)multiplier / 2.0f);
+      float diffY = (newWindowSize.y / 2.0f) - ((float) adapter->virtual_height * (float)multiplier / 2.0f);
 
       // build the new viewport
       adapter->viewport.min.x = diffX;
       adapter->viewport.min.y = diffY;
-      adapter->viewport.max.x = adapter->virtual_width * multiplier;
-      adapter->viewport.max.y = adapter->virtual_height * multiplier;
+      adapter->viewport.max.x = (float)adapter->virtual_width * (float)multiplier;
+      adapter->viewport.max.y = (float)adapter->virtual_height * (float)multiplier;
 
       // compute the scaling matrix
-      float matMulX = (adapter->viewport.max.x - adapter->viewport.min.x) / adapter->virtual_width;
-      float matMulY = (adapter->viewport.max.y - adapter->viewport.min.y) / adapter->virtual_height;
+      float matMulX = (adapter->viewport.max.x - adapter->viewport.min.x) / (float)adapter->virtual_width;
+      float matMulY = (adapter->viewport.max.y - adapter->viewport.min.y) / (float)adapter->virtual_height;
+
+      float tx = diffX / (float)adapter->virtual_width * (float)multiplier;
+      float ty = diffY / (float)adapter->virtual_width * (float)multiplier;
       kmMat4Identity(&adapter->scale_matrix);
       kmMat4 trans_matrix;
       kmMat4Identity(&trans_matrix);
-      kmMat4Translation(&trans_matrix, diffX, diffY, 0.0f);
+      kmMat4Translation(&trans_matrix, tx, ty, 0.0f);
       kmMat4 sc_matrix;
       kmMat4Identity(&sc_matrix);
       kmMat4Scaling(&sc_matrix, matMulX, matMulY, 1.0f);
