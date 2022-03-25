@@ -90,9 +90,19 @@ int l_binocle_gd_draw_quad_to_screen(lua_State *L) {
   return 0;
 }
 
-int l_binocle_gd_clear(lua_State *L) {
-  sg_color *color = luaL_checkudata(L, 1, "binocle_color");
-  binocle_gd_clear(*color);
+int l_binocle_gd_set_offscreen_clear_color(lua_State *L) {
+  l_binocle_gd_t *gd = lua_touserdata(L, 1);
+  float r = (float)luaL_checknumber(L, 2);
+  float g = (float)luaL_checknumber(L, 3);
+  float b = (float)luaL_checknumber(L, 4);
+  float a = (float)luaL_checknumber(L, 5);
+  sg_color color = {
+    .r = r,
+    .g = g,
+    .b = b,
+    .a = a
+  };
+  binocle_gd_set_offscreen_clear_color(gd->gd, color);
   return 0;
 }
 
@@ -106,7 +116,7 @@ static const struct luaL_Reg gd [] = {
   {"set_uniform_float2", l_binocle_gd_set_uniform_float2},
   {"set_uniform_mat4", l_binocle_gd_set_uniform_mat4},
   {"draw_quad_to_screen", l_binocle_gd_draw_quad_to_screen},
-  {"clear", l_binocle_gd_clear},
+  {"set_offscreen_clear_color", l_binocle_gd_set_offscreen_clear_color},
   {NULL, NULL}
 };
 
