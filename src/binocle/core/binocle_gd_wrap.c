@@ -94,12 +94,12 @@ int l_binocle_gd_draw_quad_to_screen(lua_State *L) {
 
 int l_binocle_gd_draw_rect(lua_State *L) {
   l_binocle_gd_t *gd = lua_touserdata(L, 1);
-  kmAABB2 *rect = lua_touserdata(L, 2);
+  kmAABB2 **rect = lua_touserdata(L, 2);
   sg_color *color = luaL_checkudata(L, 3, "binocle_color");
-  kmAABB2 *viewport = lua_touserdata(L, 4);
+  kmAABB2 **viewport = lua_touserdata(L, 4);
   l_binocle_camera_t *camera = luaL_checkudata(L, 5, "binocle_camera");
   kmMat4 view_matrix = binocle_camera_get_projection_matrix(*camera->camera);
-  binocle_gd_draw_rect(gd->gd, *rect, *color, *viewport, view_matrix);
+  binocle_gd_draw_rect(gd->gd, **rect, *color, **viewport, view_matrix);
   return 0;
 }
 
