@@ -26,7 +26,7 @@ typedef struct binocle_gd_flat_shader_fs_params_t {
   float color[4];
 } binocle_gd_flat_shader_fs_params_t;
 
-const char *binocle_shader_flat_vertex_src = "\
+const char *binocle_shader_flat_vertex_src_gles = "\
 \n\
 \
 attribute vec3 vertexPosition;\
@@ -42,13 +42,38 @@ void main(void) {\
 }\
 \0";
 
-const char *binocle_shader_flat_src = "\
+const char *binocle_shader_flat_src_gles = "\
 \n\
 uniform vec4 color;\
 void main(void)\
 {\
     gl_FragColor = color;\n\
     //gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n\
+}\
+\0";
+
+const char *binocle_shader_flat_vertex_src_gl33 = "\
+#version 330\
+in vec3 vertexPosition;\
+in vec4 vertexColor;\
+\
+uniform mat4 projectionMatrix;\
+uniform mat4 viewMatrix;\
+uniform mat4 modelMatrix;\
+\
+void main(void) {\
+    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);\
+    gl_PointSize = 1.0;\
+}\
+\0";
+
+const char *binocle_shader_flat_src_gl33 = "\
+#version 330\
+uniform vec4 color;\
+void main(void)\
+{\
+    fragColor = color;\
+    //gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\
 }\
 \0";
 
@@ -390,7 +415,11 @@ void binocle_gd_setup_flat_pipeline(binocle_gd *gd) {
 #endif
   sg_shader_desc screen_shader_desc = {
 #ifdef BINOCLE_GL
-    .vs.source = binocle_shader_flat_vertex_src,
+#ifdef SOKOL_GLES2
+    .vs.source = binocle_shader_flat_vertex_src_gles,
+#else
+    .vs.source = binocle_shader_flat_vertex_src_gl33,
+#endif
     .vs.uniform_blocks[0] = {
       .size = sizeof(struct binocle_gd_flat_shader_vs_params_t),
       .uniforms = {
@@ -407,7 +436,11 @@ void binocle_gd_setup_flat_pipeline(binocle_gd *gd) {
       [0].name = "vertexPosition",
     },
 #ifdef BINOCLE_GL
-    .fs.source = binocle_shader_flat_src,
+#ifdef SOKOL_GLES2
+    .fs.source = binocle_shader_flat_src_gles,
+#else
+    .fs.source = binocle_shader_flat_src_gl33,
+#endif
 #else
     .fs.bytecode.ptr = screen_fs_bytecode,
     .fs.bytecode.size = sizeof(screen_fs_bytecode),
