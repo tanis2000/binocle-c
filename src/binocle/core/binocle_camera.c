@@ -175,7 +175,7 @@ void binocle_camera_update_matrixes(binocle_camera *camera) {
   kmMat4Multiply(&camera->transform_matrix, &camera->transform_matrix, &temp_mat);
 
   // if we have a ViewportAdapter take it into account
-  kmMat4Multiply(&camera->transform_matrix, &camera->transform_matrix, &camera->viewport_adapter->scale_matrix);
+  //kmMat4Multiply(&camera->transform_matrix, &camera->transform_matrix, &camera->viewport_adapter->scale_matrix);
 
   // calculate our inverse as well
   kmMat4Inverse(&camera->inverse_transform_matrix, &camera->transform_matrix);
