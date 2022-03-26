@@ -318,8 +318,7 @@ void binocle_gd_draw(binocle_gd *gd, const struct binocle_vpct *vertices, size_t
   kmMat4Identity(&cmd->uniforms.viewMatrix);
 
   if (cameraTransformMatrix != NULL) {
-    // TODO: if we bring the camera in, it starts screwing the rendering. think about it
-//    kmMat4Multiply(&cmd->uniforms.viewMatrix, &cmd->uniforms.viewMatrix, cameraTransformMatrix);
+    kmMat4Multiply(&cmd->uniforms.viewMatrix, &cmd->uniforms.viewMatrix, cameraTransformMatrix);
   }
 
   kmMat4Identity(&cmd->uniforms.modelMatrix);
