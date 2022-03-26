@@ -8,6 +8,7 @@
 #include "binocle_material_wrap.h"
 #include "binocle_viewport_adapter_wrap.h"
 #include "binocle_gd_wrap.h"
+#include "binocle_camera_wrap.h"
 
 int l_binocle_ttfont_from_file(lua_State *L) {
   const char *filename = luaL_checkstring(L, 1);
@@ -31,9 +32,10 @@ int l_binocle_ttfont_draw_string(lua_State *L) {
   float y = luaL_checknumber(L, 5);
   kmAABB2 **viewport = lua_touserdata(L, 6);
   sg_color *color = luaL_checkudata(L, 7, "binocle_color");
+  l_binocle_camera_t *camera = luaL_checkudata(L, 8, "binocle_camera");
   kmMat4 identity;
   kmMat4Identity(&identity);
-  binocle_ttfont_draw_string(ttfont->ttfont, s, gd->gd, x, y, **viewport, *color);
+  binocle_ttfont_draw_string(ttfont->ttfont, s, gd->gd, x, y, **viewport, *color, camera->camera);
   return 0;
 }
 

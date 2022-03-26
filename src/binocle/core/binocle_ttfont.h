@@ -11,6 +11,7 @@
 #define BINOCLE_MAX_TTF_CHARACTERS 256
 #define BINOCLE_MAX_TTF_VERTICES 65535
 
+struct binocle_camera;
 struct binocle_gd;
 
 typedef struct binocle_ttfont {
@@ -31,7 +32,7 @@ void binocle_ttfont_destroy(binocle_ttfont *font);
 binocle_ttfont *binocle_ttfont_from_file(const char *filename, float size, int texture_width, int texture_height, sg_shader shader);
 
 void binocle_ttfont_draw_string(binocle_ttfont *font, const char *str, struct binocle_gd *gd,
-                                float x, float y, kmAABB2 viewport, sg_color color);
+                                float x, float y, kmAABB2 viewport, sg_color color, struct binocle_camera *camera);
 
 float binocle_ttfont_get_string_width(binocle_ttfont *font, const char *str);
 
