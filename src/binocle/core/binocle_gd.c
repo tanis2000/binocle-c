@@ -26,56 +26,50 @@ typedef struct binocle_gd_flat_shader_fs_params_t {
   float color[4];
 } binocle_gd_flat_shader_fs_params_t;
 
-const char *binocle_shader_flat_vertex_src_gles = "\
-\n\
-\
-attribute vec3 vertexPosition;\
-attribute vec4 vertexColor;\
-\
-uniform mat4 projectionMatrix;\
-uniform mat4 viewMatrix;\
-uniform mat4 modelMatrix;\
-\
-void main(void) {\
-    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);\
-    gl_PointSize = 1.0;\
-}\
-\0";
+const char *binocle_shader_flat_vertex_src_gles =
+"attribute vec3 vertexPosition;\n"
+"attribute vec4 vertexColor;\n"
+"\n"
+"uniform mat4 projectionMatrix;\n"
+"uniform mat4 viewMatrix;\n"
+"uniform mat4 modelMatrix;\n"
+"\n"
+"void main(void) {\n"
+"    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);\n"
+"    gl_PointSize = 1.0;\n"
+"}\n";
 
-const char *binocle_shader_flat_src_gles = "\
-\n\
-uniform vec4 color;\
-void main(void)\
-{\
-    gl_FragColor = color;\n\
-    //gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n\
-}\
-\0";
+const char *binocle_shader_flat_src_gles =
+"uniform vec4 color;\n"
+"void main(void)\n"
+"{\n"
+"    gl_FragColor = color;\n"
+"    //gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
+"}\n";
 
-const char *binocle_shader_flat_vertex_src_gl33 = "\
-#version 330\
-in vec3 vertexPosition;\
-in vec4 vertexColor;\
-\
-uniform mat4 projectionMatrix;\
-uniform mat4 viewMatrix;\
-uniform mat4 modelMatrix;\
-\
-void main(void) {\
-    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);\
-    gl_PointSize = 1.0;\
-}\
-\0";
+const char *binocle_shader_flat_vertex_src_gl33 =
+"#version 330\n"
+"in vec3 vertexPosition;\n"
+"in vec4 vertexColor;\n"
+"\n"
+"uniform mat4 projectionMatrix;\n"
+"uniform mat4 viewMatrix;\n"
+"uniform mat4 modelMatrix;\n"
+"\n"
+"void main(void) {\n"
+"    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);\n"
+"    gl_PointSize = 1.0;\n"
+"}\n";
 
-const char *binocle_shader_flat_src_gl33 = "\
-#version 330\
-uniform vec4 color;\
-void main(void)\
-{\
-    fragColor = color;\
-    //gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\
-}\
-\0";
+const char *binocle_shader_flat_src_gl33 =
+"#version 330\n"
+"uniform vec4 color;\n"
+"out vec4 fragColor;\n"
+"void main(void)\n"
+"{\n"
+"    fragColor = color;\n"
+"    //gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
+"}\n";
 
 binocle_gd binocle_gd_new() {
   binocle_gd res = {0};
@@ -503,12 +497,6 @@ void binocle_gd_setup_flat_pipeline(binocle_gd *gd) {
     .size = sizeof(float) * 2 * 1024,
   };
   gd->flat.vbuf = sg_make_buffer(&vbuf_desc);
-
-  sg_buffer_desc ibuf_desc = {
-    .type = SG_BUFFERTYPE_INDEXBUFFER,
-    .usage = SG_USAGE_STREAM,
-  };
-  gd->flat.ibuf = sg_make_buffer(&ibuf_desc);
 
   gd->flat.bind = (sg_bindings){
     .vertex_buffers = {
