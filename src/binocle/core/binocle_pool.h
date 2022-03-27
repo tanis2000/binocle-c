@@ -6,7 +6,7 @@
 
 /*
  * Resource pool implementation blatantly taken from sokol_gfx.
- * Thanks Andreas! ;)
+ * Thanks Andre! ;)
  */
 #ifndef BINOCLE_POOL_H
 #define BINOCLE_POOL_H

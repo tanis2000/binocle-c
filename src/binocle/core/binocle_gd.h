@@ -67,10 +67,16 @@ typedef struct binocle_gd {
   binocle_gd_gfx_t offscreen;
   binocle_gd_gfx_t display;
   binocle_gd_gfx_t flat;
+
   struct binocle_vpct *vertices;
   uint32_t num_vertices;
   binocle_gd_command_t *commands;
   uint32_t num_commands;
+
+  struct binocle_vpct *flat_vertices;
+  uint32_t flat_num_vertices;
+  binocle_gd_command_t *flat_commands;
+  uint32_t flat_num_commands;
 } binocle_gd;
 
 /**
@@ -265,11 +271,11 @@ void binocle_gd_set_uniform_mat4(sg_shader shader, const char *name,
  * @param rect the rectangle to draw
  * @param col the color to fill the rectangle with
  * @param viewport the viewport
- * @param viewMatrix the view matrix
+ * @param camera the camera
  */
 void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect,
                           struct sg_color col, kmAABB2 viewport,
-                          kmMat4 viewMatrix);
+                          struct binocle_camera *camera);
 
 /**
  * \brief Draws the outline of a rectangle to the current buffer
@@ -277,10 +283,10 @@ void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect,
  * @param rect the rectangle to draw
  * @param col the color to fill the rectangle with
  * @param viewport the viewport
- * @param viewMatrix the view matrix
+ * @param camera the camera
  */
 void binocle_gd_draw_rect_outline(binocle_gd *gd, kmAABB2 rect, struct sg_color col, kmAABB2 viewport,
-                                  kmMat4 viewMatrix);
+                                  struct binocle_camera *camera);
 
 /**
  * \brief Draws a line to the current buffer
@@ -289,10 +295,10 @@ void binocle_gd_draw_rect_outline(binocle_gd *gd, kmAABB2 rect, struct sg_color 
  * @param end the ending point
  * @param col the color
  * @param viewport the viewport
- * @param viewMatrix the view matrix
+ * @param camera the camera
  */
 void binocle_gd_draw_line(binocle_gd *gd, kmVec2 start, kmVec2 end, struct sg_color col, kmAABB2 viewport,
-                          kmMat4 viewMatrix);
+                          struct binocle_camera *camera);
 
 /**
  * \brief Draws a circle to the current buffer
@@ -320,5 +326,7 @@ void binocle_gd_draw_mesh(binocle_gd *gd, const struct binocle_mesh *mesh, kmAAB
 void binocle_gd_draw_test_triangle(struct sg_shader *shader);
 void binocle_gd_draw_test_cube(struct sg_shader *shader);
 void binocle_gd_setup_flat_pipeline(binocle_gd *gd);
+void binocle_gd_render_flat(binocle_gd *gd);
+
 
 #endif // BINOCLE_GD_H

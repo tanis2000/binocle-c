@@ -56,25 +56,31 @@ const char *binocle_shader_flat_vertex_src_gl33 =
 "uniform mat4 viewMatrix;\n"
 "uniform mat4 modelMatrix;\n"
 "\n"
+"out vec4 color;"
+"\n"
 "void main(void) {\n"
 "    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);\n"
+"    //gl_Position = vec4(0.0, 0.0, 0.0, 1.0);\n"
 "    gl_PointSize = 1.0;\n"
+"    color = vertexColor;\n"
 "}\n";
 
 const char *binocle_shader_flat_src_gl33 =
 "#version 330\n"
-"uniform vec4 color;\n"
+"in vec4 color;\n"
 "out vec4 fragColor;\n"
 "void main(void)\n"
 "{\n"
 "    fragColor = color;\n"
-"    //gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
+"    //fragColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
 "}\n";
 
 binocle_gd binocle_gd_new() {
   binocle_gd res = {0};
   res.vertices = malloc(sizeof(binocle_vpct) * BINOCLE_GD_MAX_VERTICES);
   res.commands = malloc(sizeof(binocle_gd_command_t) * BINOCLE_GD_MAX_COMMANDS);
+  res.flat_vertices = malloc(sizeof(binocle_vpct) * BINOCLE_GD_MAX_VERTICES);
+  res.flat_commands = malloc(sizeof(binocle_gd_command_t) * BINOCLE_GD_MAX_COMMANDS);
   return res;
 }
 
@@ -87,6 +93,16 @@ void binocle_gd_destroy(binocle_gd *gd) {
   if (gd->commands != NULL) {
     free(gd->commands);
     gd->commands = NULL;
+  }
+
+  if (gd->flat_vertices != NULL) {
+    free(gd->flat_vertices);
+    gd->flat_vertices = NULL;
+  }
+
+  if (gd->flat_commands != NULL) {
+    free(gd->flat_commands);
+    gd->flat_commands = NULL;
   }
 
   // TODO: deinitialize the pipeline, pass and backend
@@ -398,6 +414,7 @@ void binocle_gd_render_screen(binocle_gd *gd, struct binocle_window *window, flo
 
 void binocle_gd_render(binocle_gd *gd, struct binocle_window *window, float design_width, float design_height, kmAABB2 viewport, kmMat4 matrix, float scale) {
   binocle_gd_render_offscreen(gd);
+  binocle_gd_render_flat(gd);
   binocle_gd_render_screen(gd, window, design_width, design_height, viewport, matrix, scale);
 }
 
@@ -463,6 +480,8 @@ void binocle_gd_setup_flat_pipeline(binocle_gd *gd) {
     .layout = {
       .attrs = {
         [0] = { .format = SG_VERTEXFORMAT_FLOAT2 }, // position
+        [1] = { .format = SG_VERTEXFORMAT_FLOAT4 }, // color
+        [2] = { .format = SG_VERTEXFORMAT_FLOAT2 }, // texture
       },
     },
     .shader = shader,
@@ -483,7 +502,7 @@ void binocle_gd_setup_flat_pipeline(binocle_gd *gd) {
         .pixel_format = SG_PIXELFORMAT_BGRA8,
 #endif
         .blend = {
-          .enabled = false,
+          .enabled = true,
           .src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA,
           .dst_factor_rgb = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
         }
@@ -494,7 +513,7 @@ void binocle_gd_setup_flat_pipeline(binocle_gd *gd) {
   sg_buffer_desc vbuf_desc = {
     .type = SG_BUFFERTYPE_VERTEXBUFFER,
     .usage = SG_USAGE_STREAM,
-    .size = sizeof(float) * 2 * 1024,
+    .size = sizeof(binocle_vpct) * 1024,
   };
   gd->flat.vbuf = sg_make_buffer(&vbuf_desc);
 
@@ -705,88 +724,99 @@ void binocle_gd_draw_quad_to_screen(binocle_gd *gd, sg_shader shader, sg_image r
   sg_end_pass();
 }
 
-void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect, sg_color col, kmAABB2 viewport, kmMat4 viewMatrix) {
-  static GLfloat g_quad_vertex_buffer_data[6 * 2] = {0};
-  g_quad_vertex_buffer_data[0] = rect.min.x;
-  g_quad_vertex_buffer_data[1] = rect.min.y;
-  g_quad_vertex_buffer_data[2] = rect.max.x;
-  g_quad_vertex_buffer_data[3] = rect.min.y;
-  g_quad_vertex_buffer_data[4] = rect.min.x;
-  g_quad_vertex_buffer_data[5] = rect.max.y;
-  g_quad_vertex_buffer_data[6] = rect.min.x;
-  g_quad_vertex_buffer_data[7] = rect.max.y;
-  g_quad_vertex_buffer_data[8] = rect.max.x;
-  g_quad_vertex_buffer_data[9] = rect.min.y;
-  g_quad_vertex_buffer_data[10] = rect.max.x;
-  g_quad_vertex_buffer_data[11] = rect.max.y;
+void binocle_gd_draw_flat(binocle_gd *gd, const struct binocle_vpct *vertices, size_t vertex_count,
+                     kmAABB2 viewport, binocle_camera *camera) {
+  binocle_gd_command_t *cmd = &gd->flat_commands[gd->flat_num_commands];
+  cmd->num_vertices = vertex_count;
+  cmd->base_vertex = gd->flat_num_vertices;
 
-  kmMat4 projectionMatrix = binocle_math_create_orthographic_matrix_off_center(viewport.min.x, viewport.max.x,
-                                                                               viewport.min.y, viewport.max.y, -1000.0f,
-                                                                               1000.0f);
-  //kmMat4 viewMatrix;
-  //kmMat4Identity(&viewMatrix);
-  kmMat4 modelMatrix;
-  kmMat4Identity(&modelMatrix);
+  kmMat4 *cameraTransformMatrix = NULL;
+  if (camera != NULL) {
+    cameraTransformMatrix = binocle_camera_get_transform_matrix(camera);
+  }
 
-  binocle_gd_flat_shader_vs_params_t vs_params = {
-    .modelMatrix = modelMatrix,
-    .projectionMatrix = projectionMatrix,
-    .viewMatrix = viewMatrix,
-  };
-  binocle_gd_flat_shader_fs_params_t fs_params = {
-    .color[0] = col.r,
-    .color[1] = col.g,
-    .color[2] = col.b,
-    .color[3] = col.a,
-  };
-  int offset = sg_append_buffer(gd->flat.vbuf, &(sg_range){.ptr = g_quad_vertex_buffer_data, .size=sizeof(float)*6*2});
-  gd->flat.bind.vertex_buffer_offsets[0] = offset;
-  sg_begin_pass(gd->flat.pass, &gd->flat.action);
-  sg_apply_pipeline(gd->flat.pip);
-  sg_apply_bindings(&gd->flat.bind);
-  sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE_REF(vs_params));
-  sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE_REF(fs_params));
-  sg_draw(0, 6, 1);
-  sg_end_pass();
+  cmd->uniforms.projectionMatrix = binocle_math_create_orthographic_matrix_off_center(viewport.min.x, viewport.max.x,
+                                                                                      viewport.min.y, viewport.max.y, -1000.0f,
+                                                                                      1000.0f);
+  kmMat4Identity(&cmd->uniforms.viewMatrix);
 
-//
-//  //GLuint quad_vertexbuffer;
-//  //glCheck(glGenBuffers(1, &quad_vertexbuffer));
-//  //glCheck(glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer));
-//  glCheck(glBindBuffer(GL_ARRAY_BUFFER, gd->vbo));
-//  glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_DYNAMIC_DRAW));
-//  glCheck(glUseProgram(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id));
-//  GLint color_id;
-//  glCheck(color_id = glGetUniformLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id, "color"));
-//  GLint pos_id;
-//  glCheck(
-//      pos_id = glGetAttribLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id, "vertexPosition"));
-//  glCheck(glUniform4f(color_id, col.r, col.g, col.b, col.a));
-//  binocle_gd_apply_viewport(viewport);
-//  glCheck(glVertexAttribPointer(pos_id, 2, GL_FLOAT, false, sizeof(GLfloat) * 2, 0));
-//  glCheck(glEnableVertexAttribArray(pos_id));
-//  GLint projection_matrix_uniform;
-//  glCheck(
-//      projection_matrix_uniform = glGetUniformLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id,
-//                                                       "projectionMatrix"));
-//  GLint view_matrix_uniform;
-//  glCheck(view_matrix_uniform = glGetUniformLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id,
-//                                                     "viewMatrix"));
-//  GLint model_matrix_uniform;
-//  glCheck(model_matrix_uniform = glGetUniformLocation(binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT].program_id,
-//                                                      "modelMatrix"));
-//  glCheck(glUniformMatrix4fv(projection_matrix_uniform, 1, GL_FALSE, projectionMatrix.mat));
-//  glCheck(glUniformMatrix4fv(view_matrix_uniform, 1, GL_FALSE, viewMatrix.mat));
-//  glCheck(glUniformMatrix4fv(model_matrix_uniform, 1, GL_FALSE, modelMatrix.mat));
-//  //glCheck(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-//  glCheck(glDrawArrays(GL_TRIANGLES, 0, 6));
-//
-//  glCheck(glDisableVertexAttribArray(pos_id));
-//  glCheck(glUseProgram(GL_ZERO));
-//  glCheck(glBindBuffer(GL_ARRAY_BUFFER, 0));
+  if (cameraTransformMatrix != NULL) {
+    kmMat4Multiply(&cmd->uniforms.viewMatrix, &cmd->uniforms.viewMatrix, cameraTransformMatrix);
+  }
+
+  kmMat4Identity(&cmd->uniforms.modelMatrix);
+
+  gd->flat_num_commands++;
+
+  for (uint32_t i = 0 ; i < vertex_count ; i++) {
+    binocle_vpct *v = &gd->flat_vertices[gd->flat_num_vertices];
+    v->pos.x = vertices[i].pos.x;
+    v->pos.y = vertices[i].pos.y;
+    v->color.r = vertices[i].color.r;
+    v->color.g = vertices[i].color.g;
+    v->color.b = vertices[i].color.b;
+    v->color.a = vertices[i].color.a;
+    v->tex.x = vertices[i].tex.x;
+    v->tex.y = vertices[i].tex.y;
+    gd->flat_num_vertices++;
+  }
 }
 
-void binocle_gd_draw_rect_outline(binocle_gd *gd, kmAABB2 rect, sg_color col, kmAABB2 viewport, kmMat4 viewMatrix) {
+void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect, sg_color col, kmAABB2 viewport, binocle_camera *camera) {
+  static binocle_vpct g_quad_vertex_buffer_data[6] = {0};
+  g_quad_vertex_buffer_data[0] = (binocle_vpct){
+    .pos = {.x = rect.min.x, .y = rect.min.y},
+    .color = {.r = col.r, .g = col.g, .b = col.b, .a = col.a}
+  };
+  g_quad_vertex_buffer_data[1] = (binocle_vpct){
+    .pos = {.x = rect.max.x, .y = rect.min.y},
+    .color = {.r = col.r, .g = col.g, .b = col.b, .a = col.a}
+  };
+  g_quad_vertex_buffer_data[2] = (binocle_vpct){
+    .pos = {.x = rect.min.x, .y = rect.max.y},
+    .color = {.r = col.r, .g = col.g, .b = col.b, .a = col.a}
+  };
+  g_quad_vertex_buffer_data[3] = (binocle_vpct){
+    .pos = {.x = rect.min.x, .y = rect.max.y},
+    .color = {.r = col.r, .g = col.g, .b = col.b, .a = col.a}
+  };
+  g_quad_vertex_buffer_data[4] = (binocle_vpct){
+    .pos = {.x = rect.max.x, .y = rect.min.y},
+    .color = {.r = col.r, .g = col.g, .b = col.b, .a = col.a}
+  };
+  g_quad_vertex_buffer_data[5] = (binocle_vpct){
+    .pos = {.x = rect.max.x, .y = rect.max.y},
+    .color = {.r = col.r, .g = col.g, .b = col.b, .a = col.a}
+  };
+
+  binocle_gd_draw_flat(gd, g_quad_vertex_buffer_data, 6, viewport, camera);
+}
+
+void binocle_gd_render_flat(binocle_gd *gd) {
+  if (gd->flat_num_vertices == 0) {
+    return;
+  }
+  sg_update_buffer(gd->flat.vbuf, &(sg_range){ .ptr=gd->flat_vertices, .size=gd->flat_num_vertices * sizeof(binocle_vpct) });
+
+  sg_begin_pass(gd->flat.pass, &gd->flat.action);
+
+  for (uint32_t i = 0 ; i < gd->flat_num_commands ; i++) {
+    binocle_gd_command_t *cmd = &gd->flat_commands[i];
+
+    gd->flat.bind.vertex_buffers[0] = gd->flat.vbuf;
+
+    sg_apply_pipeline(gd->flat.pip);
+    sg_apply_bindings(&gd->flat.bind);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE_REF(cmd->uniforms));
+    sg_draw(cmd->base_vertex, cmd->num_vertices, 1);
+
+  }
+  sg_end_pass();
+  gd->flat_num_commands = 0;
+  gd->flat_num_vertices = 0;
+}
+
+void binocle_gd_draw_rect_outline(binocle_gd *gd, kmAABB2 rect, sg_color col, kmAABB2 viewport, binocle_camera *camera) {
   kmAABB2 rect_bottom;
   kmAABB2 rect_top;
   kmAABB2 rect_left;
@@ -812,13 +842,13 @@ void binocle_gd_draw_rect_outline(binocle_gd *gd, kmAABB2 rect, sg_color col, km
   rect_right.max.x = rect.max.x;
   rect_right.max.y = rect.max.y;
 
-  binocle_gd_draw_rect(gd, rect_bottom, col, viewport, viewMatrix);
-  binocle_gd_draw_rect(gd, rect_top, col, viewport, viewMatrix);
-  binocle_gd_draw_rect(gd, rect_left, col, viewport, viewMatrix);
-  binocle_gd_draw_rect(gd, rect_right, col, viewport, viewMatrix);
+  binocle_gd_draw_rect(gd, rect_bottom, col, viewport, camera);
+  binocle_gd_draw_rect(gd, rect_top, col, viewport, camera);
+  binocle_gd_draw_rect(gd, rect_left, col, viewport, camera);
+  binocle_gd_draw_rect(gd, rect_right, col, viewport, camera);
 }
 
-void binocle_gd_draw_line(binocle_gd *gd, kmVec2 start, kmVec2 end, sg_color col, kmAABB2 viewport, kmMat4 viewMatrix) {
+void binocle_gd_draw_line(binocle_gd *gd, kmVec2 start, kmVec2 end, sg_color col, kmAABB2 viewport, binocle_camera *camera) {
 
   float angle = atan2f(end.y - start.y, end.x - start.x);
   float length = kmVec2DistanceBetween(&start, &end);
@@ -837,11 +867,11 @@ void binocle_gd_draw_line(binocle_gd *gd, kmVec2 start, kmVec2 end, sg_color col
   kmMat4 rot;
   kmMat4RotationZ(&rot, angle);
 
-  kmMat4Multiply(&viewMatrix, &viewMatrix, &trans);
-  kmMat4Multiply(&viewMatrix, &viewMatrix, &rot);
-  kmMat4Multiply(&viewMatrix, &viewMatrix, &scale);
+//  kmMat4Multiply(&viewMatrix, &viewMatrix, &trans);
+//  kmMat4Multiply(&viewMatrix, &viewMatrix, &rot);
+//  kmMat4Multiply(&viewMatrix, &viewMatrix, &scale);
 
-  binocle_gd_draw_rect(gd, rect, col, viewport, viewMatrix);
+  binocle_gd_draw_rect(gd, rect, col, viewport, camera);
 }
 
 void binocle_gd_draw_circle(binocle_gd *gd, kmVec2 center, float radius, sg_color col, kmAABB2 viewport, kmMat4 viewMatrix) {
