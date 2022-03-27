@@ -44,10 +44,20 @@ int l_binocle_sprite_set_subtexture(lua_State *L) {
   return 1;
 }
 
+int l_binocle_sprite_set_origin(lua_State *L) {
+  l_binocle_sprite_t *sprite = luaL_checkudata(L, 1, "binocle_sprite");
+  float x = luaL_checknumber(L, 2);
+  float y = luaL_checknumber(L, 3);
+  sprite->sprite->origin.x = x;
+  sprite->sprite->origin.y = y;
+  return 0;
+}
+
 static const struct luaL_Reg sprite [] = {
   {"from_material", l_binocle_sprite_from_material},
   {"draw", l_binocle_sprite_draw},
   {"set_subtexture", l_binocle_sprite_set_subtexture},
+  {"set_origin", l_binocle_sprite_set_origin},
   {NULL, NULL}
 };
 

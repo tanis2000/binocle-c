@@ -26,6 +26,7 @@
 #include "binocle_bitmapfont_wrap.h"
 #include "kazmath/lkazmath.h"
 #include "binocle_ttfont_wrap.h"
+#include "binocle_audio_wrap.h"
 
 binocle_lua binocle_lua_new() {
   binocle_lua res = {0};
@@ -63,6 +64,7 @@ bool binocle_lua_init(binocle_lua *lua) {
   luaopen_camera(lua->L);
   luaopen_bitmapfont(lua->L);
   luaopen_ttfont(lua->L);
+  luaopen_audio(lua->L);
 
   //lua->last_check_time = stm_now();
   time_t t = time(NULL);
