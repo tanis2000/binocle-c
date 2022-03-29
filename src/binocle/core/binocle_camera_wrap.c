@@ -43,11 +43,19 @@ int l_binocle_camera_get_y(lua_State *L) {
   return 1;
 }
 
+int l_binocle_camera_get_position(lua_State *L) {
+  l_binocle_camera_t *camera = luaL_checkudata(L, 1, "binocle_camera");
+  lua_pushnumber(L, camera->camera->position.x);
+  lua_pushnumber(L, camera->camera->position.y);
+  return 2;
+}
+
 static const struct luaL_Reg camera [] = {
   {"new", l_binocle_camera_new},
   {"set_position", l_binocle_camera_set_position},
   {"x", l_binocle_camera_get_x},
   {"y", l_binocle_camera_get_y},
+  {"get_position", l_binocle_camera_get_position},
   {NULL, NULL}
 };
 
