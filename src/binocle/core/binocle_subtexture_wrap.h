@@ -6,9 +6,10 @@
 #define LUA_BINOCLE_SUBTEXTURE_WRAP_H
 
 #include "binocle_lua.h"
+#include "binocle_subtexture.h"
 
 typedef struct l_binocle_subtexture_t {
-  struct binocle_subtexture *subtexture;
+  binocle_subtexture subtexture;
 } l_binocle_subtexture_t;
 
 int luaopen_subtexture(lua_State *L);

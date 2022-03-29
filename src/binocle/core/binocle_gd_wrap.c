@@ -94,11 +94,19 @@ int l_binocle_gd_draw_quad_to_screen(lua_State *L) {
 
 int l_binocle_gd_draw_rect(lua_State *L) {
   l_binocle_gd_t *gd = lua_touserdata(L, 1);
-  kmAABB2 **rect = lua_touserdata(L, 2);
-  sg_color *color = luaL_checkudata(L, 3, "binocle_color");
-  kmAABB2 **viewport = lua_touserdata(L, 4);
-  l_binocle_camera_t *camera = luaL_checkudata(L, 5, "binocle_camera");
-  binocle_gd_draw_rect(gd->gd, **rect, *color, **viewport, camera->camera);
+  float center_x = lua_tonumber(L, 2);
+  float center_y = lua_tonumber(L, 3);
+  float width = lua_tonumber(L, 4);
+  float height = lua_tonumber(L, 5);
+  sg_color *color = luaL_checkudata(L, 6, "binocle_color");
+  kmAABB2 **viewport = lua_touserdata(L, 7);
+  l_binocle_camera_t *camera = luaL_checkudata(L, 8, "binocle_camera");
+  kmAABB2 rect;
+  kmVec2 center;
+  center.x = center_x;
+  center.y = center_y;
+  kmAABB2Initialize(&rect, &center, width, height, 0);
+  binocle_gd_draw_rect(gd->gd, rect, *color, **viewport, camera->camera);
   return 0;
 }
 

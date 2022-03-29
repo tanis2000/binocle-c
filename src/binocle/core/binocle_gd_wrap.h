@@ -7,6 +7,7 @@
 
 #include "binocle_lua.h"
 #include "sokol_gfx.h"
+#include "kazmath/kazmath.h"
 
 typedef struct l_binocle_gd_t {
   struct binocle_gd *gd;

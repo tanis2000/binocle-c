@@ -264,7 +264,9 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
 #endif
     .colors = {
 #ifdef BINOCLE_GL
-      [0] = { .pixel_format = SG_PIXELFORMAT_RGBA8 }
+      [0] = {
+        .pixel_format = SG_PIXELFORMAT_RGBA8
+      }
 #else
       [0] = { .pixel_format = SG_PIXELFORMAT_BGRA8 }
 #endif
