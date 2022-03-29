@@ -18,8 +18,16 @@ int l_binocle_texture_from_image(lua_State *L) {
   return 1;
 }
 
+int l_binocle_texture_destroy(lua_State *L) {
+  l_binocle_texture_t *texture = luaL_checkudata(L, 1, "binocle_texture");
+  sg_destroy_image(texture->texture);
+  return 1;
+}
+
+
 static const struct luaL_Reg texture [] = {
   {"from_image", l_binocle_texture_from_image},
+  {"destroy", l_binocle_texture_destroy},
   {NULL, NULL}
 };
 

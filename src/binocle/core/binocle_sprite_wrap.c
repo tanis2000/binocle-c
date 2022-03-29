@@ -31,16 +31,20 @@ int l_binocle_sprite_draw(lua_State *L) {
   float player_y = luaL_checknumber(L, 4);
   kmAABB2 **viewport = lua_touserdata(L, 5);
   float rotation = luaL_checknumber(L, 6);
-  kmVec2 **scale = lua_touserdata(L, 7);
-  l_binocle_camera_t *camera = luaL_checkudata(L, 8, "binocle_camera");
-  binocle_sprite_draw(sprite->sprite, gd->gd, player_x, player_y, *viewport, rotation, *scale, camera->camera);
+  float scale_x = luaL_checknumber(L, 7);
+  float scale_y = luaL_checknumber(L, 8);
+  l_binocle_camera_t *camera = luaL_checkudata(L, 9, "binocle_camera");
+  kmVec2 scale;
+  scale.x = scale_x;
+  scale.y = scale_y;
+  binocle_sprite_draw(sprite->sprite, gd->gd, player_x, player_y, *viewport, rotation, &scale, camera->camera);
   return 1;
 }
 
 int l_binocle_sprite_set_subtexture(lua_State *L) {
   l_binocle_sprite_t *sprite = luaL_checkudata(L, 1, "binocle_sprite");
   l_binocle_subtexture_t *subtexture = luaL_checkudata(L, 2, "binocle_subtexture");
-  SDL_memcpy(&sprite->sprite->subtexture, subtexture->subtexture, sizeof(binocle_subtexture));
+  SDL_memcpy(&sprite->sprite->subtexture, &subtexture->subtexture, sizeof(binocle_subtexture));
   return 1;
 }
 
@@ -53,11 +57,18 @@ int l_binocle_sprite_set_origin(lua_State *L) {
   return 0;
 }
 
+int l_binocle_sprite_destroy(lua_State *L) {
+  l_binocle_sprite_t *sprite = luaL_checkudata(L, 1, "binocle_sprite");
+  binocle_sprite_destroy(sprite->sprite);
+  return 0;
+}
+
 static const struct luaL_Reg sprite [] = {
   {"from_material", l_binocle_sprite_from_material},
   {"draw", l_binocle_sprite_draw},
   {"set_subtexture", l_binocle_sprite_set_subtexture},
   {"set_origin", l_binocle_sprite_set_origin},
+  {"destroy", l_binocle_sprite_destroy},
   {NULL, NULL}
 };
 
