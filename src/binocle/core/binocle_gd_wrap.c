@@ -9,6 +9,7 @@
 #include "binocle_window_wrap.h"
 #include "binocle_camera_wrap.h"
 #include "binocle_camera.h"
+#include "binocle_viewport_adapter.h"
 
 int l_binocle_gd_new(lua_State *L) {
   l_binocle_gd_t *gd = lua_newuserdata(L, sizeof(l_binocle_gd_t));
@@ -126,6 +127,17 @@ int l_binocle_gd_set_offscreen_clear_color(lua_State *L) {
   return 0;
 }
 
+int l_binocle_gd_render_screen(lua_State *L) {
+  l_binocle_gd_t *gd = luaL_checkudata(L, 1, "binocle_gd");
+  l_binocle_window_t *window = luaL_checkudata(L, 2, "binocle_window");
+  float width = lua_tonumber(L, 3);
+  float height = lua_tonumber(L, 4);
+  kmAABB2 **vp = lua_touserdata(L, 5);
+  l_binocle_camera_t *camera = luaL_checkudata(L, 6, "binocle_camera");
+  binocle_gd_render_screen(gd->gd, window->window, width, height, **vp, camera->camera->viewport_adapter->scale_matrix, camera->camera->viewport_adapter->inverse_multiplier);
+
+  return 0;
+}
 static const struct luaL_Reg gd [] = {
   {"new", l_binocle_gd_new},
   {"init", l_binocle_gd_init},
@@ -138,6 +150,7 @@ static const struct luaL_Reg gd [] = {
   {"draw_quad_to_screen", l_binocle_gd_draw_quad_to_screen},
   {"set_offscreen_clear_color", l_binocle_gd_set_offscreen_clear_color},
   {"draw_rect", l_binocle_gd_draw_rect},
+  {"render_screen", l_binocle_gd_render_screen},
   {NULL, NULL}
 };
 
