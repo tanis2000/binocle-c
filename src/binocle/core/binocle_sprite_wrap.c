@@ -12,6 +12,7 @@
 #include "binocle_camera.h"
 #include "binocle_camera_wrap.h"
 #include "binocle_gd_wrap.h"
+#include "binocle_texture_wrap.h"
 
 int l_binocle_sprite_from_material(lua_State *L) {
   l_binocle_material_t *material = luaL_checkudata(L, 1, "binocle_material");
@@ -63,12 +64,32 @@ int l_binocle_sprite_destroy(lua_State *L) {
   return 0;
 }
 
+int l_binocle_sprite_draw_with_sprite_batch(lua_State *L) {
+  l_binocle_sprite_batch_t *sprite_batch = luaL_checkudata(L, 1, "binocle_sprite_batch");
+  l_binocle_sprite_t *sprite = luaL_checkudata(L, 2, "binocle_sprite");
+  l_binocle_gd_t *gd = luaL_checkudata(L, 3, "binocle_gd");
+  float player_x = luaL_checknumber(L, 4);
+  float player_y = luaL_checknumber(L, 5);
+  kmAABB2 **viewport = lua_touserdata(L, 6);
+  float rotation = luaL_checknumber(L, 7);
+  float scale_x = luaL_checknumber(L, 8);
+  float scale_y = luaL_checknumber(L, 9);
+  l_binocle_camera_t *camera = luaL_checkudata(L, 10, "binocle_camera");
+  float depth = luaL_checknumber(L, 11);
+  kmVec2 scale;
+  scale.x = scale_x;
+  scale.y = scale_y;
+  binocle_sprite_draw_with_sprite_batch(sprite_batch->sprite_batch, sprite->sprite, gd->gd, player_x, player_y, *viewport, rotation, &scale, camera->camera, depth);
+  return 1;
+}
+
 static const struct luaL_Reg sprite [] = {
   {"from_material", l_binocle_sprite_from_material},
   {"draw", l_binocle_sprite_draw},
   {"set_subtexture", l_binocle_sprite_set_subtexture},
   {"set_origin", l_binocle_sprite_set_origin},
   {"destroy", l_binocle_sprite_destroy},
+  {"draw_batch", l_binocle_sprite_draw_with_sprite_batch},
   {NULL, NULL}
 };
 
@@ -97,9 +118,42 @@ int l_binocle_sprite_batch_set_gd(lua_State *L) {
   return 1;
 }
 
+int l_binocle_sprite_batch_begin(lua_State *L) {
+  l_binocle_sprite_batch_t *sprite_batch = luaL_checkudata(L, 1, "binocle_sprite_batch");
+  l_binocle_camera_t *camera = luaL_checkudata(L, 2, "binocle_camera");
+  sg_shader *shd = lua_touserdata(L, 3);
+  kmMat4 matrix;
+  kmMat4Identity(&matrix);
+  binocle_sprite_batch_begin(sprite_batch->sprite_batch, binocle_camera_get_viewport(*camera->camera), BINOCLE_SPRITE_SORT_MODE_DEFERRED, shd, &matrix);
+  return 1;
+}
+
+int l_binocle_sprite_batch_end(lua_State *L) {
+  l_binocle_sprite_batch_t *sprite_batch = luaL_checkudata(L, 1, "binocle_sprite_batch");
+  l_binocle_camera_t *camera = luaL_checkudata(L, 2, "binocle_camera");
+  binocle_sprite_batch_end(sprite_batch->sprite_batch, binocle_camera_get_viewport(*camera->camera));
+  return 1;
+}
+
+int l_binocle_sprite_batch_draw(lua_State *L) {
+  l_binocle_sprite_batch_t *sprite_batch = luaL_checkudata(L, 1, "binocle_sprite_batch");
+  l_binocle_texture_t *tex = luaL_checkudata(L, 2, "binocle_texture");
+  float x = lua_tonumber(L, 3);
+  float y = lua_tonumber(L, 4);
+  float depth = lua_tonumber(L, 5);
+  kmVec2 pos;
+  pos.x = x;
+  pos.y = y;
+  binocle_sprite_batch_draw(sprite_batch->sprite_batch, &tex->texture, &pos, NULL, NULL, NULL, 0.0f, NULL, binocle_color_white(), depth);
+  return 1;
+}
+
 static const struct luaL_Reg sprite_batch [] = {
   {"new", l_binocle_sprite_batch_new},
   {"set_gd", l_binocle_sprite_batch_set_gd},
+  {"begin", l_binocle_sprite_batch_begin},
+  {"finish", l_binocle_sprite_batch_end},
+  {"draw", l_binocle_sprite_batch_draw},
   {NULL, NULL}
 };
 
