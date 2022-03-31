@@ -125,6 +125,32 @@ void binocle_sprite_draw(binocle_sprite *sprite, binocle_gd *gd, int64_t x, int6
   binocle_gd_draw(gd, vertices, BINOCLE_SPRITE_VERTEX_COUNT, *sprite->material, *viewport, camera);
 }
 
+void binocle_sprite_draw_with_sprite_batch(binocle_sprite_batch *sprite_batch, binocle_sprite *sprite, binocle_gd *gd, int64_t x, int64_t y, kmAABB2 *viewport, float rotation,
+                                           kmVec2 *scale, binocle_camera *camera, float depth) {
+  kmVec2 pos;
+  pos.x = x;
+  pos.y = y;
+
+  binocle_subtexture *s;
+  float w, h;
+  if (sprite->frames_number > 0) {
+    s = sprite->frames[sprite->current_frame].subtexture;
+    w = s->rect.max.x;
+    h = s->rect.max.y;
+    //binocle_log_info("subtexture %f %f %f %f %d %d", s.rect.min.x, s.rect.min.y, s.rect.max.x, s.rect.max.y, sprite.material->texture->width, sprite.material->texture->height);
+  } else {
+    s = &sprite->subtexture;
+    w = sprite->subtexture.rect.max.x;
+    h = sprite->subtexture.rect.max.y;
+  }
+
+  kmMat4 *m = binocle_camera_get_transform_matrix(camera);
+  scale->x *= m->mat[4];
+  scale->y *= m->mat[4];
+
+  binocle_sprite_batch_draw(sprite_batch, &sprite->material->albedo_texture, &pos, NULL, &s->rect, NULL, 0.0f, scale, binocle_color_white(), depth);
+}
+
 void binocle_sprite_add_frame(binocle_sprite *sprite, binocle_sprite_frame frame) {
   sprite->frames[sprite->frames_number] = frame;
   sprite->frames_number++;

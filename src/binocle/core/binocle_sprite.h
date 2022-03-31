@@ -174,6 +174,8 @@ void binocle_sprite_destroy(struct binocle_sprite *sprite);
 void binocle_sprite_draw(binocle_sprite *sprite, struct binocle_gd *gd, int64_t x, int64_t y, kmAABB2 *viewport, float rotation,
                          kmVec2 *scale, struct binocle_camera *camera);
 
+void binocle_sprite_draw_with_sprite_batch(binocle_sprite_batch *sprite_batch, binocle_sprite *sprite, struct binocle_gd *gd, int64_t x, int64_t y, kmAABB2 *viewport, float rotation,
+                                           kmVec2 *scale, struct binocle_camera *camera, float depth);
 /**
  * \brief Adds a frame of an animation to a sprite
  * @param sprite the sprite
