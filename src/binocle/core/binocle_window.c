@@ -40,10 +40,12 @@ binocle_window *binocle_window_new(uint32_t width, uint32_t height, char *title)
 }
 
 void binocle_window_destroy(binocle_window *win) {
+#if defined(BINOCLE_GL)
   if (win->gl_context != NULL) {
     SDL_GL_DeleteContext(win->gl_context);
     win->gl_context = NULL;
   }
+#endif
 
   if (win->window != NULL) {
     SDL_DestroyWindow(win->window);
@@ -55,10 +57,12 @@ void binocle_window_destroy(binocle_window *win) {
     win->title = NULL;
   }
 
+#if defined(BINOCLE_METAL)
   if (win->mtl_view != NULL) {
     SDL_Metal_DestroyView(win->mtl_view);
     win->mtl_view = NULL;
   }
+#endif
 
   free(win);
 }
