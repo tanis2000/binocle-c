@@ -238,27 +238,28 @@ if (MSVC)
             src/render/opengles2/SDL_shaders_gles2.c
 
             src/thread/generic/SDL_syscond.c
-            src/audio/directsound/SDL_directsound.c
-            src/audio/wasapi/SDL_wasapi.c
-            src/audio/wasapi/SDL_wasapi_win32.c
-            src/audio/winmm/SDL_winmm.c
-            src/core/windows/SDL_windows.c
-            src/core/windows/SDL_xinput.c
+            src/audio/directsound/*.c
+            src/audio/wasapi/*.c
+            src/audio/winmm/*.c
+            src/core/windows/*.c
             src/filesystem/windows/SDL_sysfilesystem.c
+            src/haptic/windows/*.c
+            src/joystick/*.c
             src/joystick/windows/SDL_dinputjoystick.c
             src/joystick/windows/SDL_rawinputjoystick.c
+            src/joystick/windows/SDL_windows_gaming_input.c
             src/joystick/windows/SDL_windowsjoystick.c
             src/joystick/windows/SDL_xinputjoystick.c
+            src/locale/windows/*.c
             src/main/windows/SDL_windows_main.c
             src/haptic/windows/SDL_dinputhaptic.c
             src/haptic/windows/SDL_windowshaptic.c
             src/haptic/windows/SDL_xinputhaptic.c
             src/loadso/windows/SDL_sysloadso.c
+            src/misc/windows/*.c
             src/power/windows/SDL_syspower.c
-            src/thread/windows/SDL_sysmutex.c
-            src/thread/windows/SDL_syssem.c
-            src/thread/windows/SDL_systhread.c
-            src/thread/windows/SDL_systls.c
+            src/sensor/windows/*.c
+            src/thread/windows/*.c
             src/timer/windows/SDL_systimer.c
             src/video/windows/SDL_windowsclipboard.c
             src/video/windows/SDL_windowsevents.c
@@ -285,9 +286,13 @@ if (MSVC)
     list(APPEND SOURCES ${WIN32_SOURCES})
     add_definitions(-DHX_WINDOWS)
     add_definitions(-DSDL_JOYSTICK_HIDAPI)
+    add_definitions(-DSDL_JOYSTICK_XINPUT)
+    add_definitions(-DSDL_JOYSTICK_RAWINPUT)
+    add_definitions(-DSDL_TIMER_WINDOWS)
     #add_definitions(-DUSING_GENERATED_CONFIG_H)
     include_directories(include/configs/windows)
     include_directories(src/video/windows)
+    include_directories(src/core/windows)
 endif ()
 
 if (EMSCRIPTEN)
