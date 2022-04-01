@@ -25,9 +25,11 @@ typedef struct binocle_window {
   bool is_fullscreen;
   sg_color bg_color;
 
+#if defined(BINOCLE_GL)
   SDL_GLContext gl_context;
-
+#elif defined(BINOCLE_METAL)
   SDL_MetalView  mtl_view;
+#endif
 
   uint64_t target_fps; // The desired target FPS
   uint32_t current_time;            // Current time measure in ticks (ms)
