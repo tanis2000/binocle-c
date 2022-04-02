@@ -38,6 +38,6 @@ bool binocle_app_init(binocle_app *app, binocle_app_desc_t *desc) {
 
 void binocle_app_destroy(binocle_app *app) {
   binocle_fs_destroy(&app->fs);
-  free(app->assets_mount_path);
+  SDL_free(app->assets_mount_path);
   binocle_sdl_exit();
 }
