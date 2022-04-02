@@ -31,6 +31,8 @@
 
 #include "miniaudio/jar_mod.h"
 
+#include "binocle_sdl.h"
+
 binocle_audio binocle_audio_new() {
   binocle_audio res = {0};
   res.paused = false;
@@ -1145,7 +1147,7 @@ void binocle_audio_update_music_stream(binocle_audio_music *music) {
   unsigned int subBufferSizeInFrames = music->stream.buffer->size_in_frames / 2;
 
   // NOTE: Using dynamic allocation because it could require more than 16KB
-  void *pcm = calloc(subBufferSizeInFrames * music->stream.channels * music->stream.sample_size / 8, 1);
+  void *pcm = SDL_calloc(subBufferSizeInFrames * music->stream.channels * music->stream.sample_size / 8, 1);
 
   int frameCountToStream = 0; // Total size of data in frames to be streamed
   unsigned int framesLeft = music->frame_count - music->stream.buffer->frames_processed;
@@ -1208,7 +1210,9 @@ void binocle_audio_update_music_stream(binocle_audio_music *music) {
   }
 
   // Free allocated pcm data
-  free(pcm);
+  if (pcm != NULL) {
+    SDL_free(pcm);
+  }
 
   if (streamEnding) {
     binocle_audio_stop_music_stream(music);        // Stop music (and reset)
