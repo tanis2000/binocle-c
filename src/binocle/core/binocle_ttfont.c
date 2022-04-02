@@ -35,7 +35,7 @@ binocle_ttfont *binocle_ttfont_from_file(const char *filename, float size, int t
     return font;
   }
 
-  unsigned char *tmp_bitmap = (unsigned char*)malloc(texture_width * texture_height);
+  unsigned char *tmp_bitmap = (unsigned char*)SDL_malloc(texture_width * texture_height);
 
   int font_inited = stbtt_BakeFontBitmap(buffer,0, size, tmp_bitmap,texture_width,texture_height, 32,96, font->cdata);
   SDL_free(buffer);
