@@ -82,8 +82,13 @@ void binocle_window_refresh(binocle_window *win) {
 }
 
 void binocle_window_create(binocle_window *win, char *title, uint32_t width, uint32_t height) {
-#if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
+#if defined(__IPHONEOS__) || defined(__ANDROID__)
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+#elif defined(__EMSCRIPTEN__)
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+  //SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 #else
@@ -105,6 +110,12 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
 
   SDL_DisplayMode mode;
   SDL_GetDesktopDisplayMode(0, &mode);
+
+#if defined(BINOCLE_GL)
+//  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+//  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+//  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+#endif
 
   /*
 #ifdef ANDROID
@@ -174,6 +185,14 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
   win->width = width;
   win->height = height;
 
+  SDL_version compiled;
+  SDL_version linked;
+  SDL_VERSION(&compiled);
+  SDL_GetVersion(&linked);
+  binocle_log_info("Compiled SDL version: %d.%d.%d\n",
+         compiled.major, compiled.minor, compiled.patch);
+  binocle_log_info("Linked SDL version: %d.%d.%d\n",
+         linked.major, linked.minor, linked.patch);
 #if defined(WIN32)
   GLenum err = glewInit();
   if (GLEW_OK != err) {
@@ -186,6 +205,8 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
 #if defined(BINOCLE_GL)
   binocle_log_info("OpenGL version supported by this platform (%s): \n",
                    glGetString(GL_VERSION));
+  binocle_log_info("GLSL version supported by this platform (%s): \n",
+                   glGetString(GL_SHADING_LANGUAGE_VERSION));
 #elif defined(BINOCLE_METAL)
   binocle_log_info("Using Metal backend\n");
 #endif

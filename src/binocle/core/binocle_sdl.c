@@ -35,6 +35,10 @@ bool binocle_sdl_init() {
 #if defined(BINOCLE_GL)
 #if defined(__IPHONEOS__) || defined(__ANDROID__)
   SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengles2");
+#elif defined(__EMSCRIPTEN__)
+  // TOOD enale this to have WebGL2
+  //SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengles3");
+  SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
 #else
   SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
 #endif
