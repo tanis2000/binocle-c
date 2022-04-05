@@ -224,7 +224,7 @@ void main_loop() {
   kmAABB2 vp = binocle_viewport_adapter_get_viewport(*adapter);
 
   // Render to screen
-  binocle_gd_render(&gd, window, DESIGN_WIDTH, DESIGN_HEIGHT, vp);
+  binocle_gd_render(&gd, window, DESIGN_WIDTH, DESIGN_HEIGHT, vp, camera.viewport_adapter->scale_matrix, camera.viewport_adapter->inverse_multiplier);
 
   binocle_window_refresh(window);
   binocle_window_end_frame(window);
