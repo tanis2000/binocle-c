@@ -32,7 +32,9 @@ The API is evolving all the time but the core is pretty stable. I keep adding an
 - Music and sound effects
 - Bezier paths that can be used for anything
 - BitmapFont fonts
+- TrueType fonts
 - 2D Camera
+- 3D camera
 - 2D Collisions (boxes and circles)
 - Easing functions
 - Entity Component System
@@ -40,7 +42,7 @@ The API is evolving all the time but the core is pretty stable. I keep adding an
 - Viewport adapters for 2D pixel perfect images
 - Experimental hot code reloading for game code
 - Lua scripting through LuaJIT on supported platforms and fallback to Lua where LuaJIT is not available
-- Initial Wren scripting support
+- Experimental Wren scripting support
 - 3D physics through Newton Dynamics (desktop platforms only)
 
 ## Documentation
@@ -68,6 +70,8 @@ Binocle sits on the shoulders of giants. I tried to keep the amount of external 
 The current libraries are the following:
 
 - SDL by the almighty Ryan C. Gordon (OS abstraction)
+- sokol (backend for OpenGL and Metal)
+- sokol_time
 - miniaudio (cross-platform audio support)
 - zlib
 - Vorbis by the Xiph.Org Foundation
@@ -78,9 +82,8 @@ The current libraries are the following:
 - Kazmath by Luke Benstead
 - stbimage
 - parson
-- LuaJIT
-- sokol_time
 - Lua
+- LuaJIT
 - libuv (Wren's dependency)
 - Wren
 - Newton Dynamics
@@ -205,6 +208,7 @@ The idea of the final logo is from [@h_a_l_e_x](https://twitter.com/h_a_l_e_x)
 A big thank you to JetBrains for providing us Open Source license of CLion. If you do not know about them, please check out their site by clicking on the logo below. They make the best tool for C developers, hands-down
 [<img alt="JetBrains Logo (Main) logo" src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png" width="200"/>](https://jb.gg/OpenSource)
 [<img alt="CLion logo" src="https://resources.jetbrains.com/storage/products/company/brand/logos/CLion.png" width="200"/>](https://jb.gg/OpenSource)
+
 ## Examples
 
 Here's an [examples' repository](https://github.com/tanis2000/binocle-c-examples) with a few examples to start with.
@@ -213,6 +217,10 @@ This repository also contains an example project that I use to debug and test ne
 It can be compiled by using the `-D BUILD_EXAMPLE=1` CMake directive.
 
 ## Projects using Binocle
+
+![Shadow Crash screenshot](images/screenshots/ld50-shadow-crash.gif)
+[Shadow Crash](https://tanis.itch.io/shadow-crash), my entry for Ludum Dare 50.
+You can get the [source code here](https://github.com/tanis2000/binocle-player/tree/ld50)
 
 ![Santa frowns to town screenshot](images/screenshots/ld43-binocle-cover.png)
 [Santa frowns to town](https://tanis.itch.io/santa-frowns-to-town), my entry for Ludum Dare 43.
