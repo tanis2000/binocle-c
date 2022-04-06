@@ -167,6 +167,7 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
       .color_attachments[0].image = gd->offscreen.render_target,
   });
 
+  binocle_log_info("Setting up offscreen pipeline");
   // Pipeline state object for the offscreen rendered sprite
   gd->offscreen.pip = sg_make_pipeline(&(sg_pipeline_desc) {
       .layout = {
@@ -202,6 +203,8 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
         }
       }
   });
+
+  binocle_log_info("Done setting up offscreen pipeline");
 
   sg_buffer_desc vbuf_desc = {
     .type = SG_BUFFERTYPE_VERTEXBUFFER,
@@ -241,6 +244,8 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
   };
   gd->display.action = default_action;
 
+  binocle_log_info("Setting up screen pipeline");
+
   // Pipeline state object for the screen (default) pass
   gd->display.pip = sg_make_pipeline(&(sg_pipeline_desc){
     .layout = {
@@ -272,6 +277,7 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
 #endif
     }
   });
+  binocle_log_info("Done setting up screen pipeline");
 
 //  float vertices[] = {
 //    /* pos                  color                       uvs */
@@ -478,6 +484,7 @@ void binocle_gd_setup_flat_pipeline(binocle_gd *gd) {
     .color_attachments[0].image = gd->offscreen.render_target,
   });
 
+  binocle_log_info("Setting up flat pipeline");
   gd->flat.pip = sg_make_pipeline(&(sg_pipeline_desc) {
     .layout = {
       .attrs = {
@@ -511,6 +518,7 @@ void binocle_gd_setup_flat_pipeline(binocle_gd *gd) {
       }
     }
   });
+  binocle_log_info("Done setting up offscreen pipeline");
 
   sg_buffer_desc vbuf_desc = {
     .type = SG_BUFFERTYPE_VERTEXBUFFER,

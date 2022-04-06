@@ -5,15 +5,16 @@
 #include "binocle_log.h"
 #include "physics.h"
 
+physics_state_t physics_state;
 
 void create_barriers() {
-  bottom_body = cpSpaceGetStaticBody(world);
-  cpBodySetPosition(bottom_body, cpv(DESIGN_WIDTH/2, -50));
-  bottom_shape = cpBoxShapeNew(bottom_body, DESIGN_WIDTH, 100, 0);
-  cpSpaceAddShape(world, bottom_shape);
+  physics_state.bottom_body = cpSpaceGetStaticBody(physics_state.world);
+  cpBodySetPosition(physics_state.bottom_body, cpv(DESIGN_WIDTH/2, -50));
+  physics_state.bottom_shape = cpBoxShapeNew(physics_state.bottom_body, DESIGN_WIDTH, 100, 0);
+  cpSpaceAddShape(physics_state.world, physics_state.bottom_shape);
 //  cpBodySetPosition(bottom_body, cpv(DESIGN_WIDTH/2, -50));
 //  cpBodySetPosition(bottom_body, cpv(0, 0));
-  cpShapeSetFriction(bottom_shape, 1);
+  cpShapeSetFriction(physics_state.bottom_shape, 1);
 
 //  kmMat4 identity;
 //  kmMat4Identity(&identity);
@@ -93,35 +94,37 @@ void create_barriers() {
 
 void create_ball()
 {
-  ball_body = cpBodyNew(1, cpMomentForBox(1, 16.0f, 16.0f));
-  cpSpaceAddBody(world, ball_body);
-  ball_shape = cpBoxShapeNew(ball_body, 16.0f, 16.0f, 0);
-  cpSpaceAddShape(world, ball_shape);
-  cpBodySetPosition(ball_body, cpv(160, 50));
-  cpShapeSetFriction(ball_shape, 0.7f);
+  physics_state.ball_body = cpBodyNew(1, cpMomentForBox(1, 16.0f, 16.0f));
+  cpSpaceAddBody(physics_state.world, physics_state.ball_body);
+  physics_state.ball_shape = cpBoxShapeNew(physics_state.ball_body, 16.0f, 16.0f, 0);
+  cpSpaceAddShape(physics_state.world, physics_state.ball_shape);
+  cpBodySetPosition(physics_state.ball_body, cpv(160, 50));
+  cpShapeSetFriction(physics_state.ball_shape, 0.7f);
 }
 
-void setup_world() {
+physics_state_t setup_world() {
+  physics_state = (physics_state_t){0};
   cpVect gravity = cpv(0, -9.8f);
-  world = cpSpaceNew();
-  cpSpaceSetGravity(world, gravity);
+  physics_state.world = cpSpaceNew();
+  cpSpaceSetGravity(physics_state.world, gravity);
   //background_body = create_background();
   create_barriers();
   create_ball();
+  return physics_state;
 }
 
 void destroy_world() {
-  cpShapeFree(ball_shape);
-  cpBodyFree(ball_body);
-  cpSpaceFree(world);
+  cpShapeFree(physics_state.ball_shape);
+  cpBodyFree(physics_state.ball_body);
+  cpSpaceFree(physics_state.world);
 }
 
 void advance_simulation(float dt) {
   if (dt <= 0) return;
 
-  cpVect pos = cpBodyGetPosition(ball_body);
-  cpVect vel = cpBodyGetVelocity(ball_body);
-  cpBB bb = cpShapeGetBB(ball_shape);
+  cpVect pos = cpBodyGetPosition(physics_state.ball_body);
+  cpVect vel = cpBodyGetVelocity(physics_state.ball_body);
+  cpBB bb = cpShapeGetBB(physics_state.ball_shape);
   binocle_log_info("ball x:%5.2f y:%5.2f - velocity x:%5.2f y:%5.2f", pos.x, pos.y, vel.x, vel.y);
   binocle_log_info("bb t:%5.2f l:%5.2f r:%5.2f b:%5.2f", bb.t, bb.l, bb.r, bb.b);
 
@@ -131,6 +134,6 @@ void advance_simulation(float dt) {
 //  binocle_log_info("coll x:%5.2f y:%5.2f - velocity x:%5.2f y:%5.2f", pos.x, pos.y, vel.x, vel.y);
 //  binocle_log_info("bb coll t:%5.2f l:%5.2f r:%5.2f b:%5.2f", bb.t, bb.l, bb.r, bb.b);
 
-  cpSpaceStep(world, dt);
+  cpSpaceStep(physics_state.world, dt);
 }
 //#endif

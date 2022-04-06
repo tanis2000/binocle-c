@@ -174,6 +174,15 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
   win->width = width;
   win->height = height;
 
+  SDL_version compiled;
+  SDL_version linked;
+  SDL_VERSION(&compiled);
+  SDL_GetVersion(&linked);
+  binocle_log_info("Compiled SDL version: %d.%d.%d\n",
+                   compiled.major, compiled.minor, compiled.patch);
+  binocle_log_info("Linked SDL version: %d.%d.%d\n",
+                   linked.major, linked.minor, linked.patch);
+
 #if defined(WIN32)
   GLenum err = glewInit();
   if (GLEW_OK != err) {
@@ -186,6 +195,8 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
 #if defined(BINOCLE_GL)
   binocle_log_info("OpenGL version supported by this platform (%s): \n",
                    glGetString(GL_VERSION));
+  binocle_log_info("GLSL version supported by this platform (%s): \n",
+                   glGetString(GL_SHADING_LANGUAGE_VERSION));
 #elif defined(BINOCLE_METAL)
   binocle_log_info("Using Metal backend\n");
 #endif

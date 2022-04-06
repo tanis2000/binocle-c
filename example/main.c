@@ -88,13 +88,14 @@ sg_shader default_shader;
 sg_shader screen_shader;
 sg_image wabbit_image;
 
-#if defined(__APPLE__) && !defined(__IPHONEOS__)
+#if (defined(__APPLE__) && !defined(__IPHONEOS__)) || defined(__EMSCRIPTEN__)
 #define WITH_PHYSICS
 #endif
 
 #ifdef WITH_PHYSICS
 #include "chipmunk/chipmunk.h"
 #include "physics.h"
+physics_state_t ps;
 #endif
 
 void wren_update(float dt) {
@@ -153,8 +154,8 @@ void main_loop() {
   kmVec2 mouse_world_pos = binocle_camera_screen_to_world_point(camera, mouse_pos);
 
 #ifdef WITH_PHYSICS
-  cpVect pos = cpBodyGetPosition(ball_body);
-  cpBB bb = cpShapeGetBB(ball_shape);
+  cpVect pos = cpBodyGetPosition(ps.ball_body);
+  cpBB bb = cpShapeGetBB(ps.ball_shape);
 
   kmAABB2 ball_bounds;
   ball_bounds.min.x = bb.l;
@@ -162,13 +163,13 @@ void main_loop() {
   ball_bounds.max.x = bb.r;
   ball_bounds.max.y = bb.t;
   if (kmAABB2ContainsPoint(&ball_bounds, &mouse_world_pos) && binocle_input_is_mouse_down(input, MOUSE_LEFT)) {
-    dragging_ball = true;
+    ps.dragging_ball = true;
     binocle_log_info("caught");
   }
 
-  if (dragging_ball && binocle_input_is_mouse_pressed(input, MOUSE_LEFT)) {
+  if (ps.dragging_ball && binocle_input_is_mouse_pressed(input, MOUSE_LEFT)) {
     // set position
-    cpBodySetPosition(ball_body, cpv(mouse_world_pos.x, mouse_world_pos.y));
+    cpBodySetPosition(ps.ball_body, cpv(mouse_world_pos.x, mouse_world_pos.y));
 
     // apply force
 //    dFloat mass;
@@ -182,7 +183,7 @@ void main_loop() {
   }
 
   if (binocle_input_is_mouse_up(input, MOUSE_LEFT)) {
-    dragging_ball = false;
+    ps.dragging_ball = false;
   }
 #endif
 
@@ -209,9 +210,10 @@ void main_loop() {
   kmMat4Identity(&view_matrix);
 
 #ifdef WITH_PHYSICS
-  binocle_sprite_draw(ball_sprite, &gd, (int64_t)pos.x - 8, (int64_t)pos.y - 8, &viewport, 0, &scale, &camera);
+  binocle_sprite_draw(ps.ball_sprite, &gd, (int64_t)pos.x - 8, (int64_t)pos.y - 8, &viewport, 0, &scale, &camera);
   char mouse_str[256];
-  sprintf(mouse_str, "x: %.0f y:%.0f %d", mouse_world_pos.x, mouse_world_pos.y, dragging_ball);
+  sprintf(mouse_str, "x: %.0f y:%.0f %d", mouse_world_pos.x, mouse_world_pos.y,
+          ps.dragging_ball);
   binocle_bitmapfont_draw_string(font, mouse_str, 32, &gd, 0, DESIGN_HEIGHT - 70, viewport, binocle_color_white(), view_matrix);
 #endif
 
@@ -231,7 +233,7 @@ void main_loop() {
   //binocle_log_info("FPS: %d", binocle_window_get_fps(&window));
 
 #ifdef WITH_PHYSICS
-  mouse_prev_pos = mouse_world_pos;
+  ps.mouse_prev_pos = mouse_world_pos;
 #endif
 
 }
@@ -524,10 +526,11 @@ int main(int argc, char *argv[])
   player_pos.y = 50;
 
 #ifdef WITH_PHYSICS
+  ps = setup_world();
   binocle_material *ball_material = binocle_material_new();
   ball_material->albedo_texture = ball_image;
   ball_material->shader = default_shader;
-  ball_sprite = binocle_sprite_from_material(ball_material);
+  ps.ball_sprite = binocle_sprite_from_material(ball_material);
 #endif
 
   sprintf(filename, "%s%s", binocle_data_dir, "test_simple.lua");
@@ -602,10 +605,6 @@ int main(int argc, char *argv[])
   music = binocle_audio_load_music_stream(&audio, music_filename);
   binocle_audio_play_music_stream(&music);
   binocle_audio_set_music_volume(&music, 0.00f);
-
-#ifdef WITH_PHYSICS
-  setup_world();
-#endif
 
   binocle_gd_setup_default_pipeline(&gd, DESIGN_WIDTH, DESIGN_HEIGHT, default_shader, screen_shader);
 
