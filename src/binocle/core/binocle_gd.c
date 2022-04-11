@@ -27,23 +27,34 @@ typedef struct binocle_gd_flat_shader_fs_params_t {
 } binocle_gd_flat_shader_fs_params_t;
 
 const char *binocle_shader_flat_vertex_src_gles =
-"attribute vec3 vertexPosition;\n"
-"attribute vec4 vertexColor;\n"
+"#version 300 es\n"
+"precision mediump float;\n"
+"precision mediump int;\n"
+"in vec3 vertexPosition;\n"
+"in vec4 vertexColor;\n"
+"in vec2 vertexTexture;\n"
 "\n"
 "uniform mat4 projectionMatrix;\n"
 "uniform mat4 viewMatrix;\n"
 "uniform mat4 modelMatrix;\n"
 "\n"
+"out vec4 color;\n"
+"\n"
 "void main(void) {\n"
 "    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);\n"
 "    gl_PointSize = 1.0;\n"
+"    color = vertexColor;\n"
 "}\n";
 
-const char *binocle_shader_flat_src_gles =
-"uniform vec4 color;\n"
+const char *binocle_shader_flat_frag_src_gles =
+"#version 300 es\n"
+"precision mediump float;\n"
+"precision mediump int;\n"
+"in vec4 color;\n"
+"out vec4 fragColor;\n"
 "void main(void)\n"
 "{\n"
-"    gl_FragColor = color;\n"
+"    fragColor = color;\n"
 "    //gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
 "}\n";
 
@@ -51,6 +62,7 @@ const char *binocle_shader_flat_vertex_src_gl33 =
 "#version 330\n"
 "in vec3 vertexPosition;\n"
 "in vec4 vertexColor;\n"
+"in vec2 vertexTexture;\n"
 "\n"
 "uniform mat4 projectionMatrix;\n"
 "uniform mat4 viewMatrix;\n"
@@ -433,7 +445,7 @@ void binocle_gd_setup_flat_pipeline(binocle_gd *gd) {
 #endif
   sg_shader_desc screen_shader_desc = {
 #ifdef BINOCLE_GL
-#ifdef SOKOL_GLES2
+#if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
     .vs.source = binocle_shader_flat_vertex_src_gles,
 #else
     .vs.source = binocle_shader_flat_vertex_src_gl33,
@@ -452,10 +464,12 @@ void binocle_gd_setup_flat_pipeline(binocle_gd *gd) {
 #endif
     .attrs = {
       [0].name = "vertexPosition",
+      [1].name = "vertexColor",
+      [2].name = "vertexTexture",
     },
 #ifdef BINOCLE_GL
-#ifdef SOKOL_GLES2
-    .fs.source = binocle_shader_flat_src_gles,
+#if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
+    .fs.source = binocle_shader_flat_frag_src_gles,
 #else
     .fs.source = binocle_shader_flat_src_gl33,
 #endif
@@ -463,14 +477,16 @@ void binocle_gd_setup_flat_pipeline(binocle_gd *gd) {
     .fs.bytecode.ptr = screen_fs_bytecode,
     .fs.bytecode.size = sizeof(screen_fs_bytecode),
 #endif
-    .fs.uniform_blocks[0] = {
-      .size = sizeof(struct binocle_gd_flat_shader_fs_params_t),
-      .uniforms = {
-        [0] = { .name = "color", .type = SG_UNIFORMTYPE_FLOAT4 },
-      },
-    },
+//    .fs.uniform_blocks[0] = {
+//      .size = sizeof(struct binocle_gd_flat_shader_fs_params_t),
+//      .uniforms = {
+//        [0] = { .name = "color", .type = SG_UNIFORMTYPE_FLOAT4 },
+//      },
+//    },
   };
+  binocle_log_info("Compiling flat shader");
   sg_shader shader = sg_make_shader(&screen_shader_desc);
+  binocle_log_info("Done compiling flat shader");
 
   sg_pass_action action = {
     .colors[0] = {
@@ -518,7 +534,7 @@ void binocle_gd_setup_flat_pipeline(binocle_gd *gd) {
       }
     }
   });
-  binocle_log_info("Done setting up offscreen pipeline");
+  binocle_log_info("Done setting up flat pipeline");
 
   sg_buffer_desc vbuf_desc = {
     .type = SG_BUFFERTYPE_VERTEXBUFFER,
@@ -711,6 +727,7 @@ void binocle_gd_draw_quad_to_screen(binocle_gd *gd, sg_shader shader, sg_image r
     .index_buffer = ibuf
   };
 
+  // TODO: this is bad.. we create the pipeline at runtime and recreate it over and over without destroying it
   /* create a pipeline object (default render state is fine) */
   sg_pipeline pip = sg_make_pipeline(&(sg_pipeline_desc){
     .shader = shader,

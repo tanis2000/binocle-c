@@ -33,8 +33,10 @@ bool binocle_sdl_init() {
 #endif
 
 #if defined(BINOCLE_GL)
-#if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
+#if defined(__IPHONEOS__) || defined(__ANDROID__)
   SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengles2");
+#elif defined(__EMSCRIPTEN__)
+  SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengles3");
 #else
   SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
 #endif

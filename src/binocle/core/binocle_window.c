@@ -82,9 +82,13 @@ void binocle_window_refresh(binocle_window *win) {
 }
 
 void binocle_window_create(binocle_window *win, char *title, uint32_t width, uint32_t height) {
-#if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
+#if defined(__IPHONEOS__) || defined(__ANDROID__)
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+#elif defined(__EMSCRIPTEN__)
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 #else
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -197,6 +201,20 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
                    glGetString(GL_VERSION));
   binocle_log_info("GLSL version supported by this platform (%s): \n",
                    glGetString(GL_SHADING_LANGUAGE_VERSION));
+#ifdef GL_NUM_EXTENSIONS
+  int n;
+  glGetIntegerv(GL_NUM_EXTENSIONS, &n);
+  for (int i = 0 ; i < n ; i++) {
+    binocle_log_info("%s\n", glGetStringi(GL_EXTENSIONS, i));
+  }
+#endif
+#ifdef GL_NUM_SHADING_LANGUAGE_VERSION
+  int n;
+  glGetIntegerv(GL_NUM_SHADING_LANGUAGE_VERSION, n);
+  for (int i = 0 ; i < n ; i++) {
+    binocle_log_info("%s\n", glGetStringi(GL_SHADING_LANGUAGE_VERSION, i));
+  }
+#endif
 #elif defined(BINOCLE_METAL)
   binocle_log_info("Using Metal backend\n");
 #endif
