@@ -1,11 +1,14 @@
+#version 300 es
 precision mediump float;
-attribute vec3 vertexPosition;
-attribute vec4 vertexColor;
-attribute vec2 vertexTCoord;
-//attribute vec3 vertexNormal;
+precision mediump int;
 
-varying vec2 tcoord;
-varying vec4 color;
+in vec3 vertexPosition;
+in vec4 vertexColor;
+in vec2 vertexTCoord;
+in vec3 vertexNormal;
+
+out vec2 tcoord;
+out vec4 color;
 
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
@@ -15,7 +18,7 @@ void main(void) {
     gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);
     tcoord = vertexTCoord;
     color = vertexColor;
-//    vec3 n = vertexNormal;
+    vec3 n = vertexNormal;
     gl_PointSize = 1.0;
 }
 
