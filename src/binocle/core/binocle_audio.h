@@ -505,14 +505,6 @@ void binocle_audio_set_music_volume(binocle_audio_music *music, float volume);
 void binocle_audio_set_music_pitch(binocle_audio_music *music, float pitch);
 
 /**
- * \brief Sets the number of loops of the music stream
- * If `count` is -1 then it loops indefinitely
- * @param music the music stream
- * @param count how many times to loop
- */
-void binocle_audio_set_music_loop_count(binocle_audio_music *music, int count);
-
-/**
  * \brief Gets the length of the music stream in seconds
  * @param music the music stream
  * @return the length of the music stream in seconds
