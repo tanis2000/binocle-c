@@ -7,6 +7,8 @@
 #include "binocle_sdl.h"
 #include "binocle_log.h"
 #include "binocle_audio.h"
+#include <sys/types.h>
+#include <sys/stat.h>
 
 bool binocle_sdl_init() {
 
@@ -219,4 +221,71 @@ bool binocle_sdl_filename_ends_with(const char *str, const char *suffix) {
     return false;
   }
   return SDL_strncmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
+}
+
+// You must free the result if result is non-NULL.
+char *binocle_sdl_str_replace(char *orig, char *rep, char *with) {
+  char *result; // the return string
+  char *ins;    // the next insert point
+  char *tmp;    // varies
+  size_t len_rep;  // length of rep (the string to remove)
+  size_t len_with; // length of with (the string to replace rep with)
+  size_t len_front; // distance between rep and end of last rep
+  size_t count;    // number of replacements
+
+  // sanity checks and initialization
+  if (!orig || !rep)
+    return NULL;
+  len_rep = SDL_strlen(rep);
+  if (len_rep == 0)
+    return NULL; // empty rep causes infinite loop during count
+  if (!with)
+    with = "";
+  len_with = SDL_strlen(with);
+
+  // count the number of replacements needed
+  ins = orig;
+  for (count = 0; (tmp = SDL_strstr(ins, rep)); ++count) {
+    ins = tmp + len_rep;
+  }
+
+  tmp = result = SDL_malloc(SDL_strlen(orig) + (len_with - len_rep) * count + 1);
+
+  if (!result)
+    return NULL;
+
+  // first time through the loop, all the variable are set correctly
+  // from here on,
+  //    tmp points to the end of the result string
+  //    ins points to the next occurrence of rep in orig
+  //    orig points to the remainder of orig after "end of rep"
+  while (count--) {
+    ins = strstr(orig, rep);
+    len_front = ins - orig;
+    tmp = strncpy(tmp, orig, len_front) + len_front;
+    tmp = strcpy(tmp, with) + len_with;
+    orig += len_front + len_rep; // move to next "end of rep"
+  }
+  strcpy(tmp, orig);
+  return result;
+}
+
+bool binocle_sdl_file_exists(const char *filename) {
+  SDL_RWops *f = SDL_RWFromFile(filename, "r");
+  if (f == NULL) {
+    return false;
+  }
+  SDL_RWclose(f);
+  return true;
+}
+
+bool binocle_sdl_directory_exists(const char *path) {
+  struct stat info;
+  if( stat( path, &info ) != 0 )
+    binocle_log_warning( "cannot access %s", path );
+  else if( info.st_mode & S_IFDIR )
+    return true;
+  else
+    binocle_log_warning( "%s is not a directory\n", path );
+  return false;
 }

@@ -102,4 +102,8 @@ char *binocle_sdl_assets_dir();
  */
 bool binocle_sdl_filename_ends_with(const char *str, const char *suffix);
 
+char *binocle_sdl_str_replace(char *orig, char *rep, char *with);
+bool binocle_sdl_file_exists(const char *filename);
+bool binocle_sdl_directory_exists(const char *path);
+
 #endif //BINOCLE_SDL_H
