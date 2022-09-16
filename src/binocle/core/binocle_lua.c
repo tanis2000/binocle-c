@@ -27,6 +27,8 @@
 #include "kazmath/lkazmath.h"
 #include "binocle_ttfont_wrap.h"
 #include "binocle_audio_wrap.h"
+#include "binocle_fs_wrap.h"
+#include "binocle_app_wrap.h"
 
 binocle_lua binocle_lua_new() {
   binocle_lua res = {0};
@@ -65,6 +67,12 @@ bool binocle_lua_init(binocle_lua *lua) {
   luaopen_bitmapfont(lua->L);
   luaopen_ttfont(lua->L);
   luaopen_audio(lua->L);
+  luaopen_fs(lua->L);
+  luaopen_app(lua->L);
+
+  lua_register(lua->L, "fs_loader", binocle_lua_fs_loader);
+  const char* str = "table.insert(package.loaders, 2, fs_loader) \n";
+  luaL_dostring(lua->L, str);
 
   //lua->last_check_time = stm_now();
   time_t t = time(NULL);
@@ -81,11 +89,21 @@ void binocle_lua_destroy(binocle_lua *lua) {
 }
 
 bool binocle_lua_run_script(binocle_lua *lua, char *filename) {
-  int status = luaL_loadfile(lua->L, filename);
+  void *buffer;
+  size_t buffer_length;
+  bool file_loaded = binocle_fs_load_binary_file(filename, &buffer, &buffer_length);
+  if (!file_loaded) {
+    binocle_log_error("Couldn't load file: %s", filename);
+    return false;
+  }
+
+  int status = luaL_loadbuffer(lua->L, buffer, buffer_length, filename);
   if (status) {
     binocle_log_error("Couldn't load file: %s\n", lua_tostring(lua->L, -1));
     return false;
   }
+
+  SDL_free(buffer);
 
   // We call the script with 0 arguments and expect 0 results
   int result = lua_pcall(lua->L, 0, 0, 0);
@@ -126,6 +144,39 @@ int binocle_lua_enumerate_callback(void *user_data, const char *path, const char
     return 1; // No more files please
   }
   return 1; // 1 means get more files, 0 means no more files please
+}
+
+int binocle_lua_fs_loader(lua_State *L)
+{
+  const char *name = luaL_checkstring(L, 1);
+  char *path = binocle_sdl_str_replace(name, ".", "/");
+  if (path == NULL) {
+    binocle_log_error("Error trying to replace . with / in the loader");
+  }
+  char final_path[1024];
+  sprintf(final_path, "/assets/%s.lua", path);
+  char *buffer;
+  size_t buffer_length;
+  bool res = binocle_fs_load_binary_file(final_path, &buffer, &buffer_length);
+  if (!res) {
+    binocle_log_error("Cannot load required file %s", final_path);
+    lua_pushfstring(L, "Cannot load required module %s from binocle_fs", name);
+    return 1;
+  }
+
+  lua_pop(L, 1);
+  int status = luaL_loadbuffer(L, buffer, buffer_length, name);
+  SDL_free(buffer);
+
+  switch (status)
+  {
+    case LUA_ERRMEM:
+      return luaL_error(L, "Memory allocation error: %s\n", lua_tostring(L, -1));
+    case LUA_ERRSYNTAX:
+      return luaL_error(L, "Syntax error: %s\n", lua_tostring(L, -1));
+    default: // success
+      return 1;
+  }
 }
 
 bool binocle_lua_check_scripts_modification_time(binocle_lua *lua, char *path, binocle_lua_fs_enumerate_pre_run_callback *pre_run_callback, binocle_lua_fs_enumerate_post_run_callback *post_run_callback) {

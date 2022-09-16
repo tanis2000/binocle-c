@@ -48,6 +48,7 @@ bool binocle_lua_init(binocle_lua *lua);
 void binocle_lua_destroy(binocle_lua *lua);
 bool binocle_lua_run_script(binocle_lua *lua, char *filename);
 bool binocle_lua_check_scripts_modification_time(binocle_lua *lua, char *path, binocle_lua_fs_enumerate_pre_run_callback *pre_run_callback, binocle_lua_fs_enumerate_post_run_callback *post_run_callback);
+int binocle_lua_fs_loader(lua_State *L);
 
 int lua_test(const char *arg);
 int lua_test2(const char *arg);
