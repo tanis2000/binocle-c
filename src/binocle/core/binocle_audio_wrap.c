@@ -60,10 +60,10 @@ int l_binocle_audio_update_music_stream(lua_State *L) {
 
 int l_binocle_audio_load_sound(lua_State *L) {
   l_binocle_audio_t *audio = luaL_checkudata(L, 1, "binocle_audio");
-  const char *filename = lua_tostring(L, 2);
+  const char *filename = luaL_checkstring(L, 2);
   binocle_audio_sound sound = binocle_audio_load_sound(audio->audio, filename);
   l_binocle_audio_sound_t *lsound = lua_newuserdata(L, sizeof(l_binocle_audio_sound_t));
-  lua_getfield(L, LUA_REGISTRYINDEX, "binocle_audio_sound");
+  luaL_getmetatable(L, "binocle_audio_sound");
   lua_setmetatable(L, -2);
   SDL_memset(lsound, 0, sizeof(*lsound));
   lsound->sound = SDL_malloc(sizeof(binocle_audio_sound));
