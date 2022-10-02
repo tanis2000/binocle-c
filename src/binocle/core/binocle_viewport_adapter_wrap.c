@@ -81,6 +81,19 @@ int l_binocle_viewport_adapter_get_inverse_multiplier(lua_State *L) {
   return 1;
 }
 
+int l_binocle_viewport_adapter_get_screen_to_virtual_viewport(lua_State *L) {
+  l_binocle_viewport_adapter_t *adapter = luaL_checkudata(L, 1, "binocle_viewport_adapter");
+  float x = (float)luaL_checknumber(L, 2);
+  float y = (float)luaL_checknumber(L, 3);
+  kmVec2 v;
+  v.x = x;
+  v.y = y;
+  kmVec2 res = binocle_viewport_adapter_screen_to_virtual_viewport(*adapter->viewport_adapter, v);
+  lua_pushnumber(L, res.x);
+  lua_pushnumber(L, res.y);
+  return 2;
+}
+
 static const struct luaL_Reg viewport_adapter [] = {
   {"new", l_binocle_viewport_adapter_new},
   {"get_viewport", l_binocle_viewport_adapter_get_viewport},
@@ -88,6 +101,7 @@ static const struct luaL_Reg viewport_adapter [] = {
   {"get_viewport_min_y", l_binocle_viewport_adapter_get_viewport_min_y},
   {"get_multiplier", l_binocle_viewport_adapter_get_multiplier},
   {"get_inverse_multiplier", l_binocle_viewport_adapter_get_inverse_multiplier},
+  {"get_screen_to_virtual_viewport", l_binocle_viewport_adapter_get_screen_to_virtual_viewport},
   {NULL, NULL}
 };
 

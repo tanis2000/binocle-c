@@ -7,6 +7,8 @@
 #include "binocle_lua.h"
 #include "binocle_input.h"
 #include "binocle_sdl.h"
+#include "binocle_camera_wrap.h"
+#include "binocle_camera.h"
 
 static const char* binocle_input_keyboard_key_str[] = {
   "KEY_UNKNOWN",
@@ -500,6 +502,20 @@ static enum binocle_input_keyboard_key binocle_input_keyboard_key_val[] = {
   0
 };
 
+static const char* binocle_input_mouse_button_str[] = {
+  "MOUSE_LEFT",
+  "MOUSE_MIDDLE",
+  "MOUSE_RIGHT",
+  NULL
+};
+
+static enum binocle_input_mouse_button binocle_input_mouse_button_val[] = {
+  MOUSE_LEFT,
+  MOUSE_MIDDLE,
+  MOUSE_RIGHT,
+  0
+};
+
 int l_binocle_input_new(lua_State *L) {
   l_binocle_input_t *input = lua_newuserdata(L, sizeof(l_binocle_input_t));
   lua_getfield(L, LUA_REGISTRYINDEX, "binocle_input");
@@ -545,12 +561,32 @@ int l_binocle_input_set_quit_requested(lua_State *L) {
   return 0;
 }
 
+int l_binocle_input_get_mouse_position(lua_State *L) {
+  l_binocle_input_t *input = lua_touserdata(L, 1);
+  l_binocle_camera_t *camera = lua_touserdata(L, 2);
+  kmVec2 res = binocle_input_get_mouse_position(*input->input, *camera->camera);
+  lua_pushnumber(L, res.x);
+  lua_pushnumber(L, res.y);
+  return 2;
+}
+
+int l_binocle_input_is_mouse_down(lua_State *L) {
+  l_binocle_input_t *input = lua_touserdata(L, 1);
+  int btn_int = luaL_checkoption(L, 2, "MOUSE_LEFT", binocle_input_mouse_button_str);
+  binocle_input_mouse_button btn = binocle_input_mouse_button_val[btn_int];
+  bool res = binocle_input_is_mouse_down(*input->input, btn);
+  lua_pushboolean(L, res);
+  return 1;
+}
+
 static const struct luaL_Reg input [] = {
   {"new", l_binocle_input_new},
   {"is_key_pressed", l_binocle_input_is_key_pressed},
   {"is_key_down", l_binocle_input_is_key_down},
   {"is_key_up", l_binocle_input_is_key_up},
   {"set_quit_requested", l_binocle_input_set_quit_requested},
+  {"get_mouse_position", l_binocle_input_get_mouse_position},
+  {"is_mouse_down", l_binocle_input_is_mouse_down},
   {NULL, NULL}
 };
 
@@ -566,5 +602,14 @@ int luaopen_input(lua_State *L) {
     lua_settable(L, -3);
   }
   lua_setglobal(L, "key");
+
+  lua_newtable(L);
+  for (int i = 0 ; binocle_input_mouse_button_str[i] != NULL ; i++) {
+    lua_pushstring(L, binocle_input_mouse_button_str[i]);
+    lua_pushstring(L, binocle_input_mouse_button_str[i]);
+    lua_settable(L, -3);
+  }
+  lua_setglobal(L, "mouse");
+
   return 1;
 }
