@@ -152,9 +152,12 @@ int binocle_lua_fs_loader(lua_State *L)
   char *path = binocle_sdl_str_replace(name, ".", "/");
   if (path == NULL) {
     binocle_log_error("Error trying to replace . with / in the loader");
+    lua_pushstring(L, "Error trying to replace . with / in the loader");
+    return 1;
   }
   char final_path[1024];
   sprintf(final_path, "/assets/%s.lua", path);
+  SDL_free(path);
   char *buffer;
   size_t buffer_length;
   bool res = binocle_fs_load_binary_file(final_path, &buffer, &buffer_length);
@@ -367,4 +370,24 @@ int lua_testffi(const char *arg, binocle_window *window) {
   lua_close(L);   /* Cya, Lua */
 
   return 0;
+}
+
+/**
+ * Drop this function into CLion's watch to print the stack trace of the calling function.
+ * Useful for debugging
+ * @param L the Lua state
+ */
+void binocle_lua_stacktrace(lua_State* L)
+{
+  lua_Debug entry;
+  int depth = 0;
+
+  while (lua_getstack(L, depth, &entry))
+  {
+    int status = lua_getinfo(L, "Sln", &entry);
+    assert(status);
+
+    printf("%s(%d): %s\n", entry.short_src, entry.currentline, entry.name ? entry.name : "?");
+    depth++;
+  }
 }

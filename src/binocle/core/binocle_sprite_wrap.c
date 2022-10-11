@@ -64,6 +64,12 @@ int l_binocle_sprite_destroy(lua_State *L) {
   return 0;
 }
 
+int l_binocle_sprite_gc(lua_State *L) {
+  l_binocle_sprite_t *sprite = luaL_checkudata(L, 1, "binocle_sprite");
+  binocle_sprite_destroy(sprite->sprite);
+  return 0;
+}
+
 int l_binocle_sprite_draw_with_sprite_batch(lua_State *L) {
   l_binocle_sprite_batch_t *sprite_batch = luaL_checkudata(L, 1, "binocle_sprite_batch");
   l_binocle_sprite_t *sprite = luaL_checkudata(L, 2, "binocle_sprite");
@@ -84,6 +90,7 @@ int l_binocle_sprite_draw_with_sprite_batch(lua_State *L) {
 }
 
 static const struct luaL_Reg sprite [] = {
+  {"__gc", l_binocle_sprite_gc},
   {"from_material", l_binocle_sprite_from_material},
   {"draw", l_binocle_sprite_draw},
   {"set_subtexture", l_binocle_sprite_set_subtexture},

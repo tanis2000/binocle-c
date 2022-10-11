@@ -41,7 +41,14 @@ int l_binocle_material_destroy(lua_State *L) {
   return 0;
 }
 
+int l_binocle_material_gc(lua_State *L) {
+  l_binocle_material_t *material = luaL_checkudata(L, 1, "binocle_material");
+  binocle_material_destroy(material->material);
+  return 0;
+}
+
 static const struct luaL_Reg image [] = {
+  {"__gc", l_binocle_material_gc},
   {"new", l_binocle_material_new},
   {"set_texture", l_binocle_material_set_texture},
   {"set_shader", l_binocle_material_set_shader},
