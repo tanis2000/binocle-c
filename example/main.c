@@ -196,7 +196,10 @@ void main_loop() {
   viewport.max.x = DESIGN_WIDTH;
   viewport.max.y = DESIGN_HEIGHT;
 
+#if !defined(ANDROID)
   wren_update(dt);
+#endif
+
 #ifdef WITH_PHYSICS
   advance_simulation(dt);
 #endif
@@ -479,7 +482,9 @@ int main(int argc, char *argv[])
 
   char *screen_shader_fs_src;
   size_t screen_shader_fs_src_size;
+  binocle_log_info("reading screen shader");
   binocle_sdl_load_text_file(frag, &screen_shader_fs_src, &screen_shader_fs_src_size);
+  binocle_log_info("done reading screen shader");
 #endif
 
   sg_shader_desc screen_shader_desc = {
@@ -516,7 +521,9 @@ int main(int argc, char *argv[])
       },
     },
   };
+  binocle_log_info("creating screen shader");
   screen_shader = sg_make_shader(&screen_shader_desc);
+  binocle_log_info("done creating screen shader");
 
   binocle_material *material = binocle_material_new();
   material->albedo_texture = wabbit_image;
@@ -533,6 +540,7 @@ int main(int argc, char *argv[])
   ps.ball_sprite = binocle_sprite_from_material(ball_material);
 #endif
 
+#if !defined(ANDROID)
   sprintf(filename, "%s%s", binocle_data_dir, "test_simple.lua");
   lua_test(filename);
   sprintf(filename, "%s%s", binocle_data_dir, "test_simple2.lua");
@@ -552,6 +560,7 @@ int main(int argc, char *argv[])
   wrenGetVariable(wren->vm, "main", "game", 0);
   gameClass = wrenGetSlotHandle(wren->vm, 0);
   method = wrenMakeCallHandle(wren->vm, "update(_)");
+#endif
 
 #ifdef DEMOLOOP
   // Load the default quad shader
@@ -582,7 +591,9 @@ int main(int argc, char *argv[])
 
   char font_filename[1024];
   sprintf(font_filename, "%s%s", binocle_data_dir, "font.fnt");
+  binocle_log_info("creating font");
   font = binocle_bitmapfont_from_file(font_filename, true);
+  binocle_log_info("done creating font");
 
   char font_image_filename[1024];
   sprintf(font_image_filename, "%s%s", binocle_data_dir, "font.png");
@@ -595,8 +606,10 @@ int main(int argc, char *argv[])
   font_sprite_pos.x = 0;
   font_sprite_pos.y = -256;
 
+  binocle_log_info("audio init");
   audio = binocle_audio_new();
   binocle_audio_init(&audio);
+  binocle_log_info("done audio init");
   char sound_filename[1024];
   sprintf(sound_filename, "%s%s", binocle_data_dir, "Jump.wav");
   sound = binocle_audio_load_sound(&audio, sound_filename);

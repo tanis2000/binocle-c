@@ -128,15 +128,14 @@ You will need the Android SDK and NDK and the correct environment variables for 
 
 ```sh
 mkdir build
-cd build
-cmake -D DEBUG=1 -D BUILD_EXAMPLE=1 -D ANDROID_ABI=armeabi-v7a -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=../cmake/android.toolchain.cmake ../
-make -j8
-cmake -D DEBUG=1 -D BUILD_EXAMPLE=1 -D ANDROID_ABI=arm64-v8a -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=../cmake/android.toolchain.cmake ../
-make -j8
-cmake -D DEBUG=1 -D BUILD_EXAMPLE=1 -D ANDROID_ABI=x86 -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=../cmake/android.toolchain.cmake ../
-make -j8
-cmake -D DEBUG=1 -D BUILD_EXAMPLE=1 -D ANDROID_ABI=x86_64 -D ANDROID_STL=c++_static -D ANDROID_PLATFORM=android-21 -D CMAKE_TOOLCHAIN_FILE=../cmake/android.toolchain.cmake ../
-make -j8
+
+cmake -H. -B./build/armeabi-v7a -D ANDROID_ABI=armeabi-v7a -D ANDROID_PLATFORM=android-33 -D DEBUG=1 -D BUILD_EXAMPLE=1 -D CMAKE_TOOLCHAIN_FILE=./cmake/android.toolchain.cmake -G Ninja
+cmake -H. -B./build/arm64-v8a -D ANDROID_ABI=arm64-v8a -D ANDROID_PLATFORM=android-33 -D DEBUG=1 -D BUILD_EXAMPLE=1 -D CMAKE_TOOLCHAIN_FILE=./cmake/android.toolchain.cmake -G Ninja
+cmake -H. -B./build/x86 -D ANDROID_ABI=x86 -D ANDROID_PLATFORM=android-33 -D DEBUG=1 -D BUILD_EXAMPLE=1 -D CMAKE_TOOLCHAIN_FILE=./cmake/android.toolchain.cmake -G Ninja
+cmake -H. -B./build/x86_64 -D ANDROID_ABI=x86_64 -D ANDROID_PLATFORM=android-33 -D DEBUG=1 -D BUILD_EXAMPLE=1 -D CMAKE_TOOLCHAIN_FILE=./cmake/android.toolchain.cmake -G Ninja
+
+ninja -C build/armeabi-v7a -j8 && ninja -C build/arm64-v8a -j8 && ninja -C build/x86 -j8 && ninja -C build/x86_64 -j8
+
 cd ../platform/android/android-project
 ./gradlew installDebug
 ```

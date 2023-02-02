@@ -1,6 +1,10 @@
 package org.libsdl.app;
 
-import android.media.*;
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioRecord;
+import android.media.AudioTrack;
+import android.media.MediaRecorder;
 import android.os.Build;
 import android.util.Log;
 
@@ -43,6 +47,10 @@ public class SDLAudioManager
             if (desiredChannels > 2) {
                 desiredChannels = 2;
             }
+        }
+
+        /* AudioTrack has sample rate limitation of 48000 (fixed in 5.0.2) */
+        if (Build.VERSION.SDK_INT < 22) {
             if (sampleRate < 8000) {
                 sampleRate = 8000;
             } else if (sampleRate > 48000) {
@@ -73,7 +81,7 @@ public class SDLAudioManager
             sampleSize = 2;
             break;
         }
- 
+
         if (isCapture) {
             switch (desiredChannels) {
             case 1:
@@ -199,7 +207,6 @@ public class SDLAudioManager
             results[0] = mAudioRecord.getSampleRate();
             results[1] = mAudioRecord.getAudioFormat();
             results[2] = mAudioRecord.getChannelCount();
-            results[3] = desiredFrames;
 
         } else {
             if (mAudioTrack == null) {
@@ -223,8 +230,8 @@ public class SDLAudioManager
             results[0] = mAudioTrack.getSampleRate();
             results[1] = mAudioTrack.getAudioFormat();
             results[2] = mAudioTrack.getChannelCount();
-            results[3] = desiredFrames;
         }
+        results[3] = desiredFrames;
 
         Log.v(TAG, "Opening " + (isCapture ? "capture" : "playback") + ", got " + results[3] + " frames of " + results[2] + " channel " + getAudioFormatString(results[1]) + " audio at " + results[0] + " Hz");
 
@@ -298,7 +305,7 @@ public class SDLAudioManager
             Log.e(TAG, "Attempted to make audio call with uninitialized audio!");
             return;
         }
-        
+
         for (int i = 0; i < buffer.length; ) {
             int result = mAudioTrack.write(buffer, i, buffer.length - i);
             if (result > 0) {
@@ -361,6 +368,25 @@ public class SDLAudioManager
             mAudioRecord.stop();
             mAudioRecord.release();
             mAudioRecord = null;
+        }
+    }
+
+    /** This method is called by SDL using JNI. */
+    public static void audioSetThreadPriority(boolean iscapture, int device_id) {
+        try {
+
+            /* Set thread name */
+            if (iscapture) {
+                Thread.currentThread().setName("SDLAudioC" + device_id);
+            } else {
+                Thread.currentThread().setName("SDLAudioP" + device_id);
+            }
+
+            /* Set thread priority */
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_AUDIO);
+
+        } catch (Exception e) {
+            Log.v(TAG, "modify thread properties failed " + e.toString());
         }
     }
 

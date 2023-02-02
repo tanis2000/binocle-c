@@ -154,17 +154,30 @@ elseif (APPLE)
 endif ()
 
 if (ANDROID)
-    message("Post build will copy to ${CMAKE_CURRENT_BINARY_DIR}/../../platform/android/android-project/app/libs/${ANDROID_ABI}/libmain.so")
+    message("Post build will copy to ${CMAKE_CURRENT_BINARY_DIR}/../../../platform/android/android-project/app/libs/${ANDROID_ABI}/libmain.so")
     add_custom_command(TARGET ExampleProject
             POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ExampleProject> ${CMAKE_CURRENT_BINARY_DIR}/../../platform/android/android-project/app/libs/${ANDROID_ABI}/libmain.so)
+            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ExampleProject> ${CMAKE_CURRENT_BINARY_DIR}/../../../platform/android/android-project/app/libs/${ANDROID_ABI}/libmain.so)
 #    message("Post build will copy to ${CMAKE_CURRENT_BINARY_DIR}/../../platform/android/android-project/app/libs/${ANDROID_ABI}/libhidapi.so")
 #    add_custom_command(TARGET ExampleProject
 #            POST_BUILD
 #            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:hidapi> ${CMAKE_CURRENT_BINARY_DIR}/../../platform/android/android-project/app/libs/${ANDROID_ABI}/libhidapi.so)
+    message("android abi ${ANDROID_ABI}")
+    message("android toolchain ${ANDROID_TOOLCHAIN_NAME}")
+    if (ANDROID_ABI STREQUAL x86_64)
+        set(ANDROID_LLVM_TOOLCHAIN_ARCH x86_64-linux-android)
+    elseif(ANDROID_ABI STREQUAL "x86")
+        set(ANDROID_LLVM_TOOLCHAIN_ARCH i686-linux-android)
+    elseif(ANDROID_ABI STREQUAL "armeabi-v7a")
+        set(ANDROID_LLVM_TOOLCHAIN_ARCH arm-linux-androideabi)
+    elseif(ANDROID_ABI STREQUAL "arm64-v8a")
+        set(ANDROID_LLVM_TOOLCHAIN_ARCH aarch64-linux-android)
+    endif()
+    message("android arch ${ANDROID_LLVM_TOOLCHAIN_ARCH}")
+
     add_custom_command(TARGET ExampleProject
             POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy ${ANDROID_NDK}/sources/cxx-stl/llvm-libc++/libs/${ANDROID_ABI}/libc++_shared.so ${CMAKE_CURRENT_BINARY_DIR}/../../platform/android/android-project/app/libs/${ANDROID_ABI}/libc++_shared.so)
+            COMMAND ${CMAKE_COMMAND} -E copy ${ANDROID_NDK}/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/${ANDROID_LLVM_TOOLCHAIN_ARCH}/libc++_shared.so ${CMAKE_CURRENT_BINARY_DIR}/../../../platform/android/android-project/app/libs/${ANDROID_ABI}/libc++_shared.so)
     #	file(RENAME ${CMAKE_CURRENT_BINARY_DIR}/../android-project/libs/${ANDROID_ABI}/lib${PROJECT_NAME}.so ${CMAKE_CURRENT_BINARY_DIR}/../android-project/libs/${ANDROID_ABI}/libmain.so)
 endif ()
 
