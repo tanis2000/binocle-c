@@ -72,6 +72,29 @@ sg_image binocle_image_load(const char *filename) {
   return binocle_image_load_with_filter(filename, SG_FILTER_LINEAR);
 }
 
+sg_image binocle_image_load_from_memory(const unsigned char *image_data, int width, int height, sg_filter filter) {
+  sg_image img = { 0 };
+
+  binocle_log_info("Texture size: %" PRId32 "x%" PRId32, width, height);
+  sg_image_desc desc = {
+    .width = width,
+    .height = height,
+    .pixel_format = SG_PIXELFORMAT_RGBA8,
+    .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
+    .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
+    .wrap_w = SG_WRAP_CLAMP_TO_EDGE,
+    .min_filter = filter,
+    .mag_filter = filter,
+    .data.subimage[0][0] = {
+      .ptr = image_data,
+      .size = width * height * sizeof(uint32_t)
+    },
+    .label = "nuklear-font-image"
+  };
+  img = sg_make_image(&desc);
+  return img;
+}
+
 void binocle_image_destroy(sg_image image) {
   sg_dealloc_image(image);
 }
