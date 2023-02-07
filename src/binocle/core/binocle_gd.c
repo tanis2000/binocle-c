@@ -901,6 +901,7 @@ void binocle_gd_draw_line(binocle_gd *gd, kmVec2 start, kmVec2 end, sg_color col
   binocle_gd_draw_rect(gd, rect, col, viewport, camera);
 }
 
+// TODO: rewrite this using the same approach as binocle_gd_draw_rect
 void binocle_gd_draw_circle(binocle_gd *gd, kmVec2 center, float radius, sg_color col, kmAABB2 viewport, kmMat4 viewMatrix) {
   static GLfloat vertex_buffer_data[2 * 3 * 32] = {0};
 
