@@ -331,16 +331,24 @@ void binocle_sprite_clear_animations(binocle_sprite *sprite) {
     binocle_sprite_stop(sprite);
   }
   for (int i = 0; i < BINOCLE_SPRITE_MAX_ANIMATIONS; i++) {
-    sprite->animations[i].enabled = false;
+    sprite->animations[i] = (binocle_sprite_animation){0};
   }
+  sprite->current_animation = NULL;
+  sprite->current_animation_frame = -1;
+  sprite->animations_number = 0;
 }
 
 void binocle_sprite_clear_frames(binocle_sprite *sprite) {
   if (sprite->playing) {
     binocle_sprite_stop(sprite);
   }
-  for (int i = 0; i < BINOCLE_SPRITE_MAX_FRAMES; i++) {
-    // TODO
+  for (int i = 0; i < BINOCLE_SPRITE_MAX_ANIMATIONS; i++) {
+    for (int j = 0; j < BINOCLE_SPRITE_MAX_FRAMES; j++) {
+      sprite->animations[i].frames[j] = -1;
+      sprite->animations[i].delays[j] = 0;
+      sprite->animations[i].frame_mapping[j] = (binocle_sprite_animation_frame_mapping){0};
+    }
+    sprite->animations[i].frames_number = 0;
   }
 }
 
