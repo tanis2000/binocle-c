@@ -272,10 +272,12 @@ void binocle_gd_set_uniform_mat4(sg_shader shader, const char *name,
  * @param col the color to fill the rectangle with
  * @param viewport the viewport
  * @param camera the camera
+ * @param view_matrix an additional view matrix to apply
  */
 void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect,
                           struct sg_color col, kmAABB2 viewport,
-                          struct binocle_camera *camera);
+                          struct binocle_camera *camera,
+                            kmMat4 *view_matrix);
 
 /**
  * \brief Draws the outline of a rectangle to the current buffer
@@ -307,10 +309,9 @@ void binocle_gd_draw_line(binocle_gd *gd, kmVec2 start, kmVec2 end, struct sg_co
  * @param radius the radius of the circle
  * @param col the color
  * @param viewport the viewport
- * @param viewMatrix the view matrix
+ * @param camera the camera
  */
-void binocle_gd_draw_circle(binocle_gd *gd, kmVec2 center, float radius, struct sg_color col, kmAABB2 viewport,
-                            kmMat4 viewMatrix);
+void binocle_gd_draw_circle(binocle_gd *gd, kmVec2 center, float radius, struct sg_color col, kmAABB2 viewport, struct binocle_camera *camera);
 
 /**
  * \brief Draws the graphic device's vertex buffer using the given render state

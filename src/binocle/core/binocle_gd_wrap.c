@@ -107,7 +107,7 @@ int l_binocle_gd_draw_rect(lua_State *L) {
   center.x = center_x;
   center.y = center_y;
   kmAABB2Initialize(&rect, &center, width, height, 0);
-  binocle_gd_draw_rect(gd->gd, rect, *color, **viewport, camera->camera);
+  binocle_gd_draw_rect(gd->gd, rect, *color, **viewport, camera->camera, NULL);
   return 0;
 }
 

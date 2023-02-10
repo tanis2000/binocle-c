@@ -99,7 +99,6 @@ typedef struct binocle_array_header_t
  */
 #define binocle_array_resize_geom(a, n) (tm_carray_ensure_at(a, n), (a) ? binocle_array_header(a)->size = n : 0)
 
-// Frees the memory used by the carray.
 /**
  * Frees the memory used by the array.
  */
