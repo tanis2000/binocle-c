@@ -526,7 +526,7 @@ void binocle_sprite_create_animation(binocle_sprite *sprite, char *name, char *s
 int binocle_sprite_get_animation_id(binocle_sprite *sprite, char *name) {
   binocle_sprite_animation *anim = sprite->animations;
   for (int i = 0; i < sprite->animations_number; i++) {
-    if (strcmp(anim->name, name) == 0) {
+    if (anim->name != NULL && strcmp(anim->name, name) == 0) {
       return i;
     }
     anim++;
