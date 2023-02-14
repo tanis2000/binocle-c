@@ -44,6 +44,21 @@ static sg_color binocle_color_red_translucent() {
   return res;
 }
 
+static sg_color binocle_color_blue() {
+  sg_color res = {.r = 0, .g = 0, .b = 1, .a = 1};
+  return res;
+}
+
+static sg_color binocle_color_orange() {
+  sg_color res = {.r = 1, .g = 0.5f, .b = 0, .a = 1};
+  return res;
+}
+
+static sg_color binocle_color_yellow() {
+  sg_color res = {.r = 1, .g = 1, .b = 0, .a = 1};
+  return res;
+}
+
 /**
  * \brief Gets a new color
  * This is the struct used to represent colors all over the engine

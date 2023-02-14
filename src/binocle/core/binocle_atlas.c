@@ -13,7 +13,9 @@
 #include "sokol_gfx.h"
 
 void binocle_atlas_load_texturepacker(char *filename, struct sg_image *texture,
-                                      struct binocle_subtexture *subtextures, int *num_subtextures) {
+                                      struct binocle_subtexture *subtextures, int *num_subtextures,
+                                        bool include_animations,
+                                        binocle_atlas_animation **animations, size_t *num_animations) {
   *num_subtextures = 0;
   binocle_log_info("Loading TexturePacker file: %s", filename);
   SDL_RWops *file = SDL_RWFromFile(filename, "rb");
@@ -46,6 +48,8 @@ void binocle_atlas_load_texturepacker(char *filename, struct sg_image *texture,
   JSON_Array *frames;
   JSON_Object *frame;
   JSON_Object *meta;
+  JSON_Array *frame_tags;
+  JSON_Object *frame_tag;
 
   root_value = json_parse_string(res);
 
@@ -95,11 +99,53 @@ void binocle_atlas_load_texturepacker(char *filename, struct sg_image *texture,
     (*num_subtextures)++;
   }
 
+  if (include_animations != NULL) {
+    frame_tags = json_object_get_array(meta, "frameTags");
+    if (frame_tags != NULL) {
+      *num_animations = json_array_get_count(frame_tags);
+      binocle_atlas_animation *anims = SDL_malloc(sizeof(binocle_atlas_animation) * *num_animations);
+      for (int i = 0; i < json_array_get_count(frame_tags); i++) {
+        frame_tag = json_array_get_object(frame_tags, i);
+
+        int from, to = 0;
+        const char *name;
+        const char *direction;
+
+        name = json_object_get_string(frame_tag, "name");
+        direction = json_object_get_string(frame_tag, "direction");
+        from = (int) json_object_get_number(frame_tag, "from");
+        to = (int) json_object_get_number(frame_tag, "to");
+
+        binocle_atlas_animation *anim = &anims[i];
+        anim->name = SDL_malloc(SDL_strlen(name) + 1);
+        strcpy(anim->name, name);
+        anim->direction = SDL_malloc(SDL_strlen(direction) + 1);
+        strcpy(anim->direction, direction);
+        anim->from = from;
+        anim->to = to;
+      }
+      *animations = anims;
+    }
+  }
+
+
   // Clean up after ourselves
   json_value_free(root_value);
   SDL_free(res);
 
   binocle_log_debug("Atlas loaded.");
+}
+
+void binocle_atlas_animation_destroy(binocle_atlas_animation *animations, size_t num_animations) {
+  for (int i = 0 ; i < num_animations ; i++) {
+    if (animations[i].name != NULL) {
+      SDL_free(animations[i].name);
+    }
+    if (animations[i].direction != NULL) {
+      SDL_free(animations[i].direction);
+    }
+  }
+  SDL_free(animations);
 }
 
 void binocle_atlas_load_libgdx(char *filename, struct sg_image *texture, struct binocle_subtexture *subtextures,
