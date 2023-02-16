@@ -8,6 +8,7 @@
 #define BINOCLE_ATLAS_H
 
 #include <stdbool.h>
+#include "kazmath/kazmath.h"
 
 struct binocle_subtexture;
 struct sg_image;
@@ -27,20 +28,56 @@ typedef struct binocle_atlas_animation {
   int to;
 } binocle_atlas_animation;
 
+typedef struct binocle_atlas_tp_meta {
+  char *app;
+  char *version;
+  char *image;
+  char *format;
+  char *scale;
+  char *smartupdate;
+  kmVec2 size;
+  binocle_atlas_animation *frame_tags;
+  size_t num_frame_tags;
+} binocle_atlas_tp_meta;
+
+typedef struct binocle_atlas_tp_frame {
+  char *filename;
+  kmAABB2 frame;
+  bool rotated;
+  bool trimmed;
+  kmAABB2 sprite_source_size;
+  kmVec2 source_size;
+  kmVec2 pivot;
+} binocle_atlas_tp_frame;
+
+typedef struct binocle_atlas_texturepacker {
+  binocle_atlas_tp_frame *frames;
+  size_t num_frames;
+  binocle_atlas_tp_meta meta;
+} binocle_atlas_texturepacker;
+
 /**
  * Load a TexturePacker JSON atlas
  * @param filename the JSON file path and name
+ * @return an instance of binocle_atlas_texturepacker with the data of the atlas
+ */
+bool binocle_atlas_load_texturepacker(char *filename, binocle_atlas_texturepacker *atlas);
+
+/**
+ * Load a TexturePacker JSON atlas
+ * @param atlas an instance of binocle_atlas_texturepacker with the data of the atlas
  * @param texture the corresponding texture that we already loaded
  * @param subtextures an array of subtextures to store those coming from the JSON
  * @param num_subtextures the number of subtextures that have been loaded by this function
- * @param include_animations if true, animations will be read and set in `animations` and `num_animations`
- * @param animations a pointer to a non-initialized binocle_atlas_animation struct. This function will allocate the memory needed and retain ownership. Call binocle_atlas_animation_destroy to free its usage. If this is set to NULL, animations will be ignored.
- * @param num_animations a pointer to a size_t value that will be filled in by this function with the number of animations.
  */
-void binocle_atlas_load_texturepacker(char *filename, struct sg_image *texture,
-                                      struct binocle_subtexture *subtextures, int *num_subtextures,
-                                      bool include_animations,
-                                      binocle_atlas_animation **animations, size_t *num_animations);
+void binocle_atlas_texturepacker_create_subtextures(binocle_atlas_texturepacker *atlas, struct sg_image *texture,
+                                                    struct binocle_subtexture *subtextures, int *num_subtextures);
+
+/**
+ * Frees the resources of the atlas
+ * @param atlas an instance of binocle_atlas_texturepacker to release
+ */
+void binocle_atlas_destroy_texturepacker(binocle_atlas_texturepacker *atlas);
 
 /**
  * Load a libGDX atlas
