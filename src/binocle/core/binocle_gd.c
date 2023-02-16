@@ -122,11 +122,14 @@ void binocle_gd_destroy(binocle_gd *gd) {
 
 void binocle_gd_init(binocle_gd *gd, binocle_window *win) {
 #if defined(BINOCLE_GL)
-  sg_desc desc = {0};
+  sg_desc desc = {
+    .logger.func = slog_func,
+  };
 #elif defined(BINOCLE_METAL)
   binocle_metal_init(win->mtl_view);
   sg_desc desc = {
     .context = binocle_metal_get_context(),
+    .logger.func = slog_func,
   };
 #endif
   sg_setup(&desc);
