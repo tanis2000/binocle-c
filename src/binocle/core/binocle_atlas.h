@@ -28,6 +28,19 @@ typedef struct binocle_atlas_animation {
   int to;
 } binocle_atlas_animation;
 
+typedef struct binocle_atlas_slice_key {
+  int frame;
+  kmAABB2 bounds;
+  kmVec2 pivot;
+} binocle_atlas_slice_key;
+
+typedef struct binocle_atlas_slice {
+  const char *name;
+  const char *color;
+  binocle_atlas_slice_key *keys;
+  size_t num_keys;
+} binocle_atlas_slice;
+
 typedef struct binocle_atlas_tp_meta {
   char *app;
   char *version;
@@ -38,6 +51,8 @@ typedef struct binocle_atlas_tp_meta {
   kmVec2 size;
   binocle_atlas_animation *frame_tags;
   size_t num_frame_tags;
+  binocle_atlas_slice *slices;
+  size_t num_slices;
 } binocle_atlas_tp_meta;
 
 typedef struct binocle_atlas_tp_frame {

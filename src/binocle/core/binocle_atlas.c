@@ -46,6 +46,8 @@ bool binocle_atlas_load_texturepacker(char *filename, binocle_atlas_texturepacke
   JSON_Object *meta;
   JSON_Array *frame_tags;
   JSON_Object *frame_tag;
+  JSON_Array *slices_array;
+  JSON_Object *slice_object;
 
   root_value = json_parse_string(res);
 
@@ -142,6 +144,68 @@ bool binocle_atlas_load_texturepacker(char *filename, binocle_atlas_texturepacke
       anim->to = to;
     }
     atlas->meta.frame_tags = anims;
+  }
+
+  slices_array = json_object_get_array(meta, "slices");
+  if (slices_array != NULL) {
+    atlas->meta.num_slices = json_array_get_count(slices_array);
+    binocle_atlas_slice *slices = SDL_malloc(sizeof(binocle_atlas_slice) * atlas->meta.num_slices);
+    for (int i = 0; i < json_array_get_count(slices_array); i++) {
+      slice_object = json_array_get_object(slices_array, i);
+
+      const char *name;
+      const char *color;
+
+      name = json_object_get_string(slice_object, "name");
+      color = json_object_get_string(slice_object, "color");
+
+      binocle_atlas_slice *slice = &slices[i];
+      slice->name = SDL_malloc(SDL_strlen(name) + 1);
+      strcpy(slice->name, name);
+      slice->color = SDL_malloc(SDL_strlen(color) + 1);
+      strcpy(slice->color, color);
+
+      JSON_Array *slices_keys_array = json_object_get_array(slice_object, "keys");
+      if (slices_keys_array != NULL) {
+        slice->num_keys = json_array_get_count(slices_keys_array);
+        binocle_atlas_slice_key *slice_keys = SDL_malloc(sizeof(binocle_atlas_slice_key) * slice->num_keys);
+        for (int j = 0; j < json_array_get_count(slices_keys_array); j++) {
+          JSON_Object *slice_key_object = json_array_get_object(slices_keys_array, j);
+
+          int f = 0;
+          int bx, by, bw, bh = 0;
+          int px, py = 0;
+
+          f = json_object_get_number(slice_key_object, "frame");
+          bx = json_object_dotget_number(slice_key_object, "bounds.x");
+          by = json_object_dotget_number(slice_key_object, "bounds.y");
+          bw = json_object_dotget_number(slice_key_object, "bounds.w");
+          bh = json_object_dotget_number(slice_key_object, "bounds.h");
+          px = json_object_dotget_number(slice_key_object, "pivot.x");
+          py = json_object_dotget_number(slice_key_object, "pivot.y");
+
+          binocle_atlas_slice_key *slice_key = &slice_keys[j];
+          slice_key->frame = f;
+          slice_key->bounds = (kmAABB2){
+            .min = {
+              .x = bx,
+              .y = by,
+            },
+            .max = {
+              .x = bw,
+              .y = bh,
+            }
+          };
+          slice_key->pivot = (kmVec2){
+            .x = px,
+            .y = py,
+          };
+        }
+        slices->keys = slice_keys;
+      }
+
+    }
+    atlas->meta.slices = slices;
   }
 
   frames = json_object_get_array(root, "frames");
