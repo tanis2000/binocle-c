@@ -5,6 +5,7 @@
     #define GL_GLEXT_PROTOTYPES
     #include <GLES2/gl2.h>
     #include <GLES2/gl2ext.h>
+    #include <emscripten/emscripten.h>
     #define SOKOL_GLES2
   #elif defined(__IPHONEOS__) || defined(__ANDROID__)
     #define SOKOL_GLES3
