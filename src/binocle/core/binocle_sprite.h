@@ -323,6 +323,14 @@ void binocle_sprite_play_animation(binocle_sprite *sprite, char *name,
                                    bool restart);
 
 /**
+ * \brief Checks if an animation with a given name exists for the specified sprite
+ * @param sprite the sprite
+ * @param animation_name the name of the animation to check
+ * @return true if the animation exists
+ */
+bool binocle_sprite_has_animation(binocle_sprite *sprite, const char *animation_name);
+
+/**
  * \brief Creates a sprite frame from a subtexture
  * The frame will be the same as the subtexture
  * @param subtexture the subtexture
