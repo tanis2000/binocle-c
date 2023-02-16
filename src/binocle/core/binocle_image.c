@@ -96,5 +96,5 @@ sg_image binocle_image_load_from_memory(const unsigned char *image_data, int wid
 }
 
 void binocle_image_destroy(sg_image image) {
-  sg_dealloc_image(image);
+  sg_destroy_image(image);
 }
