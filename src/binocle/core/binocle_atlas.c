@@ -149,7 +149,8 @@ bool binocle_atlas_load_texturepacker(char *filename, binocle_atlas_texturepacke
   binocle_atlas_tp_frame *atlas_frames = SDL_malloc(sizeof(binocle_atlas_tp_frame) * atlas->num_frames);
   for (int i = 0; i < atlas->num_frames; i++) {
     frame = json_array_get_object(frames, i);
-    int x, y, w, h, pivot_x, pivot_y = 0;
+    int x, y, w, h = 0;
+    float pivot_x, pivot_y = 0;
     const char *frameFilename;
     JSON_Object *innerFrame;
 
@@ -159,8 +160,8 @@ bool binocle_atlas_load_texturepacker(char *filename, binocle_atlas_texturepacke
     y = (int) json_object_get_number(innerFrame, "y");
     w = (int) json_object_get_number(innerFrame, "w");
     h = (int) json_object_get_number(innerFrame, "h");
-    pivot_x = (int) json_object_dotget_number(frame, "pivot.x");
-    pivot_y = (int) json_object_dotget_number(frame, "pivot.y");
+    pivot_x = (float) json_object_dotget_number(frame, "pivot.x");
+    pivot_y = (float) json_object_dotget_number(frame, "pivot.y");
 
     binocle_atlas_tp_frame *atlas_frame = &atlas_frames[i];
     atlas_frame->filename = SDL_malloc(SDL_strlen(frameFilename) + 1);
