@@ -12,6 +12,7 @@
 #elif defined(BINOCLE_METAL)
 #define SOKOL_METAL
 #endif
+#include "sokol_log.h"
 #include "sokol_gfx.h"
 
 static id<CAMetalDrawable> cached_drawable_hack;

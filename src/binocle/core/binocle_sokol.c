@@ -14,6 +14,7 @@
 #elif defined(BINOCLE_METAL)
   #define SOKOL_METAL
 #endif
+#include "sokol_log.h"
 #include "sokol_gfx.h"
 
 GLuint binocle_sokol_tex_id(sg_image img_id) {
