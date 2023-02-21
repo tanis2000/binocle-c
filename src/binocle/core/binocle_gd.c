@@ -15,6 +15,7 @@
 #include "binocle_model.h"
 #include "binocle_window.h"
 #include "binocle_sokol.h"
+#include <ksort/ksort.h>
 
 typedef struct binocle_gd_flat_shader_vs_params_t {
   kmMat4 projectionMatrix;
@@ -334,11 +335,12 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
 }
 
 void binocle_gd_draw(binocle_gd *gd, const struct binocle_vpct *vertices, size_t vertex_count, binocle_material material,
-                     kmAABB2 viewport, binocle_camera *camera) {
+                     kmAABB2 viewport, binocle_camera *camera, float depth) {
   binocle_gd_command_t *cmd = &gd->commands[gd->num_commands];
   cmd->num_vertices = vertex_count;
   cmd->base_vertex = gd->num_vertices;
   cmd->img = material.albedo_texture;
+  cmd->depth = depth;
 
   kmMat4 *cameraTransformMatrix = NULL;
   if (camera != NULL) {
@@ -374,10 +376,15 @@ void binocle_gd_draw(binocle_gd *gd, const struct binocle_vpct *vertices, size_t
 //  LEGACY_binocle_backend_draw(vertices, vertex_count, material, viewport, cameraTransformMatrix);
 }
 
+#define binocle_gd_command_lt(a, b) ((a).depth < (b).depth)
+KSORT_INIT(binocle_gd_sort_commands, binocle_gd_command_t, binocle_gd_command_lt)
+
 void binocle_gd_render_offscreen(binocle_gd *gd) {
   sg_update_buffer(gd->offscreen.vbuf, &(sg_range){ .ptr=gd->vertices, .size=gd->num_vertices * sizeof(binocle_vpct) });
 
   sg_begin_pass(gd->offscreen.pass, &gd->offscreen.action);
+
+  ks_mergesort(binocle_gd_sort_commands, gd->num_commands, gd->commands, 0);
 
   for (uint32_t i = 0 ; i < gd->num_commands ; i++) {
     binocle_gd_command_t *cmd = &gd->commands[i];
@@ -755,10 +762,11 @@ void binocle_gd_draw_quad_to_screen(binocle_gd *gd, sg_shader shader, sg_image r
 }
 
 void binocle_gd_draw_flat(binocle_gd *gd, const struct binocle_vpct *vertices, size_t vertex_count,
-                     kmAABB2 viewport, binocle_camera *camera, kmMat4 *view_matrix) {
+                     kmAABB2 viewport, binocle_camera *camera, kmMat4 *view_matrix, float depth) {
   binocle_gd_command_t *cmd = &gd->flat_commands[gd->flat_num_commands];
   cmd->num_vertices = vertex_count;
   cmd->base_vertex = gd->flat_num_vertices;
+  cmd->depth = depth;
 
   kmMat4 *cameraTransformMatrix = NULL;
   if (camera != NULL) {
@@ -796,7 +804,7 @@ void binocle_gd_draw_flat(binocle_gd *gd, const struct binocle_vpct *vertices, s
   }
 }
 
-void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect, sg_color col, kmAABB2 viewport, binocle_camera *camera, kmMat4 *view_matrix) {
+void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect, sg_color col, kmAABB2 viewport, binocle_camera *camera, kmMat4 *view_matrix, float depth) {
   static binocle_vpct g_quad_vertex_buffer_data[6] = {0};
   g_quad_vertex_buffer_data[0] = (binocle_vpct){
     .pos = {.x = rect.min.x, .y = rect.min.y},
@@ -823,7 +831,7 @@ void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect, sg_color col, kmAABB2 vi
     .color = {.r = col.r, .g = col.g, .b = col.b, .a = col.a}
   };
 
-  binocle_gd_draw_flat(gd, g_quad_vertex_buffer_data, 6, viewport, camera, view_matrix);
+  binocle_gd_draw_flat(gd, g_quad_vertex_buffer_data, 6, viewport, camera, view_matrix, depth);
 }
 
 void binocle_gd_render_flat(binocle_gd *gd) {
@@ -850,7 +858,7 @@ void binocle_gd_render_flat(binocle_gd *gd) {
   gd->flat_num_vertices = 0;
 }
 
-void binocle_gd_draw_rect_outline(binocle_gd *gd, kmAABB2 rect, sg_color col, kmAABB2 viewport, binocle_camera *camera) {
+void binocle_gd_draw_rect_outline(binocle_gd *gd, kmAABB2 rect, sg_color col, kmAABB2 viewport, binocle_camera *camera, float depth) {
   kmAABB2 rect_bottom;
   kmAABB2 rect_top;
   kmAABB2 rect_left;
@@ -876,13 +884,13 @@ void binocle_gd_draw_rect_outline(binocle_gd *gd, kmAABB2 rect, sg_color col, km
   rect_right.max.x = rect.max.x;
   rect_right.max.y = rect.max.y;
 
-  binocle_gd_draw_rect(gd, rect_bottom, col, viewport, camera, NULL);
-  binocle_gd_draw_rect(gd, rect_top, col, viewport, camera, NULL);
-  binocle_gd_draw_rect(gd, rect_left, col, viewport, camera, NULL);
-  binocle_gd_draw_rect(gd, rect_right, col, viewport, camera, NULL);
+  binocle_gd_draw_rect(gd, rect_bottom, col, viewport, camera, NULL, depth);
+  binocle_gd_draw_rect(gd, rect_top, col, viewport, camera, NULL, depth);
+  binocle_gd_draw_rect(gd, rect_left, col, viewport, camera, NULL, depth);
+  binocle_gd_draw_rect(gd, rect_right, col, viewport, camera, NULL, depth);
 }
 
-void binocle_gd_draw_line(binocle_gd *gd, kmVec2 start, kmVec2 end, sg_color col, kmAABB2 viewport, binocle_camera *camera) {
+void binocle_gd_draw_line(binocle_gd *gd, kmVec2 start, kmVec2 end, sg_color col, kmAABB2 viewport, binocle_camera *camera, float depth) {
 
   float angle = atan2f(end.y - start.y, end.x - start.x);
   float length = kmVec2DistanceBetween(&start, &end);
@@ -908,10 +916,10 @@ void binocle_gd_draw_line(binocle_gd *gd, kmVec2 start, kmVec2 end, sg_color col
   kmMat4Multiply(&viewMatrix, &viewMatrix, &rot);
   kmMat4Multiply(&viewMatrix, &viewMatrix, &scale);
 
-  binocle_gd_draw_rect(gd, rect, col, viewport, camera, &viewMatrix);
+  binocle_gd_draw_rect(gd, rect, col, viewport, camera, &viewMatrix, depth);
 }
 
-void binocle_gd_draw_circle(binocle_gd *gd, kmVec2 center, float radius, sg_color col, kmAABB2 viewport, binocle_camera *camera) {
+void binocle_gd_draw_circle(binocle_gd *gd, kmVec2 center, float radius, sg_color col, kmAABB2 viewport, binocle_camera *camera, float depth) {
   static binocle_vpct vertex_buffer_data[3 * 32] = {0};
 
   int circle_segments = 32;
@@ -952,7 +960,7 @@ void binocle_gd_draw_circle(binocle_gd *gd, kmVec2 center, float radius, sg_colo
 
     theta += increment;
   }
-  binocle_gd_draw_flat(gd, vertex_buffer_data, circle_segments * 3, viewport, camera, NULL);
+  binocle_gd_draw_flat(gd, vertex_buffer_data, circle_segments * 3, viewport, camera, NULL, depth);
 }
 
 void binocle_gd_draw_with_state(binocle_gd *gd, const binocle_vpct *vertices, size_t vertex_count, binocle_render_state *render_state) {

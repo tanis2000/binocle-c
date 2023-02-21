@@ -35,10 +35,11 @@ int l_binocle_sprite_draw(lua_State *L) {
   float scale_x = luaL_checknumber(L, 7);
   float scale_y = luaL_checknumber(L, 8);
   l_binocle_camera_t *camera = luaL_checkudata(L, 9, "binocle_camera");
+  float depth = luaL_checknumber(L, 10);
   kmVec2 scale;
   scale.x = scale_x;
   scale.y = scale_y;
-  binocle_sprite_draw(sprite->sprite, gd->gd, player_x, player_y, *viewport, rotation, &scale, camera->camera);
+  binocle_sprite_draw(sprite->sprite, gd->gd, player_x, player_y, *viewport, rotation, &scale, camera->camera, depth, NULL);
   return 1;
 }
 

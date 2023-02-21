@@ -82,7 +82,7 @@ binocle_ttfont *binocle_ttfont_from_file(const char *filename, float size, int t
 }
 
 void binocle_ttfont_draw_string(binocle_ttfont *font, const char *str, struct binocle_gd *gd,
-                                    float x, float y, kmAABB2 viewport, sg_color color, struct binocle_camera *camera) {
+                                    float x, float y, kmAABB2 viewport, sg_color color, struct binocle_camera *camera, float depth) {
   memset(font->vertexes, BINOCLE_MAX_TTF_VERTICES, sizeof(binocle_vpct));
   int index = 0;
   while (*str) {
@@ -145,7 +145,7 @@ void binocle_ttfont_draw_string(binocle_ttfont *font, const char *str, struct bi
     ++str;
   }
   font->vertexes_count = index;
-  binocle_gd_draw(gd, font->vertexes, font->vertexes_count, *font->material, viewport, camera);
+  binocle_gd_draw(gd, font->vertexes, font->vertexes_count, *font->material, viewport, camera, depth);
 }
 
 float binocle_ttfont_get_string_width(binocle_ttfont *font, const char *str) {

@@ -58,6 +58,7 @@ typedef struct binocle_gd_command_t {
   uint32_t base_vertex;
   uint32_t num_vertices;
   binocle_gd_uniform_t uniforms;
+  float depth;
 } binocle_gd_command_t;
 
 /**
@@ -122,7 +123,7 @@ kmMat4 binocle_gd_create_model_view_matrix(float x, float y, float scale,
  */
 void binocle_gd_draw(binocle_gd *gd, const struct binocle_vpct *vertices,
                      size_t vertex_count, struct binocle_material material,
-                     kmAABB2 viewport, struct binocle_camera *camera);
+                     kmAABB2 viewport, struct binocle_camera *camera, float depth);
 
 /**
  * \brief Applies the default OpenGL states for basic 2D drawing
@@ -277,7 +278,7 @@ void binocle_gd_set_uniform_mat4(sg_shader shader, const char *name,
 void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect,
                           struct sg_color col, kmAABB2 viewport,
                           struct binocle_camera *camera,
-                            kmMat4 *view_matrix);
+                            kmMat4 *view_matrix, float depth);
 
 /**
  * \brief Draws the outline of a rectangle to the current buffer
@@ -288,7 +289,7 @@ void binocle_gd_draw_rect(binocle_gd *gd, kmAABB2 rect,
  * @param camera the camera
  */
 void binocle_gd_draw_rect_outline(binocle_gd *gd, kmAABB2 rect, struct sg_color col, kmAABB2 viewport,
-                                  struct binocle_camera *camera);
+                                  struct binocle_camera *camera, float depth);
 
 /**
  * \brief Draws a line to the current buffer
@@ -300,7 +301,7 @@ void binocle_gd_draw_rect_outline(binocle_gd *gd, kmAABB2 rect, struct sg_color 
  * @param camera the camera
  */
 void binocle_gd_draw_line(binocle_gd *gd, kmVec2 start, kmVec2 end, struct sg_color col, kmAABB2 viewport,
-                          struct binocle_camera *camera);
+                          struct binocle_camera *camera, float depth);
 
 /**
  * \brief Draws a circle to the current buffer
@@ -311,7 +312,7 @@ void binocle_gd_draw_line(binocle_gd *gd, kmVec2 start, kmVec2 end, struct sg_co
  * @param viewport the viewport
  * @param camera the camera
  */
-void binocle_gd_draw_circle(binocle_gd *gd, kmVec2 center, float radius, struct sg_color col, kmAABB2 viewport, struct binocle_camera *camera);
+void binocle_gd_draw_circle(binocle_gd *gd, kmVec2 center, float radius, struct sg_color col, kmAABB2 viewport, struct binocle_camera *camera, float depth);
 
 /**
  * \brief Draws the graphic device's vertex buffer using the given render state

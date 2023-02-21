@@ -34,9 +34,10 @@ int l_binocle_ttfont_draw_string(lua_State *L) {
   kmAABB2 **viewport = lua_touserdata(L, 6);
   sg_color *color = luaL_checkudata(L, 7, "binocle_color");
   l_binocle_camera_t *camera = luaL_checkudata(L, 8, "binocle_camera");
+  float depth = luaL_checknumber(L, 9);
   kmMat4 identity;
   kmMat4Identity(&identity);
-  binocle_ttfont_draw_string(ttfont->ttfont, s, gd->gd, x, y, **viewport, *color, camera->camera);
+  binocle_ttfont_draw_string(ttfont->ttfont, s, gd->gd, x, y, **viewport, *color, camera->camera, depth);
   return 0;
 }
 

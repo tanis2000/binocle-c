@@ -102,12 +102,13 @@ int l_binocle_gd_draw_rect(lua_State *L) {
   sg_color *color = luaL_checkudata(L, 6, "binocle_color");
   kmAABB2 **viewport = lua_touserdata(L, 7);
   l_binocle_camera_t *camera = luaL_checkudata(L, 8, "binocle_camera");
+  float depth = lua_tonumber(L, 9);
   kmAABB2 rect;
   kmVec2 center;
   center.x = center_x;
   center.y = center_y;
   kmAABB2Initialize(&rect, &center, width, height, 0);
-  binocle_gd_draw_rect(gd->gd, rect, *color, **viewport, camera->camera, NULL);
+  binocle_gd_draw_rect(gd->gd, rect, *color, **viewport, camera->camera, NULL, depth);
   return 0;
 }
 

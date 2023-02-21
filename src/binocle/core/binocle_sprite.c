@@ -65,9 +65,13 @@ void binocle_sprite_destroy(struct binocle_sprite *sprite) {
 }
 
 void binocle_sprite_draw(binocle_sprite *sprite, binocle_gd *gd, int64_t x, int64_t y, kmAABB2 *viewport, float rotation,
-                         kmVec2 *scale, binocle_camera *camera) {
+                         kmVec2 *scale, binocle_camera *camera, float depth, sg_color *color) {
   binocle_vpct vertices[BINOCLE_SPRITE_VERTEX_COUNT];
   binocle_subtexture *s;
+  if (color == NULL) {
+    sg_color col = binocle_color_white();
+    color = &col;
+  }
   float w, h;
   if (sprite->frames_number > 0) {
     s = sprite->frames[sprite->current_frame].subtexture;
@@ -88,7 +92,7 @@ void binocle_sprite_draw(binocle_sprite *sprite, binocle_gd *gd, int64_t x, int6
       -sprite->origin.x * scale->x * cosf(rotation) - (-sprite->origin.y * scale->y + h * scale->y) * sinf(rotation) + x;
   vertices[0].pos.y =
       (-sprite->origin.y * scale->y + h * scale->y) * cosf(rotation) - sprite->origin.x * scale->x * sinf(rotation) + y;
-  vertices[0].color = binocle_color_white();
+  vertices[0].color = *color;
   vertices[0].tex.x = s->rect.min.x / info.width;
   vertices[0].tex.y = (s->rect.min.y + s->rect.max.y) / info.height;
   // TR
@@ -96,13 +100,13 @@ void binocle_sprite_draw(binocle_sprite *sprite, binocle_gd *gd, int64_t x, int6
                       (-sprite->origin.y * scale->y + h * scale->y) * sinf(rotation) + x;
   vertices[1].pos.y = (-sprite->origin.y * scale->y + h * scale->y) * cosf(rotation) +
                       (-sprite->origin.x * scale->x + w * scale->x) * sinf(rotation) + y;
-  vertices[1].color = binocle_color_white();
+  vertices[1].color = *color;
   vertices[1].tex.x = (s->rect.min.x + s->rect.max.x) / info.width;
   vertices[1].tex.y = (s->rect.min.y + s->rect.max.y) / info.height;
   // BL
   vertices[2].pos.x = -sprite->origin.x * scale->x * cosf(rotation) + sprite->origin.y * scale->y * sinf(rotation) + x;
   vertices[2].pos.y = -sprite->origin.y * scale->y * cosf(rotation) - sprite->origin.x * scale->x * sinf(rotation) + y;
-  vertices[2].color = binocle_color_white();
+  vertices[2].color = *color;
   vertices[2].tex.x = s->rect.min.x / info.width;
   vertices[2].tex.y = s->rect.min.y / info.height;
   // TR
@@ -110,7 +114,7 @@ void binocle_sprite_draw(binocle_sprite *sprite, binocle_gd *gd, int64_t x, int6
                       (-sprite->origin.y * scale->y + h * scale->y) * sinf(rotation) + x;
   vertices[3].pos.y = (-sprite->origin.y * scale->y + h * scale->y) * cosf(rotation) +
                       (-sprite->origin.x * scale->x + w * scale->x) * sinf(rotation) + y;
-  vertices[3].color = binocle_color_white();
+  vertices[3].color = *color;
   vertices[3].tex.x = (s->rect.min.x + s->rect.max.x) / info.width;
   vertices[3].tex.y = (s->rect.min.y + s->rect.max.y) / info.height;
   // BR
@@ -118,17 +122,17 @@ void binocle_sprite_draw(binocle_sprite *sprite, binocle_gd *gd, int64_t x, int6
       (-sprite->origin.x * scale->x + w * scale->x) * cosf(rotation) + sprite->origin.y * scale->y * sinf(rotation) + x;
   vertices[4].pos.y =
       -sprite->origin.y * scale->y * cosf(rotation) + (-sprite->origin.x * scale->x + w * scale->x) * sinf(rotation) + y;
-  vertices[4].color = binocle_color_white();
+  vertices[4].color = *color;
   vertices[4].tex.x = (s->rect.min.x + s->rect.max.x) / info.width;
   vertices[4].tex.y = s->rect.min.y / info.height;
   // BL
   vertices[5].pos.x = -sprite->origin.x * scale->x * cosf(rotation) + sprite->origin.y * scale->y * sinf(rotation) + x;
   vertices[5].pos.y = -sprite->origin.y * scale->y * cosf(rotation) - sprite->origin.x * scale->x * sinf(rotation) + y;
-  vertices[5].color = binocle_color_white();
+  vertices[5].color = *color;
   vertices[5].tex.x = s->rect.min.x / info.width;
   vertices[5].tex.y = s->rect.min.y / info.height;
 
-  binocle_gd_draw(gd, vertices, BINOCLE_SPRITE_VERTEX_COUNT, *sprite->material, *viewport, camera);
+  binocle_gd_draw(gd, vertices, BINOCLE_SPRITE_VERTEX_COUNT, *sprite->material, *viewport, camera, depth);
 }
 
 void binocle_sprite_draw_with_sprite_batch(binocle_sprite_batch *sprite_batch, binocle_sprite *sprite, binocle_gd *gd, int64_t x, int64_t y, kmAABB2 *viewport, float rotation,
