@@ -390,6 +390,20 @@ bool binocle_input_is_key_pressed(binocle_input *input, binocle_input_keyboard_k
 bool binocle_input_shift(binocle_input input);
 
 /**
+ * \brief Checks if the LEFT SHIFT key is currently pressed, no matter the previous state
+ * @param input the input manager
+ * @return true if the LEFT SHIFT keys is pressed at the current frame
+ */
+bool binocle_input_left_shift(binocle_input input);
+
+/**
+ * \brief Checks if the RIGHT SHIFT key is currently pressed, no matter the previous state
+ * @param input the input manager
+ * @return true if the RIGHT SHIFT keys is pressed at the current frame
+ */
+bool binocle_input_right_shift(binocle_input input);
+
+/**
  * \brief Checks if one of the CTRL keys is currently pressed, no matter the previous state
  * @param input the input manager
  * @return true if one of the CTRL keys is pressed at the current frame
@@ -397,11 +411,39 @@ bool binocle_input_shift(binocle_input input);
 bool binocle_input_ctrl(binocle_input input);
 
 /**
+ * \brief Checks if the LEFT CTRL key is currently pressed, no matter the previous state
+ * @param input the input manager
+ * @return true if the LEFT CTRL keys is pressed at the current frame
+ */
+bool binocle_input_left_ctrl(binocle_input input);
+
+/**
+ * \brief Checks if the RIGHT CTRL key is currently pressed, no matter the previous state
+ * @param input the input manager
+ * @return true if the RIGHT CTRL keys is pressed at the current frame
+ */
+bool binocle_input_right_ctrl(binocle_input input);
+
+/**
  * \brief Checks if one of the ALT keys is currently pressed, no matter the previous state
  * @param input the input manager
  * @return true if one of the ALT keys is pressed at the current frame
  */
 bool binocle_input_alt(binocle_input input);
+
+/**
+ * \brief Checks if the LEFT ALT key is currently pressed, no matter the previous state
+ * @param input the input manager
+ * @return true if the LEFT ALT keys is pressed at the current frame
+ */
+bool binocle_input_left_alt(binocle_input input);
+
+/**
+ * \brief Checks if the RIGHT ALT key is currently pressed, no matter the previous state
+ * @param input the input manager
+ * @return true if the RIGHT ALT keys is pressed at the current frame
+ */
+bool binocle_input_right_alt(binocle_input input);
 
 /**
  * \brief Checks if a mouse button has just been pressed

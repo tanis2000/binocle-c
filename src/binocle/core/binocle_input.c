@@ -177,14 +177,38 @@ bool binocle_input_shift(binocle_input input) {
           binocle_input_is_key_pressed(&input, KEY_RIGHT_SHIFT));
 }
 
+bool binocle_input_left_shift(binocle_input input) {
+  return binocle_input_is_key_pressed(&input, KEY_LEFT_SHIFT);
+}
+
+bool binocle_input_right_shift(binocle_input input) {
+  return binocle_input_is_key_pressed(&input, KEY_RIGHT_SHIFT);
+}
+
 bool binocle_input_ctrl(binocle_input input) {
   return (binocle_input_is_key_pressed(&input, KEY_LEFT_CTRL) ||
           binocle_input_is_key_pressed(&input, KEY_RIGHT_CTRL));
 }
 
+bool binocle_input_left_ctrl(binocle_input input) {
+  return binocle_input_is_key_pressed(&input, KEY_LEFT_CTRL);
+}
+
+bool binocle_input_right_ctrl(binocle_input input) {
+  return binocle_input_is_key_pressed(&input, KEY_RIGHT_CTRL);
+}
+
 bool binocle_input_alt(binocle_input input) {
   return (binocle_input_is_key_pressed(&input, KEY_LEFT_ALT) ||
           binocle_input_is_key_pressed(&input, KEY_RIGHT_ALT));
+}
+
+bool binocle_input_left_alt(binocle_input input) {
+  return binocle_input_is_key_pressed(&input, KEY_LEFT_ALT);
+}
+
+bool binocle_input_right_alt(binocle_input input) {
+  return binocle_input_is_key_pressed(&input, KEY_RIGHT_ALT);
 }
 
 bool binocle_input_is_mouse_down(binocle_input input, binocle_input_mouse_button button) {
