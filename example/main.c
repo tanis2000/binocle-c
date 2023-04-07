@@ -207,22 +207,22 @@ void main_loop() {
   kmVec2 scale;
   scale.x = 1.0f;
   scale.y = 1.0f;
-  binocle_sprite_draw(player, &gd, (int64_t)player_pos.x, (int64_t)player_pos.y, &viewport, 0, &scale, &camera);
+  binocle_sprite_draw(player, &gd, (int64_t)player_pos.x, (int64_t)player_pos.y, &viewport, 0, &scale, &camera, 0, NULL);
 
   kmMat4 view_matrix;
   kmMat4Identity(&view_matrix);
 
 #ifdef WITH_PHYSICS
-  binocle_sprite_draw(ps.ball_sprite, &gd, (int64_t)pos.x - 8, (int64_t)pos.y - 8, &viewport, 0, &scale, &camera);
+  binocle_sprite_draw(ps.ball_sprite, &gd, (int64_t)pos.x - 8, (int64_t)pos.y - 8, &viewport, 0, &scale, &camera, 0, NULL);
   char mouse_str[256];
   sprintf(mouse_str, "x: %.0f y:%.0f %d", mouse_world_pos.x, mouse_world_pos.y,
           ps.dragging_ball);
-  binocle_bitmapfont_draw_string(font, mouse_str, 32, &gd, 0, DESIGN_HEIGHT - 70, viewport, binocle_color_white(), view_matrix);
+  binocle_bitmapfont_draw_string(font, mouse_str, 32, &gd, 0, DESIGN_HEIGHT - 70, viewport, binocle_color_white(), view_matrix, 0);
 #endif
 
   char fps_str[256];
   sprintf(fps_str, "FPS: %llu", binocle_window_get_fps(window));
-  binocle_bitmapfont_draw_string(font, fps_str, 32, &gd, 0, DESIGN_HEIGHT - 32, viewport, binocle_color_white(), view_matrix);
+  binocle_bitmapfont_draw_string(font, fps_str, 32, &gd, 0, DESIGN_HEIGHT - 32, viewport, binocle_color_white(), view_matrix, 0);
   //binocle_sprite_draw(font_sprite, &gd, (uint64_t)font_sprite_pos.x, (uint64_t)font_sprite_pos.y, adapter.viewport);
 
   // Gets the viewport calculated by the adapter
