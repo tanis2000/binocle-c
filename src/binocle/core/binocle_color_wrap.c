@@ -31,5 +31,6 @@ int luaopen_color(lua_State *L) {
   luaL_newlib(L, window);
   lua_setglobal(L, "color");
   luaL_newmetatable(L, "binocle_color");
+  lua_pop(L, 1);
   return 1;
 }

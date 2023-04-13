@@ -19,5 +19,6 @@ static const struct luaL_Reg app [] = {
 int luaopen_app(lua_State *L) {
   luaL_newlib(L, app);
   lua_setglobal(L, "app");
+//  lua_pop(L, 1);
   return 1;
 }

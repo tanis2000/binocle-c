@@ -160,5 +160,6 @@ int luaopen_gd(lua_State *L) {
   lua_setglobal(L, "gd");
   luaL_newmetatable(L, "binocle_gd");
   luaL_newmetatable(L, "binocle_render_target");
+  lua_pop(L, 2);
   return 1;
 }

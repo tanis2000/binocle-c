@@ -60,5 +60,6 @@ int luaopen_material(lua_State *L) {
   luaL_newlib(L, image);
   lua_setglobal(L, "material");
   luaL_newmetatable(L, "binocle_material");
+  lua_pop(L, 1);
   return 1;
 }

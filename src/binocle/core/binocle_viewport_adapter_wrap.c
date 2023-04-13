@@ -109,5 +109,6 @@ int luaopen_viewport_adapter(lua_State *L) {
   luaL_newlib(L, viewport_adapter);
   lua_setglobal(L, "viewport_adapter");
   luaL_newmetatable(L, "binocle_viewport_adapter");
+  lua_pop(L, 1);
   return 1;
 }

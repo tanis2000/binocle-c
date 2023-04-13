@@ -55,5 +55,6 @@ int luaopen_bitmapfont(lua_State *L) {
   luaL_newlib(L, bitmapfont);
   lua_setglobal(L, "bitmapfont");
   luaL_newmetatable(L, "binocle_bitmapfont");
+  lua_pop(L, 1);
   return 1;
 }

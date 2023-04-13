@@ -37,5 +37,6 @@ static const struct luaL_Reg sdl [] = {
 int luaopen_sdl(lua_State *L) {
   luaL_newlib(L, sdl);
   lua_setglobal(L, "sdl");
+//  lua_pop(L, 1);
   return 1;
 }

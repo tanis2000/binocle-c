@@ -31,5 +31,6 @@ static const struct luaL_Reg fs [] = {
 int luaopen_fs(lua_State *L) {
   luaL_newlib(L, fs);
   lua_setglobal(L, "fs");
+//  lua_pop(L, 1);
   return 1;
 }

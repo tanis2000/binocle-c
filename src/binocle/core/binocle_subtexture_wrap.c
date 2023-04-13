@@ -36,5 +36,6 @@ int luaopen_subtexture(lua_State *L) {
   luaL_newlib(L, subtexture);
   lua_setglobal(L, "subtexture");
   luaL_newmetatable(L, "binocle_subtexture");
+  lua_pop(L, 1);
   return 1;
 }

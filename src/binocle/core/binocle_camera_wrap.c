@@ -63,5 +63,6 @@ int luaopen_camera(lua_State *L) {
   luaL_newlib(L, camera);
   lua_setglobal(L, "camera");
   luaL_newmetatable(L, "binocle_camera");
+  lua_pop(L, 1);
   return 1;
 }

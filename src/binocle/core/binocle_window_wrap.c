@@ -47,5 +47,6 @@ int luaopen_window(lua_State *L) {
   luaL_newlib(L, window);
   lua_setglobal(L, "window");
   luaL_newmetatable(L, "binocle_window");
+  lua_pop(L, 1);
   return 1;
 }

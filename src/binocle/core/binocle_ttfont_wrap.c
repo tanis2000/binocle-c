@@ -67,5 +67,6 @@ int luaopen_ttfont(lua_State *L) {
   luaL_newlib(L, ttfont);
   lua_setglobal(L, "ttfont");
   luaL_newmetatable(L, "binocle_ttfont");
+  lua_pop(L, 1);
   return 1;
 }

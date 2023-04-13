@@ -36,5 +36,6 @@ int luaopen_image(lua_State *L) {
   luaL_newlib(L, image);
   lua_setglobal(L, "image");
   luaL_newmetatable(L, "binocle_image");
+  lua_pop(L, 1);
   return 1;
 }

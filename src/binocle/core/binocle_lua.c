@@ -45,30 +45,51 @@ bool binocle_lua_init(binocle_lua *lua) {
   // Load the Lua libraries
   luaL_openlibs(lua->L);
 
+  binocle_log_info("Lua stack after openlibs: %d", lua_gettop(lua->L));
   // Kazmath
   luaopen_lkazmath(lua->L);
   lua_setglobal(lua->L, "lkazmath");
-
+  binocle_log_info("Lua stack after kazmath: %d", lua_gettop(lua->L));
+  lua_pop(lua->L, 11);
 
   luaopen_sdl(lua->L);
+  binocle_log_info("Lua stack after sdl: %d", lua_gettop(lua->L));
   luaopen_image(lua->L);
+  binocle_log_info("Lua stack after image: %d", lua_gettop(lua->L));
   luaopen_texture(lua->L);
+  binocle_log_info("Lua stack after texture: %d", lua_gettop(lua->L));
   luaopen_material(lua->L);
+  binocle_log_info("Lua stack after material: %d", lua_gettop(lua->L));
   luaopen_sprite(lua->L);
+  binocle_log_info("Lua stack after sprite: %d", lua_gettop(lua->L));
   luaopen_sprite_batch(lua->L);
+  binocle_log_info("Lua stack after sprite batch: %d", lua_gettop(lua->L));
   luaopen_input(lua->L);
+  binocle_log_info("Lua stack after input: %d", lua_gettop(lua->L));
   luaopen_log(lua->L);
+  binocle_log_info("Lua stack after log: %d", lua_gettop(lua->L));
   luaopen_gd(lua->L);
+  binocle_log_info("Lua stack after gd: %d", lua_gettop(lua->L));
   luaopen_window(lua->L);
+  binocle_log_info("Lua stack after window: %d", lua_gettop(lua->L));
   luaopen_color(lua->L);
+  binocle_log_info("Lua stack after color: %d", lua_gettop(lua->L));
   luaopen_viewport_adapter(lua->L);
+  binocle_log_info("Lua stack after viewport adapter: %d", lua_gettop(lua->L));
   luaopen_subtexture(lua->L);
+  binocle_log_info("Lua stack after subtexture: %d", lua_gettop(lua->L));
   luaopen_camera(lua->L);
+  binocle_log_info("Lua stack after camera: %d", lua_gettop(lua->L));
   luaopen_bitmapfont(lua->L);
+  binocle_log_info("Lua stack after bitmapfont: %d", lua_gettop(lua->L));
   luaopen_ttfont(lua->L);
+  binocle_log_info("Lua stack after ttfont: %d", lua_gettop(lua->L));
   luaopen_audio(lua->L);
+  binocle_log_info("Lua stack after audio: %d", lua_gettop(lua->L));
   luaopen_fs(lua->L);
+  binocle_log_info("Lua stack after fs: %d", lua_gettop(lua->L));
   luaopen_app(lua->L);
+  binocle_log_info("Lua stack after app: %d", lua_gettop(lua->L));
 
   lua_register(lua->L, "fs_loader", binocle_lua_fs_loader);
   const char* str = "table.insert(package.loaders, 2, fs_loader) \n";

@@ -35,5 +35,6 @@ int luaopen_texture(lua_State *L) {
   luaL_newlib(L, texture);
   lua_setglobal(L, "texture");
   luaL_newmetatable(L, "binocle_texture");
+  lua_pop(L, 1);
   return 1;
 }

@@ -103,5 +103,6 @@ int luaopen_audio(lua_State *L) {
   luaL_newmetatable(L, "binocle_audio");
   luaL_newmetatable(L, "binocle_audio_music");
   luaL_newmetatable(L, "binocle_audio_sound");
+  lua_pop(L, 3);
   return 1;
 }

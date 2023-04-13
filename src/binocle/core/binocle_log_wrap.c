@@ -44,5 +44,6 @@ int luaopen_log(lua_State *L) {
   luaL_newlib(L, log_registry);
   lua_setglobal(L, "log");
   luaL_newmetatable(L, "binocle_log");
+  lua_pop(L, 1);
   return 1;
 }

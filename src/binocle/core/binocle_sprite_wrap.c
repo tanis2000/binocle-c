@@ -105,6 +105,7 @@ int luaopen_sprite(lua_State *L) {
   luaL_newlib(L, sprite);
   lua_setglobal(L, "sprite");
   luaL_newmetatable(L, "binocle_sprite");
+  lua_pop(L, 1);
   return 1;
 }
 
@@ -169,5 +170,6 @@ int luaopen_sprite_batch(lua_State *L) {
   luaL_newlib(L, sprite_batch);
   lua_setglobal(L, "sprite_batch");
   luaL_newmetatable(L, "binocle_sprite_batch");
+  lua_pop(L, 1);
   return 1;
 }

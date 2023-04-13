@@ -611,5 +611,6 @@ int luaopen_input(lua_State *L) {
   }
   lua_setglobal(L, "mouse");
 
+  lua_pop(L, 1);
   return 1;
 }
