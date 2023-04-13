@@ -33,7 +33,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup Release Version
         run: |
@@ -87,7 +87,7 @@ jobs:
           7z a ./${{ env.RELEASE_NAME }}.zip ./${{ env.RELEASE_NAME }}
 
       - name: Upload artefacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ env.RELEASE_NAME }}.zip
           path: ./build/${{ env.RELEASE_NAME }}.zip
