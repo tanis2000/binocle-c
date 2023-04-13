@@ -50,6 +50,10 @@ The API is evolving all the time but the core is pretty stable. I keep adding an
 The full documentation is available on [Read the Docs](http://binocle-c.readthedocs.io/)
 Please notice that the documentation is still a work in progress.
 
+## Getting in touch
+
+There is no official place to support Binocle. You can either open an issue or just jump in Discord on the C/Dev server using this link: https://discord.gg/4rWrJvD 
+
 ## Installing
 
 The easiest way to work with Binocle is to use the CLI project manager called `bone`.
