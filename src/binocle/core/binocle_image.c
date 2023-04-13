@@ -6,6 +6,7 @@
 
 #include <inttypes.h>
 #include "binocle_image.h"
+#include "binocle_sdl.h" // needed to define Uint16 and Uint8 when using emscripten's port of stb_image
 
 #if !defined(__EMSCRIPTEN__)
 #define STB_IMAGE_IMPLEMENTATION

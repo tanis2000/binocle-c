@@ -44,18 +44,15 @@ binocle_audio binocle_audio_new() {
   return res;
 }
 
-static void binocle_audio_log_callback(ma_context *context, ma_device *device, ma_uint32 logLevel, const char *message)
+static void binocle_audio_log_callback(void *user_data, ma_uint32 log_level, const char *message)
 {
-  (void)context;
-  (void)device;
-
   binocle_log_warning("miniaudio: %s", message);   // All log messages from miniaudio are errors
 }
 
 bool binocle_audio_init(binocle_audio *audio) {
   binocle_log_info("Initializing audio module");
   ma_context_config context_config = ma_context_config_init();
-  context_config.logCallback = binocle_audio_log_callback;
+  ma_log_callback_init(binocle_audio_log_callback, NULL);
   ma_result result = ma_context_init(NULL, 0, &context_config, &audio->context);
   if (result != MA_SUCCESS) {
     binocle_log_error("binocle_audio_init(): Failed to initialize audio context");
@@ -130,7 +127,7 @@ void binocle_audio_destroy(binocle_audio *audio) {
     //UnloadAudioBuffer(AUDIO.MultiChannel.pool[i]);
     if (audio->multi_channel.pool[i] != NULL)
     {
-      ma_data_converter_uninit(&audio->multi_channel.pool[i]->converter);
+      ma_data_converter_uninit(&audio->multi_channel.pool[i]->converter, NULL);
       binocle_audio_untrack_audio_buffer(audio, audio->multi_channel.pool[i]);
       free(audio->multi_channel.pool[i]);
     }
@@ -156,9 +153,9 @@ binocle_audio_buffer *binocle_audio_load_audio_buffer(binocle_audio *audio, ma_f
 
   // Audio data runs through a format converter
   ma_data_converter_config converterConfig = ma_data_converter_config_init(format, BINOCLE_AUDIO_DEVICE_FORMAT, channels, BINOCLE_AUDIO_DEVICE_CHANNELS, sampleRate, audio->device.sampleRate);
-  converterConfig.resampling.allowDynamicSampleRate = true;        // Pitch shifting
+  converterConfig.allowDynamicSampleRate = true;        // Pitch shifting
 
-  ma_result result = ma_data_converter_init(&converterConfig, &audioBuffer->converter);
+  ma_result result = ma_data_converter_init(&converterConfig, NULL, &audioBuffer->converter);
 
   if (result != MA_SUCCESS)
   {
@@ -194,7 +191,7 @@ void binocle_audio_unload_audio_buffer(binocle_audio *audio, binocle_audio_buffe
 {
   if (buffer != NULL)
   {
-    ma_data_converter_uninit(&buffer->converter);
+    ma_data_converter_uninit(&buffer->converter, NULL);
     binocle_audio_untrack_audio_buffer(audio, buffer);
     free(buffer->data);
     free(buffer);
@@ -213,7 +210,7 @@ static ma_uint32 binocle_audio_read_audio_buffer_frames_in_internal_format(binoc
   isSubBufferProcessed[0] = audio_buffer->is_sub_buffer_processed[0];
   isSubBufferProcessed[1] = audio_buffer->is_sub_buffer_processed[1];
 
-  ma_uint32 frameSizeInBytes = ma_get_bytes_per_frame(audio_buffer->converter.config.formatIn, audio_buffer->converter.config.channelsIn);
+  ma_uint32 frameSizeInBytes = ma_get_bytes_per_frame(audio_buffer->converter.formatIn, audio_buffer->converter.channelsIn);
 
   // Fill out every frame until we find a buffer that's marked as processed. Then fill the remainder with 0
   ma_uint32 framesRead = 0;
@@ -293,20 +290,21 @@ static ma_uint32 binocle_audio_read_audio_buffer_frames_in_mixing_format(binocle
   // detail to remember here is that we never, ever attempt to read more input data than is required for the specified number of output
   // frames. This can be achieved with ma_data_converter_get_required_input_frame_count().
   ma_uint8 inputBuffer[4096] = { 0 };
-  ma_uint32 inputBufferFrameCap = sizeof(inputBuffer)/ma_get_bytes_per_frame(audioBuffer->converter.config.formatIn, audioBuffer->converter.config.channelsIn);
+  ma_uint32 inputBufferFrameCap = sizeof(inputBuffer)/ma_get_bytes_per_frame(audioBuffer->converter.formatIn, audioBuffer->converter.channelsIn);
 
   ma_uint32 totalOutputFramesProcessed = 0;
   while (totalOutputFramesProcessed < frameCount)
   {
     ma_uint64 outputFramesToProcessThisIteration = frameCount - totalOutputFramesProcessed;
+    ma_uint64 inputFramesToProcessThisIteration = 0;
 
-    ma_uint64 inputFramesToProcessThisIteration = ma_data_converter_get_required_input_frame_count(&audioBuffer->converter, outputFramesToProcessThisIteration);
+    ma_data_converter_get_required_input_frame_count(&audioBuffer->converter, outputFramesToProcessThisIteration, &inputFramesToProcessThisIteration);
     if (inputFramesToProcessThisIteration > inputBufferFrameCap)
     {
       inputFramesToProcessThisIteration = inputBufferFrameCap;
     }
 
-    float *runningFramesOut = framesOut + (totalOutputFramesProcessed*audioBuffer->converter.config.channelsOut);
+    float *runningFramesOut = framesOut + (totalOutputFramesProcessed*audioBuffer->converter.channelsOut);
 
     /* At this point we can convert the data to our mixing format. */
     ma_uint64 inputFramesProcessedThisIteration = binocle_audio_read_audio_buffer_frames_in_internal_format(audioBuffer, inputBuffer, (ma_uint32)inputFramesToProcessThisIteration);    /* Safe cast. */
@@ -525,8 +523,8 @@ void binocle_audio_set_audio_buffer_pitch(binocle_audio_buffer *audio_buffer, fl
 
   // Pitching is just an adjustment of the sample rate. Note that this changes the duration of the sound - higher pitches
   // will make the sound faster; lower pitches make it slower.
-  ma_uint32 newOutputSampleRate = (ma_uint32)((float) audio_buffer->converter.config.sampleRateOut / pitch);
-  audio_buffer->pitch *= (float) audio_buffer->converter.config.sampleRateOut / newOutputSampleRate;
+  ma_uint32 newOutputSampleRate = (ma_uint32)((float) audio_buffer->converter.sampleRateOut / pitch);
+  audio_buffer->pitch *= (float) audio_buffer->converter.sampleRateOut / newOutputSampleRate;
   audio_buffer->pitch = pitch;
 }
 
@@ -800,8 +798,8 @@ void binocle_audio_update_sound(binocle_audio_sound sound, const void *data, int
   // TODO: May want to lock/unlock this since this data buffer is read at mixing time.
   memcpy(audioBuffer->data,
          data,
-         samplesCount * ma_get_bytes_per_frame(audioBuffer->converter.config.formatIn,
-                                               audioBuffer->converter.config.channelsIn));
+         samplesCount * ma_get_bytes_per_frame(audioBuffer->converter.formatIn,
+                                               audioBuffer->converter.channelsIn));
 }
 
 void binocle_audio_play_sound(binocle_audio_sound sound) {
