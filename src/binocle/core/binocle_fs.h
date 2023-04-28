@@ -21,6 +21,11 @@ typedef struct binocle_fs_file {
   char *filename;
 } binocle_fs_file;
 
+typedef enum binocle_fs_supported {
+  BINOCLE_FS_SDL,
+  BINOCLE_FS_PHYSFS,
+} binocle_fs_supported;
+
 binocle_fs binocle_fs_new();
 bool binocle_fs_init(binocle_fs *fs);
 void binocle_fs_destroy(binocle_fs *fs);

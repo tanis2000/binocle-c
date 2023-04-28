@@ -18,6 +18,23 @@ int l_binocle_image_load(lua_State *L) {
   return 1;
 }
 
+int l_binocle_image_load_from_assets(lua_State *L) {
+  const char *filename = luaL_checkstring(L, 1);
+  l_binocle_image_t *img = lua_newuserdata(L, sizeof(l_binocle_image_t));
+  lua_getfield(L, LUA_REGISTRYINDEX, "binocle_image");
+  lua_setmetatable(L, -2);
+  SDL_memset(img, 0, sizeof(*img));
+  binocle_image_load_desc desc = {
+    .filename = filename,
+    .filter = SG_FILTER_LINEAR,
+    .wrap = SG_WRAP_CLAMP_TO_EDGE,
+    .fs = BINOCLE_FS_PHYSFS,
+  };
+  sg_image b_img = binocle_image_load_with_desc(&desc);
+  img->img = b_img;
+  return 1;
+}
+
 int l_binocle_image_get_info(lua_State *L) {
   l_binocle_image_t *img = luaL_checkudata(L, 1, "binocle_image");
   sg_image_info info = sg_query_image_info(img->img);
@@ -28,6 +45,7 @@ int l_binocle_image_get_info(lua_State *L) {
 
 static const struct luaL_Reg image [] = {
   {"load", l_binocle_image_load},
+  {"load_from_assets", l_binocle_image_load_from_assets},
   {"get_info", l_binocle_image_get_info},
   {NULL, NULL}
 };
