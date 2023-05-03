@@ -139,6 +139,83 @@ int l_binocle_gd_render_screen(lua_State *L) {
 
   return 0;
 }
+
+int l_create_offscreen_shader_desc(lua_State *L) {
+  const char *vs = luaL_checkstring(L, 1);
+  const char *fs = luaL_checkstring(L, 2);
+  sg_shader_desc desc = binocle_gd_create_offscreen_shader_desc(vs, fs);
+  l_binocle_shader_t *shader = lua_newuserdata(L, sizeof(l_binocle_shader_t));
+  lua_getfield(L, LUA_REGISTRYINDEX, "binocle_shader");
+  lua_setmetatable(L, -2);
+  SDL_memset(shader, 0, sizeof(*shader));
+  shader->shader_desc = desc;
+  return 1;
+}
+
+sg_shader_stage l_binocle_gd_convert_shader_stage(const char *stage_str) {
+  sg_shader_stage stage = SG_SHADERSTAGE_VS;
+  if (SDL_strcmp(stage_str, "VS") == 0) {
+    stage = SG_SHADERSTAGE_VS;
+  } else if (SDL_strcmp(stage_str, "FS") == 0) {
+    stage = SG_SHADERSTAGE_FS;
+  }
+  return stage;
+}
+
+sg_uniform_type l_binocle_gd_convert_uniform_type(const char *uniform_type_str) {
+  sg_uniform_type type = SG_UNIFORMTYPE_INVALID;
+  if (SDL_strcmp(uniform_type_str, "float") == 0) {
+    type = SG_UNIFORMTYPE_FLOAT;
+  } else if (SDL_strcmp(uniform_type_str, "float2") == 0) {
+    type = SG_UNIFORMTYPE_FLOAT2;
+  } else if (SDL_strcmp(uniform_type_str, "float3") == 0) {
+    type = SG_UNIFORMTYPE_FLOAT3;
+  } else if (SDL_strcmp(uniform_type_str, "float4") == 0) {
+    type = SG_UNIFORMTYPE_FLOAT4;
+  } else if (SDL_strcmp(uniform_type_str, "int") == 0) {
+    type = SG_UNIFORMTYPE_INT;
+  } else if (SDL_strcmp(uniform_type_str, "int2") == 0) {
+    type = SG_UNIFORMTYPE_INT2;
+  } else if (SDL_strcmp(uniform_type_str, "int3") == 0) {
+    type = SG_UNIFORMTYPE_INT3;
+  } else if (SDL_strcmp(uniform_type_str, "int4") == 0) {
+    type = SG_UNIFORMTYPE_INT4;
+  } else if (SDL_strcmp(uniform_type_str, "mat4") == 0) {
+    type = SG_UNIFORMTYPE_MAT4;
+  } else if (SDL_strcmp(uniform_type_str, "vec2") == 0) {
+    type = SG_UNIFORMTYPE_FLOAT2;
+  } else if (SDL_strcmp(uniform_type_str, "vec3") == 0) {
+    type = SG_UNIFORMTYPE_FLOAT3;
+  } else if (SDL_strcmp(uniform_type_str, "vec4") == 0) {
+    type = SG_UNIFORMTYPE_FLOAT4;
+  }
+  return type;
+}
+
+int l_binocle_gd_add_uniform_to_shader_desc(lua_State *L) {
+  l_binocle_shader_t *shader = luaL_checkudata(L, 1, "binocle_shader");
+  const char *stage = luaL_checkstring(L, 2);
+  int idx = (int)luaL_checknumber(L, 3);
+  const char *uniform_name = luaL_checkstring(L, 4);
+  const char *uniform_type = luaL_checkstring(L, 5);
+  sg_shader_stage stage_converted = l_binocle_gd_convert_shader_stage(stage);
+  sg_uniform_type uniform_type_converted = l_binocle_gd_convert_uniform_type(uniform_type);
+  binocle_gd_add_uniform_to_shader_desc(&shader->shader_desc, stage_converted, idx, uniform_name, uniform_type_converted);
+  return 0;
+}
+
+int l_binocle_gd_create_shader(lua_State *L) {
+  l_binocle_shader_t *shader = luaL_checkudata(L, 1, "binocle_shader");
+  shader->shader = binocle_gd_create_shader(shader->shader_desc);
+  return 0;
+}
+
+int l_binocle_gd_create_offscreen_pipeline(lua_State *L) {
+  l_binocle_shader_t *shader = luaL_checkudata(L, 1, "binocle_shader");
+  shader->pip = binocle_gd_create_offscreen_pipeline(shader->shader);
+  return 0;
+}
+
 static const struct luaL_Reg gd [] = {
   {"new", l_binocle_gd_new},
   {"init", l_binocle_gd_init},
@@ -152,6 +229,10 @@ static const struct luaL_Reg gd [] = {
   {"set_offscreen_clear_color", l_binocle_gd_set_offscreen_clear_color},
   {"draw_rect", l_binocle_gd_draw_rect},
   {"render_screen", l_binocle_gd_render_screen},
+  {"create_shader_desc", l_create_offscreen_shader_desc},
+  {"add_uniform_to_shader_desc", l_binocle_gd_add_uniform_to_shader_desc},
+  {"create_shader", l_binocle_gd_create_shader},
+  {"create_pipeline", l_binocle_gd_create_offscreen_pipeline},
   {NULL, NULL}
 };
 
@@ -160,6 +241,7 @@ int luaopen_gd(lua_State *L) {
   lua_setglobal(L, "gd");
   luaL_newmetatable(L, "binocle_gd");
   luaL_newmetatable(L, "binocle_render_target");
+  luaL_newmetatable(L, "binocle_shader");
   lua_pop(L, 2);
   return 1;
 }

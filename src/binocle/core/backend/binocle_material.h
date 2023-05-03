@@ -27,6 +27,14 @@ typedef struct binocle_material {
   sg_image ao_texture;
   /// The shader (couple of VS/FS)
   sg_shader shader;
+  /// The shader descriptor
+  sg_shader_desc shader_desc;
+  /// The pipeline
+  sg_pipeline pip;
+  /// Custom VS uniforms
+  char custom_vs_uniforms[1024];
+  /// Custom FS uniforms
+  char custom_fs_uniforms[1024];
 } binocle_material;
 
 /**

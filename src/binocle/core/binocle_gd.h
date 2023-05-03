@@ -59,6 +59,10 @@ typedef struct binocle_gd_command_t {
   uint32_t num_vertices;
   binocle_gd_uniform_t uniforms;
   float depth;
+  sg_pipeline pip;
+  sg_shader_desc shader_desc;
+  char custom_vs_uniforms[1024];
+  char custom_fs_uniforms[1024];
 } binocle_gd_command_t;
 
 /**
@@ -330,5 +334,10 @@ void binocle_gd_draw_test_cube(struct sg_shader *shader);
 void binocle_gd_setup_flat_pipeline(binocle_gd *gd);
 void binocle_gd_render_flat(binocle_gd *gd);
 
+sg_shader_desc binocle_gd_create_offscreen_shader_desc(const char *shader_vs_src, const char *shader_fs_src);
+size_t binocle_gd_compute_uniform_block_size(sg_shader_uniform_block_desc desc);
+void binocle_gd_add_uniform_to_shader_desc(sg_shader_desc *shader_desc, sg_shader_stage stage, size_t idx, const char *uniform_name, sg_uniform_type uniform_type);
+sg_shader binocle_gd_create_shader(sg_shader_desc desc);
+sg_pipeline binocle_gd_create_offscreen_pipeline(sg_shader shader);
 
 #endif // BINOCLE_GD_H

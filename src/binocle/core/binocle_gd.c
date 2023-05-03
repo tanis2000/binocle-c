@@ -92,8 +92,10 @@ binocle_gd binocle_gd_new() {
   binocle_gd res = {0};
   res.vertices = malloc(sizeof(binocle_vpct) * BINOCLE_GD_MAX_VERTICES);
   res.commands = malloc(sizeof(binocle_gd_command_t) * BINOCLE_GD_MAX_COMMANDS);
+  memset(res.commands, 0, sizeof(binocle_gd_command_t) * BINOCLE_GD_MAX_COMMANDS);
   res.flat_vertices = malloc(sizeof(binocle_vpct) * BINOCLE_GD_MAX_VERTICES);
   res.flat_commands = malloc(sizeof(binocle_gd_command_t) * BINOCLE_GD_MAX_COMMANDS);
+  memset(res.flat_commands, 0, sizeof(binocle_gd_command_t) * BINOCLE_GD_MAX_COMMANDS);
   return res;
 }
 
@@ -341,6 +343,13 @@ void binocle_gd_draw(binocle_gd *gd, const struct binocle_vpct *vertices, size_t
   cmd->base_vertex = gd->num_vertices;
   cmd->img = material.albedo_texture;
   cmd->depth = depth;
+  if (sg_query_pipeline_state(material.pip) == SG_RESOURCESTATE_VALID) {
+    cmd->pip = material.pip;
+    memcpy(cmd->custom_fs_uniforms, material.custom_fs_uniforms, 1024);
+    cmd->shader_desc = material.shader_desc;
+  } else {
+    cmd->pip.id = 0;
+  }
 
   kmMat4 *cameraTransformMatrix = NULL;
   if (camera != NULL) {
@@ -392,9 +401,15 @@ void binocle_gd_render_offscreen(binocle_gd *gd) {
     gd->offscreen.bind.fs_images[0] = cmd->img;
     gd->offscreen.bind.vertex_buffers[0] = gd->offscreen.vbuf;
 
-    sg_apply_pipeline(gd->offscreen.pip);
+    if (sg_query_pipeline_state(cmd->pip) == SG_RESOURCESTATE_VALID) {
+      sg_apply_pipeline(cmd->pip);
+      sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, &SG_RANGE(cmd->uniforms));
+      sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, &(sg_range){.ptr = cmd->custom_fs_uniforms, .size = cmd->shader_desc.fs.uniform_blocks[0].size});
+    } else {
+      sg_apply_pipeline(gd->offscreen.pip);
+      sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, &SG_RANGE(cmd->uniforms));
+    }
     sg_apply_bindings(&gd->offscreen.bind);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, &SG_RANGE(cmd->uniforms));
     sg_draw(cmd->base_vertex, cmd->num_vertices, 1);
 
   }
@@ -1180,5 +1195,136 @@ void binocle_gd_draw_test_cube(struct sg_shader *shader) {
 //  glCheck(glDeleteBuffers(1, &quad_vertexbuffer));
 //  glCheck(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 //  glCheck(glDeleteBuffers(1, &quad_indexbuffer));
+}
+
+sg_shader_desc binocle_gd_create_offscreen_shader_desc(const char *shader_vs_src, const char *shader_fs_src) {
+  sg_shader_desc shader_desc = {
+#ifdef BINOCLE_GL
+    .vs.source = shader_vs_src,
+#else
+    .vs.byte_code = default_vs_bytecode,
+    .vs.byte_code_size = sizeof(default_vs_bytecode),
+#endif
+    .attrs = {
+      [0].name = "vertexPosition",
+      [1].name = "vertexColor",
+      [2].name = "vertexTCoord",
+    },
+    .vs.uniform_blocks[0] = {
+      .size = sizeof(float) * 16 * 3,
+      .uniforms = {
+        [0] = { .name = "projectionMatrix", .type = SG_UNIFORMTYPE_MAT4},
+        [1] = { .name = "viewMatrix", .type = SG_UNIFORMTYPE_MAT4},
+        [2] = { .name = "modelMatrix", .type = SG_UNIFORMTYPE_MAT4},
+      }
+    },
+#ifdef BINOCLE_GL
+    .fs.source = shader_fs_src,
+#else
+    .fs.byte_code = default_fs_bytecode,
+    .fs.byte_code_size = sizeof(default_fs_bytecode),
+#endif
+    .fs.images[0] = { .name = "tex0", .image_type = SG_IMAGETYPE_2D},
+  };
+  return shader_desc;
+}
+
+size_t binocle_gd_compute_uniform_block_size(sg_shader_uniform_block_desc desc) {
+  size_t total_size = 0;
+  for (int i = 0 ; i < SG_MAX_UB_MEMBERS ; i++) {
+    size_t size = 0;
+    switch(desc.uniforms[i].type) {
+      case SG_UNIFORMTYPE_MAT4:
+        size = sizeof(float) * 16;
+        break;
+      case SG_UNIFORMTYPE_FLOAT:
+        size = sizeof(float);
+        break;
+      case SG_UNIFORMTYPE_FLOAT2:
+        size = sizeof(float) * 2;
+        break;
+      case SG_UNIFORMTYPE_FLOAT3:
+        size = sizeof(float) * 3;
+        break;
+      case SG_UNIFORMTYPE_FLOAT4:
+        size = sizeof(float) * 4;
+        break;
+      case SG_UNIFORMTYPE_INT:
+        size = sizeof(int);
+        break;
+      case SG_UNIFORMTYPE_INT2:
+        size = sizeof(int) * 2;
+        break;
+      case SG_UNIFORMTYPE_INT3:
+        size = sizeof(int) * 3;
+        break;
+      case SG_UNIFORMTYPE_INT4:
+        size = sizeof(int) * 4;
+        break;
+      default:
+        break;
+    }
+    total_size += size;
+  }
+  return total_size;
+}
+
+void binocle_gd_add_uniform_to_shader_desc(sg_shader_desc *shader_desc, sg_shader_stage stage, size_t idx, const char *uniform_name, sg_uniform_type uniform_type) {
+  switch (stage) {
+    case SG_SHADERSTAGE_VS:
+      shader_desc->vs.uniform_blocks[0].uniforms[idx].name = SDL_strdup(uniform_name);;
+      shader_desc->vs.uniform_blocks[0].uniforms[idx].type = uniform_type;
+      break;
+    case SG_SHADERSTAGE_FS:
+      shader_desc->fs.uniform_blocks[0].uniforms[idx].name = SDL_strdup(uniform_name);;
+      shader_desc->fs.uniform_blocks[0].uniforms[idx].type = uniform_type;
+      break;
+    default:
+      break;
+  }
+  shader_desc->vs.uniform_blocks[0].size = binocle_gd_compute_uniform_block_size(shader_desc->vs.uniform_blocks[0]);
+  shader_desc->fs.uniform_blocks[0].size = binocle_gd_compute_uniform_block_size(shader_desc->fs.uniform_blocks[0]);
+}
+
+sg_shader binocle_gd_create_shader(sg_shader_desc desc) {
+  return sg_make_shader(&desc);
+}
+
+sg_pipeline binocle_gd_create_offscreen_pipeline(sg_shader shader) {
+  sg_pipeline pip = sg_make_pipeline(&(sg_pipeline_desc) {
+    .layout = {
+      .attrs = {
+        [0] = { .format = SG_VERTEXFORMAT_FLOAT2 }, // position
+        [1] = { .format = SG_VERTEXFORMAT_FLOAT4 }, // color
+        [2] = { .format = SG_VERTEXFORMAT_FLOAT2 }, // texture uv
+      },
+    },
+    .shader = shader,
+//      .index_type = SG_INDEXTYPE_UINT16,
+    .index_type = SG_INDEXTYPE_NONE,
+    .depth = {
+      .pixel_format = SG_PIXELFORMAT_NONE,
+      .compare = SG_COMPAREFUNC_NEVER,
+      .write_enabled = false,
+    },
+    .stencil = {
+      .enabled = false,
+    },
+    .colors = {
+      [0] = {
+#ifdef BINOCLE_GL
+        .pixel_format = SG_PIXELFORMAT_RGBA8,
+#else
+        .pixel_format = SG_PIXELFORMAT_BGRA8,
+#endif
+        .blend = {
+          .enabled = true,
+          .src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA,
+          .dst_factor_rgb = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+        }
+      }
+    }
+  });
+  return pip;
 }
 

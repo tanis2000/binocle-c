@@ -18,6 +18,12 @@ typedef struct l_binocle_render_target_t {
   sg_image rt;
 } l_binocle_render_target_t;
 
+typedef struct l_binocle_shader_t {
+  sg_shader_desc shader_desc;
+  sg_shader shader;
+  sg_pipeline pip;
+} l_binocle_shader_t;
+
 int luaopen_gd(lua_State *L);
 
 #endif //LUA_BINOCLE_GD_WRAP_H
