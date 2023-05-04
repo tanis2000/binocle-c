@@ -22,7 +22,6 @@ if (NOT EMSCRIPTEN)
             $<TARGET_OBJECTS:ogg>
             $<TARGET_OBJECTS:vorbis>
             $<TARGET_OBJECTS:zlib>
-            $<TARGET_OBJECTS:curl>
             )
 else()
     set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
@@ -37,6 +36,7 @@ if (APPLE AND NOT IOS)
             #$<TARGET_OBJECTS:luajit-5.1>
             $<TARGET_OBJECTS:lua>
 #            $<TARGET_OBJECTS:newton>
+            $<TARGET_OBJECTS:curl>
             )
 endif()
 
@@ -60,6 +60,7 @@ if (MSVC)
             # we're using lua instead of luajit on macos to be able to test with valgrind
             #$<TARGET_OBJECTS:luajit-5.1>
             $<TARGET_OBJECTS:lua>
+            $<TARGET_OBJECTS:curl>
             )
 endif()
 
