@@ -11,8 +11,19 @@ int l_binocle_app_assets_dir(lua_State *L) {
   return 1;
 }
 
+int l_binocle_app_shader_prefix(lua_State *L) {
+#if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
+  char *s = "gles";
+#else
+  char *s = "gl33";
+#endif
+  lua_pushstring(L, s);
+  return 1;
+}
+
 static const struct luaL_Reg app [] = {
   {"assets_dir", l_binocle_app_assets_dir},
+  {"shader_prefix", l_binocle_app_shader_prefix},
   {NULL, NULL}
 };
 

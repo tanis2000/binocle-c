@@ -16,11 +16,13 @@ set(BINOCLE_STATIC_LIBS
 
 
 if (NOT EMSCRIPTEN)
+    find_package(OpenSSL REQUIRED)
     set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
             $<TARGET_OBJECTS:sdl>
             $<TARGET_OBJECTS:ogg>
             $<TARGET_OBJECTS:vorbis>
             $<TARGET_OBJECTS:zlib>
+            $<TARGET_OBJECTS:curl>
             )
 else()
     set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}

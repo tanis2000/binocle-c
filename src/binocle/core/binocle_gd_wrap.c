@@ -242,6 +242,6 @@ int luaopen_gd(lua_State *L) {
   luaL_newmetatable(L, "binocle_gd");
   luaL_newmetatable(L, "binocle_render_target");
   luaL_newmetatable(L, "binocle_shader");
-  lua_pop(L, 2);
+  lua_pop(L, 3);
   return 1;
 }

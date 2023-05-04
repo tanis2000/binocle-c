@@ -57,7 +57,7 @@ jobs:
         uses: microsoft/setup-msbuild@v1.1
 
       - name: Install system dependencies
-        run: choco install doxygen.install graphviz -y --force
+        run: choco install doxygen.install graphviz openssl -y --force
 
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
