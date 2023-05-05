@@ -1,3 +1,8 @@
+if (${BINOCLE_HTTP})
+    message(STATUS "HTTP support enabled")
+    add_definitions(-DBINOCLE_HTTP)
+endif ()
+
 include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(
         ${CMAKE_SOURCE_DIR}/src/deps

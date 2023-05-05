@@ -4,31 +4,32 @@
 // All rights reserved.
 //
 
-#include <stdlib.h>
 #include "binocle_lua.h"
-#include "binocle_window.h"
-#include "binocle_log.h"
-#include "binocle_fs.h"
-#include <sokol_time.h>
-#include "binocle_sdl_wrap.h"
-#include "binocle_image_wrap.h"
-#include "binocle_texture_wrap.h"
-#include "binocle_material_wrap.h"
-#include "binocle_sprite_wrap.h"
-#include "binocle_input_wrap.h"
-#include "binocle_log_wrap.h"
-#include "binocle_gd_wrap.h"
-#include "binocle_window_wrap.h"
-#include "binocle_color_wrap.h"
-#include "binocle_viewport_adapter_wrap.h"
-#include "binocle_subtexture_wrap.h"
-#include "binocle_camera_wrap.h"
-#include "binocle_bitmapfont_wrap.h"
-#include "kazmath/lkazmath.h"
-#include "binocle_ttfont_wrap.h"
-#include "binocle_audio_wrap.h"
-#include "binocle_fs_wrap.h"
 #include "binocle_app_wrap.h"
+#include "binocle_audio_wrap.h"
+#include "binocle_bitmapfont_wrap.h"
+#include "binocle_camera_wrap.h"
+#include "binocle_color_wrap.h"
+#include "binocle_fs.h"
+#include "binocle_fs_wrap.h"
+#include "binocle_gd_wrap.h"
+#include "binocle_http_wrap.h"
+#include "binocle_image_wrap.h"
+#include "binocle_input_wrap.h"
+#include "binocle_log.h"
+#include "binocle_log_wrap.h"
+#include "binocle_material_wrap.h"
+#include "binocle_sdl_wrap.h"
+#include "binocle_sprite_wrap.h"
+#include "binocle_subtexture_wrap.h"
+#include "binocle_texture_wrap.h"
+#include "binocle_ttfont_wrap.h"
+#include "binocle_viewport_adapter_wrap.h"
+#include "binocle_window.h"
+#include "binocle_window_wrap.h"
+#include "kazmath/lkazmath.h"
+#include <sokol_time.h>
+#include <stdlib.h>
 
 binocle_lua binocle_lua_new() {
   binocle_lua res = {0};
@@ -90,6 +91,8 @@ bool binocle_lua_init(binocle_lua *lua) {
   binocle_log_info("Lua stack after fs: %d", lua_gettop(lua->L));
   luaopen_app(lua->L);
   binocle_log_info("Lua stack after app: %d", lua_gettop(lua->L));
+  luaopen_http(lua->L);
+  binocle_log_info("Lua stack after http: %d", lua_gettop(lua->L));
 
   lua_register(lua->L, "fs_loader", binocle_lua_fs_loader);
   const char* str = "table.insert(package.loaders, 2, fs_loader) \n";

@@ -1,3 +1,8 @@
+if (${BINOCLE_HTTP})
+    message(STATUS "HTTP support enabled")
+    add_definitions(-DBINOCLE_HTTP)
+endif ()
+
 add_subdirectory(deps)
 add_subdirectory(binocle)
 add_subdirectory(binocle/core/backend)
