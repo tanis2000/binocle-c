@@ -71,7 +71,6 @@ if (MSVC)
             # we're using lua instead of luajit on macos to be able to test with valgrind
             #$<TARGET_OBJECTS:luajit-5.1>
             $<TARGET_OBJECTS:lua>
-            $<TARGET_OBJECTS:curl>
             )
     if (BINOCLE_HTTP)
         set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
