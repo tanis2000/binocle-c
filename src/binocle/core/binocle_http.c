@@ -74,6 +74,7 @@ bool binocle_http_put(const char *url, const char *put_body, binocle_http_body_t
 
 #else
 
+#define CURL_STATICLIB
 #include "curl/include/curl/curl.h"
 
 static size_t

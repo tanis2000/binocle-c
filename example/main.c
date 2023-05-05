@@ -28,6 +28,7 @@
 #include "binocle_bitmapfont.h"
 #include "binocle_audio.h"
 #include "sokol_gfx.h"
+#include "binocle_http.h"
 
 //#define GAMELOOP 1
 //#define DEMOLOOP
