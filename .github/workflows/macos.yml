@@ -61,7 +61,7 @@ jobs:
         run: |
           ls -al /usr/local/opt/openssl@3/
           export PKG_CONFIG_PATH="/usr/local/opt/openssl@3/lib/pkgconfig"
-          cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBINOCLE_HTTP=1
 
       - name: Build
         shell: bash
