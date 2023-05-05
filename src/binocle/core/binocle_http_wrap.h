@@ -11,6 +11,10 @@
 
 #include "binocle_lua.h"
 
+typedef struct l_binocle_http_body_t {
+  struct binocle_http_body_t *body;
+} l_binocle_http_body_t;
+
 int luaopen_http(lua_State *L);
 
 #endif // BINOCLE_HTTP

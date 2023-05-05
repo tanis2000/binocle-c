@@ -91,8 +91,10 @@ bool binocle_lua_init(binocle_lua *lua) {
   binocle_log_info("Lua stack after fs: %d", lua_gettop(lua->L));
   luaopen_app(lua->L);
   binocle_log_info("Lua stack after app: %d", lua_gettop(lua->L));
+#if defined(BINOCLE_HTTP)
   luaopen_http(lua->L);
   binocle_log_info("Lua stack after http: %d", lua_gettop(lua->L));
+#endif
 
   lua_register(lua->L, "fs_loader", binocle_lua_fs_loader);
   const char* str = "table.insert(package.loaders, 2, fs_loader) \n";

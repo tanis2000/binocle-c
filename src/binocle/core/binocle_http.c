@@ -13,6 +13,64 @@
 #if defined(BINOCLE_HTTP)
 
 #if defined(__EMSCRIPTEN__)
+
+#include "binocle_sdl.h"
+#include <emscripten.h>
+#include <emscripten/fetch.h>
+
+EM_ASYNC_JS(char *, do_binocle_http_get, (const char * url), {
+  var localUrl = UTF8ToString(url);
+  const response = await fetch(localUrl);
+  const blob = await response.blob();
+  const text = await blob.text();
+  return stringToNewUTF8(text);
+});
+
+bool binocle_http_get(const char *url, binocle_http_body_t *body) {
+  char *res = do_binocle_http_get(url);
+  body->memory = SDL_realloc(body->memory, SDL_strlen(res));
+  body->size = SDL_strlen(res);
+  SDL_memcpy(body->memory, res, body->size);
+  free(res);
+  return 0;
+}
+
+EM_ASYNC_JS(char *, do_binocle_http_post, (const char * url, const char *req_body), {
+  var localUrl = UTF8ToString(url);
+  var rb = UTF8ToString(req_body);
+  const response = await fetch(localUrl, {method:"POST", body:rb});
+  const blob = await response.blob();
+  const text = await blob.text();
+  return stringToNewUTF8(text);
+});
+
+bool binocle_http_post(const char *url, const char *post_body, binocle_http_body_t *response_body) {
+  char *res = do_binocle_http_post(url, post_body);
+  response_body->memory = SDL_realloc(response_body->memory, SDL_strlen(res));
+  response_body->size = SDL_strlen(res);
+  SDL_memcpy(response_body->memory, res, response_body->size);
+  free(res);
+  return 0;
+}
+
+EM_ASYNC_JS(char *, do_binocle_http_put, (const char * url, const char *req_body), {
+  var localUrl = UTF8ToString(url);
+  var rb = UTF8ToString(req_body);
+  const response = await fetch(localUrl, {method:"PUT", body:rb});
+  const blob = await response.blob();
+  const text = await blob.text();
+  return stringToNewUTF8(text);
+});
+
+bool binocle_http_put(const char *url, const char *put_body, binocle_http_body_t *response_body) {
+  char *res = do_binocle_http_put(url, put_body);
+  response_body->memory = SDL_realloc(response_body->memory, SDL_strlen(res));
+  response_body->size = SDL_strlen(res);
+  SDL_memcpy(response_body->memory, res, response_body->size);
+  free(res);
+  return 0;
+}
+
 #else
 
 static size_t
