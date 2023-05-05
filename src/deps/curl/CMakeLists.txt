@@ -2,6 +2,7 @@
 project(curl)
 
 include_directories(include)
+find_package(OpenSSL REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIR})
 include_directories(lib)
 

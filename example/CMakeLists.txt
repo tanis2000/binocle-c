@@ -72,7 +72,14 @@ else ()
     add_executable(ExampleProject MACOSX_BUNDLE ${EXE_TYPE} ${SOURCE_FILES} ${BINOCLE_ICON} ${RESOURCES})
 endif ()
 
-target_link_libraries(ExampleProject ${BINOCLE_LINK_LIBRARIES})
+if (NOT EMSCRIPTEN AND NOT ANDROID AND NOT IOS)
+    find_package(OpenSSL REQUIRED)
+    message("OpenSSL Libraries: ${OPENSSL_LIBRARIES}")
+    message("OpenSSL include dir: ${OPENSSL_INCLUDE_DIR}")
+    target_link_libraries(ExampleProject ${BINOCLE_LINK_LIBRARIES} ${OPENSSL_LIBRARIES})
+else ()
+    target_link_libraries(ExampleProject ${BINOCLE_LINK_LIBRARIES})
+endif ()
 
 set_property(TARGET ExampleProject PROPERTY C_STANDARD 99)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
@@ -184,3 +191,10 @@ endif ()
 if(NOT MSVC)
     add_subdirectory(gameplay)
 endif(NOT MSVC)
+
+if (APPLE OR MSVC)
+    add_custom_command ( TARGET ExampleProject POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${OPENSSL_LIBRARIES} $<TARGET_FILE_DIR:ExampleProject>
+            )
+endif ()
