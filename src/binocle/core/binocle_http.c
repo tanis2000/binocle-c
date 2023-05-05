@@ -4,13 +4,14 @@
 // All rights reserved.
 //
 
+
+
+#if defined(BINOCLE_HTTP)
+
 #include "binocle_http.h"
 #include "binocle_sdl.h"
 #include "binocle_log.h"
-#include "curl/curl.h"
 #include <stdbool.h>
-
-#if defined(BINOCLE_HTTP)
 
 #if defined(__EMSCRIPTEN__)
 
@@ -72,6 +73,8 @@ bool binocle_http_put(const char *url, const char *put_body, binocle_http_body_t
 }
 
 #else
+
+#include "curl/curl.h"
 
 static size_t
 binocle_http_write_memory_cb(void *contents, size_t size, size_t nmemb, void *userp)
