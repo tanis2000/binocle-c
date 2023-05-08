@@ -28,6 +28,8 @@ EM_ASYNC_JS(char *, do_binocle_http_get, (const char * url), {
 });
 
 bool binocle_http_get(const char *url, binocle_http_body_t *body) {
+  body->memory = malloc(1);  /* will be grown as needed by the realloc above */
+  body->size = 0;    /* no data at this point */
   char *res = do_binocle_http_get(url);
   body->memory = SDL_realloc(body->memory, SDL_strlen(res));
   body->size = SDL_strlen(res);
@@ -46,6 +48,8 @@ EM_ASYNC_JS(char *, do_binocle_http_post, (const char * url, const char *req_bod
 });
 
 bool binocle_http_post(const char *url, const char *post_body, binocle_http_body_t *response_body) {
+  response_body->memory = malloc(1);  /* will be grown as needed by the realloc above */
+  response_body->size = 0;    /* no data at this point */
   char *res = do_binocle_http_post(url, post_body);
   response_body->memory = SDL_realloc(response_body->memory, SDL_strlen(res));
   response_body->size = SDL_strlen(res);
@@ -64,6 +68,8 @@ EM_ASYNC_JS(char *, do_binocle_http_put, (const char * url, const char *req_body
 });
 
 bool binocle_http_put(const char *url, const char *put_body, binocle_http_body_t *response_body) {
+  response_body->memory = malloc(1);  /* will be grown as needed by the realloc above */
+  response_body->size = 0;    /* no data at this point */
   char *res = do_binocle_http_put(url, put_body);
   response_body->memory = SDL_realloc(response_body->memory, SDL_strlen(res));
   response_body->size = SDL_strlen(res);
