@@ -50,13 +50,22 @@ binocle_ttfont *binocle_ttfont_from_file(const char *filename, float size, int t
   }
 
   font->bitmap = (unsigned char*)malloc(texture_width * texture_height * 4);
+  memset(font->bitmap, 0, texture_width * texture_height * 4);
   unsigned char *src = tmp_bitmap;
   unsigned char *dest = font->bitmap;
   size_t tot = texture_width * texture_height;
   for (int i = 0; i < tot; i++)
   {
-    *dest++ = *dest++ = *dest++ = 0xFF;
-    *dest++ = *src++;
+    unsigned char alpha = *src;
+    *dest = (alpha > 0) ? 0xff : 0;
+    dest++;
+    *dest = (alpha > 0) ? 0xff : 0;
+    dest++;
+    *dest = (alpha > 0) ? 0xff : 0;
+    dest++;
+    *dest = alpha;
+    dest++;
+    src++;
   }
   SDL_free(tmp_bitmap)
   ;
