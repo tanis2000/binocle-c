@@ -2,8 +2,9 @@
 project(curl)
 
 include_directories(include)
-set(OPENSSL_USE_STATIC_LIBS TRUE)
-find_package(OpenSSL REQUIRED)
+#set(OPENSSL_USE_STATIC_LIBS TRUE)
+#set(OPENSSL_MSVC_STATIC_RT TRUE)
+#find_package(OpenSSL REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIR})
 include_directories(lib)
 
