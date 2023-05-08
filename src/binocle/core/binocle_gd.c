@@ -147,7 +147,7 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
       .height = offscreen_height,
       .min_filter = SG_FILTER_LINEAR,
       .mag_filter = SG_FILTER_LINEAR,
-#ifdef SOKOL_GLES2
+#ifdef SOKOL_GLES3
     .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
     .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
     .wrap_w = SG_WRAP_CLAMP_TO_EDGE,

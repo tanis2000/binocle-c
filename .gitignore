@@ -3,6 +3,8 @@ platform/android/android-project/libs
 platform/android/android-project/obj
 
 build/
+build-web
+build-win
 
 # emacs clangd extension cache
 .cache/
