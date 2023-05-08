@@ -36,7 +36,7 @@ binocle_sprite *binocle_sprite_from_material(binocle_material *material) {
   res->origin.y = 0;
   res->material = material;
   // Default to use the whole texture
-  sg_image_info info = sg_query_image_info(material->albedo_texture);
+  sg_image_desc info = sg_query_image_desc(material->albedo_texture);
   res->subtexture = binocle_subtexture_with_texture(&material->albedo_texture, 0, 0, info.width,
                                                    info.height);
   for (int i = 0; i < BINOCLE_SPRITE_MAX_ANIMATIONS; i++) {
@@ -85,7 +85,7 @@ void binocle_sprite_draw(binocle_sprite *sprite, binocle_gd *gd, int64_t x, int6
     h = sprite->subtexture.rect.max.y;
   }
 
-  sg_image_info info = sg_query_image_info(sprite->material->albedo_texture);
+  sg_image_desc info = sg_query_image_desc(sprite->material->albedo_texture);
 
   // TL
   vertices[0].pos.x =
@@ -874,7 +874,7 @@ void binocle_sprite_batch_setup(binocle_sprite_batch *batch, kmAABB2 viewport) {
 }
 
 void binocle_sprite_batch_draw_internal(binocle_sprite_batch *batch, sg_image *texture, kmAABB2 *source_rectangle, sg_color color, float rotation, float depth, bool auto_flush) {
-  sg_image_info info = sg_query_image_info(*texture);
+  sg_image_desc info = sg_query_image_desc(*texture);
 
   // Cull geometry outside the viewport
   batch->vertex_to_cull_tl.x = batch->origin_rect.min.x + -batch->scaled_origin.x * cosf(rotation) - -batch->scaled_origin.y * sinf(rotation);
@@ -995,7 +995,7 @@ void binocle_sprite_batch_draw_vector_scale(binocle_sprite_batch *batch, sg_imag
                                             kmAABB2 *source_rectangle, sg_color color,
                                             float rotation, kmVec2 origin, kmVec2 scale,
                                             float layer_depth) {
-  sg_image_info info = sg_query_image_info(*texture);
+  sg_image_desc info = sg_query_image_desc(*texture);
 
   float w = info.width * scale.x;
   float h = info.height * scale.y;
@@ -1039,7 +1039,7 @@ binocle_sprite_batch_draw_noscale(binocle_sprite_batch *batch, sg_image *texture
                                   kmAABB2 *source_rectangle, sg_color color,
                                   float rotation, kmVec2 origin,
                                   float layer_depth) {
-  sg_image_info info = sg_query_image_info(*texture);
+  sg_image_desc info = sg_query_image_desc(*texture);
 
   batch->origin_rect.min.x = destination_rectangle.min.x;
   batch->origin_rect.min.y = destination_rectangle.min.y;

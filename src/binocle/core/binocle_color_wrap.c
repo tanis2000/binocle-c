@@ -8,10 +8,10 @@
 #include "backend/binocle_color.h"
 
 int l_binocle_color_new(lua_State *L) {
-  float r = luaL_checknumber(L, 1);
-  float g = luaL_checknumber(L, 2);
-  float b = luaL_checknumber(L, 3);
-  float a = luaL_checknumber(L, 4);
+  float r = (float)luaL_checknumber(L, 1);
+  float g = (float)luaL_checknumber(L, 2);
+  float b = (float)luaL_checknumber(L, 3);
+  float a = (float)luaL_checknumber(L, 4);
   l_binocle_color_t *color = lua_newuserdata(L, sizeof(l_binocle_color_t));
   lua_getfield(L, LUA_REGISTRYINDEX, "binocle_color");
   lua_setmetatable(L, -2);

@@ -37,7 +37,7 @@ int l_binocle_image_load_from_assets(lua_State *L) {
 
 int l_binocle_image_get_info(lua_State *L) {
   l_binocle_image_t *img = luaL_checkudata(L, 1, "binocle_image");
-  sg_image_info info = sg_query_image_info(img->img);
+  sg_image_desc info = sg_query_image_desc(img->img);
   lua_pushnumber(L, info.width);
   lua_pushnumber(L, info.height);
   return 2;
