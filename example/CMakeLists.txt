@@ -1,3 +1,16 @@
+if (${BINOCLE_HTTP})
+    message(STATUS "HTTP support enabled")
+    add_definitions(-DBINOCLE_HTTP)
+endif ()
+
+if (NOT BINOCLE_DATA_DIR)
+    message("Setting BINOCLE_DATA_DIR to the default value")
+    set(BINOCLE_DATA_DIR "${CMAKE_SOURCE_DIR}/assets/")
+endif ()
+
+message("Binocle data dir: ${BINOCLE_DATA_DIR}")
+message("Project source dir: ${PROJECT_SOURCE_DIR}")
+
 include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(
         ${CMAKE_SOURCE_DIR}/src/deps
@@ -72,7 +85,22 @@ else ()
     add_executable(ExampleProject MACOSX_BUNDLE ${EXE_TYPE} ${SOURCE_FILES} ${BINOCLE_ICON} ${RESOURCES})
 endif ()
 
-target_link_libraries(ExampleProject ${BINOCLE_LINK_LIBRARIES})
+if (NOT EMSCRIPTEN AND NOT ANDROID AND NOT IOS)
+    set(OPENSSL_USE_STATIC_LIBS TRUE)
+    set(OPENSSL_MSVC_STATIC_RT TRUE)
+    find_package(OpenSSL REQUIRED)
+    message("OpenSSL Libraries: ${OPENSSL_LIBRARIES}")
+    message("OpenSSL include dir: ${OPENSSL_INCLUDE_DIR}")
+    if (MSVC)
+        target_link_libraries(ExampleProject ${BINOCLE_LINK_LIBRARIES} ${OPENSSL_LIBRARIES} wldap32 crypt32 Ws2_32)
+        message(STATUS "Target link libraries: ${BINOCLE_LINK_LIBRARIES} ${OPENSSL_LIBRARIES} wldap32 crypt32 Ws2_32")
+    else()
+        target_link_libraries(ExampleProject ${BINOCLE_LINK_LIBRARIES} ${OPENSSL_LIBRARIES})
+        message(STATUS "Target link libraries: ${BINOCLE_LINK_LIBRARIES} ${OPENSSL_LIBRARIES}")
+    endif()
+else ()
+    target_link_libraries(ExampleProject ${BINOCLE_LINK_LIBRARIES})
+endif ()
 
 set_property(TARGET ExampleProject PROPERTY C_STANDARD 99)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
@@ -153,6 +181,32 @@ elseif (APPLE)
     set(EXE_TYPE MACOSX_BUNDLE)
 endif ()
 
+if (MSVC)
+    set(EXE_TYPE WIN32)
+    #    set (SOURCE_FILES ${SOURCE_FILES} ${CMAKE_SOURCE_DIR}/build/cmake/Binocle.rc)
+    set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+    file(GLOB_RECURSE RESOURCES "${BINOCLE_DATA_DIR}*")
+    foreach(RES_FILE ${RESOURCES})
+        message("RES_FILE: ${RES_FILE}")
+        file(RELATIVE_PATH RES_PATH "${BINOCLE_DATA_DIR}" ${RES_FILE})
+        message("RES_PATH: ${RES_PATH}")
+        get_filename_component(RES_FOLDER ${RES_PATH} DIRECTORY)
+        message("RES_FOLDER: ${RES_FOLDER}")
+        add_custom_command(TARGET ExampleProject
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${RES_FILE} ${CMAKE_CURRENT_BINARY_DIR}/src/assets/${RES_PATH}
+    )
+    endforeach(RES_FILE)
+elseif (APPLE)
+    #ICNS
+    set(MACOSX_BUNDLE_ICON_FILE ExampleProject.icns)
+    if (NOT IOS)
+        set(BINOCLE_ICON ${CMAKE_SOURCE_DIR}/build/cmake/Binocle.icns)
+    endif ()
+    set_source_files_properties(${BINOCLE_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+    set(EXE_TYPE MACOSX_BUNDLE)
+endif ()
+
 if (ANDROID)
     message("Post build will copy to ${CMAKE_CURRENT_BINARY_DIR}/../../../platform/android/android-project/app/libs/${ANDROID_ABI}/libmain.so")
     add_custom_command(TARGET ExampleProject
@@ -184,3 +238,10 @@ endif ()
 if(NOT MSVC)
     add_subdirectory(gameplay)
 endif(NOT MSVC)
+
+if (APPLE)
+    add_custom_command ( TARGET ExampleProject POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${OPENSSL_LIBRARIES} $<TARGET_FILE_DIR:ExampleProject>
+            )
+endif ()

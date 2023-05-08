@@ -190,6 +190,27 @@ open http://localhost:8000/ExampleProject.html
 
 To generate the documentation just add the `-DBUILD_DOC=ON` option when running cmake.
 
+### HTTP Support
+
+Binocle supports HTTP requests through curl. The feature can be enabled by setting BINOCLE_HTTP.
+This is only supported on desktop systems and the browser. There is no support planned for iOS and Android at the moment.
+
+#### macOS additional requirements
+
+On macOS, when enabling HTTP support, you have to provide the path to OpenSSL as it will be linked as a dynamic library.
+In order to do that please do the following before running cmake.
+
+On Intel Mac:
+```shell
+export PKG_CONFIG_PATH=/usr/local/opt/openssl@3/lib/pkgconfig
+```
+
+On ARM Mac:
+```shell
+export PKG_CONFIG_PATH=/opt/homebrew/opt/openssl@3/lib/pkgconfig
+```
+
+
 ## Credits
 
 Many of the concepts come from Matt Thorson's Monocle engine (the name of this project is a kind of joke around Matt's engine name as you can guess).

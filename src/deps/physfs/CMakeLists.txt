@@ -74,7 +74,9 @@ set_source_files_properties (${SOURCES} PROPERTIES LANGUAGE C)
 
 add_library(physfs OBJECT ${HEADERS} ${SOURCES})
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
+if (APPLE)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
+endif()
 
 if (IOS)
     set_target_properties(

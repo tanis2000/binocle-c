@@ -28,6 +28,7 @@
 #include "binocle_bitmapfont.h"
 #include "binocle_audio.h"
 #include "sokol_gfx.h"
+#include "binocle_http.h"
 
 //#define GAMELOOP 1
 //#define DEMOLOOP
@@ -93,6 +94,7 @@ sg_image wabbit_image;
 #endif
 
 #ifdef WITH_PHYSICS
+#include "binocle_http.h"
 #include "chipmunk/chipmunk.h"
 #include "physics.h"
 physics_state_t ps;
@@ -104,6 +106,34 @@ void wren_update(float dt) {
   wrenSetSlotDouble(wren->vm, 1, dt);
   WrenInterpretResult result = wrenCall(wren->vm, method);
 }
+
+#if defined(BINOCLE_HTTP)
+void test_http_get() {
+  binocle_http_body_t body;
+  if (binocle_http_get("https://podium.altralogica.it/l/binocle-example/top/0", &body)) {
+    binocle_log_info(body.memory);
+  }
+  free(body.memory);
+}
+
+void test_http_post() {
+  binocle_http_body_t body;
+  char *req = "{score=1}";
+  if (binocle_http_post("https://podium.altralogica.it/l/binocle-example/members/tanis/score", req, &body)) {
+    binocle_log_info(body.memory);
+  }
+  free(body.memory);
+}
+
+void test_http_put() {
+  binocle_http_body_t body;
+  char *req = "{\"score\":1}";
+  if (binocle_http_put("https://podium.altralogica.it/l/binocle-example/members/tanis/score", req, &body)) {
+    binocle_log_info(body.memory);
+  }
+  free(body.memory);
+}
+#endif
 
 #ifdef TWODLOOP
 void main_loop() {
@@ -620,6 +650,12 @@ int main(int argc, char *argv[])
   binocle_audio_set_music_volume(&music, 0.00f);
 
   binocle_gd_setup_default_pipeline(&gd, DESIGN_WIDTH, DESIGN_HEIGHT, default_shader, screen_shader);
+
+#if defined(BINOCLE_HTTP)
+  test_http_get();
+  test_http_post();
+  test_http_put();
+#endif
 
   running_time = 0;
 #ifdef GAMELOOP

@@ -1,3 +1,8 @@
+if (${BINOCLE_HTTP})
+    message(STATUS "HTTP support enabled")
+    add_definitions(-DBINOCLE_HTTP)
+endif ()
+
 add_subdirectory(deps)
 add_subdirectory(binocle)
 add_subdirectory(binocle/core/backend)
@@ -14,7 +19,7 @@ set(BINOCLE_STATIC_LIBS
         $<TARGET_OBJECTS:wren>
         )
 
-if (NOT EMSCRIPTEN AND NOT ANDROID AND NOT IOS)
+if (NOT EMSCRIPTEN AND NOT ANDROID AND NOT IOS AND BINOCLE_HTTP)
     find_package(OpenSSL REQUIRED)
 endif ()
 
@@ -38,8 +43,12 @@ if (APPLE AND NOT IOS)
             #$<TARGET_OBJECTS:luajit-5.1>
             $<TARGET_OBJECTS:lua>
 #            $<TARGET_OBJECTS:newton>
-            $<TARGET_OBJECTS:curl>
             )
+    if (BINOCLE_HTTP)
+        set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
+                $<TARGET_OBJECTS:curl>
+                )
+    endif ()
 endif()
 
 if (IOS)
@@ -62,8 +71,12 @@ if (MSVC)
             # we're using lua instead of luajit on macos to be able to test with valgrind
             #$<TARGET_OBJECTS:luajit-5.1>
             $<TARGET_OBJECTS:lua>
-            $<TARGET_OBJECTS:curl>
             )
+    if (BINOCLE_HTTP)
+        set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
+                $<TARGET_OBJECTS:curl>
+                )
+    endif ()
 endif()
 
 message("List of static libraries for Binocle: ${BINOCLE_STATIC_LIBS}")
