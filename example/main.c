@@ -575,7 +575,9 @@ int main(int argc, char *argv[])
   lua_test(filename);
   sprintf(filename, "%s%s", binocle_data_dir, "test_simple2.lua");
   lua_test2(filename);
-  sprintf(filename, "%s%s", binocle_data_dir, "test_ffi.lua");
+  sprintf(filename, "%s%s", binocle_data_dir, "test_profiler.lua");
+  lua_test_profiler(filename);
+  //sprintf(filename, "%s%s", binocle_data_dir, "test_ffi.lua");
   //lua_testffi(filename, &window);
 
   wren = binocle_wren_new();

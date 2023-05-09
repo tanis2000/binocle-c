@@ -325,6 +325,26 @@ int lua_test2(const char *arg) {
   return 0;
 }
 
+int lua_test_profiler(const char *arg) {
+  /* Create VM state */
+  lua_State *L = luaL_newstate();
+  if (!L)
+    return 1;
+  luaL_openlibs(L); /* Open standard libraries */
+  /* Load config file */
+  if (arg != NULL) {
+    luaL_loadfile(L, arg); /* (1) */
+    int ret = lua_pcall(L, 0, 0, 0);
+    if (ret != 0) {
+      fprintf(stderr, "%s\n", lua_tostring(L, -1));
+      return 1;
+    }
+  }
+  lua_settop(L, 0); /* (4) */
+  lua_close(L);
+  return 0;
+}
+
 void binocle_lua_reg(lua_State *L, const void* key) {
   if(key==NULL) {
     lua_pushstring(L, "Trying to register with a NULL key!");
@@ -417,3 +437,23 @@ void binocle_lua_stacktrace(lua_State* L)
     depth++;
   }
 }
+
+#if defined BINOCLE_LUAJIT
+void binocle_lua_profiler_callback(void *data, lua_State *L,
+                                    int samples, int vmstate) {
+
+}
+
+void binocle_lua_start_profiler(lua_State *L) {
+  luaJIT_profile_start(L, "l", binocle_lua_profiler_callback, NULL);
+}
+
+void binocle_lua_stop_profiler(lua_State *L) {
+  luaJIT_profile_stop(L);
+}
+
+void binocle_lua_dump_profiler_stack(lua_State *L) {
+  size_t len;
+  const char * dump = luaJIT_profile_dumpstack(L, "f", 10, &len);
+}
+#endif

@@ -1,0 +1,1 @@
+option(BINOCLE_LUAJIT "Enable LuaJIT on supported platforms (Windows, macOS)" OFF)

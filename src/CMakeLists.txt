@@ -41,7 +41,7 @@ if (APPLE AND NOT IOS)
             $<TARGET_OBJECTS:glew>
             # we're using lua instead of luajit on macos to be able to test with valgrind
             #$<TARGET_OBJECTS:luajit-5.1>
-            $<TARGET_OBJECTS:lua>
+#            $<TARGET_OBJECTS:lua>
 #            $<TARGET_OBJECTS:newton>
             )
     if (BINOCLE_HTTP)
@@ -49,6 +49,15 @@ if (APPLE AND NOT IOS)
                 $<TARGET_OBJECTS:curl>
                 )
     endif ()
+    if (BINOCLE_LUAJIT)
+        set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
+                $<TARGET_OBJECTS:libluajit>
+                )
+    else ()
+        set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
+                $<TARGET_OBJECTS:lua>
+                )
+    endif()
 endif()
 
 if (IOS)
