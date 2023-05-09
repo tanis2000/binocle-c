@@ -1,6 +1,6 @@
-project(binocle)
+cmake_minimum_required(VERSION 3.1)
 
-cmake_minimum_required(VERSION 2.8.12)
+project(binocle)
 
 # Policies
 if("${CMAKE_VERSION}" VERSION_GREATER 3.1)
@@ -21,12 +21,16 @@ include(CMakeToolsHelpers OPTIONAL)
 set (CMAKE_CXX_COMPILER_WORKS TRUE)
 set (CMAKE_C_COMPILER_WORKS TRUE)
 
-# Enables CMake debugging with VSCode
-include(CMakeToolsHelpers OPTIONAL)
-
 # Add our own DEBUG define for Debug build types
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG")
+
+# Registers build options that are exposed to cmake
+include(CMakeOptions.txt)
+
+if(BINOCLE_LUAJIT)
+	add_definitions(-DBINOCLE_LUAJIT)
+endif ()
 
 include(BinocleUtils)
 

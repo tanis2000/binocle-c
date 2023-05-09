@@ -12,9 +12,16 @@
 #include <lua/src/lualib.h>
 #include <lua/src/lauxlib.h>
 #else
+#if defined(BINOCLE_LUAJIT)
+#include "luajit/src/luajit.h"
+#include "luajit/src/lua.h"
+#include "luajit/src/lualib.h"
+#include "luajit/src/lauxlib.h"
+#else
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
+#endif // defined(BINOCLE_LUAJIT)
 #endif
 
 #include <inttypes.h>
@@ -53,5 +60,6 @@ int binocle_lua_fs_loader(lua_State *L);
 int lua_test(const char *arg);
 int lua_test2(const char *arg);
 int lua_testffi(const char *arg, struct binocle_window *window);
+int lua_test_profiler(const char *arg);
 
 #endif //BINOCLE_LUA_H
