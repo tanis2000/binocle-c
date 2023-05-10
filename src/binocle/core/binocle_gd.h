@@ -324,9 +324,10 @@ void binocle_gd_draw_circle(binocle_gd *gd, kmVec2 center, float radius, struct 
  * @param vertices the buffer with the vertices to draw
  * @param vertex_count the number of vertices
  * @param render_state the render state
+ * @param depth the depth of the layer being drawn
  */
 void binocle_gd_draw_with_state(binocle_gd *gd, const struct binocle_vpct *vertices, size_t vertex_count,
-                                struct binocle_render_state *render_state);
+                                struct binocle_render_state *render_state, float depth);
 
 void binocle_gd_draw_mesh(binocle_gd *gd, const struct binocle_mesh *mesh, kmAABB2 viewport, struct binocle_camera_3d *camera);
 void binocle_gd_draw_test_triangle(struct sg_shader *shader);

@@ -979,12 +979,12 @@ void binocle_gd_draw_circle(binocle_gd *gd, kmVec2 center, float radius, sg_colo
   binocle_gd_draw_flat(gd, vertex_buffer_data, circle_segments * 3, viewport, camera, NULL, depth);
 }
 
-void binocle_gd_draw_with_state(binocle_gd *gd, const binocle_vpct *vertices, size_t vertex_count, binocle_render_state *render_state) {
+void binocle_gd_draw_with_state(binocle_gd *gd, const binocle_vpct *vertices, size_t vertex_count, binocle_render_state *render_state, float depth) {
   binocle_gd_command_t *cmd = &gd->commands[gd->num_commands];
   cmd->num_vertices = vertex_count;
   cmd->base_vertex = gd->num_vertices;
   cmd->img = *render_state->texture;
-
+  cmd->depth = depth;
   kmMat4 cameraTransformMatrix = render_state->transform;
 
   cmd->uniforms.projectionMatrix = binocle_math_create_orthographic_matrix_off_center(render_state->viewport.min.x, render_state->viewport.max.x,
