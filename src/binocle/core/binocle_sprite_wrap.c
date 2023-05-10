@@ -127,20 +127,36 @@ int l_binocle_sprite_batch_set_gd(lua_State *L) {
   return 1;
 }
 
+binocle_sprite_sort_mode l_binocle_sprite_sort_mode_convert(const char *mode) {
+  if (SDL_strcmp(mode, "BINOCLE_SPRITE_SORT_MODE_BACK_TO_FRONT") == 0) {
+    return BINOCLE_SPRITE_SORT_MODE_BACK_TO_FRONT;
+  } else if (SDL_strcmp(mode, "BINOCLE_SPRITE_SORT_MODE_DEFERRED") == 0) {
+    return BINOCLE_SPRITE_SORT_MODE_DEFERRED;
+  } else if (SDL_strcmp(mode, "BINOCLE_SPRITE_SORT_MODE_FRONT_TO_BACK") == 0) {
+    return BINOCLE_SPRITE_SORT_MODE_FRONT_TO_BACK;
+  } else if (SDL_strcmp(mode, "BINOCLE_SPRITE_SORT_MODE_IMMEDIATE") == 0) {
+    return BINOCLE_SPRITE_SORT_MODE_IMMEDIATE;
+  } else if (SDL_strcmp(mode, "BINOCLE_SPRITE_SORT_MODE_TEXTURE") == 0) {
+    return BINOCLE_SPRITE_SORT_MODE_TEXTURE;
+  }
+  return BINOCLE_SPRITE_SORT_MODE_DEFERRED;
+}
+
 int l_binocle_sprite_batch_begin(lua_State *L) {
   l_binocle_sprite_batch_t *sprite_batch = luaL_checkudata(L, 1, "binocle_sprite_batch");
   l_binocle_camera_t *camera = luaL_checkudata(L, 2, "binocle_camera");
   sg_shader *shd = lua_touserdata(L, 3);
-  kmMat4 matrix;
-  kmMat4Identity(&matrix);
-  binocle_sprite_batch_begin(sprite_batch->sprite_batch, binocle_camera_get_viewport(*camera->camera), BINOCLE_SPRITE_SORT_MODE_DEFERRED, shd, &matrix);
+  kmAABB2 **viewport = lua_touserdata(L, 4);
+  const char *sort_mode = luaL_checkstring(L, 5);
+  binocle_sprite_batch_begin(sprite_batch->sprite_batch, **viewport, l_binocle_sprite_sort_mode_convert(sort_mode), shd, binocle_camera_get_transform_matrix(camera->camera));
   return 1;
 }
 
 int l_binocle_sprite_batch_end(lua_State *L) {
   l_binocle_sprite_batch_t *sprite_batch = luaL_checkudata(L, 1, "binocle_sprite_batch");
   l_binocle_camera_t *camera = luaL_checkudata(L, 2, "binocle_camera");
-  binocle_sprite_batch_end(sprite_batch->sprite_batch, binocle_camera_get_viewport(*camera->camera));
+  kmAABB2 **viewport = lua_touserdata(L, 3);
+  binocle_sprite_batch_end(sprite_batch->sprite_batch, **viewport);
   return 1;
 }
 
@@ -157,12 +173,20 @@ int l_binocle_sprite_batch_draw(lua_State *L) {
   return 1;
 }
 
+int l_binocle_sprite_batch_set_sort_mode(lua_State *L) {
+  l_binocle_sprite_batch_t *sprite_batch = luaL_checkudata(L, 1, "binocle_sprite_batch");
+  const char *sort_mode = luaL_checkstring(L, 2);
+  binocle_sprite_batch_set_sort_mode(sprite_batch->sprite_batch, l_binocle_sprite_sort_mode_convert(sort_mode));
+  return 1;
+}
+
 static const struct luaL_Reg sprite_batch [] = {
   {"new", l_binocle_sprite_batch_new},
   {"set_gd", l_binocle_sprite_batch_set_gd},
   {"begin", l_binocle_sprite_batch_begin},
   {"finish", l_binocle_sprite_batch_end},
   {"draw", l_binocle_sprite_batch_draw},
+  {"set_sort_mode", l_binocle_sprite_batch_set_sort_mode},
   {NULL, NULL}
 };
 

@@ -412,8 +412,9 @@ void binocle_sprite_batcher_draw_batch(binocle_sprite_batcher *batcher, binocle_
  * @param texture the texture to use
  * @param render_state the current render state
  * @param gd the graphics device
+ * @param depth the depth of the layer being flushed
  */
-void binocle_sprite_batcher_flush_vertex_array(binocle_sprite_batcher *batcher, uint64_t start, uint64_t end, struct sg_image *texture, struct binocle_render_state *render_state, struct binocle_gd *gd);
+void binocle_sprite_batcher_flush_vertex_array(binocle_sprite_batcher *batcher, uint64_t start, uint64_t end, struct sg_image *texture, struct binocle_render_state *render_state, struct binocle_gd *gd, float depth);
 
 /**
  * \brief Creates a new sprite batch
@@ -560,5 +561,12 @@ binocle_sprite_batch_draw_noscale(binocle_sprite_batch *batch, struct sg_image *
 void
 binocle_sprite_draw_dst_src_color(binocle_sprite_batch *batch, struct sg_image *texture, kmAABB2 destination_rectangle,
                                   kmAABB2 source_rectangle, sg_color color);
+
+/**
+ * \brief Set the sorting mode of the sprite batch
+ * @param batch the sprite batch
+ * @param mode the sorting mode
+ */
+void binocle_sprite_batch_set_sort_mode(binocle_sprite_batch *batch, binocle_sprite_sort_mode mode);
 
 #endif // BINOCLE_SPRITE_H
