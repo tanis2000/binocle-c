@@ -1,10 +1,10 @@
 project(kazmath)
 
 include_directories(.)
-if (IOS OR EMSCRIPTEN OR APPLE OR MSVC)
-    include_directories(../lua/src)
-else()
+if (BINOCLE_JIT)
     include_directories(../luajit/src)
+else()
+    include_directories(../lua/src)
 endif()
 
 file(GLOB_RECURSE SOURCES *.c)
