@@ -162,6 +162,7 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
       .pixel_format = SG_PIXELFORMAT_BGRA8,
 #endif
       .sample_count = 1,
+      .label = "offscreen"
   };
   gd->offscreen.render_target = sg_make_image(&rt_desc);
 
