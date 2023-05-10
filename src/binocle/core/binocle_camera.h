@@ -71,6 +71,13 @@ void binocle_camera_force_matrix_update(binocle_camera *camera);
 kmMat4 *binocle_camera_get_transform_matrix(binocle_camera *camera);
 
 /**
+ * \brief Gets the inverse transform matrix of the camera
+ * @param camera The camera
+ * @return The inverse transform matrix
+ */
+kmMat4 *binocle_camera_get_inverse_transform_matrix(binocle_camera *camera);
+
+/**
  * \brief Gets the viewport adapter associated to the camera
  * @param camera The camera
  * @return Teh viewport adapter associated to the camera

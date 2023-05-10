@@ -144,11 +144,11 @@ kmMat4 *binocle_camera_get_transform_matrix(binocle_camera *camera) {
   return &camera->transform_matrix;
 }
 
-kmMat4 binocle_camera_get_inverse_transform_matrix(binocle_camera *camera) {
+kmMat4 *binocle_camera_get_inverse_transform_matrix(binocle_camera *camera) {
   if (camera->are_matrixes_dirty) {
     binocle_camera_update_matrixes(camera);
   }
-  return camera->inverse_transform_matrix;
+  return &camera->inverse_transform_matrix;
 }
 
 binocle_viewport_adapter *binocle_camera_get_viewport_adapter(binocle_camera camera) {
