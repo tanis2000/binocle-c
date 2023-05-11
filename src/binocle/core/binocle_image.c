@@ -13,8 +13,6 @@
 #endif
 
 #include "stb_image.h"
-
-#include "binocle_sdl.h"
 #include "binocle_log.h"
 
 sg_image binocle_image_load_with_desc(binocle_image_load_desc *desc) {
