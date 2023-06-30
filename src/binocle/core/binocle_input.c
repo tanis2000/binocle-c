@@ -60,10 +60,10 @@ void binocle_input_update(binocle_input *input) {
             input->willPause = false;
             break;
 
-          case SDL_WINDOWEVENT_RESIZED:
+          case SDL_WINDOWEVENT_SIZE_CHANGED:
             input->resized = true;
-            input->newWindowSize.x = event.window.data1;
-            input->newWindowSize.y = event.window.data2;
+            input->newWindowSize.x = (float)event.window.data1;
+            input->newWindowSize.y = (float)event.window.data2;
             break;
         }
         break;
