@@ -94,7 +94,6 @@ sg_image wabbit_image;
 #endif
 
 #ifdef WITH_PHYSICS
-#include "binocle_http.h"
 #include "chipmunk/chipmunk.h"
 #include "physics.h"
 physics_state_t ps;
