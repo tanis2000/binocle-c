@@ -239,9 +239,19 @@ if(NOT MSVC)
     add_subdirectory(gameplay)
 endif(NOT MSVC)
 
+# Copy OpenSSL shared libraries
+#if (APPLE)
+#    add_custom_command ( TARGET ExampleProject POST_BUILD
+#            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#            ${OPENSSL_LIBRARIES} $<TARGET_FILE_DIR:ExampleProject>
+#            )
+#endif ()
+
 if (APPLE)
+    if (NOT IOS)
     add_custom_command ( TARGET ExampleProject POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${OPENSSL_LIBRARIES} $<TARGET_FILE_DIR:ExampleProject>
+            COMMAND codesign -s - -f --entitlements "${CMAKE_SOURCE_DIR}/platform/macosx/entitlements.plist"
+            $<TARGET_FILE:ExampleProject>
             )
+    endif ()
 endif ()
