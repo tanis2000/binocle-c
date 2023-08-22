@@ -9,6 +9,7 @@
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb_truetype/stb_truetype.h"
 #include "backend/binocle_material.h"
+#include "binocle_fs.h"
 
 binocle_ttfont *binocle_ttfont_new() {
   binocle_ttfont *res = SDL_malloc(sizeof(binocle_ttfont));
@@ -21,27 +22,36 @@ void binocle_ttfont_destroy(binocle_ttfont *font) {
   }
 }
 
-binocle_ttfont *binocle_ttfont_from_file(const char *filename, float size, int texture_width, int texture_height, sg_shader shader) {
+binocle_ttfont *binocle_ttfont_load_with_desc(binocle_ttfont_load_desc *desc) {
   binocle_ttfont *font = binocle_ttfont_new();
-  font->texture_width = texture_width;
-  font->texture_height = texture_height;
+  font->texture_width = desc->texture_width;
+  font->texture_height = desc->texture_height;
 
   char *buffer = NULL;
   size_t buffer_size = 0;
-  bool loaded = binocle_sdl_load_binary_file(filename, &buffer, &buffer_size);
+  bool loaded = false;
+
+  switch (desc->fs) {
+    case BINOCLE_FS_SDL:
+      loaded = binocle_sdl_load_binary_file(desc->filename, &buffer, &buffer_size);
+      break;
+    case BINOCLE_FS_PHYSFS:
+      loaded = binocle_fs_load_binary_file(desc->filename, &buffer, &buffer_size);
+      break;
+  }
 
   if (!loaded) {
-    binocle_log_error("Cannot open TTF file %s", filename);
+    binocle_log_error("Cannot open TTF file %s", desc->filename);
     return font;
   }
 
-  unsigned char *tmp_bitmap = (unsigned char*)SDL_malloc(texture_width * texture_height);
+  unsigned char *tmp_bitmap = (unsigned char*)SDL_malloc(desc->texture_width * desc->texture_height);
 
-  int font_inited = stbtt_BakeFontBitmap(buffer,0, size, tmp_bitmap,texture_width,texture_height, 32,96, font->cdata);
+  int font_inited = stbtt_BakeFontBitmap(buffer,0, desc->size, tmp_bitmap,desc->texture_width,desc->texture_height, 32,96, font->cdata);
   SDL_free(buffer);
 
   if (font_inited == 0) {
-    binocle_log_error("Cannot initialize TTF %s", filename);
+    binocle_log_error("Cannot initialize TTF %s", desc->filename);
     return font;
   }
 
@@ -49,11 +59,11 @@ binocle_ttfont *binocle_ttfont_from_file(const char *filename, float size, int t
     binocle_log_warning("Only %d characters fit in the texture", font_inited);
   }
 
-  font->bitmap = (unsigned char*)malloc(texture_width * texture_height * 4);
-  memset(font->bitmap, 0, texture_width * texture_height * 4);
+  font->bitmap = (unsigned char*)malloc(desc->texture_width * desc->texture_height * 4);
+  memset(font->bitmap, 0, desc->texture_width * desc->texture_height * 4);
   unsigned char *src = tmp_bitmap;
   unsigned char *dest = font->bitmap;
-  size_t tot = texture_width * texture_height;
+  size_t tot = desc->texture_width * desc->texture_height;
   for (int i = 0; i < tot; i++)
   {
     unsigned char alpha = *src;
@@ -68,26 +78,40 @@ binocle_ttfont *binocle_ttfont_from_file(const char *filename, float size, int t
     src++;
   }
   SDL_free(tmp_bitmap)
-  ;
-  sg_image_desc desc = {
-    .width = texture_width,
-    .height = texture_height,
+    ;
+  sg_image_desc img_desc = {
+    .width = desc->texture_width,
+    .height = desc->texture_height,
     .pixel_format = SG_PIXELFORMAT_RGBA8,
-    .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
-    .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
-    .wrap_w = SG_WRAP_CLAMP_TO_EDGE,
-    .min_filter = SG_FILTER_LINEAR,
-    .mag_filter = SG_FILTER_LINEAR,
+    .wrap_u = desc->wrap,
+    .wrap_v = desc->wrap,
+    .wrap_w = desc->wrap,
+    .min_filter = desc->filter,
+    .mag_filter = desc->filter,
     .data.subimage[0][0] = {
       .ptr = font->bitmap,
-      .size = texture_width * texture_height * 4 // forced to 4bpp as we use the same format all the time no matter what we read from the asset
+      .size = desc->texture_width * desc->texture_height * 4 // forced to 4bpp as we use the same format all the time no matter what we read from the asset
     }
   };
-  font->image = sg_make_image(&desc);
+  font->image = sg_make_image(&img_desc);
   font->material = binocle_material_new();
   font->material->albedo_texture = font->image;
-  font->material->shader = shader;
+  font->material->shader = desc->shader;
   return font;
+}
+
+binocle_ttfont *binocle_ttfont_from_file(const char *filename, float size, int texture_width, int texture_height, sg_shader shader) {
+  binocle_ttfont_load_desc desc = {
+    .filename = filename,
+    .filter = SG_FILTER_LINEAR,
+    .wrap = SG_WRAP_CLAMP_TO_EDGE,
+    .fs = BINOCLE_FS_SDL,
+    .size = size,
+    .texture_width = texture_width,
+    .texture_height = texture_height,
+    .shader = shader,
+  };
+  return binocle_ttfont_load_with_desc(&desc);
 }
 
 void binocle_ttfont_draw_string(binocle_ttfont *font, const char *str, struct binocle_gd *gd,

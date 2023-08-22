@@ -17,6 +17,7 @@
 //#include "binocle_sdl.h"
 #include <stdlib.h>
 #include <stdbool.h>
+#include "binocle_fs.h"
 #include "miniaudio/stb_vorbis.h"
 #include "miniaudio/dr_flac.h"
 #include "miniaudio/dr_mp3.h"
@@ -134,6 +135,12 @@ typedef struct binocle_audio_sound {
   binocle_audio_stream stream;
   unsigned int frame_count;
 } binocle_audio_sound;
+
+typedef struct binocle_audio_load_desc {
+  /// the full filename of the audio file we want to load
+  const char *filename;
+  binocle_fs_supported fs;
+} binocle_audio_load_desc;
 
 /**
  * \brief The audio system
@@ -315,31 +322,35 @@ bool binocle_audio_is_file_extension(const char *file_name, const char *ext);
 
 /**
  * \brief Load an OGG audio file
- * @param file_name the file name
+ * @param data the buffer with data
+ * @param data_size the size of the data buffer
  * @return a binocle_audio_wave instance
  */
-static binocle_audio_wave binocle_audio_load_ogg(const char *file_name);
+static binocle_audio_wave binocle_audio_load_ogg(const unsigned char *data, int data_size);
 
 /**
  * \brief Load a FLAC audio file
- * @param file_name the file name
+ * @param data the buffer with data
+ * @param data_size the size of the data buffer
  * @return a binocle_audio_wave instance
  */
-static binocle_audio_wave binocle_audio_load_flac(const char *file_name);
+static binocle_audio_wave binocle_audio_load_flac(const void *data, size_t data_size);
 
 /**
  * \brief Load an MP3 audio file
- * @param file_name the file name
+ * @param data the buffer with data
+ * @param data_size the size of the data buffer
  * @return a binocle_audio_wave instance
  */
-static binocle_audio_wave binocle_audio_load_mp3(const char *file_name);
+static binocle_audio_wave binocle_audio_load_mp3(const void *data, size_t data_size);
 
 /**
  * \brief Load a WAV audio file
- * @param file_name the file name
+ * @param data the buffer with data
+ * @param data_size the size of the data buffer
  * @return a binocle_audio_wave instance
  */
-static binocle_audio_wave binocle_audio_load_wav(const char *file_name);
+static binocle_audio_wave binocle_audio_load_wav(const void *data, size_t data_size);
 
 //
 // Sound
@@ -352,6 +363,14 @@ static binocle_audio_wave binocle_audio_load_wav(const char *file_name);
  * @return a binocle_audio_sound instance
  */
 binocle_audio_sound binocle_audio_load_sound(binocle_audio *audio, const char *file_name);
+
+/**
+ * \brief Loads a sound file
+ * @param audio the audio system
+ * @param desc the descriptor with the options to load the sound from
+ * @return a binocle_audio_sound instance
+ */
+binocle_audio_sound binocle_audio_load_sound_with_desc(binocle_audio *audio, binocle_audio_load_desc *desc);
 
 /**
  * \brief Loads a sound file from an intermediate wave format
@@ -438,6 +457,14 @@ void binocle_audio_set_sound_pitch(binocle_audio_sound sound, float pitch);
  * @return the music struct
  */
 binocle_audio_music binocle_audio_load_music_stream(binocle_audio *audio, const char *file_name);
+
+/**
+ * \brief Loads a music stream from the given file
+ * @param audio the audio system
+ * @param desc the descriptor with the options of the audio file to load
+ * @return the music struct
+ */
+binocle_audio_music binocle_audio_load_music_stream_with_desc(binocle_audio *audio, binocle_audio_load_desc *desc);
 
 /**
  * \brief Releases the music stream

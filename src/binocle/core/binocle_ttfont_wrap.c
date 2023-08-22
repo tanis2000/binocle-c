@@ -25,6 +25,31 @@ int l_binocle_ttfont_from_file(lua_State *L) {
   return 1;
 }
 
+int l_binocle_ttfont_from_assets(lua_State *L) {
+  const char *filename = luaL_checkstring(L, 1);
+  float size = luaL_checknumber(L, 2);
+  sg_shader *shd = lua_touserdata(L, 3);
+  l_binocle_ttfont_t *ttfont = lua_newuserdata(L, sizeof(l_binocle_ttfont_t));
+  lua_getfield(L, LUA_REGISTRYINDEX, "binocle_ttfont");
+  lua_setmetatable(L, -2);
+  SDL_memset(ttfont, 0, sizeof(*ttfont));
+  binocle_ttfont_load_desc desc = {
+    .filename = filename,
+    .filter = SG_FILTER_LINEAR,
+    .wrap = SG_WRAP_CLAMP_TO_EDGE,
+    .fs = BINOCLE_FS_PHYSFS,
+    .size = size,
+    .texture_width = 1024,
+    .texture_height = 1024,
+    .shader = *shd,
+  };
+  binocle_ttfont *ttf = binocle_ttfont_load_with_desc(&desc);
+  ttfont->ttfont = ttf;
+//  ttfont->ttfont = SDL_malloc(sizeof(binocle_ttfont));
+//  SDL_memcpy(ttfont->ttfont, ttf, sizeof(binocle_ttfont));
+  return 1;
+}
+
 int l_binocle_ttfont_draw_string(lua_State *L) {
   l_binocle_ttfont_t *ttfont = luaL_checkudata(L, 1, "binocle_ttfont");
   const char *s = luaL_checkstring(L, 2);
@@ -57,6 +82,7 @@ int l_binocle_ttfont_destroy(lua_State *L) {
 
 static const struct luaL_Reg ttfont [] = {
   {"from_file", l_binocle_ttfont_from_file},
+  {"from_assets", l_binocle_ttfont_from_assets},
   {"draw_string", l_binocle_ttfont_draw_string},
   {"get_string_width", l_binocle_ttfont_get_string_width},
   {"destroy", l_binocle_ttfont_destroy},

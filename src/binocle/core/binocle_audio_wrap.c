@@ -36,6 +36,23 @@ int l_binocle_audio_load_music_stream(lua_State *L) {
   return 1;
 }
 
+int l_binocle_audio_load_music_stream_from_assets(lua_State *L) {
+  l_binocle_audio_t *audio = luaL_checkudata(L, 1, "binocle_audio");
+  const char *filename = lua_tostring(L, 2);
+  binocle_audio_load_desc desc = {
+    .filename = filename,
+    .fs = BINOCLE_FS_PHYSFS,
+  };
+  audio->musics[audio->num_musics] = binocle_audio_load_music_stream_with_desc(audio->audio, &desc);
+  l_binocle_audio_music_t *lmusic = lua_newuserdata(L, sizeof(l_binocle_audio_music_t));
+  lua_getfield(L, LUA_REGISTRYINDEX, "binocle_audio_music");
+  lua_setmetatable(L, -2);
+  SDL_memset(lmusic, 0, sizeof(*lmusic));
+  lmusic->music_idx = audio->num_musics;
+  audio->num_musics++;
+  return 1;
+}
+
 int l_binocle_audio_play_music_stream(lua_State *L) {
   l_binocle_audio_t *audio = luaL_checkudata(L, 1, "binocle_audio");
   l_binocle_audio_music_t *music = luaL_checkudata(L, 2, "binocle_audio_music");
@@ -71,6 +88,23 @@ int l_binocle_audio_load_sound(lua_State *L) {
   return 1;
 }
 
+int l_binocle_audio_load_sound_from_assets(lua_State *L) {
+  l_binocle_audio_t *audio = luaL_checkudata(L, 1, "binocle_audio");
+  const char *filename = luaL_checkstring(L, 2);
+  binocle_audio_load_desc desc = {
+    .filename = filename,
+    .fs = BINOCLE_FS_PHYSFS,
+  };
+  binocle_audio_sound sound = binocle_audio_load_sound_with_desc(audio->audio, &desc);
+  l_binocle_audio_sound_t *lsound = lua_newuserdata(L, sizeof(l_binocle_audio_sound_t));
+  luaL_getmetatable(L, "binocle_audio_sound");
+  lua_setmetatable(L, -2);
+  SDL_memset(lsound, 0, sizeof(*lsound));
+  lsound->sound = SDL_malloc(sizeof(binocle_audio_sound));
+  SDL_memcpy(lsound->sound, &sound, sizeof(binocle_audio_sound));
+  return 1;
+}
+
 int l_binocle_audio_play_sound(lua_State *L) {
   l_binocle_audio_sound_t *sound = luaL_checkudata(L, 1, "binocle_audio_sound");
   binocle_audio_play_sound(*sound->sound);
@@ -88,10 +122,12 @@ static const struct luaL_Reg audio [] = {
   {"new", l_binocle_audio_new},
   {"init", l_binocle_audio_init},
   {"load_music", l_binocle_audio_load_music_stream},
+  {"load_music_from_assets", l_binocle_audio_load_music_stream_from_assets},
   {"play_music", l_binocle_audio_play_music_stream},
   {"set_music_volume", l_binocle_audio_set_music_volume},
   {"update_music_stream", l_binocle_audio_update_music_stream},
   {"load_sound", l_binocle_audio_load_sound},
+  {"load_sound_from_assets", l_binocle_audio_load_sound_from_assets},
   {"play_sound", l_binocle_audio_play_sound},
   {"set_sound_volume", l_binocle_audio_set_sound_volume},
   {NULL, NULL}
