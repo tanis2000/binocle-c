@@ -226,12 +226,12 @@ void binocle_sprite_add_animation_with_frames(binocle_sprite *sprite, int id, bo
                                               int frames_count) {
   binocle_sprite_animation *res = &sprite->animations[id];
   res->enabled = true;
-  //res.delay = delay;
   res->looping = looping;
   for (int i = 0; i < BINOCLE_SPRITE_MAX_FRAMES; i++) {
     res->frames[i] = -1;
   }
   for (int i = 0; i < frames_count; i++) {
+    res->delays[i] = delay;
     res->frames[i] = frames[i];
   }
   res->frames_number = frames_count;
