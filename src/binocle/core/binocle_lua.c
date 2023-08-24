@@ -181,8 +181,10 @@ int binocle_lua_fs_loader(lua_State *L)
     lua_pushstring(L, "Error trying to replace . with / in the loader");
     return 1;
   }
+  char real_filename[1024];
+  sprintf(real_filename, "%s.lua", path);
   char final_path[1024];
-  sprintf(final_path, "/assets/%s.lua", path);
+  sprintf(final_path, "/assets/%s", real_filename);
   SDL_free(path);
   char *buffer;
   size_t buffer_length;
@@ -194,7 +196,7 @@ int binocle_lua_fs_loader(lua_State *L)
   }
 
   lua_pop(L, 1);
-  int status = luaL_loadbuffer(L, buffer, buffer_length, name);
+  int status = luaL_loadbuffer(L, buffer, buffer_length, real_filename);
   SDL_free(buffer);
 
   switch (status)
