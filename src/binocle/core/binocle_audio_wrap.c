@@ -71,7 +71,7 @@ int l_binocle_audio_set_music_volume(lua_State *L) {
 int l_binocle_audio_update_music_stream(lua_State *L) {
   l_binocle_audio_t *audio = luaL_checkudata(L, 1, "binocle_audio");
   l_binocle_audio_music_t *music = luaL_checkudata(L, 2, "binocle_audio_music");
-  binocle_audio_update_music_stream(&audio->musics[music->music_idx]);
+  binocle_audio_update_music_stream(audio->audio, &audio->musics[music->music_idx]);
   return 0;
 }
 

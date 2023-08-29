@@ -29,6 +29,8 @@
 #define MA_NO_WAV
 #define MA_NO_FLAC
 #define MA_NO_MP3
+// Threading model: Default: [0] COINIT_MULTITHREADED: COM calls objects on any thread (free threading)
+#define MA_COINIT_VALUE  2              // [2] COINIT_APARTMENTTHREADED: Each object has its own thread (apartment model)
 #include "miniaudio/miniaudio.h"
 
 #define BINOCLE_AUDIO_DEVICE_FORMAT ma_format_f32
@@ -50,13 +52,22 @@ typedef enum binocle_audio_buffer_usage {
  * \brief The context type of the music file
  */
 typedef enum binocle_audio_music_context_type {
-  BINOCLE_AUDIO_MUSIC_AUDIO_OGG = 0,
+  BINOCLE_AUDIO_MUSIC_AUDIO_NONE = 0, // No audio context loaded
+  BINOCLE_AUDIO_MUSIC_AUDIO_WAV,
+  BINOCLE_AUDIO_MUSIC_AUDIO_OGG,
   BINOCLE_AUDIO_MUSIC_AUDIO_FLAC,
   BINOCLE_AUDIO_MUSIC_AUDIO_MP3,
-  BINOCLE_AUDIO_MUSIC_AUDIO_WAV,
   BINOCLE_AUDIO_MUSIC_MODULE_XM,
   BINOCLE_AUDIO_MUSIC_MODULE_MOD
 } binocle_audio_music_context_type;
+
+typedef void (*binocle_audio_callback)(void *bufferData, unsigned int frames);
+
+typedef struct binocle_audio_processor {
+  binocle_audio_callback process;
+  struct binocle_audio_processor *next;
+  struct binocle_audio_processor *prev;
+} binocle_audio_processor;
 
 /**
  * \brief An audio buffer
@@ -65,6 +76,9 @@ typedef enum binocle_audio_music_context_type {
  */
 typedef struct binocle_audio_buffer {
   ma_data_converter converter;
+
+  binocle_audio_callback callback;
+  binocle_audio_processor *processor;
 
   float volume;
   float pitch;
@@ -80,10 +94,10 @@ typedef struct binocle_audio_buffer {
   unsigned int frame_cursor_pos;
   unsigned int frames_processed;
 
+  unsigned char *data;
+
   struct binocle_audio_buffer *next;
   struct binocle_audio_buffer *prev;
-
-  unsigned char *data;
 } binocle_audio_buffer;
 
 /**
@@ -111,17 +125,17 @@ typedef struct binocle_audio_music {
   binocle_audio_music_context_type ctx_type;
   stb_vorbis *ctx_ogg;
   drflac *ctx_flac;
-  drmp3 ctx_mp3;
-  drwav ctx_wav;
+  drmp3 *ctx_mp3;
+  drwav *ctx_wav;
   jar_xm_context_t *ctx_xm;
-  jar_mod_context_t ctx_mod;
+  jar_mod_context_t *ctx_mod;
 } binocle_audio_music;
 
 /**
  * \brief an intermediate structure that contains data loaded from a sound file
  */
 typedef struct binocle_audio_wave {
-  unsigned int sample_count; // Number of samples
+  unsigned int frame_count; // Total number of frames (considering channels)
   unsigned int sample_rate; // Frequency (samples per second)
   unsigned int sample_size; // Bit depth (bits per sample): 8, 16, 32 (24 not supported)
   unsigned int channels; // Number of channels (1-mono, 2-stereo)
@@ -146,28 +160,23 @@ typedef struct binocle_audio_load_desc {
  * \brief The audio system
  */
 typedef struct binocle_audio {
-  //binocle_sound *active_sounds[BINOCLE_AUDIO_MAX_SOUNDS];
-  uint32_t active_sounds_counter;
-  //binocle_music active_music;
-  bool paused;
-
   // miniaudio stuff
-  ma_decoder decoder;
-  ma_device_config device_config;
   ma_device device;
   ma_context context;
-  float master_volume;
+  ma_mutex lock;
+  bool is_ready;
+  void *pcm_buffer;
+  size_t pcm_buffer_size;
   binocle_audio_buffer *first_audio_buffer;
   binocle_audio_buffer *last_audio_buffer;
   int default_size;
-  bool is_audio_initialized;
-  ma_mutex lock;
-  struct {
-    unsigned int pool_counter;
-    binocle_audio_buffer *pool[BINOCLE_AUDIO_MAX_AUDIO_BUFFER_POOL_CHANNELS];
-    unsigned int channels[BINOCLE_AUDIO_MAX_AUDIO_BUFFER_POOL_CHANNELS];
-  } multi_channel;
+  binocle_audio_processor *mixed_processor;
 } binocle_audio;
+
+static void binocle_audio_log_callback(void *user_data, ma_uint32 log_level, const char *message);
+static ma_uint32 binocle_audio_read_audio_buffer_frames_in_internal_format(binocle_audio_buffer *audio_buffer, void *framesOut, ma_uint32 frameCount);
+static ma_uint32 binocle_audio_read_audio_buffer_frames_in_mixing_format(binocle_audio_buffer *audioBuffer, float *framesOut, ma_uint32 frameCount);
+void binocle_audio_on_send_audio_data_to_device(ma_device *pDevice, void *pFramesOut, const void *pFramesInput, ma_uint32 frameCount);
 
 //
 // Audio system
@@ -229,14 +238,14 @@ void binocle_audio_data_callback(ma_device *pDevice, void *pOutput, const void *
 
 /**
  * \brief Internal function that performs mixing of audio buffers
- * @param pUserData the audio system
+ * @param audio the audio system
  * @param framesOut the output buffer
  * @param framesIn the input buffer
  * @param frameCount the frame count
  * @param localVolume the buffer local volume
  */
 static void
-binocle_audio_mix_audio_frames(void *pUserData, float *framesOut, const float *framesIn, ma_uint32 frameCount,
+binocle_audio_mix_audio_frames(binocle_audio *audio, float *framesOut, const float *framesIn, ma_uint32 frameCount,
                                binocle_audio_buffer* buffer);
 
 /**
@@ -364,13 +373,17 @@ static binocle_audio_wave binocle_audio_load_wav(const void *data, size_t data_s
  */
 binocle_audio_sound binocle_audio_load_sound(binocle_audio *audio, const char *file_name);
 
-/**
- * \brief Loads a sound file
- * @param audio the audio system
- * @param desc the descriptor with the options to load the sound from
- * @return a binocle_audio_sound instance
- */
 binocle_audio_sound binocle_audio_load_sound_with_desc(binocle_audio *audio, binocle_audio_load_desc *desc);
+
+/**
+ * \brief Loads a wave file
+ * @param audio the audio system
+ * @param desc the descriptor with the options to load the wave from
+ * @return a binocle_audio_wave instance
+ */
+binocle_audio_wave binocle_audio_load_wave(binocle_audio *audio, binocle_audio_load_desc *desc);
+
+binocle_audio_wave binocle_audio_load_wave_from_memory(const char *fileName, const void *data, size_t data_size);
 
 /**
  * \brief Loads a sound file from an intermediate wave format
@@ -506,9 +519,10 @@ void binocle_audio_seek_music_stream(binocle_audio_music *music, unsigned int fr
 
 /**
  * \brief Updates a music stream
+ * @param audio the audio system
  * @param music the music stream
  */
-void binocle_audio_update_music_stream(binocle_audio_music *music);
+void binocle_audio_update_music_stream(binocle_audio *audio, binocle_audio_music *music);
 
 /**
  * \brief Returns true if the music stream is playing
@@ -575,13 +589,6 @@ void binocle_audio_unload_audio_stream(binocle_audio *audio, binocle_audio_strea
 void binocle_audio_update_audio_stream(binocle_audio_stream stream, const void *data, int frame_count);
 
 /**
- * \brief Returns true if the audio buffer of the stream has been processed
- * @param stream the audio stream
- * @return true if the audio buffer has already been processed
- */
-bool binocle_audio_is_audio_stream_processed(binocle_audio_stream stream);
-
-/**
  * \brief Plays an audio stream
  * @param stream the audio stream
  */
@@ -642,5 +649,7 @@ uint32_t binocle_audio_convert_time_to_sample(float time_in_seconds, uint32_t sa
  * @return the sample number
  */
 uint32_t binocle_audio_convert_beat_to_sample(uint32_t beat, uint32_t bpm, uint32_t sample_rate);
+
+bool binocle_audio_is_wave_ready(binocle_audio_wave wave);
 
 #endif //BINOCLE_AUDIO_H
