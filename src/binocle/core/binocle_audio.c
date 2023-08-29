@@ -455,6 +455,7 @@ static binocle_audio_wave binocle_audio_load_wav(const void *data, size_t data_s
     wave.frame_count = (unsigned int)wav.totalPCMFrameCount;
     wave.sample_rate = wav.sampleRate;
     wave.sample_size = 16;
+    wave.channels = wav.channels;
     wave.data = (short *)calloc(1, wave.frame_count * wave.channels * sizeof(short));
     drwav_read_pcm_frames_s16(&wav, wav.totalPCMFrameCount, wave.data);
   } else {
