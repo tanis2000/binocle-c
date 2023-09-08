@@ -263,6 +263,13 @@ bool binocle_audio_is_audio_device_ready(binocle_audio *audio);
 void binocle_audio_set_master_volume(binocle_audio *audio, float volume);
 
 /**
+ * \brief Gets the master volume of the audio system
+ * @param audio the audio system
+ * @param volume a reference to the variable where the volume will be written [0..1]
+ */
+void binocle_audio_get_master_volume(binocle_audio *audio, float *volume);
+
+/**
  * \brief Returns true if the audio buffer is playing
  * @param audio_buffer the audio buffer
  * @return true if playing

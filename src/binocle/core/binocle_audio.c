@@ -127,6 +127,10 @@ void binocle_audio_set_master_volume(binocle_audio *audio, float volume) {
   ma_device_set_master_volume(&audio->device, volume);
 }
 
+void binocle_audio_get_master_volume(binocle_audio *audio, float *volume) {
+  ma_device_get_master_volume(&audio->device, volume);
+}
+
 binocle_audio_buffer *binocle_audio_load_audio_buffer(binocle_audio *audio, ma_format format, ma_uint32 channels, ma_uint32 sampleRate, ma_uint32 sizeInFrames, int usage)
 {
   binocle_audio_buffer *audioBuffer = (binocle_audio_buffer *)calloc(1, sizeof(binocle_audio_buffer));

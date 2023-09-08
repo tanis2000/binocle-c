@@ -140,7 +140,7 @@ void main_loop() {
   float dt = binocle_window_get_frame_time(window) / 1000.0f;
 
   binocle_input_update(&input);
-  binocle_audio_update_music_stream(&music);
+  binocle_audio_update_music_stream(&audio, &music);
 
   if (input.resized) {
     kmVec2 oldWindowSize;
@@ -171,10 +171,14 @@ void main_loop() {
   }
 
   if (binocle_input_is_key_pressed(&input, KEY_1)) {
-    binocle_audio_set_master_volume(&audio, audio.master_volume-0.2f);
+    float volume;
+    binocle_audio_get_master_volume(&audio, &volume);
+    binocle_audio_set_master_volume(&audio, volume-0.2f);
   }
   if (binocle_input_is_key_pressed(&input, KEY_2)) {
-    binocle_audio_set_master_volume(&audio, audio.master_volume+0.2f);
+    float volume;
+    binocle_audio_get_master_volume(&audio, &volume);
+    binocle_audio_set_master_volume(&audio, volume+0.2f);
   }
 
   kmVec2 mouse_pos;
