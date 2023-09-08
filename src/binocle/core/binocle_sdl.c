@@ -289,3 +289,12 @@ bool binocle_sdl_directory_exists(const char *path) {
     binocle_log_warning( "%s is not a directory\n", path );
   return false;
 }
+
+
+char *binocle_sdl_preferences_dir(const char *org, const char *app) {
+  char *binocle_preferences_dir = SDL_GetPrefPath(org, app);
+  if (binocle_preferences_dir == NULL) {
+    return "";
+  }
+  return binocle_preferences_dir;
+}

@@ -102,6 +102,15 @@ char *binocle_sdl_assets_dir();
  */
 bool binocle_sdl_filename_ends_with(const char *str, const char *suffix);
 
+/**
+ * \brief Returns the path where files can be written.
+ * This is specific per platform.
+ * @param org the name of the organization
+ * @param app the name of the application
+ * @return the path where files can be written. An empty string if the path can't be found.
+ */
+char *binocle_sdl_preferences_dir(const char *org, const char *app);
+
 char *binocle_sdl_str_replace(char *orig, char *rep, char *with);
 bool binocle_sdl_file_exists(const char *filename);
 bool binocle_sdl_directory_exists(const char *path);
