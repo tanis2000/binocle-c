@@ -31,9 +31,10 @@ bool binocle_http_get(const char *url, binocle_http_body_t *body) {
   body->memory = malloc(1);  /* will be grown as needed by the realloc above */
   body->size = 0;    /* no data at this point */
   char *res = do_binocle_http_get(url);
-  body->memory = SDL_realloc(body->memory, SDL_strlen(res));
-  body->size = SDL_strlen(res);
+  body->memory = SDL_realloc(body->memory, SDL_strlen(res) + 1);
+  body->size = SDL_strlen(res) + 1;
   SDL_memcpy(body->memory, res, body->size);
+  body->memory[body->size - 1] = 0;
   free(res);
   return 0;
 }
