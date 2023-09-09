@@ -22,6 +22,12 @@ bool binocle_app_init(binocle_app *app, binocle_app_desc_t *desc) {
   // Initialize time stuff
   stm_setup();
 
+  // Hide the console on Windows
+#if defined(__WINDOWS__) && !defined(BINOCLE_SHOW_CONSOLE)
+  const HWND windowHandle = GetConsoleWindow();
+  ShowWindow(windowHandle, SW_HIDE);
+#endif
+
   // Initialize the filesystem
   app->fs = binocle_fs_new();
   binocle_fs_init(&app->fs);

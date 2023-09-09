@@ -32,6 +32,10 @@ if(BINOCLE_LUAJIT)
 	add_definitions(-DBINOCLE_LUAJIT)
 endif ()
 
+if(BINOCLE_SHOW_CONSOLE)
+	add_definitions(-DBINOCLE_SHOW_CONSOLE)
+endif()
+
 include(BinocleUtils)
 
 SET(VERSION_MAJOR "0")

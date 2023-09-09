@@ -1,1 +1,3 @@
 option(BINOCLE_LUAJIT "Enable LuaJIT on supported platforms (Windows, macOS)" OFF)
+option(BINOCLE_SHOW_CONSOLE "Enable console output on Windows" OFF)
+option(BINOCLE_HTTP "Enable HTTP support on supported platforms (Windows, macOS, web)" ON)
