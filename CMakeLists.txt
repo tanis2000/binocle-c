@@ -36,6 +36,10 @@ if(BINOCLE_SHOW_CONSOLE)
 	add_definitions(-DBINOCLE_SHOW_CONSOLE)
 endif()
 
+if(BINOCLE_LOG_MEMORY_ALLOCATIONS)
+	add_definitions(-DBINOCLE_LOG_MEMORY_ALLOCATIONS)
+endif()
+
 include(BinocleUtils)
 
 SET(VERSION_MAJOR "0")
