@@ -390,6 +390,9 @@ void binocle_gd_draw(binocle_gd *gd, const struct binocle_vpct *vertices, size_t
 KSORT_INIT(binocle_gd_sort_commands, binocle_gd_command_t, binocle_gd_command_lt)
 
 void binocle_gd_render_offscreen(binocle_gd *gd) {
+  if (gd->num_vertices == 0) {
+    return;
+  }
   sg_update_buffer(gd->offscreen.vbuf, &(sg_range){ .ptr=gd->vertices, .size=gd->num_vertices * sizeof(binocle_vpct) });
 
   sg_begin_pass(gd->offscreen.pass, &gd->offscreen.action);
