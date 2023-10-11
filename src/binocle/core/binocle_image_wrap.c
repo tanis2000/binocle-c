@@ -43,6 +43,12 @@ int l_binocle_image_get_info(lua_State *L) {
   return 2;
 }
 
+int l_binocle_image_type_of(lua_State *L) {
+  l_binocle_image_t *img = luaL_checkudata(L, 1, "binocle_image");
+  lua_pushstring(L, "image");
+  return 1;
+}
+
 static const struct luaL_Reg image [] = {
   {"load", l_binocle_image_load},
   {"load_from_assets", l_binocle_image_load_from_assets},
@@ -50,10 +56,18 @@ static const struct luaL_Reg image [] = {
   {NULL, NULL}
 };
 
+static const struct luaL_Reg image_m [] = {
+  {"type_of", l_binocle_image_type_of},
+  {NULL, NULL}
+};
+
 int luaopen_image(lua_State *L) {
   luaL_newlib(L, image);
   lua_setglobal(L, "image");
   luaL_newmetatable(L, "binocle_image");
+  lua_pushvalue(L, -1);
+  lua_setfield(L, -2, "__index");
+  luaL_register(L, NULL, image_m);
   lua_pop(L, 1);
   return 1;
 }

@@ -118,6 +118,18 @@ int l_binocle_audio_set_sound_volume(lua_State *L) {
   return 0;
 }
 
+int l_binocle_audio_music_type_of(lua_State *L) {
+  l_binocle_audio_music_t *music = luaL_checkudata(L, 1, "binocle_audio_music");
+  lua_pushstring(L, "music");
+  return 1;
+}
+
+int l_binocle_audio_sound_type_of(lua_State *L) {
+  l_binocle_audio_sound_t *sound = luaL_checkudata(L, 1, "binocle_audio_sound");
+  lua_pushstring(L, "sound");
+  return 1;
+}
+
 static const struct luaL_Reg audio [] = {
   {"new", l_binocle_audio_new},
   {"init", l_binocle_audio_init},
@@ -133,12 +145,30 @@ static const struct luaL_Reg audio [] = {
   {NULL, NULL}
 };
 
+static const struct luaL_Reg audio_music_m [] = {
+  {"type_of", l_binocle_audio_music_type_of},
+  {NULL, NULL}
+};
+
+static const struct luaL_Reg audio_sound_m [] = {
+  {"type_of", l_binocle_audio_sound_type_of},
+  {NULL, NULL}
+};
+
 int luaopen_audio(lua_State *L) {
   luaL_newlib(L, audio);
   lua_setglobal(L, "audio");
   luaL_newmetatable(L, "binocle_audio");
+
   luaL_newmetatable(L, "binocle_audio_music");
+  lua_pushvalue(L, -1);
+  lua_setfield(L, -2, "__index");
+  luaL_register(L, NULL, audio_music_m);
+
   luaL_newmetatable(L, "binocle_audio_sound");
+  lua_pushvalue(L, -1);
+  lua_setfield(L, -2, "__index");
+  luaL_register(L, NULL, audio_sound_m);
   lua_pop(L, 3);
   return 1;
 }
