@@ -112,6 +112,25 @@ int l_binocle_gd_draw_rect(lua_State *L) {
   return 0;
 }
 
+int l_binocle_gd_draw_rect_outline(lua_State *L) {
+  l_binocle_gd_t *gd = lua_touserdata(L, 1);
+  float center_x = lua_tonumber(L, 2);
+  float center_y = lua_tonumber(L, 3);
+  float width = lua_tonumber(L, 4);
+  float height = lua_tonumber(L, 5);
+  sg_color *color = luaL_checkudata(L, 6, "binocle_color");
+  kmAABB2 **viewport = lua_touserdata(L, 7);
+  l_binocle_camera_t *camera = luaL_checkudata(L, 8, "binocle_camera");
+  float depth = lua_tonumber(L, 9);
+  kmAABB2 rect;
+  kmVec2 center;
+  center.x = center_x;
+  center.y = center_y;
+  kmAABB2Initialize(&rect, &center, width, height, 0);
+  binocle_gd_draw_rect_outline(gd->gd, rect, *color, **viewport, camera->camera, depth);
+  return 0;
+}
+
 int l_binocle_gd_set_offscreen_clear_color(lua_State *L) {
   l_binocle_gd_t *gd = lua_touserdata(L, 1);
   float r = (float)luaL_checknumber(L, 2);
@@ -228,6 +247,7 @@ static const struct luaL_Reg gd [] = {
   {"draw_quad_to_screen", l_binocle_gd_draw_quad_to_screen},
   {"set_offscreen_clear_color", l_binocle_gd_set_offscreen_clear_color},
   {"draw_rect", l_binocle_gd_draw_rect},
+  {"draw_rect_outline", l_binocle_gd_draw_rect_outline},
   {"render_screen", l_binocle_gd_render_screen},
   {"create_shader_desc", l_create_offscreen_shader_desc},
   {"add_uniform_to_shader_desc", l_binocle_gd_add_uniform_to_shader_desc},
