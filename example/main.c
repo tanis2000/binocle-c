@@ -450,10 +450,10 @@ void main_loop() {
 
 int main(int argc, char *argv[])
 {
-//  binocle_memory_init();
-//  game_state = binocle_memory_bootstrap_push_struct(game_state_t, main_arena, binocle_memory_default_bootstrap_params(), binocle_memory_default_arena_params());
-//  binocle_string s1 = binocle_memory_push_cstring(game_state->main_arena, "Something");
-//  binocle_string s2 = binocle_memory_push_cstring(game_state->main_arena, "Different");
+  binocle_memory_init();
+  game_state = binocle_memory_bootstrap_push_struct(game_state_t, main_arena, binocle_memory_default_bootstrap_params(), binocle_memory_default_arena_params());
+  binocle_string s1 = binocle_memory_push_cstring(game_state->main_arena, "Something");
+  binocle_string s2 = binocle_memory_push_cstring(game_state->main_arena, "Different");
   binocle_app_desc_t app_desc = {0};
   app = binocle_app_new();
   binocle_app_init(&app, &app_desc);
