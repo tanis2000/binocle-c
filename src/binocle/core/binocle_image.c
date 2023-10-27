@@ -62,11 +62,12 @@ sg_image binocle_image_load_with_desc(binocle_image_load_desc *desc) {
     .width = width,
     .height = height,
     .pixel_format = SG_PIXELFORMAT_RGBA8,
-    .wrap_u = desc->wrap,
-    .wrap_v = desc->wrap,
-    .wrap_w = desc->wrap,
-    .min_filter = desc->filter,
-    .mag_filter = desc->filter,
+    // TODO: those parameters are now in the sampler of the binding. We might want to remove them from here and move to the right place
+//    .wrap_u = desc->wrap,
+//    .wrap_v = desc->wrap,
+//    .wrap_w = desc->wrap,
+//    .min_filter = desc->filter,
+//    .mag_filter = desc->filter,
     .data.subimage[0][0] = {
       .ptr = data,
       .size = width * height * 4 // forced to 4bpp as we use the same format all the time no matter what we read from the asset
@@ -96,11 +97,12 @@ sg_image binocle_image_load_from_memory(const unsigned char *image_data, int wid
     .width = width,
     .height = height,
     .pixel_format = SG_PIXELFORMAT_RGBA8,
-    .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
-    .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
-    .wrap_w = SG_WRAP_CLAMP_TO_EDGE,
-    .min_filter = filter,
-    .mag_filter = filter,
+    // TODO: those parameters are now in the sampler of the binding. We might want to remove them from here and move to the right place
+//    .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
+//    .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
+//    .wrap_w = SG_WRAP_CLAMP_TO_EDGE,
+//    .min_filter = filter,
+//    .mag_filter = filter,
     .data.subimage[0][0] = {
       .ptr = image_data,
       .size = width * height * sizeof(uint32_t)

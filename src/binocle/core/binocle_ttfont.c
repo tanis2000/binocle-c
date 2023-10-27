@@ -83,11 +83,12 @@ binocle_ttfont *binocle_ttfont_load_with_desc(binocle_ttfont_load_desc *desc) {
     .width = desc->texture_width,
     .height = desc->texture_height,
     .pixel_format = SG_PIXELFORMAT_RGBA8,
-    .wrap_u = desc->wrap,
-    .wrap_v = desc->wrap,
-    .wrap_w = desc->wrap,
-    .min_filter = desc->filter,
-    .mag_filter = desc->filter,
+    // TODO: those parameters are now in the sampler of the binding. We might want to remove them from here and move to the right place
+//    .wrap_u = desc->wrap,
+//    .wrap_v = desc->wrap,
+//    .wrap_w = desc->wrap,
+//    .min_filter = desc->filter,
+//    .mag_filter = desc->filter,
     .data.subimage[0][0] = {
       .ptr = font->bitmap,
       .size = desc->texture_width * desc->texture_height * 4 // forced to 4bpp as we use the same format all the time no matter what we read from the asset
