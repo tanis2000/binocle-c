@@ -1,0 +1,4 @@
+tools/sokol-shdc/linux/sokol-shdc filter=lfs diff=lfs merge=lfs -text
+tools/sokol-shdc/osx/sokol-shdc filter=lfs diff=lfs merge=lfs -text
+tools/sokol-shdc/osx_arm64/sokol-shdc filter=lfs diff=lfs merge=lfs -text
+tools/sokol-shdc/win32/sokol-shdc.exe filter=lfs diff=lfs merge=lfs -text
