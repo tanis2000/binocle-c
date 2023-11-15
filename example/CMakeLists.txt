@@ -255,3 +255,73 @@ if (APPLE)
             )
     endif ()
 endif ()
+
+file(GLOB_RECURSE GLSL_SOURCE_FILES
+        "${CMAKE_SOURCE_DIR}/assets/shaders/src/*.glsl"
+)
+
+set(SHADER_COMPILER "")
+if (APPLE)
+    set(SHADER_COMPILER "osx/sokol-shdc")
+elseif (WIN32)
+    set(SHADER_COMPILER "win32/sokol-shdc.exe")
+endif (APPLE)
+
+foreach(GLSL ${GLSL_SOURCE_FILES})
+    get_filename_component(FILE_NAME ${GLSL} NAME)
+    set(SPIRV_GL33 "${CMAKE_SOURCE_DIR}/assets/shaders/dst/gl33/${FILE_NAME}")
+    set(SPIRV_GLES "${CMAKE_SOURCE_DIR}/assets/shaders/dst/gles/${FILE_NAME}")
+    set(SPIRV_HLSL "${CMAKE_SOURCE_DIR}/assets/shaders/dst/hlsl/${FILE_NAME}")
+    set(SPIRV_METAL_MACOS "${CMAKE_SOURCE_DIR}/assets/shaders/dst/metal-macos/${FILE_NAME}")
+    set(SPIRV_METAL_IOS "${CMAKE_SOURCE_DIR}/assets/shaders/dst/metal-ios/${FILE_NAME}")
+    message("Compiling shader ${GLSL} to ${SPIRV_GL33}")
+    message("Compiling shader ${GLSL} to ${SPIRV_GLES}")
+    message("Compiling shader ${GLSL} to ${SPIRV_HLSL}")
+    message("Compiling shader ${GLSL} to ${SPIRV_METAL}")
+    add_custom_command(
+            OUTPUT ${SPIRV_GL33}
+            OUTPUT ${SPIRV_GLES}
+            OUTPUT ${SPIRV_HLSL}
+            OUTPUT ${SPIRV_METAL_MACOS}
+            OUTPUT ${SPIRV_METAL_IOS}
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/assets/shaders/"
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/assets/shaders/dst"
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/assets/shaders/dst/gl33"
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/assets/shaders/dst/gles"
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/assets/shaders/dst/hlsl"
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/assets/shaders/dst/metal-macos"
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/assets/shaders/dst/metal-ios"
+            COMMAND "${CMAKE_SOURCE_DIR}/tools/sokol-shdc/${SHADER_COMPILER}"
+            ARGS "--input" "${GLSL}" "--output" "${SPIRV_GL33}" "--slang" "glsl330" "-f" "bare"
+            COMMAND "${CMAKE_SOURCE_DIR}/tools/sokol-shdc/${SHADER_COMPILER}"
+            # Enable the following to get a C output of the shaders for debugging purposes
+#            ARGS "--input" "${GLSL}" "--output" "${SPIRV_GL33}" "--slang" "glsl330" "-f" "sokol"
+#            COMMAND "${CMAKE_SOURCE_DIR}/tools/sokol-shdc/${SHADER_COMPILER}"
+            ARGS "--input" "${GLSL}" "--output" "${SPIRV_GLES}" "--slang" "glsl300es" "-f" "bare"
+            COMMAND "${CMAKE_SOURCE_DIR}/tools/sokol-shdc/${SHADER_COMPILER}"
+            ARGS "--input" "${GLSL}" "--output" "${SPIRV_HLSL}" "--slang" "hlsl4" "-f" "bare"
+            COMMAND "${CMAKE_SOURCE_DIR}/tools/sokol-shdc/${SHADER_COMPILER}"
+            ARGS "--input" "${GLSL}" "--output" "${SPIRV_METAL_MACOS}" "--slang" "metal_macos" "-f" "bare"
+            COMMAND "${CMAKE_SOURCE_DIR}/tools/sokol-shdc/${SHADER_COMPILER}"
+            ARGS "--input" "${GLSL}" "--output" "${SPIRV_METAL_IOS}" "--slang" "metal_ios" "-f" "bare"
+    )
+    list(APPEND SPIRV_GENERATED_FILES ${SPIRV_GL33} ${SPIRV_GLES} ${SPIRV_HLSL} ${SPIRV_METAL})
+endforeach(GLSL)
+
+add_custom_target(
+        Shaders
+        DEPENDS ${SPIRV_GENERATED_FILES}
+)
+
+add_dependencies(ExampleProject Shaders)
+
+#if (APPLE)
+#    if (NOT IOS)
+#        add_custom_command(
+##                OUTPUT shader_output
+#                TARGET ExampleProject POST_BUILD
+#                COMMAND "${CMAKE_SOURCE_DIR}/tools/sokol-shdc/osx_arm64/sokol-shdc"
+#                ARGS "--input" "${CMAKE_SOURCE_DIR}/assets/shaders/src/default.glsl" "--output" "${CMAKE_SOURCE_DIR}/assets/shaders/dst/gl33/" "--slang" "glsl330" "-f" "bare"
+#        )
+#    endif ()
+#endif ()

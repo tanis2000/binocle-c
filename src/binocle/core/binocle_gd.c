@@ -145,16 +145,16 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
       .render_target = true,
       .width = offscreen_width,
       .height = offscreen_height,
-      .min_filter = SG_FILTER_LINEAR,
-      .mag_filter = SG_FILTER_LINEAR,
+//      .min_filter = SG_FILTER_LINEAR,
+//      .mag_filter = SG_FILTER_LINEAR,
 #ifdef SOKOL_GLES3
     .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
     .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
     .wrap_w = SG_WRAP_CLAMP_TO_EDGE,
 #else
-    .wrap_u = SG_WRAP_CLAMP_TO_BORDER,
-    .wrap_v = SG_WRAP_CLAMP_TO_BORDER,
-    .wrap_w = SG_WRAP_CLAMP_TO_BORDER,
+//    .wrap_u = SG_WRAP_CLAMP_TO_BORDER,
+//    .wrap_v = SG_WRAP_CLAMP_TO_BORDER,
+//    .wrap_w = SG_WRAP_CLAMP_TO_BORDER,
 #endif
 #ifdef BINOCLE_GL
       .pixel_format = SG_PIXELFORMAT_RGBA8,
@@ -170,8 +170,8 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
   sg_color off_clear_color = binocle_color_azure();
   sg_pass_action offscreen_action = {
       .colors[0] = {
-          .action = SG_ACTION_CLEAR,
-          .value = {
+      .load_action = SG_LOADACTION_CLEAR,
+      .clear_value =  {
               .r = off_clear_color.r,
               .g = off_clear_color.g,
               .b = off_clear_color.b,
@@ -184,11 +184,13 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
   // Render pass that renders to the offscreen render target
   gd->offscreen.pass = sg_make_pass(&(sg_pass_desc){
       .color_attachments[0].image = gd->offscreen.render_target,
+    .label = "offscreen-pass",
   });
 
   binocle_log_info("Setting up offscreen pipeline");
   // Pipeline state object for the offscreen rendered sprite
   gd->offscreen.pip = sg_make_pipeline(&(sg_pipeline_desc) {
+    .label = "offscreen-pipeline",
       .layout = {
           .attrs = {
               [0] = { .format = SG_VERTEXFORMAT_FLOAT2 }, // position
@@ -244,7 +246,12 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
           [0] = gd->offscreen.vbuf,
       },
   };
-
+  gd->offscreen.bind.fs.samplers[0] = sg_make_sampler(&(sg_sampler_desc){
+    .label = "offscreen-sampler",
+    .min_filter = SG_FILTER_LINEAR,
+    .mag_filter = SG_FILTER_LINEAR,
+    .mipmap_filter = SG_FILTER_NONE,
+  });
 
   // Render to screen pipeline
 
@@ -252,8 +259,8 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
   sg_color clear_color = binocle_color_green();
   sg_pass_action default_action = {
     .colors[0] = {
-      .action = SG_ACTION_CLEAR,
-      .value = {
+      .load_action = SG_LOADACTION_CLEAR,
+      .clear_value = {
         .r = clear_color.r,
         .g = clear_color.g,
         .b = clear_color.b,
@@ -267,6 +274,7 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
 
   // Pipeline state object for the screen (default) pass
   gd->display.pip = sg_make_pipeline(&(sg_pipeline_desc){
+    .label = "display-pipeline",
     .layout = {
       .attrs = {
         [0] = { .format = SG_VERTEXFORMAT_FLOAT3 }, // position
@@ -331,10 +339,16 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
       [0] = gd->display.vbuf,
     },
     .index_buffer = gd->display.ibuf,
-    .fs_images = {
+    .fs.images = {
       [0] = gd->offscreen.render_target,
     }
   };
+  gd->display.bind.fs.samplers[0] = sg_make_sampler(&(sg_sampler_desc){
+    .label = "display-sampler",
+    .min_filter = SG_FILTER_LINEAR,
+    .mag_filter = SG_FILTER_LINEAR,
+    .mipmap_filter = SG_FILTER_NONE,
+  });
 }
 
 void binocle_gd_draw(binocle_gd *gd, const struct binocle_vpct *vertices, size_t vertex_count, binocle_material material,
@@ -402,7 +416,7 @@ void binocle_gd_render_offscreen(binocle_gd *gd) {
   for (uint32_t i = 0 ; i < gd->num_commands ; i++) {
     binocle_gd_command_t *cmd = &gd->commands[i];
 
-    gd->offscreen.bind.fs_images[0] = cmd->img;
+    gd->offscreen.bind.fs.images[0] = cmd->img;
     gd->offscreen.bind.vertex_buffers[0] = gd->offscreen.vbuf;
 
     if (sg_query_pipeline_state(cmd->pip) == SG_RESOURCESTATE_VALID) {
@@ -433,6 +447,7 @@ void binocle_gd_render_screen(binocle_gd *gd, struct binocle_window *window, flo
     float resolution[2];
     float scale[2];
     float viewport[2];
+    uint8_t _pad_24[8];
   } screen_fs_params_t;
 
   screen_vs_params_t screen_vs_params;
@@ -448,7 +463,7 @@ void binocle_gd_render_screen(binocle_gd *gd, struct binocle_window *window, flo
   screen_fs_params.viewport[0] = viewport.min.x;
   screen_fs_params.viewport[1] = viewport.min.y;
 
-  gd->display.bind.fs_images[0] = gd->offscreen.render_target;
+  gd->display.bind.fs.images[0] = gd->offscreen.render_target;
 
   sg_begin_default_pass(&gd->display.action, window->width, window->height);
   sg_apply_pipeline(gd->display.pip);
@@ -519,8 +534,8 @@ void binocle_gd_setup_flat_pipeline(binocle_gd *gd) {
 
   sg_pass_action action = {
     .colors[0] = {
-      .action = SG_ACTION_DONTCARE,
-      .value = {0.0f, 1.0f, 0.0f, 1.0f},
+      .load_action = SG_LOADACTION_DONTCARE,
+      .clear_value = {0.0f, 1.0f, 0.0f, 1.0f},
     }
   };
   gd->flat.action = action;
@@ -693,7 +708,7 @@ void binocle_gd_set_uniform_mat4(sg_shader shader, const char *name, kmMat4 mat)
 }
 
 void binocle_gd_set_offscreen_clear_color(binocle_gd *gd, struct sg_color color) {
-  gd->offscreen.action.colors[0].value = color;
+  gd->offscreen.action.colors[0].clear_value = color;
 }
 
 void binocle_gd_set_render_target(sg_image render_target) {
@@ -1228,7 +1243,9 @@ sg_shader_desc binocle_gd_create_offscreen_shader_desc(const char *shader_vs_src
     .fs.byte_code = default_fs_bytecode,
     .fs.byte_code_size = sizeof(default_fs_bytecode),
 #endif
-    .fs.images[0] = { .name = "tex0", .image_type = SG_IMAGETYPE_2D},
+    .fs.images[0] = {
+//      .name = "tex0",
+      .image_type = SG_IMAGETYPE_2D},
   };
   return shader_desc;
 }

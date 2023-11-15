@@ -42,9 +42,17 @@
 #endif
 
 #if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
-#define SHADER_PATH "gles"
+#define SHADER_PATH "dst/gles"
+#define DEFAULT_VS_FILENAME "default.glsl_default_glsl300es_vs.glsl"
+#define DEFAULT_FS_FILENAME "default.glsl_default_glsl300es_fs.glsl"
+#define SCREEN_VS_FILENAME "screen.glsl_default_glsl300es_vs.glsl"
+#define SCREEN_FS_FILENAME "screen.glsl_default_glsl300es_fs.glsl"
 #else
-#define SHADER_PATH "gl33"
+#define SHADER_PATH "dst/gl33"
+#define DEFAULT_VS_FILENAME "default.glsl_default_glsl330_vs.glsl"
+#define DEFAULT_FS_FILENAME "default.glsl_default_glsl330_fs.glsl"
+#define SCREEN_VS_FILENAME "screen.glsl_default_glsl330_vs.glsl"
+#define SCREEN_FS_FILENAME "screen.glsl_default_glsl330_fs.glsl"
 #endif
 
 typedef struct default_shader_params_t {
@@ -57,6 +65,7 @@ typedef struct screen_shader_fs_params_t {
   float resolution[2];
   float scale[2];
   float viewport[2];
+  uint8_t _pad_24[8];
 } screen_shader_fs_params_t;
 
 typedef struct screen_shader_vs_params_t {
@@ -461,9 +470,9 @@ int main(int argc, char *argv[])
 #ifdef BINOCLE_GL
   // Default shader
   char vert[1024];
-  sprintf(vert, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, "default.vert");
+  sprintf(vert, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, DEFAULT_VS_FILENAME);
   char frag[1024];
-  sprintf(frag, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, "default.frag");
+  sprintf(frag, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, DEFAULT_FS_FILENAME);
 
   char *shader_vs_src;
   size_t shader_vs_src_size;
@@ -485,13 +494,13 @@ int main(int argc, char *argv[])
       [0] = { .name = "vertexPosition"},
       [1] = { .name = "vertexColor"},
       [2] = { .name = "vertexTCoord"},
+      [3] = { .name = "vertexNormal"},
     },
     .vs.uniform_blocks[0] = {
       .size = sizeof(default_shader_params_t),
+      .layout = SG_UNIFORMLAYOUT_STD140,
       .uniforms = {
-        [0] = { .name = "projectionMatrix", .type = SG_UNIFORMTYPE_MAT4},
-        [1] = { .name = "viewMatrix", .type = SG_UNIFORMTYPE_MAT4},
-        [2] = { .name = "modelMatrix", .type = SG_UNIFORMTYPE_MAT4},
+        [0] = { .name = "vs_params", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = 12},
       }
     },
 #ifdef BINOCLE_GL
@@ -500,14 +509,28 @@ int main(int argc, char *argv[])
     .fs.bytecode.ptr = default_fs_bytecode,
     .fs.bytecode.size = sizeof(default_fs_bytecode),
 #endif
-    .fs.images[0] = { .name = "tex0", .image_type = SG_IMAGETYPE_2D},
+    .fs.images[0] = {
+      .used = true,
+      .image_type = SG_IMAGETYPE_2D,
+      .sample_type = SG_IMAGESAMPLETYPE_FLOAT,
+    },
+    .fs.samplers[0] = {
+      .used = true,
+      .sampler_type = SG_SAMPLERTYPE_FILTERING,
+    },
+    .fs.image_sampler_pairs[0] = {
+      .used = true,
+      .glsl_name = "tex0_smp",
+      .image_slot = 0,
+      .sampler_slot = 0,
+    }
   };
   default_shader = sg_make_shader(&default_shader_desc);
 
 #ifdef BINOCLE_GL
   // Screen shader
-  sprintf(vert, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, "screen.vert");
-  sprintf(frag, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, "screen.frag");
+  sprintf(vert, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, SCREEN_VS_FILENAME);
+  sprintf(frag, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, SCREEN_FS_FILENAME);
 
   char *screen_shader_vs_src;
   size_t screen_shader_vs_src_size;
@@ -534,8 +557,9 @@ int main(int argc, char *argv[])
     },
     .vs.uniform_blocks[0] = {
       .size = sizeof(screen_shader_vs_params_t),
+      .layout = SG_UNIFORMLAYOUT_STD140,
       .uniforms = {
-        [0] = { .name = "transform", .type = SG_UNIFORMTYPE_MAT4},
+        [0] = { .name = "vs_params", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = 4},
       },
     },
 #ifdef BINOCLE_GL
@@ -544,13 +568,26 @@ int main(int argc, char *argv[])
     .fs.bytecode.ptr = screen_fs_bytecode,
     .fs.bytecode.size = sizeof(screen_fs_bytecode),
 #endif
-    .fs.images[0] = { .name = "tex0", .image_type = SG_IMAGETYPE_2D},
+    .fs.images[0] = {
+      .used = true,
+       .image_type = SG_IMAGETYPE_2D,
+      .sample_type = SG_IMAGESAMPLETYPE_FLOAT,
+    },
+    .fs.samplers[0] = {
+      .used = true,
+      .sampler_type = SG_SAMPLERTYPE_FILTERING,
+    },
+    .fs.image_sampler_pairs[0] = {
+      .used = true,
+      .glsl_name = "tex0_smp",
+      .image_slot = 0,
+      .sampler_slot = 0,
+    },
     .fs.uniform_blocks[0] = {
       .size = sizeof(screen_shader_fs_params_t),
+      .layout = SG_UNIFORMLAYOUT_STD140,
       .uniforms = {
-        [0] = { .name = "resolution", .type = SG_UNIFORMTYPE_FLOAT2 },
-        [1] = { .name = "scale", .type = SG_UNIFORMTYPE_FLOAT2 },
-        [2] = { .name = "viewport", .type = SG_UNIFORMTYPE_FLOAT2 },
+        [0] = { .name = "fs_params", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = 2 },
       },
     },
   };
