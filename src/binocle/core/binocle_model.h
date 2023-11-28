@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <kazmath/kazmath.h>
 #include <khash/khash.h>
-#include <tiniobj_loader_c/tinyobj_loader_c.h>
+#include <tinyobj_loader_c/tinyobj_loader_c.h>
 
 struct binocle_material;
 

@@ -5,7 +5,7 @@
 //
 
 #define TINYOBJ_LOADER_C_IMPLEMENTATION
-#include <tiniobj_loader_c/tinyobj_loader_c.h>
+#include <tinyobj_loader_c/tinyobj_loader_c.h>
 
 #include "binocle_model.h"
 #include "binocle_sdl.h"
