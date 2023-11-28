@@ -36,12 +36,22 @@ typedef struct binocle_model {
   uint64_t *mesh_materials; // mesh materials
 } binocle_model;
 
+typedef struct binocle_model_buffer {
+  char *buffer;
+  size_t buffer_length;
+} binocle_model_buffer;
+
+typedef struct binocle_model_buffers {
+  binocle_model_buffer obj;
+  binocle_model_buffer mtl;
+} binocle_model_buffers;
+
 typedef uint64_t binocle_model_smooth_vertex_key_t;
 #define binocle_model_smooth_vertex_hash_func(key) (binocle_model_smooth_vertex_key_t)(key)
 #define binocle_model_smooth_vertex_equal(a, b) ((a) == (b))
 KHASH_INIT(spatial_binocle_smooth_vertex_t, binocle_model_smooth_vertex_key_t, kmVec3, 1, binocle_model_smooth_vertex_hash_func, binocle_model_smooth_vertex_equal)
 
-binocle_model binocle_model_load_obj(char *filename, char *mtl_filename);
+binocle_model binocle_model_load_obj(char *filename);
 void binocle_model_compute_normal(float N[3], float v0[3], float v1[3], float v2[3]);
 void binocle_model_compute_smoothing_normals(tinyobj_attrib_t *attrib, tinyobj_shape_t *shape, khash_t(spatial_binocle_smooth_vertex_t) *smooth_vertex_normals);
 

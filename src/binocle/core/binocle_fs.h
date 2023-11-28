@@ -38,5 +38,23 @@ void binocle_fs_close(binocle_fs_file file);
 bool binocle_fs_read(binocle_fs_file file, void **buffer, size_t *size);
 bool binocle_fs_load_binary_file(const char *filename, void **buffer, size_t *size);
 bool binocle_fs_load_text_file(const char *filename, char **buffer, size_t *size);
+/// \brief Gets the directory part of the filename+path given as input
+/// \param filename the full path including the filename
+/// \param path the path without the filename and with no trailing slash
+/// \param length the length of the returned path
+void binocle_fs_get_directory(const char *filename, char *path, int *length);
+
+/// \brief Return the file name given a full path
+/// \param full_path the full path
+/// \param filename the filename extracted from the path
+/// \param length the length of the filename;
+void binocle_fs_get_filename(const char *full_path, char *filename, int *length);
+
+/// \brief Returns the filename without the extension
+/// \param myStr the full filename (it can include the path)
+/// \param extSep the separator character, e.g. "."
+/// \param pathSep the path separator, e.g. "/"
+/// \param retStr the filename without extension (including path if provided)
+void binocle_fs_path_without_extension(char* myStr, char extSep, char pathSep, char *retStr);
 
 #endif //BINOCLE_FS_H

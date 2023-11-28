@@ -9,6 +9,9 @@
 #include <physfs.h>
 #include <SDL.h>
 
+#define CUTE_PATH_IMPLEMENTATION
+#include <cute_path/cute_path.h>
+
 binocle_fs binocle_fs_new() {
   binocle_fs res = {0};
   return res;
@@ -175,4 +178,46 @@ bool binocle_fs_load_text_file(const char *filename, char **buffer, size_t *size
   binocle_fs_close(file);
 
   return true;
+}
+
+void binocle_fs_get_directory(const char *filename, char *path, int *length) {
+  *length = path_pop(filename, path, NULL);
+}
+
+void binocle_fs_path_without_extension(char* myStr, char extSep, char pathSep, char *retStr) {
+  char *lastExt, *lastPath;
+
+  // Error checks and allocate string.
+
+  if (myStr == NULL) return;
+  if (retStr == NULL) return;
+
+  // Make a copy and find the relevant characters.
+
+  strcpy (retStr, myStr);
+  lastExt = strrchr (retStr, extSep);
+  lastPath = (pathSep == 0) ? NULL : strrchr (retStr, pathSep);
+
+  // If it has an extension separator.
+
+  if (lastExt != NULL) {
+    // and it's to the right of the path separator.
+
+    if (lastPath != NULL) {
+      if (lastPath < lastExt) {
+        // then remove it.
+
+        *lastExt = '\0';
+      }
+    } else {
+      // Has extension separator with no path separator.
+
+      *lastExt = '\0';
+    }
+  }
+}
+
+void binocle_fs_get_filename(const char *full_path, char *filename, int *length) {
+  char path[CUTE_PATH_MAX_PATH];
+  *length = path_pop(full_path, path, filename);
 }

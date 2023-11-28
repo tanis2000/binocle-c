@@ -13,12 +13,35 @@
 #include "backend/binocle_material.h"
 #include "binocle_image.h"
 #include "backend/binocle_vpct.h"
+#include "cute_path/cute_path.h"
 
 
-binocle_model binocle_model_load_obj(char *filename, char *mtl_filename) {
+void binocle_model_file_reader_callback(void *ctx, const char *filename, int is_mtl, const char *obj_filename, char **buf, size_t *len) {
+  binocle_model_buffers *buffers = (binocle_model_buffers *)ctx;
+  if (is_mtl) {
+    *buf = buffers->mtl.buffer;
+    *len = buffers->mtl.buffer_length;
+  } else {
+    *buf = buffers->obj.buffer;
+    *len = buffers->obj.buffer_length;
+  }
+  if (!binocle_sdl_load_binary_file(filename, buf, len)) {
+    *len = 0;
+    binocle_log_error("OBJ loader: cannot open file %s", filename);
+    return;
+  }
+}
+
+void binocle_model_get_mtl_filename(const char *filename, char *mtl_filename, int *length) {
+  char name[CUTE_PATH_MAX_PATH];
+
+  binocle_fs_path_without_extension(filename, '.', '/', name);
+  sprintf(mtl_filename, "%s.mtl", name);
+}
+
+binocle_model binocle_model_load_obj(char *filename) {
   binocle_model model = {0};
-  char *buffer = NULL;
-  size_t buffer_length = 0;
+  binocle_model_buffers buffers = {0};
   tinyobj_attrib_t attrib;
   tinyobj_shape_t *meshes = NULL;
   size_t mesh_count = 0;
@@ -29,12 +52,7 @@ binocle_model binocle_model_load_obj(char *filename, char *mtl_filename) {
 
   smooth_vertex_normals = kh_init(spatial_binocle_smooth_vertex_t);
 
-  if (!binocle_sdl_load_binary_file(filename, &buffer, &buffer_length)) {
-    binocle_log_error("Cannot open OBJ file %s", filename);
-    return model;
-  }
-
-  int res = tinyobj_parse_obj(&attrib, &meshes, &mesh_count, &materials, &material_count, buffer, buffer_length, flags);
+  int res = tinyobj_parse_obj(&attrib, &meshes, &mesh_count, &materials, &material_count, filename, binocle_model_file_reader_callback, &buffers, flags);
 
   if (res != TINYOBJ_SUCCESS) {
     binocle_log_warning("Cannot load model data for %s", filename);
@@ -42,7 +60,12 @@ binocle_model binocle_model_load_obj(char *filename, char *mtl_filename) {
     binocle_log_info("Loaded model data for %s: %i meshes and %i materials", filename, mesh_count, material_count);
   }
 
-  res = tinyobj_parse_mtl_file(&materials, &material_count, mtl_filename);
+  char mtl_filename[CUTE_PATH_MAX_PATH];
+  int mtl_filename_length = 0;
+
+  binocle_model_get_mtl_filename(filename, (char *) &mtl_filename, &mtl_filename_length);
+
+  res = tinyobj_parse_mtl_file(&materials, &material_count, mtl_filename, filename, binocle_model_file_reader_callback, &buffers);
   if (res != TINYOBJ_SUCCESS) {
     binocle_log_warning("Cannot load material data for %s", mtl_filename);
   } else {
@@ -53,7 +76,7 @@ binocle_model binocle_model_load_obj(char *filename, char *mtl_filename) {
   binocle_log_info("# of normals = %d", attrib.num_normals);
   binocle_log_info("# of texcoords = %d", attrib.num_texcoords);
 
-  model.mesh_count = 1; //mesh_count;
+  model.mesh_count = mesh_count;
   model.meshes = malloc(model.mesh_count * sizeof(binocle_mesh));
   memset(model.meshes, 0, model.mesh_count * sizeof(binocle_model));
   model.material_count = material_count;
@@ -283,18 +306,43 @@ binocle_model binocle_model_load_obj(char *filename, char *mtl_filename) {
   for (int i = 0 ; i < material_count ; i++) {
     binocle_material *mat = binocle_material_new();
     model.materials[i] = mat;
-    // We use diffuse only atm
     if (materials[i].diffuse_texname != NULL) {
       sg_image image = binocle_image_load(materials[i].diffuse_texname);
       model.materials[i]->albedo_texture = image;
-      // TODO: fix this now that we no longer have default shaders
-      //model.materials[i]->shader = &binocle_shader_defaults[BINOCLE_SHADER_DEFAULT_FLAT];
     }
+
+    if (materials[i].bump_texname != NULL) {
+      sg_image image = binocle_image_load(materials[i].bump_texname);
+      model.materials[i]->normal_texture = image;
+    }
+
+    if (materials[i].ambient_texname != NULL) {
+      sg_image image = binocle_image_load(materials[i].ambient_texname);
+      model.materials[i]->ao_texture = image;
+    }
+
+    if (materials[i].metallic_texname != NULL) {
+      sg_image image = binocle_image_load(materials[i].metallic_texname);
+      model.materials[i]->metallic_texture = image;
+    }
+
+    if (materials[i].specular_highlight_texname != NULL) {
+      sg_image image = binocle_image_load(materials[i].specular_highlight_texname);
+      model.materials[i]->roughness_texture = image;
+    }
+  }
+
+  // Fix up the materials of each mesh.
+  // TODO: check that we are assigning the right material and not just the first one.
+  for (int i = 0 ; i < mesh_count ; i++) {
+    model.meshes[i].material = model.materials[model.mesh_materials[i]];
   }
 
   tinyobj_attrib_free(&attrib);
   tinyobj_shapes_free(meshes, mesh_count);
   tinyobj_materials_free(materials, material_count);
+  SDL_free(buffers.obj.buffer);
+  SDL_free(buffers.mtl.buffer);
 
   binocle_log_info("Model %s loaded successfully", filename);
 
