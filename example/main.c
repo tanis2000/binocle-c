@@ -498,7 +498,6 @@ int main(int argc, char *argv[])
     },
     .vs.uniform_blocks[0] = {
       .size = sizeof(default_shader_params_t),
-      .layout = SG_UNIFORMLAYOUT_STD140,
       .uniforms = {
         [0] = { .name = "vs_params", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = 12},
       }
@@ -557,7 +556,6 @@ int main(int argc, char *argv[])
     },
     .vs.uniform_blocks[0] = {
       .size = sizeof(screen_shader_vs_params_t),
-      .layout = SG_UNIFORMLAYOUT_STD140,
       .uniforms = {
         [0] = { .name = "vs_params", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = 4},
       },
@@ -585,7 +583,6 @@ int main(int argc, char *argv[])
     },
     .fs.uniform_blocks[0] = {
       .size = sizeof(screen_shader_fs_params_t),
-      .layout = SG_UNIFORMLAYOUT_STD140,
       .uniforms = {
         [0] = { .name = "fs_params", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = 2 },
       },
