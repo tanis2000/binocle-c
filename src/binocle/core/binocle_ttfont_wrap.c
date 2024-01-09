@@ -77,6 +77,7 @@ int l_binocle_ttfont_get_string_width(lua_State *L) {
 int l_binocle_ttfont_destroy(lua_State *L) {
   l_binocle_ttfont_t *ttfont = luaL_checkudata(L, 1, "binocle_ttfont");
   binocle_ttfont_destroy(ttfont->ttfont);
+  ttfont->ttfont = NULL;
   return 0;
 }
 
