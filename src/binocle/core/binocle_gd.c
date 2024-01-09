@@ -447,11 +447,11 @@ void binocle_gd_render_screen(binocle_gd *gd, struct binocle_window *window, flo
     float resolution[2];
     float scale[2];
     float viewport[2];
-    uint8_t _pad_24[8];
+    //uint8_t _pad_24[8];
   } screen_fs_params_t;
 
-  screen_vs_params_t screen_vs_params;
-  screen_fs_params_t screen_fs_params;
+  screen_vs_params_t screen_vs_params = {0};
+  screen_fs_params_t screen_fs_params = {0};
 
 //  screen_vs_params.transform = matrix;
   kmMat4Identity(&screen_vs_params.transform);
