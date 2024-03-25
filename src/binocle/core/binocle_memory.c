@@ -7,7 +7,8 @@
 #include "binocle_memory.h"
 #include "binocle_math.h"
 #include <assert.h>
-#include <sys/mman.h>
+#include "binocle_sdl.h"
+//#include <sys/mman.h>
 
 static binocle_memory_state g_memory_state;
 
@@ -93,19 +94,18 @@ binocle_memory_block *binocle_memory_allocate(binocle_memory_index size,
     protect_offset = page_size + size_rounded_up;
   }
 
-  binocle_memory_platform_block *block = (binocle_memory_platform_block *)mmap(
-    0, total_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-  assert(block != MAP_FAILED);
+  binocle_memory_platform_block *block = (binocle_memory_platform_block *)SDL_malloc(total_size);
+  assert(block != 0);
   block->block.base = (uint8_t *)block + base_offset;
   assert(block->block.used == 0);
   assert(block->block.prev_arena == 0);
 
-  if (flags & (BINOCLE_MEMORY_FLAG_CHECK_UNDERFLOW |
-               BINOCLE_MEMORY_FLAG_CHECK_OVERFLOW)) {
-    int Protected =
-      mprotect((uint8_t *)block + protect_offset, page_size, PROT_NONE);
-    assert(Protected != -1);
-  }
+//  if (flags & (BINOCLE_MEMORY_FLAG_CHECK_UNDERFLOW |
+//               BINOCLE_MEMORY_FLAG_CHECK_OVERFLOW)) {
+//    int Protected =
+//      mprotect((uint8_t *)block + protect_offset, page_size, PROT_NONE);
+//    assert(Protected != -1);
+//  }
 
   binocle_memory_platform_block *Sentinel = &g_memory_state.memory_sentinel;
   block->next = Sentinel;
