@@ -96,6 +96,9 @@ binocle_memory_arena_push_params binocle_memory_default_arena_params(void);
 binocle_memory_arena_bootstrap_params
 binocle_memory_default_bootstrap_params(void);
 
+binocle_memory_arena_bootstrap_params
+binocle_memory_non_restored_arena_bootstrap_params(void);
+
 void *binocle_memory_bootstrap_push_size(
   BINOCLE_MEMORY_PARAM uintptr_t struct_size, uintptr_t offset_to_arena,
   binocle_memory_arena_bootstrap_params bootstrap_params,

@@ -7,6 +7,8 @@
 #include "binocle_window.h"
 #include "binocle_color_wrap.h"
 
+extern binocle_lua g_binocle_lua;
+
 int l_binocle_window_set_background_color(lua_State *L) {
   l_binocle_window_t *window = luaL_checkudata(L, 1, "binocle_window");
   l_binocle_color_t *color = luaL_checkudata(L, 2, "binocle_color");
@@ -30,7 +32,7 @@ int l_binocle_window_new(lua_State *L) {
   lua_getfield(L, LUA_REGISTRYINDEX, "binocle_window");
   lua_setmetatable(L, -2);
   SDL_memset(window, 0, sizeof(*window));
-  binocle_window *win = binocle_window_new(width, height, title);
+  binocle_window *win = binocle_window_new(g_binocle_lua.arena, width, height, title);
   window->window = win;
   return 1;
 }

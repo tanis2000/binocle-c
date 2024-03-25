@@ -13,6 +13,8 @@
 #include "binocle_timer.h"
 #include "backend/binocle_color.h"
 
+struct binocle_memory_arena;
+
 /**
  * This is the representation of the app/window. Currently an app can only have one window
  */
@@ -53,7 +55,7 @@ typedef struct binocle_window {
  * @param title the title of the window
  * @return a window instance
  */
-binocle_window *binocle_window_new(uint32_t width, uint32_t height, char *title);
+binocle_window *binocle_window_new(struct binocle_memory_arena *arena, uint32_t width, uint32_t height, char *title);
 
 /**
  * \brief Destroys an initialized window

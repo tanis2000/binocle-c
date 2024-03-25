@@ -6,15 +6,15 @@
       <option name="INDENT_CLASS_MEMBERS" value="2" />
       <option name="INDENT_INSIDE_CODE_BLOCK" value="2" />
     </Objective-C>
-    <Objective-C-extensions>
+    <clangFormatSettings>
+      <option name="ENABLED" value="true" />
+    </clangFormatSettings>
+    <files>
       <extensions>
         <pair source="c" header="h" fileNamingConvention="SNAKE_CASE" />
         <pair source="cpp" header="h" fileNamingConvention="NONE" />
       </extensions>
-    </Objective-C-extensions>
-    <clangFormatSettings>
-      <option name="ENABLED" value="true" />
-    </clangFormatSettings>
+    </files>
     <codeStyleSettings language="ObjectiveC">
       <indentOptions>
         <option name="INDENT_SIZE" value="2" />

@@ -19,6 +19,7 @@
 #include "binocle_log.h"
 #include "binocle_log_wrap.h"
 #include "binocle_material_wrap.h"
+#include "binocle_memory.h"
 #include "binocle_sdl_wrap.h"
 #include "binocle_sprite_wrap.h"
 #include "binocle_subtexture_wrap.h"
@@ -31,6 +32,8 @@
 #include <sokol_time.h>
 #include <stdlib.h>
 
+binocle_lua g_binocle_lua;
+
 binocle_lua binocle_lua_new() {
   binocle_lua res = {0};
   return res;
@@ -42,6 +45,10 @@ bool binocle_lua_init(binocle_lua *lua) {
     binocle_log_error("Cannot initialize Lua environment");
     return false;
   }
+
+  // Initialize the dedicated memory arena
+  binocle_log_info("Initializing Lua memory arena");
+  lua->arena = binocle_memory_bootstrap_push_size(BINOCLE_DEBUG_MEMORY_NAME("lua") sizeof(binocle_memory_arena), 0, binocle_memory_default_bootstrap_params(), binocle_memory_default_arena_params());
 
   // Load the Lua libraries
   luaL_openlibs(lua->L);

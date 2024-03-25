@@ -5,7 +5,6 @@
 //
 
 #include "binocle_memory.h"
-#include "SDL_stdinc.h"
 #include "binocle_math.h"
 #include <assert.h>
 #include <sys/mman.h>
@@ -27,6 +26,13 @@ binocle_memory_arena_push_params binocle_memory_default_arena_params(void) {
 binocle_memory_arena_bootstrap_params
 binocle_memory_default_bootstrap_params(void) {
   binocle_memory_arena_bootstrap_params params = {};
+  return params;
+}
+
+binocle_memory_arena_bootstrap_params
+binocle_memory_non_restored_arena_bootstrap_params(void) {
+  binocle_memory_arena_bootstrap_params params = binocle_memory_default_bootstrap_params();
+  params.allocation_flags = BINOCLE_MEMORY_FLAG_NOT_RESTORED;
   return params;
 }
 
@@ -71,59 +77,47 @@ binocle_memory_block *binocle_memory_allocate(binocle_memory_index size,
   // We require memory block headers not to change the cache
   // line alignment of an allocation
   assert(sizeof(binocle_memory_platform_block) == 56);
-  
-  uintptr_t PageSize = 4096;
-  uintptr_t TotalSize = size + sizeof(binocle_memory_platform_block);
-  uintptr_t BaseOffset = sizeof(binocle_memory_platform_block);
-  uintptr_t ProtectOffset = 0;
-  if(flags & BINOCLE_MEMORY_FLAG_CHECK_UNDERFLOW)
-  {
-    TotalSize = size + 2*PageSize;
-    BaseOffset = 2*PageSize;
-    ProtectOffset = PageSize;
-  }
-  else if(flags & BINOCLE_MEMORY_FLAG_CHECK_OVERFLOW)
-  {
-    uintptr_t SizeRoundedUp = binocle_math_align_pow_2(size, PageSize);
-    TotalSize = SizeRoundedUp + 2*PageSize;
-    BaseOffset = PageSize + SizeRoundedUp - size;
-    ProtectOffset = PageSize + SizeRoundedUp;
+
+  uintptr_t page_size = 4096;
+  uintptr_t total_size = size + sizeof(binocle_memory_platform_block);
+  uintptr_t base_offset = sizeof(binocle_memory_platform_block);
+  uintptr_t protect_offset = 0;
+  if (flags & BINOCLE_MEMORY_FLAG_CHECK_UNDERFLOW) {
+    total_size = size + 2 * page_size;
+    base_offset = 2 * page_size;
+    protect_offset = page_size;
+  } else if (flags & BINOCLE_MEMORY_FLAG_CHECK_OVERFLOW) {
+    uintptr_t size_rounded_up = binocle_math_align_pow_2(size, page_size);
+    total_size = size_rounded_up + 2 * page_size;
+    base_offset = page_size + size_rounded_up - size;
+    protect_offset = page_size + size_rounded_up;
   }
 
-  binocle_memory_platform_block *Block = (binocle_memory_platform_block *)
-    mmap(0, TotalSize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-  assert(Block != MAP_FAILED);
-  Block->block.base = (uint8_t *)Block + BaseOffset;
-  assert(Block->block.used == 0);
-  assert(Block->block.prev_arena == 0);
+  binocle_memory_platform_block *block = (binocle_memory_platform_block *)mmap(
+    0, total_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  assert(block != MAP_FAILED);
+  block->block.base = (uint8_t *)block + base_offset;
+  assert(block->block.used == 0);
+  assert(block->block.prev_arena == 0);
 
-  if(flags & (BINOCLE_MEMORY_FLAG_CHECK_UNDERFLOW|BINOCLE_MEMORY_FLAG_CHECK_OVERFLOW))
-  {
-    int Protected = mprotect((uint8_t *)Block + ProtectOffset, PageSize, PROT_NONE);
+  if (flags & (BINOCLE_MEMORY_FLAG_CHECK_UNDERFLOW |
+               BINOCLE_MEMORY_FLAG_CHECK_OVERFLOW)) {
+    int Protected =
+      mprotect((uint8_t *)block + protect_offset, page_size, PROT_NONE);
     assert(Protected != -1);
   }
 
   binocle_memory_platform_block *Sentinel = &g_memory_state.memory_sentinel;
-  Block->next = Sentinel;
-  Block->block.size = size;
-  Block->block.flags = flags;
-  Block->prev = Sentinel->prev;
-  Block->prev->next = Block;
-  Block->next->prev = Block;
+  block->next = Sentinel;
+  block->block.size = size;
+  block->block.flags = flags;
+  block->prev = Sentinel->prev;
+  block->prev->next = block;
+  block->next->prev = block;
 
-  binocle_memory_block *PlatBlock = &Block->block;
-  return PlatBlock;
+  binocle_memory_block *plat_block = &block->block;
+  return plat_block;
 }
-  
-  
-  
-  
-//  binocle_memory_block *block = SDL_calloc(1, size);
-//  block->flags = flags;
-//  block->size = size;
-//  block->base = (uint8_t *)block;
-//  return block;
-//}
 
 void *
 binocle_memory_push_size_(BINOCLE_MEMORY_PARAM binocle_memory_arena *arena,

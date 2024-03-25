@@ -4,15 +4,16 @@
 // All rights reserved.
 //
 
+#include "binocle_window.h"
+#include "backend/binocle_color.h"
+#include "binocle_log.h"
+#include "binocle_memory.h"
+#include "binocle_sdl.h"
 #include <inttypes.h>
 #include <stdlib.h>
-#include "binocle_sdl.h"
-#include "backend/binocle_color.h"
-#include "binocle_window.h"
-#include "binocle_log.h"
 
-binocle_window *binocle_window_new(uint32_t width, uint32_t height, char *title) {
-  binocle_window *res = SDL_malloc(sizeof(binocle_window));
+binocle_window *binocle_window_new(binocle_memory_arena *arena, uint32_t width, uint32_t height, char *title) {
+  binocle_window *res = binocle_memory_push_struct(arena, binocle_window, binocle_memory_default_arena_params());
   SDL_memset(res, 0, sizeof(*res));
 
   res->width = width;
@@ -64,7 +65,7 @@ void binocle_window_destroy(binocle_window *win) {
   }
 #endif
 
-  free(win);
+  win = NULL;
 }
 
 void binocle_window_refresh(binocle_window *win) {
