@@ -32,8 +32,6 @@
 #include <sokol_time.h>
 #include <stdlib.h>
 
-binocle_lua g_binocle_lua;
-
 binocle_lua binocle_lua_new() {
   binocle_lua res = {0};
   return res;

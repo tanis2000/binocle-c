@@ -467,7 +467,7 @@ int main(int argc, char *argv[])
   binocle_log_info("%s", s1.data);
   binocle_log_info("%s", s2.data);
 
-  window = binocle_window_new(game_state->main_arena, DESIGN_WIDTH, DESIGN_HEIGHT, "Binocle Test Game");
+  window = binocle_window_new(DESIGN_WIDTH, DESIGN_HEIGHT, "Binocle Test Game");
   binocle_window_set_background_color(window, binocle_color_azure());
   binocle_window_set_minimum_size(window, DESIGN_WIDTH, DESIGN_HEIGHT);
   adapter = binocle_viewport_adapter_new(window, BINOCLE_VIEWPORT_ADAPTER_KIND_SCALING, BINOCLE_VIEWPORT_ADAPTER_SCALING_TYPE_PIXEL_PERFECT, window->original_width, window->original_height, window->original_width, window->original_height);

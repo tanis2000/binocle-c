@@ -12,8 +12,8 @@
 #include <inttypes.h>
 #include <stdlib.h>
 
-binocle_window *binocle_window_new(binocle_memory_arena *arena, uint32_t width, uint32_t height, char *title) {
-  binocle_window *res = binocle_memory_push_struct(arena, binocle_window, binocle_memory_default_arena_params());
+binocle_window *binocle_window_new(uint32_t width, uint32_t height, char *title) {
+  binocle_window *res = SDL_malloc(sizeof(binocle_window));
   SDL_memset(res, 0, sizeof(*res));
 
   res->width = width;
@@ -65,7 +65,7 @@ void binocle_window_destroy(binocle_window *win) {
   }
 #endif
 
-  win = NULL;
+  SDL_free(win);
 }
 
 void binocle_window_refresh(binocle_window *win) {
