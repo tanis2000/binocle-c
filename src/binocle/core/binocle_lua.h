@@ -33,11 +33,13 @@
 #endif
 
 struct binocle_window;
+struct binocle_memory_arena;
 
 typedef struct binocle_lua {
   lua_State *L;
   time_t last_check_time;
   char *last_script_run;
+  struct binocle_memory_arena *arena;
 } binocle_lua;
 
 typedef int (binocle_lua_fs_enumerate_pre_run_callback)();

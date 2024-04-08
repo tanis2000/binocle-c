@@ -13,6 +13,8 @@
 #include "binocle_timer.h"
 #include "backend/binocle_color.h"
 
+struct binocle_memory_arena;
+
 /**
  * This is the representation of the app/window. Currently an app can only have one window
  */

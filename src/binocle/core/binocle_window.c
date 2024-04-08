@@ -4,12 +4,13 @@
 // All rights reserved.
 //
 
+#include "binocle_window.h"
+#include "backend/binocle_color.h"
+#include "binocle_log.h"
+#include "binocle_memory.h"
+#include "binocle_sdl.h"
 #include <inttypes.h>
 #include <stdlib.h>
-#include "binocle_sdl.h"
-#include "backend/binocle_color.h"
-#include "binocle_window.h"
-#include "binocle_log.h"
 
 binocle_window *binocle_window_new(uint32_t width, uint32_t height, char *title) {
   binocle_window *res = SDL_malloc(sizeof(binocle_window));
@@ -64,7 +65,7 @@ void binocle_window_destroy(binocle_window *win) {
   }
 #endif
 
-  free(win);
+  SDL_free(win);
 }
 
 void binocle_window_refresh(binocle_window *win) {

@@ -29,6 +29,7 @@
 #include "binocle_audio.h"
 #include "sokol_gfx.h"
 #include "binocle_http.h"
+#include "binocle_memory.h"
 
 //#define GAMELOOP 1
 //#define DEMOLOOP
@@ -72,6 +73,11 @@ typedef struct screen_shader_vs_params_t {
   float transform[16];
 } screen_shader_vs_params_t;
 
+typedef struct game_state_t {
+  binocle_memory_arena *main_arena;
+  binocle_memory_arena *frame_arena;
+} game_state_t;
+
 binocle_window *window;
 binocle_input input;
 binocle_viewport_adapter *adapter;
@@ -97,6 +103,7 @@ sg_image render_target;
 sg_shader default_shader;
 sg_shader screen_shader;
 sg_image wabbit_image;
+game_state_t *game_state;
 
 #if (defined(__APPLE__) && !defined(__IPHONEOS__)) || defined(__EMSCRIPTEN__)
 #define WITH_PHYSICS
@@ -447,7 +454,19 @@ int main(int argc, char *argv[])
   binocle_app_desc_t app_desc = {0};
   app = binocle_app_new();
   binocle_app_init(&app, &app_desc);
-  binocle_sdl_init();
+
+  game_state = binocle_memory_bootstrap_push_struct(
+    game_state_t, main_arena, binocle_memory_default_bootstrap_params(),
+    binocle_memory_default_arena_params());
+  game_state->frame_arena = binocle_memory_bootstrap_push_size(
+    BINOCLE_DEBUG_MEMORY_NAME("frame_arena") sizeof(binocle_memory_arena), 0,
+    binocle_memory_non_restored_arena_bootstrap_params(),
+    binocle_memory_default_arena_params());
+  binocle_string s1 = binocle_memory_push_cstring(game_state->main_arena, "Something");
+  binocle_string s2 = binocle_memory_push_cstring(game_state->main_arena, "Different");
+  binocle_log_info("%s", s1.data);
+  binocle_log_info("%s", s2.data);
+
   window = binocle_window_new(DESIGN_WIDTH, DESIGN_HEIGHT, "Binocle Test Game");
   binocle_window_set_background_color(window, binocle_color_azure());
   binocle_window_set_minimum_size(window, DESIGN_WIDTH, DESIGN_HEIGHT);

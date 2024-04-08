@@ -7,6 +7,8 @@
 #ifndef BINOCLE_MATH_H
 #define BINOCLE_MATH_H
 
+#include <stdbool.h>
+#include <stdint.h>
 #include <kazmath/kazmath.h>
 
 #ifndef MIN
@@ -64,5 +66,13 @@ static kmMat4 binocle_math_create_orthographic_matrix_off_center(
   return m;
 }
 //#endif //BINOCLE_MATH_IMPL
+
+static bool binocle_math_is_pow_2(uint32_t value)
+{
+  bool result = ((value & ~(value - 1)) == value);
+  return result;
+}
+
+#define binocle_math_align_pow_2(value, alignment) (((value) + ((alignment) - 1)) & ~(((value) - (value)) + (alignment) - 1))
 
 #endif //BINOCLE_MATH_H

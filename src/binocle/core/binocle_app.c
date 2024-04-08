@@ -4,10 +4,11 @@
 // All rights reserved.
 //
 
-#include <stdlib.h>
 #include "binocle_app.h"
+#include "binocle_memory.h"
 #include "binocle_sdl.h"
 #include "sokol_gfx.h"
+#include <stdlib.h>
 
 #define SOKOL_IMPL
 #include <sokol_time.h>
@@ -27,6 +28,9 @@ bool binocle_app_init(binocle_app *app, binocle_app_desc_t *desc) {
   const HWND windowHandle = GetConsoleWindow();
   ShowWindow(windowHandle, SW_HIDE);
 #endif
+
+  // Initialize the memory arena backend
+  binocle_memory_init();
 
   // Initialize the filesystem
   app->fs = binocle_fs_new();
