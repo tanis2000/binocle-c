@@ -10,6 +10,9 @@
 #include <stdbool.h>
 #include "kazmath/kazmath.h"
 
+#define BINOCLE_MAX_ATLAS_FILENAME_LENGTH (1024)
+
+struct binocle_sprite;
 struct binocle_subtexture;
 struct sg_image;
 
@@ -26,6 +29,7 @@ typedef struct binocle_atlas_animation {
   const char *direction;
   int from;
   int to;
+  bool repeat;
 } binocle_atlas_animation;
 
 typedef struct binocle_atlas_slice_key {
@@ -63,9 +67,11 @@ typedef struct binocle_atlas_tp_frame {
   kmAABB2 sprite_source_size;
   kmVec2 source_size;
   kmVec2 pivot;
+  int duration;
 } binocle_atlas_tp_frame;
 
 typedef struct binocle_atlas_texturepacker {
+  char asset_filename[BINOCLE_MAX_ATLAS_FILENAME_LENGTH];
   binocle_atlas_tp_frame *frames;
   size_t num_frames;
   binocle_atlas_tp_meta meta;
@@ -79,9 +85,9 @@ typedef struct binocle_atlas_texturepacker {
 bool binocle_atlas_load_texturepacker(char *filename, binocle_atlas_texturepacker *atlas);
 
 /**
- * Load a TexturePacker JSON atlas
+ * Creates the subtexttures from the frames of an already loaded TexturePacker JSON atlas.
  * @param atlas an instance of binocle_atlas_texturepacker with the data of the atlas
- * @param texture the corresponding texture that we already loaded
+ * @param texture the corresponding texture associated to this atlas. It has to be already loaded.
  * @param subtextures an array of subtextures to store those coming from the JSON
  * @param num_subtextures the number of subtextures that have been loaded by this function
  */
@@ -111,5 +117,17 @@ void binocle_atlas_load_libgdx(char *filename, struct sg_image *texture, struct 
  * @param num_animations the number of animations previously loaded
  */
 void binocle_atlas_animation_destroy(binocle_atlas_animation *animations, size_t num_animations);
+
+/**
+ * Creates the animations in a given sprite based on the content of the atlas
+ * @param atlas the TexturePacker atlas
+ * @param texture the texture with the image of the atlas
+ * @param sprite the sprite instance whose animations have to be created
+ */
+void binocle_atlas_texturepacker_create_animations(
+  binocle_atlas_texturepacker *atlas,
+  struct sg_image texture,
+  struct binocle_sprite *sprite
+);
 
 #endif //BINOCLE_ATLAS_H

@@ -20,7 +20,6 @@
 struct binocle_camera;
 struct binocle_material;
 struct binocle_gd;
-struct binocle_image;
 
 /**
  * The sort mode used when running through the sprite batcher
@@ -44,7 +43,13 @@ typedef enum binocle_sprite_sort_mode
  * The single frame of a sprite, mainly used within animations
  */
 typedef struct binocle_sprite_frame {
+  /**
+   * The rectangle of the texture that contains the frame
+   */
   binocle_subtexture *subtexture;
+  /**
+   * The origin of this frame which can be different from the origin of the sprite
+   */
   kmVec2 origin;
 } binocle_sprite_frame;
 
@@ -61,14 +66,37 @@ typedef struct binocle_sprite_animation_frame_mapping {
  * A sprite animation
  */
 typedef struct binocle_sprite_animation {
-  bool enabled;
+  /**
+   * The array of indexes of the frames into the frames array on the owning sprite
+   */
   int frames[BINOCLE_SPRITE_MAX_FRAMES];
+  /**
+   * The array with the delay of each animation frame (how long each frame will be drawn in ???uom???)
+   */
   float delays[BINOCLE_SPRITE_MAX_FRAMES];
+  /**
+   * If true, the animation should be played in a loop
+   */
   bool looping;
+  /**
+   * The number of frames that make up the animation
+   */
   int frames_number;
+  /**
+   * The name of the animation. This is used both for display purposes and to look up the animation when playing
+   * using the name instead of the id.
+   *
+   * TODO: the lookup algorithm could be replaced with a hash lookup rather than string comparison for performance reasons
+   */
   char *name;
+  /**
+   * The array with the mappings of the frames of animation to the frames stored in the sprite
+   */
   binocle_sprite_animation_frame_mapping
     frame_mapping[BINOCLE_SPRITE_MAX_FRAMES];
+  /**
+   * The count of frame mappings
+   */
   int frame_mapping_number;
 } binocle_sprite_animation;
 
@@ -76,21 +104,71 @@ typedef struct binocle_sprite_animation {
  * A sprite
  */
 typedef struct binocle_sprite {
+  /** The default subtexture used to draw the sprite when there are no animations associated */
   binocle_subtexture subtexture;
+  /** The material being used by this sprite */
   struct binocle_material *material;
+  /**
+   * The origin of the sprite (normalized 0.0 -> 1.0 in both axis). (0, 0) is the bottom left of the subtexture.
+   */
   kmVec2 origin;
+  /**
+   * The array with all the animations available for this sprite
+   */
   binocle_sprite_animation *animations; //[BINOCLE_SPRITE_MAX_ANIMATIONS];
-  binocle_sprite_frame *frames; //[BINOCLE_SPRITE_MAX_FRAMES];
-  int frames_number;
-  bool playing;
-  bool finished;
-  float rate;
-  int current_frame;
-  binocle_sprite_animation *current_animation;
+  /**
+   * The count of animations defined or this sprite and stored in the animations array
+   */
   int animations_number;
+  /**
+   * The array with all the frames that are being used by the animations. One animation can refer to more than one frame and one
+   * frame can be used by more than one animation.
+   *
+   * This is stored on the sprite to avoid duplicating the same frames on each animation that shares the same frame(s).
+   */
+  binocle_sprite_frame *frames; //[BINOCLE_SPRITE_MAX_FRAMES];
+  /**
+   * The number of frames in the frames array
+   */
+  int frames_number;
+  /**
+   * Whether the animation is currently playing
+   */
+  bool playing;
+  /**
+   * Whether the animation has finished playing
+   */
+  bool finished;
+  /**
+   * The rate multiplier used to speed up or slow down the animation being played. By default this is set to 1.
+   *
+   */
+  float rate;
+  /**
+   * The index of the current frame of the animation being displayed (index on the frames array)
+   */
+  int current_frame;
+  /**
+   * The pointer to the animation that is being played (if any)
+   */
+  binocle_sprite_animation *current_animation;
+  /**
+   * The id of the animation currently being played
+   */
   int current_animation_id;
+  /**
+   * The index of the current frame of animation (index on the frames array inside the animations array)
+   */
   int current_animation_frame;
+  /**
+   * The internal timer used to keep the animation in sync and track the updates
+   */
   float timer;
+
+  /**
+   * Array with all the subtextures that will be used by animations
+   */
+  binocle_subtexture *subtextures;
 } binocle_sprite;
 
 /**
@@ -329,6 +407,22 @@ void binocle_sprite_play_animation(binocle_sprite *sprite, char *name,
  * @return true if the animation exists
  */
 bool binocle_sprite_has_animation(binocle_sprite *sprite, const char *animation_name);
+
+/**
+ * \brief Returns true if any animation is playing. You can use this function to check if any animation is currently
+ * playing.
+ * @param sprite the sprite
+ * @return true if any animation is playing
+ */
+bool binocle_sprite_is_playing_any_animation(binocle_sprite *sprite);
+
+/**
+ * \brief Returns true if the animation is playing.
+ * @param sprite the sprite
+ * @param name the name of the animation
+ * @return true if any animation is playing
+ */
+bool binocle_sprite_is_playing_animation(binocle_sprite *sprite, const char *name);
 
 /**
  * \brief Creates a sprite frame from a subtexture

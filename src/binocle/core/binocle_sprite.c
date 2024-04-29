@@ -18,7 +18,9 @@
 #define BINOCLE_SPRITE_VERTEX_COUNT 6
 
 #define batch_item_lt(a, b) ((a).sort_key < (b).sort_key)
+
 KSORT_INIT(sort_sprite_batch_item, binocle_sprite_batch_item, batch_item_lt)
+
 KSORT_INIT_GENERIC(float)
 
 
@@ -26,10 +28,10 @@ binocle_sprite *binocle_sprite_from_material(binocle_material *material) {
   binocle_sprite *res = malloc(sizeof(binocle_sprite));
   memset(res, 0, sizeof(*res));
   res->animations =
-      malloc(sizeof(binocle_sprite_animation) * BINOCLE_SPRITE_MAX_ANIMATIONS);
+    malloc(sizeof(binocle_sprite_animation) * BINOCLE_SPRITE_MAX_ANIMATIONS);
   memset(res->animations, 0, sizeof(*res->animations) * BINOCLE_SPRITE_MAX_ANIMATIONS);
   res->frames =
-      malloc(sizeof(binocle_sprite_frame) * BINOCLE_SPRITE_MAX_FRAMES);
+    malloc(sizeof(binocle_sprite_frame) * BINOCLE_SPRITE_MAX_FRAMES);
   memset(res->frames, 0, sizeof(*res->frames) * BINOCLE_SPRITE_MAX_FRAMES);
   // Default origin to bottom-left
   res->origin.x = 0;
@@ -37,11 +39,8 @@ binocle_sprite *binocle_sprite_from_material(binocle_material *material) {
   res->material = material;
   // Default to use the whole texture
   sg_image_desc info = sg_query_image_desc(material->albedo_texture);
-  res->subtexture = binocle_subtexture_with_texture(&material->albedo_texture, 0, 0, info.width,
-                                                   info.height);
-  for (int i = 0; i < BINOCLE_SPRITE_MAX_ANIMATIONS; i++) {
-    res->animations[i].enabled = false;
-  }
+  res->subtexture = binocle_subtexture_with_texture(&material->albedo_texture, 0, 0, (float) info.width,
+                                                    (float) info.height);
   res->frames_number = 0;
   res->playing = false;
   res->finished = false;
@@ -51,12 +50,13 @@ binocle_sprite *binocle_sprite_from_material(binocle_material *material) {
   res->current_animation = NULL;
   res->current_animation_frame = 0;
   res->current_animation_id = 0;
+  res->subtextures = 0;
   return res;
 }
 
 void binocle_sprite_destroy(struct binocle_sprite *sprite) {
   free(sprite->animations);
-  for (int i = 0 ; i < sprite->frames_number ; i++) {
+  for (int i = 0; i < sprite->frames_number; i++) {
     free(sprite->frames[i].subtexture);
   }
   free(sprite->frames);
@@ -64,8 +64,9 @@ void binocle_sprite_destroy(struct binocle_sprite *sprite) {
   sprite = NULL;
 }
 
-void binocle_sprite_draw(binocle_sprite *sprite, binocle_gd *gd, int64_t x, int64_t y, kmAABB2 *viewport, float rotation,
-                         kmVec2 *scale, binocle_camera *camera, float depth, sg_color *color) {
+void
+binocle_sprite_draw(binocle_sprite *sprite, binocle_gd *gd, int64_t x, int64_t y, kmAABB2 *viewport, float rotation,
+                    kmVec2 *scale, binocle_camera *camera, float depth, sg_color *color) {
   binocle_vpct vertices[BINOCLE_SPRITE_VERTEX_COUNT];
   binocle_subtexture *s;
   if (color == NULL) {
@@ -89,9 +90,9 @@ void binocle_sprite_draw(binocle_sprite *sprite, binocle_gd *gd, int64_t x, int6
 
   // TL
   vertices[0].pos.x =
-      -sprite->origin.x * scale->x * cosf(rotation) - (-sprite->origin.y * scale->y + h * scale->y) * sinf(rotation) + x;
+    -sprite->origin.x * scale->x * cosf(rotation) - (-sprite->origin.y * scale->y + h * scale->y) * sinf(rotation) + x;
   vertices[0].pos.y =
-      (-sprite->origin.y * scale->y + h * scale->y) * cosf(rotation) - sprite->origin.x * scale->x * sinf(rotation) + y;
+    (-sprite->origin.y * scale->y + h * scale->y) * cosf(rotation) - sprite->origin.x * scale->x * sinf(rotation) + y;
   vertices[0].color = *color;
   vertices[0].tex.x = s->rect.min.x / info.width;
   vertices[0].tex.y = (s->rect.min.y + s->rect.max.y) / info.height;
@@ -119,9 +120,9 @@ void binocle_sprite_draw(binocle_sprite *sprite, binocle_gd *gd, int64_t x, int6
   vertices[3].tex.y = (s->rect.min.y + s->rect.max.y) / info.height;
   // BR
   vertices[4].pos.x =
-      (-sprite->origin.x * scale->x + w * scale->x) * cosf(rotation) + sprite->origin.y * scale->y * sinf(rotation) + x;
+    (-sprite->origin.x * scale->x + w * scale->x) * cosf(rotation) + sprite->origin.y * scale->y * sinf(rotation) + x;
   vertices[4].pos.y =
-      -sprite->origin.y * scale->y * cosf(rotation) + (-sprite->origin.x * scale->x + w * scale->x) * sinf(rotation) + y;
+    -sprite->origin.y * scale->y * cosf(rotation) + (-sprite->origin.x * scale->x + w * scale->x) * sinf(rotation) + y;
   vertices[4].color = *color;
   vertices[4].tex.x = (s->rect.min.x + s->rect.max.x) / info.width;
   vertices[4].tex.y = s->rect.min.y / info.height;
@@ -135,7 +136,8 @@ void binocle_sprite_draw(binocle_sprite *sprite, binocle_gd *gd, int64_t x, int6
   binocle_gd_draw(gd, vertices, BINOCLE_SPRITE_VERTEX_COUNT, *sprite->material, *viewport, camera, depth);
 }
 
-void binocle_sprite_draw_with_sprite_batch(binocle_sprite_batch *sprite_batch, binocle_sprite *sprite, binocle_gd *gd, int64_t x, int64_t y, kmAABB2 *viewport, float rotation,
+void binocle_sprite_draw_with_sprite_batch(binocle_sprite_batch *sprite_batch, binocle_sprite *sprite, binocle_gd *gd,
+                                           int64_t x, int64_t y, kmAABB2 *viewport, float rotation,
                                            kmVec2 *scale, binocle_camera *camera, float depth) {
   kmVec2 pos;
   pos.x = x;
@@ -158,7 +160,8 @@ void binocle_sprite_draw_with_sprite_batch(binocle_sprite_batch *sprite_batch, b
   scale->x *= m->mat[0];
   scale->y *= m->mat[5];
 
-  binocle_sprite_batch_draw(sprite_batch, &sprite->material->albedo_texture, &pos, NULL, &s->rect, &sprite->origin, rotation, scale, binocle_color_white(), depth);
+  binocle_sprite_batch_draw(sprite_batch, &sprite->material->albedo_texture, &pos, NULL, &s->rect, &sprite->origin,
+                            rotation, scale, binocle_color_white(), depth);
 }
 
 void binocle_sprite_add_frame(binocle_sprite *sprite, binocle_sprite_frame frame) {
@@ -198,7 +201,6 @@ binocle_sprite_animation *binocle_sprite_create_animation_with_name(binocle_spri
   binocle_sprite_animation *res = &sprite->animations[sprite->animations_number];
   res->name = SDL_malloc(SDL_strlen(name) + 1);
   strcpy(res->name, name);
-  res->enabled = true;
   //res.delay = 0;
   res->looping = false;
   for (int i = 0; i < BINOCLE_SPRITE_MAX_FRAMES; i++) {
@@ -212,7 +214,6 @@ binocle_sprite_animation *binocle_sprite_create_animation_with_name(binocle_spri
 
 void binocle_sprite_add_animation(binocle_sprite *sprite, int id, int frame) {
   binocle_sprite_animation *res = &sprite->animations[id];
-  res->enabled = true;
   //res.delay = 0;
   res->looping = false;
   for (int i = 0; i < BINOCLE_SPRITE_MAX_FRAMES; i++) {
@@ -225,7 +226,6 @@ void binocle_sprite_add_animation(binocle_sprite *sprite, int id, int frame) {
 void binocle_sprite_add_animation_with_frames(binocle_sprite *sprite, int id, bool looping, float delay, int frames[],
                                               int frames_count) {
   binocle_sprite_animation *res = &sprite->animations[id];
-  res->enabled = true;
   res->looping = looping;
   for (int i = 0; i < BINOCLE_SPRITE_MAX_FRAMES; i++) {
     res->frames[i] = -1;
@@ -238,7 +238,7 @@ void binocle_sprite_add_animation_with_frames(binocle_sprite *sprite, int id, bo
 }
 
 bool binocle_sprite_has_animation(binocle_sprite *sprite, const char *animation_name) {
-  for (int i = 0 ; i < sprite->animations_number ; i++) {
+  for (int i = 0; i < sprite->animations_number; i++) {
     if (SDL_strcmp(sprite->animations[i].name, animation_name) == 0) {
       return true;
     }
@@ -274,12 +274,12 @@ void binocle_sprite_stop(binocle_sprite *sprite) {
 }
 
 void binocle_sprite_update(binocle_sprite *sprite, float dt) {
-  //binocle_log_info("dt %f, sprite->rate %f", dt, sprite->rate);
+//  binocle_log_info("dt %f, sprite->rate %f", dt, sprite->rate);
   if (sprite->playing && sprite->current_animation->delays[sprite->current_animation_frame] > 0) {
     sprite->timer += (dt * fabsf(sprite->rate));
-    //binocle_log_info("timer %f fabsf(sprite->rate) %f", sprite->timer, fabsf(sprite->rate));
+//    binocle_log_info("timer %f fabsf(sprite->rate) %f", sprite->timer, fabsf(sprite->rate));
     while (sprite->timer >= sprite->current_animation->delays[sprite->current_animation_frame]) {
-      //binocle_log_info("sprite->timer %f sprite->current_animation->delay %f", sprite->timer, sprite->current_animation->delay);
+//      binocle_log_info("sprite->timer %f sprite->current_animation->delay %f", sprite->timer, sprite->current_animation->delays[sprite->current_animation_frame]);
       int oldFrame = sprite->current_frame;
       sprite->timer -= sprite->current_animation->delays[sprite->current_animation_frame];
       sprite->current_animation_frame += SIGNOF(sprite->rate);
@@ -306,6 +306,7 @@ void binocle_sprite_update(binocle_sprite *sprite, float dt) {
         sprite->current_frame = sprite->current_animation->frames[sprite->current_animation_frame];
       }
     }
+    binocle_log_info("anim: %s - frame: %d", sprite->current_animation->name, sprite->current_frame);
   }
 }
 
@@ -334,7 +335,7 @@ void binocle_sprite_set_current_frame_by_name(binocle_sprite *sprite, const char
   if (sprite->playing) {
     binocle_sprite_stop(sprite);
   }
-  for (int i = 0 ; i < sprite->frames_number ; i++) {
+  for (int i = 0; i < sprite->frames_number; i++) {
     binocle_sprite_frame *frame = &sprite->frames[i];
     if (frame->subtexture == NULL) {
       continue;
@@ -500,13 +501,13 @@ void binocle_sprite_create_animation_with_string(binocle_sprite *sprite, binocle
         int end_frame = (int) strtol(frames_code, &ptr, 10);
         for (int j = start_frame; j <= end_frame; j++) {
           animation->frames[animation->frames_number] = binocle_sprite_get_real_frame_for_animation_from_mapping(
-              animation, j);
+            animation, j);
           animation->delays[animation->frames_number] = frames_codes[i].delay;
           animation->frames_number++;
         }
       } else {
         animation->frames[animation->frames_number] = binocle_sprite_get_real_frame_for_animation_from_mapping(
-            animation, start_frame);
+          animation, start_frame);
         animation->delays[animation->frames_number] = frames_codes[i].delay;
         animation->frames_number++;
       }
@@ -582,12 +583,21 @@ void binocle_sprite_play_animation(binocle_sprite *sprite, char *name, bool rest
   }
 }
 
+bool binocle_sprite_is_playing_any_animation(binocle_sprite *sprite) {
+  return sprite->current_animation_id != -1 && sprite->playing && !sprite->finished;
+}
+
+bool binocle_sprite_is_playing_animation(binocle_sprite *sprite, const char *name) {
+  int id = binocle_sprite_get_animation_id(sprite, name);
+  return sprite->current_animation_id == id && sprite->playing && !sprite->finished;
+}
+
 //
 // Sprite Batch Item
 //
 
 binocle_sprite_batch_item binocle_sprite_batch_item_new() {
-  binocle_sprite_batch_item res = { 0 };
+  binocle_sprite_batch_item res = {0};
   res.texture = NULL;
   res.vertex_tl.color = binocle_color_white();
   res.vertex_tl.pos.x = 0;
@@ -605,7 +615,10 @@ binocle_sprite_batch_item binocle_sprite_batch_item_new() {
   return res;
 }
 
-void binocle_sprite_batch_item_set(binocle_sprite_batch_item *item, float x, float y, float dx, float dy, float w, float h, float sin, float cos, sg_color color, kmVec2 tex_coord_tl, kmVec2 tex_coord_br, float depth, sg_image *texture) {
+void
+binocle_sprite_batch_item_set(binocle_sprite_batch_item *item, float x, float y, float dx, float dy, float w, float h,
+                              float sin, float cos, sg_color color, kmVec2 tex_coord_tl, kmVec2 tex_coord_br,
+                              float depth, sg_image *texture) {
   item->vertex_tl.pos.x = x + dx * cos - dy * sin;
   item->vertex_tl.pos.y = y + dx * sin + dy * cos;
   item->vertex_tl.color = color;
@@ -639,7 +652,7 @@ void binocle_sprite_batch_item_set(binocle_sprite_batch_item *item, float x, flo
 //
 
 binocle_sprite_batcher binocle_sprite_batcher_new() {
-  binocle_sprite_batcher res = { 0 };
+  binocle_sprite_batcher res = {0};
   res.initial_batch_size = 256;
   res.max_batch_size = ULONG_MAX / 6; // 6 = 4 vertices unique and 2 shared, per quad
   res.batch_item_list = malloc(sizeof(binocle_sprite_batch_item) * res.initial_batch_size);
@@ -682,7 +695,7 @@ void binocle_sprite_batcher_ensure_array_capacity(binocle_sprite_batcher *batche
   batcher->index_capacity = needed_capacity;
 
   uint64_t start = batcher->index_size / 6;
-  for (uint64_t i = start ; i < num_batch_items ; i++) {
+  for (uint64_t i = start; i < num_batch_items; i++) {
     /*
       *  TL    TR
       *   0----1 0,1,2,3 = index offsets for vertex indices
@@ -708,7 +721,8 @@ void binocle_sprite_batcher_ensure_array_capacity(binocle_sprite_batcher *batche
   batcher->vertex_array_capacity = needed_capacity;
 }
 
-void binocle_sprite_batcher_draw_batch(binocle_sprite_batcher *batcher, binocle_sprite_sort_mode sort_mode, binocle_render_state *render_state, binocle_gd *gd) {
+void binocle_sprite_batcher_draw_batch(binocle_sprite_batcher *batcher, binocle_sprite_sort_mode sort_mode,
+                                       binocle_render_state *render_state, binocle_gd *gd) {
   if (batcher->batch_item_list_size == 0) {
     // Nothing to do
     return;
@@ -737,7 +751,7 @@ void binocle_sprite_batcher_draw_batch(binocle_sprite_batcher *batcher, binocle_
     binocle_sprite_batcher_ensure_array_capacity(batcher, num_batches_to_process);
 
     // Draw the batches
-    for (int i = 0 ; i < num_batches_to_process ; i++) {
+    for (int i = 0; i < num_batches_to_process; i++) {
       // if the texture changed, we need to flush and bind the new texture
       bool should_flush = false;
 
@@ -790,7 +804,9 @@ void binocle_sprite_batcher_draw_batch(binocle_sprite_batcher *batcher, binocle_
   batcher->batch_item_list_size = 0;
 }
 
-void binocle_sprite_batcher_flush_vertex_array(binocle_sprite_batcher *batcher, uint64_t start, uint64_t end, sg_image *texture, binocle_render_state *render_state, binocle_gd *gd, float depth) {
+void binocle_sprite_batcher_flush_vertex_array(binocle_sprite_batcher *batcher, uint64_t start, uint64_t end,
+                                               sg_image *texture, binocle_render_state *render_state, binocle_gd *gd,
+                                               float depth) {
   if (start == end) {
     return;
   }
@@ -849,7 +865,8 @@ void binocle_sprite_batch_compute_cull_rectangle(binocle_sprite_batch *batch, km
   batch->cull_rect.max.y = viewport.max.y;
 }
 
-void binocle_sprite_batch_begin(binocle_sprite_batch *batch, kmAABB2 viewport, binocle_sprite_sort_mode sort_mode, struct sg_shader *shader, kmMat4 *transform_matrix) {
+void binocle_sprite_batch_begin(binocle_sprite_batch *batch, kmAABB2 viewport, binocle_sprite_sort_mode sort_mode,
+                                struct sg_shader *shader, kmMat4 *transform_matrix) {
   batch->render_state.shader = shader;
   if (transform_matrix != NULL) {
     kmMat4Assign(&batch->matrix, transform_matrix);
@@ -877,21 +894,34 @@ void binocle_sprite_batch_setup(binocle_sprite_batch *batch, kmAABB2 viewport) {
   batch->render_state.viewport = viewport;
 }
 
-void binocle_sprite_batch_draw_internal(binocle_sprite_batch *batch, sg_image *texture, kmAABB2 *source_rectangle, sg_color color, float rotation, float depth, bool auto_flush) {
+void binocle_sprite_batch_draw_internal(binocle_sprite_batch *batch, sg_image *texture, kmAABB2 *source_rectangle,
+                                        sg_color color, float rotation, float depth, bool auto_flush) {
   sg_image_desc info = sg_query_image_desc(*texture);
 
   // Cull geometry outside the viewport
-  batch->vertex_to_cull_tl.x = batch->origin_rect.min.x + -batch->scaled_origin.x * cosf(rotation) - -batch->scaled_origin.y * sinf(rotation);
-  batch->vertex_to_cull_tl.y = batch->origin_rect.min.y + -batch->scaled_origin.x * sinf(rotation) + -batch->scaled_origin.y * cosf(rotation);
+  batch->vertex_to_cull_tl.x =
+    batch->origin_rect.min.x + -batch->scaled_origin.x * cosf(rotation) - -batch->scaled_origin.y * sinf(rotation);
+  batch->vertex_to_cull_tl.y =
+    batch->origin_rect.min.y + -batch->scaled_origin.x * sinf(rotation) + -batch->scaled_origin.y * cosf(rotation);
 
-  batch->vertex_to_cull_tr.x = batch->origin_rect.min.x + (-batch->scaled_origin.x + batch->origin_rect.max.x) * cosf(rotation) - -batch->scaled_origin.y * sinf(rotation);
-  batch->vertex_to_cull_tr.y = batch->origin_rect.min.y + (-batch->scaled_origin.x + batch->origin_rect.max.x) * sinf(rotation) + -batch->scaled_origin.y * cosf(rotation);
+  batch->vertex_to_cull_tr.x =
+    batch->origin_rect.min.x + (-batch->scaled_origin.x + batch->origin_rect.max.x) * cosf(rotation) -
+    -batch->scaled_origin.y * sinf(rotation);
+  batch->vertex_to_cull_tr.y =
+    batch->origin_rect.min.y + (-batch->scaled_origin.x + batch->origin_rect.max.x) * sinf(rotation) +
+    -batch->scaled_origin.y * cosf(rotation);
 
-  batch->vertex_to_cull_bl.x = batch->origin_rect.min.x + -batch->scaled_origin.x * cosf(rotation) - (-batch->scaled_origin.y + batch->origin_rect.max.y) * sinf(rotation);
-  batch->vertex_to_cull_bl.y = batch->origin_rect.min.y + -batch->scaled_origin.x * sinf(rotation) + (-batch->scaled_origin.y + batch->origin_rect.max.y) * cosf(rotation);
+  batch->vertex_to_cull_bl.x = batch->origin_rect.min.x + -batch->scaled_origin.x * cosf(rotation) -
+                               (-batch->scaled_origin.y + batch->origin_rect.max.y) * sinf(rotation);
+  batch->vertex_to_cull_bl.y = batch->origin_rect.min.y + -batch->scaled_origin.x * sinf(rotation) +
+                               (-batch->scaled_origin.y + batch->origin_rect.max.y) * cosf(rotation);
 
-  batch->vertex_to_cull_br.x = batch->origin_rect.min.x + (-batch->scaled_origin.x + batch->origin_rect.max.x) * cosf(rotation) - (-batch->scaled_origin.y + batch->origin_rect.max.y) * sinf(rotation);
-  batch->vertex_to_cull_br.y = batch->origin_rect.min.y + (-batch->scaled_origin.x + batch->origin_rect.max.x) * sinf(rotation) + (-batch->scaled_origin.y + batch->origin_rect.max.y) * cosf(rotation);
+  batch->vertex_to_cull_br.x =
+    batch->origin_rect.min.x + (-batch->scaled_origin.x + batch->origin_rect.max.x) * cosf(rotation) -
+    (-batch->scaled_origin.y + batch->origin_rect.max.y) * sinf(rotation);
+  batch->vertex_to_cull_br.y =
+    batch->origin_rect.min.y + (-batch->scaled_origin.x + batch->origin_rect.max.x) * sinf(rotation) +
+    (-batch->scaled_origin.y + batch->origin_rect.max.y) * cosf(rotation);
 
   if (source_rectangle != NULL) {
     batch->temp_rect.min.x = source_rectangle->min.x;
@@ -912,9 +942,10 @@ void binocle_sprite_batch_draw_internal(binocle_sprite_batch *batch, sg_image *t
 
   binocle_sprite_batch_item *item = binocle_sprite_batcher_create_batch_item(&batch->batcher);
   binocle_sprite_batch_item_set(item, batch->origin_rect.min.x, batch->origin_rect.min.y,
-                                -batch->scaled_origin.x, -batch->scaled_origin.y, batch->origin_rect.max.x, batch->origin_rect.max.y,
-  sinf(rotation), cosf(rotation), color, batch->tex_coord_tl,
-    batch->tex_coord_br, depth, texture);
+                                -batch->scaled_origin.x, -batch->scaled_origin.y, batch->origin_rect.max.x,
+                                batch->origin_rect.max.y,
+                                sinf(rotation), cosf(rotation), color, batch->tex_coord_tl,
+                                batch->tex_coord_br, depth, texture);
 
   // set SortKey based on SpriteSortMode.
   switch (batch->sort_mode) {
@@ -923,12 +954,12 @@ void binocle_sprite_batch_draw_internal(binocle_sprite_batch *batch, sg_image *t
       //item->sortKey = texture->sortingKey;
       break;
     }
-    // Comparison of Depth
+      // Comparison of Depth
     case BINOCLE_SPRITE_SORT_MODE_FRONT_TO_BACK: {
       item->sort_key = depth;
       break;
     }
-    // Comparison of Depth in reverse
+      // Comparison of Depth in reverse
     case BINOCLE_SPRITE_SORT_MODE_BACK_TO_FRONT: {
       item->sort_key = -depth;
       break;
@@ -1019,7 +1050,7 @@ void binocle_sprite_batch_draw_vector_scale(binocle_sprite_batch *batch, sg_imag
   batch->origin_rect.max.x = (int64_t) w;
   batch->origin_rect.max.y = (int64_t) h;
   binocle_sprite_batch_draw_internal(batch, texture, source_rectangle, color, rotation,
-                                            layer_depth, true);
+                                     layer_depth, true);
 }
 
 void binocle_sprite_batch_draw_float_scale(binocle_sprite_batch *batch, sg_image *texture, kmVec2 position,

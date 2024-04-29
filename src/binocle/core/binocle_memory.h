@@ -58,27 +58,23 @@ typedef struct binocle_temporary_memory {
   uintptr_t used;
 } binocle_temporary_memory;
 
-typedef enum binocle_memory_arena_push_flag
-{
+typedef enum binocle_memory_arena_push_flag {
   BINOCLE_MEMORY_ARENA_PUSH_FLAG_CLEAR_TO_ZERO = 1,
 } binocle_memory_arena_push_flag;
 
-typedef struct binocle_memory_arena_push_params
-{
+typedef struct binocle_memory_arena_push_params {
   uint32_t flags;
   uint32_t alignment;
 } binocle_memory_arena_push_params;
 
-typedef struct binocle_memory_arena_bootstrap_params
-{
+typedef struct binocle_memory_arena_bootstrap_params {
   uint64_t allocation_flags;
   uintptr_t minimum_block_size;
 } binocle_memory_arena_bootstrap_params;
 
 typedef size_t binocle_memory_index;
 
-typedef struct binocle_buffer
-{
+typedef struct binocle_buffer {
   uintptr_t count;
   uint8_t *data;
 } binocle_buffer;
@@ -134,6 +130,8 @@ binocle_memory_push_string_(BINOCLE_MEMORY_PARAM binocle_memory_arena *arena,
 char *binocle_memory_push_and_null_terminate_(
   BINOCLE_MEMORY_PARAM binocle_memory_arena *arena, uint32_t length,
   const char *source);
+
+void binocle_memory_zero_size(binocle_memory_index size, void *ptr);
 
 #define binocle_memory_copy_array(count, source, dest) binocle_memory_copy((count)*sizeof(*(source)), (source), (dest))
 

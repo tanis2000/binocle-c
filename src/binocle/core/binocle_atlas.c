@@ -9,11 +9,15 @@
 #include "binocle_sdl.h"
 #include "binocle_log.h"
 #include "binocle_subtexture.h"
+#include "binocle_sprite.h"
 #include <parson/parson.h>
 #include "sokol_gfx.h"
+#include "binocle_array.h"
 
 bool binocle_atlas_load_texturepacker(char *filename, binocle_atlas_texturepacker *atlas) {
   binocle_log_info("Loading TexturePacker file: %s", filename);
+  SDL_strlcpy(atlas->asset_filename, filename, BINOCLE_MAX_ATLAS_FILENAME_LENGTH);
+
   SDL_RWops *file = SDL_RWFromFile(filename, "rb");
   if (file == NULL) {
     binocle_log_error("Cannot open JSON file");
@@ -129,11 +133,13 @@ bool binocle_atlas_load_texturepacker(char *filename, binocle_atlas_texturepacke
       int from, to = 0;
       const char *name;
       const char *direction;
+      const char *repeat;
 
       name = json_object_get_string(frame_tag, "name");
       direction = json_object_get_string(frame_tag, "direction");
       from = (int) json_object_get_number(frame_tag, "from");
       to = (int) json_object_get_number(frame_tag, "to");
+      repeat = json_object_get_string(frame_tag, "repeat");
 
       binocle_atlas_animation *anim = &anims[i];
       anim->name = SDL_malloc(SDL_strlen(name) + 1);
@@ -142,6 +148,7 @@ bool binocle_atlas_load_texturepacker(char *filename, binocle_atlas_texturepacke
       strcpy(anim->direction, direction);
       anim->from = from;
       anim->to = to;
+      anim->repeat = repeat != NULL;
     }
     atlas->meta.frame_tags = anims;
   }
@@ -217,8 +224,10 @@ bool binocle_atlas_load_texturepacker(char *filename, binocle_atlas_texturepacke
     float pivot_x, pivot_y = 0;
     const char *frameFilename;
     JSON_Object *innerFrame;
+    int duration = 0;
 
     frameFilename = json_object_get_string(frame, "filename");
+    duration = (int)json_object_get_number(frame, "duration");
     innerFrame = json_object_get_object(frame, "frame");
     x = (int) json_object_get_number(innerFrame, "x");
     y = (int) json_object_get_number(innerFrame, "y");
@@ -246,6 +255,8 @@ bool binocle_atlas_load_texturepacker(char *filename, binocle_atlas_texturepacke
       .x = pivot_x,
       .y = pivot_y,
     };
+
+    atlas_frame->duration = duration;
 
   }
   atlas->frames = atlas_frames;
@@ -295,7 +306,7 @@ void binocle_atlas_destroy_texturepacker(binocle_atlas_texturepacker *atlas) {
 }
 
 void binocle_atlas_texturepacker_create_subtextures(binocle_atlas_texturepacker *atlas, struct sg_image *texture,
-                                      struct binocle_subtexture *subtextures, int *num_subtextures) {
+                                        struct binocle_subtexture *subtextures, int *num_subtextures) {
   *num_subtextures = 0;
 
   for (int i = 0; i < atlas->num_frames; i++) {
@@ -307,6 +318,46 @@ void binocle_atlas_texturepacker_create_subtextures(binocle_atlas_texturepacker 
     strcpy(subtextures[*num_subtextures].name, frame->filename);
     (*num_subtextures)++;
   }
+}
+
+void binocle_atlas_texturepacker_create_animations(
+  binocle_atlas_texturepacker *atlas,
+  sg_image texture,
+  binocle_sprite *sprite
+) {
+  binocle_log_info("Creating %d frames of animation from atlas %s", atlas->num_frames, atlas->asset_filename);
+  // Put all the frames in the sprite
+  for (int i = 0 ; i < atlas->num_frames ; i++) {
+    binocle_atlas_tp_frame *atlas_frame = &atlas->frames[i];
+    binocle_subtexture st = binocle_subtexture_with_texture(&texture, atlas_frame->frame.min.x, atlas->meta.size.y - atlas_frame->frame.min.y - atlas_frame->frame.max.y, atlas_frame->frame.max.x, atlas_frame->frame.max.y);
+    binocle_array_push(sprite->subtextures, st);
+    binocle_sprite_frame frame = binocle_sprite_frame_from_subtexture(&st);
+    binocle_sprite_add_frame(sprite, frame);
+  }
+  // Create all the animations
+  for (int i = 0 ; i < atlas->meta.num_frame_tags ; i++) {
+    binocle_log_info("Creating animation number %i", i);
+    binocle_atlas_animation *atlas_animation = &atlas->meta.frame_tags[i];
+    binocle_sprite_animation *anim = &sprite->animations[i];
+    anim->looping = atlas_animation->repeat;
+    for (int j = 0; j < BINOCLE_SPRITE_MAX_FRAMES; j++) {
+      anim->frames[j] = -1;
+    }
+    anim->name = SDL_strdup(atlas_animation->name);
+    int frames_count = atlas_animation->to - atlas_animation->from + 1;
+    int animation_frame = 0;
+    anim->frames_number = frames_count;
+    for (int n = atlas_animation->from ; n <= atlas_animation->to ; n++) {
+      binocle_log_info("Adding frame %d at position %d to %s", n, animation_frame, anim->name);
+      binocle_atlas_tp_frame *atlas_frame = &atlas->frames[n];
+      anim->delays[animation_frame] = (float)atlas_frame->duration / 1000.0f;
+      anim->frames[animation_frame] = n;
+      animation_frame++;
+    }
+    sprite->animations_number++;
+    binocle_log_info("Created animation %s", anim->name);
+  }
+  binocle_log_info("Created %d animations", sprite->animations_number);
 }
 
 void binocle_atlas_animation_destroy(binocle_atlas_animation *animations, size_t num_animations) {
