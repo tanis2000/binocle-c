@@ -1243,9 +1243,12 @@ sg_shader_desc binocle_gd_create_offscreen_shader_desc(const char *shader_vs_src
     .fs.byte_code = default_fs_bytecode,
     .fs.byte_code_size = sizeof(default_fs_bytecode),
 #endif
-    .fs.images[0] = {
-//      .name = "tex0",
-      .image_type = SG_IMAGETYPE_2D},
+    .fs.images[0] = {.used = true, .image_type = SG_IMAGETYPE_2D},
+    .fs.samplers[0] = {.used = true, .sampler_type = SG_SAMPLERTYPE_FILTERING},
+    .fs.image_sampler_pairs[0] = {.used = true,
+                                  .glsl_name = "tex0",
+                                  .image_slot = 0,
+                                  .sampler_slot = 0},
   };
   return shader_desc;
 }
