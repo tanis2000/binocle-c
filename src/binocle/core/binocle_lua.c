@@ -29,6 +29,7 @@
 #include "binocle_window.h"
 #include "binocle_window_wrap.h"
 #include "kazmath/lkazmath.h"
+#include "luasocket/luasocket.h"
 #include <sokol_time.h>
 #include <stdlib.h>
 
@@ -57,6 +58,10 @@ bool binocle_lua_init(binocle_lua *lua) {
   lua_setglobal(lua->L, "lkazmath");
   binocle_log_info("Lua stack after kazmath: %d", lua_gettop(lua->L));
   lua_pop(lua->L, 11);
+
+  luaopen_socket_core(lua->L);
+  lua_setglobal(lua->L, "socket");
+  binocle_log_info("Lua stack after socket: %d", lua_gettop(lua->L));
 
   luaopen_sdl(lua->L);
   binocle_log_info("Lua stack after sdl: %d", lua_gettop(lua->L));

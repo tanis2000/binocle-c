@@ -20,15 +20,15 @@
 
 
 typedef struct binocle_asset {
-
+  int dummy;
 } binocle_asset;
 
 typedef struct binocle_asset_file {
-
+  int dummy;
 } binocle_asset_file;
 
 typedef struct binocle_asset_source_file {
-
+  int dummy;
 } binocle_asset_source_file;
 
 typedef struct binocle_assets {
