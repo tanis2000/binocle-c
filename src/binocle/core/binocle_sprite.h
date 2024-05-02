@@ -175,7 +175,7 @@ typedef struct binocle_sprite {
  * An item of the sprite batch
  */
 typedef struct binocle_sprite_batch_item {
-  struct binocle_material *material;;
+  struct binocle_material *material;
   binocle_vpct vertex_tl;
   binocle_vpct vertex_tr;
   binocle_vpct vertex_bl;
