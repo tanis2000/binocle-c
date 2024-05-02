@@ -18,9 +18,9 @@
 typedef struct binocle_render_state {
   sg_blend_state blend_mode;
   kmMat4 transform;
-  sg_image *texture;
   sg_shader *shader;
   kmAABB2 viewport;
+  struct binocle_material *material;
 } binocle_render_state;
 
 /**
@@ -30,6 +30,6 @@ typedef struct binocle_render_state {
  * @param shader  The current shader
  * @return the render state
  */
-binocle_render_state binocle_render_state_new(struct sg_image *texture, struct sg_shader *shader);
+binocle_render_state binocle_render_state_new(struct binocle_material *material, struct sg_shader *shader);
 
 #endif //BINOCLE_RENDER_STATE_H

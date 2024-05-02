@@ -1001,8 +1001,17 @@ void binocle_gd_draw_with_state(binocle_gd *gd, const binocle_vpct *vertices, si
   binocle_gd_command_t *cmd = &gd->commands[gd->num_commands];
   cmd->num_vertices = vertex_count;
   cmd->base_vertex = gd->num_vertices;
-  cmd->img = *render_state->texture;
+  cmd->img = render_state->material->albedo_texture;
   cmd->depth = depth;
+
+  if (sg_query_pipeline_state(render_state->material->pip) == SG_RESOURCESTATE_VALID) {
+    cmd->pip = render_state->material->pip;
+    memcpy(cmd->custom_fs_uniforms, render_state->material->custom_fs_uniforms, 1024);
+    cmd->shader_desc = render_state->material->shader_desc;
+  } else {
+    cmd->pip.id = 0;
+  }
+
   kmMat4 cameraTransformMatrix = render_state->transform;
 
   cmd->uniforms.projectionMatrix = binocle_math_create_orthographic_matrix_off_center(render_state->viewport.min.x, render_state->viewport.max.x,

@@ -162,14 +162,14 @@ int l_binocle_sprite_batch_end(lua_State *L) {
 
 int l_binocle_sprite_batch_draw(lua_State *L) {
   l_binocle_sprite_batch_t *sprite_batch = luaL_checkudata(L, 1, "binocle_sprite_batch");
-  l_binocle_texture_t *tex = luaL_checkudata(L, 2, "binocle_texture");
+  l_binocle_material_t *material = luaL_checkudata(L, 2, "binocle_material");
   float x = lua_tonumber(L, 3);
   float y = lua_tonumber(L, 4);
   float depth = lua_tonumber(L, 5);
   kmVec2 pos;
   pos.x = x;
   pos.y = y;
-  binocle_sprite_batch_draw(sprite_batch->sprite_batch, &tex->texture, &pos, NULL, NULL, NULL, 0.0f, NULL, binocle_color_white(), depth);
+  binocle_sprite_batch_draw(sprite_batch->sprite_batch, material->material, &pos, NULL, NULL, NULL, 0.0f, NULL, binocle_color_white(), depth);
   return 1;
 }
 

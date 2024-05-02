@@ -160,7 +160,7 @@ void binocle_sprite_draw_with_sprite_batch(binocle_sprite_batch *sprite_batch, b
   scale->x *= m->mat[0];
   scale->y *= m->mat[5];
 
-  binocle_sprite_batch_draw(sprite_batch, &sprite->material->albedo_texture, &pos, NULL, &s->rect, &sprite->origin,
+  binocle_sprite_batch_draw(sprite_batch, sprite->material, &pos, NULL, &s->rect, &sprite->origin,
                             rotation, scale, binocle_color_white(), depth);
 }
 
@@ -598,7 +598,7 @@ bool binocle_sprite_is_playing_animation(binocle_sprite *sprite, const char *nam
 
 binocle_sprite_batch_item binocle_sprite_batch_item_new() {
   binocle_sprite_batch_item res = {0};
-  res.texture = NULL;
+  res.material = NULL;
   res.vertex_tl.color = binocle_color_white();
   res.vertex_tl.pos.x = 0;
   res.vertex_tl.pos.y = 0;
@@ -618,7 +618,7 @@ binocle_sprite_batch_item binocle_sprite_batch_item_new() {
 void
 binocle_sprite_batch_item_set(binocle_sprite_batch_item *item, float x, float y, float dx, float dy, float w, float h,
                               float sin, float cos, sg_color color, kmVec2 tex_coord_tl, kmVec2 tex_coord_br,
-                              float depth, sg_image *texture) {
+                              float depth, binocle_material *material) {
   item->vertex_tl.pos.x = x + dx * cos - dy * sin;
   item->vertex_tl.pos.y = y + dx * sin + dy * cos;
   item->vertex_tl.color = color;
@@ -644,7 +644,7 @@ binocle_sprite_batch_item_set(binocle_sprite_batch_item *item, float x, float y,
   item->vertex_br.tex.y = tex_coord_br.y;
 
   item->sort_key = depth;
-  item->texture = texture;
+  item->material = material;
 }
 
 //
@@ -740,7 +740,7 @@ void binocle_sprite_batcher_draw_batch(binocle_sprite_batcher *batcher, binocle_
     // setup the vertexArray array
     uint64_t start_index = 0;
     uint64_t index = 0;
-    sg_image *tex = NULL;
+    binocle_material *material = NULL;
     float depth = -INFINITY;
 
     uint64_t num_batches_to_process = batch_count;
@@ -755,21 +755,21 @@ void binocle_sprite_batcher_draw_batch(binocle_sprite_batcher *batcher, binocle_
       // if the texture changed, we need to flush and bind the new texture
       bool should_flush = false;
 
-      if (batcher->batch_item_list[batch_index].texture != NULL && tex == NULL) {
+      if (batcher->batch_item_list[batch_index].material != NULL && material == NULL) {
         should_flush = true;
-      } else if (batcher->batch_item_list[batch_index].texture == NULL && tex != NULL) {
+      } else if (batcher->batch_item_list[batch_index].material == NULL && material != NULL) {
         should_flush = true;
-      } else if (batcher->batch_item_list[batch_index].texture == NULL && tex == NULL) {
+      } else if (batcher->batch_item_list[batch_index].material == NULL && material == NULL) {
         should_flush = false;
       } else if (batcher->batch_item_list[batch_index].sort_key != depth) {
         should_flush = true;
       } else {
-        should_flush = batcher->batch_item_list[batch_index].texture->id != tex->id;
+        should_flush = batcher->batch_item_list[batch_index].material != material;
       }
       if (should_flush) {
-        binocle_sprite_batcher_flush_vertex_array(batcher, start_index, index, tex, render_state, gd, depth);
+        binocle_sprite_batcher_flush_vertex_array(batcher, start_index, index, material, render_state, gd, depth);
 
-        tex = batcher->batch_item_list[batch_index].texture;
+        material = batcher->batch_item_list[batch_index].material;
         depth = batcher->batch_item_list[batch_index].sort_key;
         start_index = 0;
         index = 0;
@@ -791,11 +791,11 @@ void binocle_sprite_batcher_draw_batch(binocle_sprite_batcher *batcher, binocle_
       index = index + 1;
 
       // Release the texture.
-      item->texture = NULL;
+      item->material = NULL;
       batch_index += 1;
     }
     // flush the remaining vertexArray data
-    binocle_sprite_batcher_flush_vertex_array(batcher, start_index, index, tex, render_state, gd, depth);
+    binocle_sprite_batcher_flush_vertex_array(batcher, start_index, index, material, render_state, gd, depth);
     // Update our batch count to continue the process of culling down
     // large batches
     batch_count -= num_batches_to_process;
@@ -805,14 +805,14 @@ void binocle_sprite_batcher_draw_batch(binocle_sprite_batcher *batcher, binocle_
 }
 
 void binocle_sprite_batcher_flush_vertex_array(binocle_sprite_batcher *batcher, uint64_t start, uint64_t end,
-                                               sg_image *texture, binocle_render_state *render_state, binocle_gd *gd,
+                                               binocle_material *material, binocle_render_state *render_state, binocle_gd *gd,
                                                float depth) {
   if (start == end) {
     return;
   }
 
   uint64_t vertex_count = end - start;
-  render_state->texture = texture;
+  render_state->material = material;
 
   binocle_gd_draw_with_state(gd, batcher->vertex_array, vertex_count, render_state, depth);
 }
@@ -894,9 +894,9 @@ void binocle_sprite_batch_setup(binocle_sprite_batch *batch, kmAABB2 viewport) {
   batch->render_state.viewport = viewport;
 }
 
-void binocle_sprite_batch_draw_internal(binocle_sprite_batch *batch, sg_image *texture, kmAABB2 *source_rectangle,
+void binocle_sprite_batch_draw_internal(binocle_sprite_batch *batch, binocle_material *material, kmAABB2 *source_rectangle,
                                         sg_color color, float rotation, float depth, bool auto_flush) {
-  sg_image_desc info = sg_query_image_desc(*texture);
+  sg_image_desc info = sg_query_image_desc(material->albedo_texture);
 
   // Cull geometry outside the viewport
   batch->vertex_to_cull_tl.x =
@@ -945,7 +945,7 @@ void binocle_sprite_batch_draw_internal(binocle_sprite_batch *batch, sg_image *t
                                 -batch->scaled_origin.x, -batch->scaled_origin.y, batch->origin_rect.max.x,
                                 batch->origin_rect.max.y,
                                 sinf(rotation), cosf(rotation), color, batch->tex_coord_tl,
-                                batch->tex_coord_br, depth, texture);
+                                batch->tex_coord_br, depth, material);
 
   // set SortKey based on SpriteSortMode.
   switch (batch->sort_mode) {
@@ -987,7 +987,7 @@ void binocle_sprite_batch_flush_if_needed(binocle_sprite_batch *batch) {
   }
 }
 
-void binocle_sprite_batch_draw(binocle_sprite_batch *batch, sg_image *texture, kmVec2 *position,
+void binocle_sprite_batch_draw(binocle_sprite_batch *batch, binocle_material *material, kmVec2 *position,
                                kmAABB2 *destination_rectangle,
                                kmAABB2 *source_rectangle, kmVec2 *origin,
                                float rotation, kmVec2 *scale, sg_color color,
@@ -1016,7 +1016,7 @@ void binocle_sprite_batch_draw(binocle_sprite_batch *batch, sg_image *texture, k
     binocle_log_error("Expected drawRectangle or position, but received neither or both.");
   } else if (position != NULL) {
     // Call Draw() using position
-    binocle_sprite_batch_draw_vector_scale(batch, texture, position, source_rectangle, color, rotation, base_origin,
+    binocle_sprite_batch_draw_vector_scale(batch, material, position, source_rectangle, color, rotation, base_origin,
                                            base_scale, layer_depth);
   } else {
     // Call Draw() using drawRectangle
@@ -1026,11 +1026,11 @@ void binocle_sprite_batch_draw(binocle_sprite_batch *batch, sg_image *texture, k
   }
 }
 
-void binocle_sprite_batch_draw_vector_scale(binocle_sprite_batch *batch, sg_image *texture, kmVec2 *position,
+void binocle_sprite_batch_draw_vector_scale(binocle_sprite_batch *batch, binocle_material *material, kmVec2 *position,
                                             kmAABB2 *source_rectangle, sg_color color,
                                             float rotation, kmVec2 origin, kmVec2 scale,
                                             float layer_depth) {
-  sg_image_desc info = sg_query_image_desc(*texture);
+  sg_image_desc info = sg_query_image_desc(material->albedo_texture);
 
   float w = info.width * scale.x;
   float h = info.height * scale.y;
@@ -1049,11 +1049,11 @@ void binocle_sprite_batch_draw_vector_scale(binocle_sprite_batch *batch, sg_imag
   }
   batch->origin_rect.max.x = (int64_t) w;
   batch->origin_rect.max.y = (int64_t) h;
-  binocle_sprite_batch_draw_internal(batch, texture, source_rectangle, color, rotation,
+  binocle_sprite_batch_draw_internal(batch, material, source_rectangle, color, rotation,
                                      layer_depth, true);
 }
 
-void binocle_sprite_batch_draw_float_scale(binocle_sprite_batch *batch, sg_image *texture, kmVec2 position,
+void binocle_sprite_batch_draw_float_scale(binocle_sprite_batch *batch, binocle_material *material, kmVec2 position,
                                            kmAABB2 source_rectangle, sg_color color,
                                            float rotation, kmVec2 origin, float scale,
                                            float layer_depth) {
@@ -1061,20 +1061,20 @@ void binocle_sprite_batch_draw_float_scale(binocle_sprite_batch *batch, sg_image
   kmVec2 s;
   s.x = scale;
   s.y = scale;
-  binocle_sprite_batch_draw_vector_scale(batch, texture, &position, &source_rectangle, color, rotation, origin, s,
+  binocle_sprite_batch_draw_vector_scale(batch, material, &position, &source_rectangle, color, rotation, origin, s,
                                          layer_depth);
 }
 
-void binocle_sprite_batch_draw_position(binocle_sprite_batch *batch, sg_image *texture, kmVec2 position) {
-  binocle_sprite_batch_draw(batch, texture, &position, NULL, NULL, NULL, 0.0f, NULL, binocle_color_white(), 0.0f);
+void binocle_sprite_batch_draw_position(binocle_sprite_batch *batch, binocle_material *material, kmVec2 position) {
+  binocle_sprite_batch_draw(batch, material, &position, NULL, NULL, NULL, 0.0f, NULL, binocle_color_white(), 0.0f);
 }
 
 void
-binocle_sprite_batch_draw_noscale(binocle_sprite_batch *batch, sg_image *texture, kmAABB2 destination_rectangle,
+binocle_sprite_batch_draw_noscale(binocle_sprite_batch *batch, binocle_material *material, kmAABB2 destination_rectangle,
                                   kmAABB2 *source_rectangle, sg_color color,
                                   float rotation, kmVec2 origin,
                                   float layer_depth) {
-  sg_image_desc info = sg_query_image_desc(*texture);
+  sg_image_desc info = sg_query_image_desc(material->albedo_texture);
 
   batch->origin_rect.min.x = destination_rectangle.min.x;
   batch->origin_rect.min.y = destination_rectangle.min.y;
@@ -1101,15 +1101,15 @@ binocle_sprite_batch_draw_noscale(binocle_sprite_batch *batch, sg_image *texture
                   info.width);
   }
 
-  binocle_sprite_batch_draw_internal(batch, texture, source_rectangle, color, rotation,
+  binocle_sprite_batch_draw_internal(batch, material, source_rectangle, color, rotation,
                                      layer_depth, true);
 }
 
 void
-binocle_sprite_draw_dst_src_color(binocle_sprite_batch *batch, sg_image *texture, kmAABB2 destination_rectangle,
+binocle_sprite_draw_dst_src_color(binocle_sprite_batch *batch, binocle_material *material, kmAABB2 destination_rectangle,
                                   kmAABB2 source_rectangle, sg_color color) {
   kmVec2 origin;
-  binocle_sprite_batch_draw_noscale(batch, texture, destination_rectangle, &source_rectangle, color, 0.0f, origin,
+  binocle_sprite_batch_draw_noscale(batch, material, destination_rectangle, &source_rectangle, color, 0.0f, origin,
                                     0.0f);
 }
 
