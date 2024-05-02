@@ -1,6 +1,7 @@
 project(luasocket)
 
 include_directories(.)
+include_directories(../lua/src)
 
 file(GLOB SOURCES
         auxiliar.c

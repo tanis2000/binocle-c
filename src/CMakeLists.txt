@@ -34,6 +34,7 @@ if (NOT EMSCRIPTEN)
 else()
     set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
             $<TARGET_OBJECTS:lua>
+            $<TARGET_OBJECTS:luasocket>
             )
 endif()
 
@@ -53,10 +54,12 @@ if (APPLE AND NOT IOS)
     if (BINOCLE_LUAJIT)
         set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
                 $<TARGET_OBJECTS:libluajit>
+                $<TARGET_OBJECTS:luasocket>
                 )
     else ()
         set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
                 $<TARGET_OBJECTS:lua>
+                $<TARGET_OBJECTS:luasocket>
                 )
     endif()
 endif()
@@ -64,6 +67,7 @@ endif()
 if (IOS)
     set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
             $<TARGET_OBJECTS:lua>
+            $<TARGET_OBJECTS:luasocket>
             )
 endif()
 
@@ -72,6 +76,7 @@ if (ANDROID)
             $<TARGET_OBJECTS:vorbisidec>
             #$<TARGET_OBJECTS:luajit-5.1>
             $<TARGET_OBJECTS:lua>
+            $<TARGET_OBJECTS:luasocket>
             )
 endif()
 
@@ -81,6 +86,7 @@ if (MSVC)
             # we're using lua instead of luajit on macos to be able to test with valgrind
             #$<TARGET_OBJECTS:luajit-5.1>
             $<TARGET_OBJECTS:lua>
+            $<TARGET_OBJECTS:luasocket>
             )
     if (BINOCLE_HTTP)
         set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
