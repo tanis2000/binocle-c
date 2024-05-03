@@ -42,6 +42,7 @@ The API is evolving all the time but the core is pretty stable. I keep adding an
 - Viewport adapters for 2D pixel perfect images
 - Experimental hot code reloading for game code
 - Lua scripting through LuaJIT on supported platforms and fallback to Lua where LuaJIT is not available
+- Luasocket is included out of the box
 - Experimental Wren scripting support
 - 3D physics through Newton Dynamics (desktop platforms only)
 
@@ -242,21 +243,27 @@ It can be compiled by using the `-D BUILD_EXAMPLE=1` CMake directive.
 
 ## Projects using Binocle
 
-![Shadow Crash screenshot](images/screenshots/ld50-shadow-crash.gif)
+* [Binocle Player](https://github.com/tanis2000/binocle-player) is a simple project based on Binocle to create 2D games using Lua. It is somewhat similar to Love2D.
+
+
+* ![Shadow Crash screenshot](images/screenshots/ld50-shadow-crash.gif)
+
 [Shadow Crash](https://tanis.itch.io/shadow-crash), my entry for Ludum Dare 50.
 You can get the [source code here](https://github.com/tanis2000/binocle-player/tree/ld50)
 
 ![Santa frowns to town screenshot](images/screenshots/ld43-binocle-cover.png)
+
 [Santa frowns to town](https://tanis.itch.io/santa-frowns-to-town), my entry for Ludum Dare 43.
 You can get the [source code here](https://github.com/tanis2000/ld43-binocle)
 
 ![Binocle Demo Tool screenshot](images/screenshots/binocle-demomaker-001.png)
+
 Binocle Demo Tool, my personal unreleased demo tool
 
 ## License
 
 The MIT License (MIT)
-Copyright (c) 2015-2022 Valerio Santinelli
+Copyright (c) 2015-2024 Valerio Santinelli
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
