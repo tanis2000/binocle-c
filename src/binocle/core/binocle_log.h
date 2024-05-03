@@ -35,4 +35,9 @@ void binocle_log_info(const char *msg, ...);
  */
 void binocle_log_debug(const char *msg, ...);
 
+/**
+ * \brief Ensures that the buffer used to temporarily hold the formatted message is available
+ */
+void binocle_log_ensure_buffer_is_set();
+
 #endif //BINOCLE_LOG_H
