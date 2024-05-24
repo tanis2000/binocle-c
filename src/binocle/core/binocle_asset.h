@@ -18,11 +18,21 @@
  * idea, though,
  */
 
+/// A unique handle to identify the asset
+typedef uint32_t binocle_asset_handle;
 
+typedef enum binocle_asset_type {
+  BINOCLE_ASSET_TYPE_IMAGE,
+  BINOCLE_ASSET_TYPE_AUDIO,
+} binocle_asset_type;
+
+/// The representation of an asset
 typedef struct binocle_asset {
-  int dummy;
+  binocle_asset_handle handle;
+  binocle_asset_type asset_type;
 } binocle_asset;
 
+/// The representation of the original file
 typedef struct binocle_asset_file {
   int dummy;
 } binocle_asset_file;
@@ -42,5 +52,13 @@ typedef struct binocle_assets {
   uint32_t assets_count;
   binocle_asset *assets;
 } binocle_assets;
+
+/**
+ * \brief Initialize the Assets Manager
+ * \return The instance of the Assets Manager
+ */
+binocle_assets *binocle_assets_new();
+
+binocle_asset_handle binocle_asset_load_image(binocle_assets *assets, const char *filename);
 
 #endif //GAME_TEMPLATE_BINOCLE_ASSET_H

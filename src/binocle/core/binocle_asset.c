@@ -9,6 +9,11 @@ binocle_assets *binocle_assets_new() {
   binocle_memory_arena *arena = &assets->non_restored_memory;
 
   // Reserve one null asset at the beginning
-  binocle_memory_zero_struct(*(assets->assets));
+  binocle_memory_zero_struct(assets->assets);
   return assets;
+}
+
+binocle_asset_handle binocle_asset_load_image(binocle_assets *assets, const char *filename) {
+
+  return 0;
 }

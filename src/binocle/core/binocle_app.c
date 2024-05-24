@@ -5,6 +5,7 @@
 //
 
 #include "binocle_app.h"
+#include "binocle_asset.h"
 #include "binocle_memory.h"
 #include "binocle_sdl.h"
 #include "sokol_gfx.h"
@@ -43,6 +44,9 @@ bool binocle_app_init(binocle_app *app, binocle_app_desc_t *desc) {
   }
 
   binocle_sdl_init();
+
+  // Initialize the assets manager
+  binocle_assets_new();
   return true;
 }
 
