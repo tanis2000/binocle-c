@@ -21,8 +21,8 @@ set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 -D_DEBUG_ -D_DEBUG -g")
 
 # Force unset of OS X-specific deployment target (otherwise autopopulated),
 # required as of cmake 2.8.10.
-set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING
-        "Must be empty for iOS builds." FORCE)
+set(CMAKE_OSX_DEPLOYMENT_TARGET "13.1" CACHE STRING
+        "The deployment target." FORCE)
 
 #set (CMAKE_OSX_ARCHITECTURES $(ARCHS_STANDARD))
 if(BINOCLE_IOS_ARCH)

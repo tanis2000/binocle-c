@@ -21,7 +21,7 @@ set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 -D_DEBUG_ -D_DEBUG -g")
 
 # Force unset of OS X-specific deployment target (otherwise autopopulated),
 # required as of cmake 2.8.10.
-set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING
+set(CMAKE_OSX_DEPLOYMENT_TARGET "7.0" CACHE STRING
         "Must be empty for watchOS builds." FORCE)
 
 #set (CMAKE_OSX_ARCHITECTURES $(ARCHS_STANDARD))
