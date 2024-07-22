@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.5)
 
 project(binocle)
 
 # Policies
-if("${CMAKE_VERSION}" VERSION_GREATER 3.1)
+if("${CMAKE_VERSION}" VERSION_GREATER 3.5)
 	cmake_policy(SET CMP0054 NEW)
 	cmake_policy(SET CMP0025 NEW)
 endif()
@@ -76,6 +76,9 @@ elseif(APPLE AND NOT ANDROID)
 	if(IOS)
 		message("Including iOS defines")
 		include(BinocleIOS)
+	elseif (WATCHOS)
+		message("Including watchOS defines")
+		include(BinocleWATCHOS)
 	else()
 		message("Including Mac defines")
 		include(BinocleMac)
