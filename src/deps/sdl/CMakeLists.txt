@@ -100,6 +100,46 @@ if (APPLE)
         add_definitions(-D__IPHONEOS__)
         include_directories(include)
         include_directories(include/configs/default)
+    elseif (WATCHOS)
+        file(GLOB WATCHOS_SOURCES
+                src/audio/coreaudio/*.m
+                src/file/cocoa/*.m
+                src/filesystem/cocoa/*.m
+                src/joystick/steam/*.c
+                src/haptic/dummy/*.c
+                src/hidapi/ios/hid.m
+                src/loadso/dlopen/*.c
+                src/locale/macosx/*.m
+                src/main/uikit/*.m
+                src/misc/ios/*.m
+                src/power/uikit/*.m
+                src/render/opengles/SDL_render_gles.c
+                src/render/opengles2/SDL_render_gles2.c
+                src/render/opengles2/SDL_shaders_gles2.c
+                src/render/metal/SDL_render_metal.m
+                src/sensor/coremotion/*.m
+                src/thread/pthread/SDL_syscond.c
+                src/thread/pthread/SDL_sysmutex.c
+                src/thread/pthread/SDL_syssem.c
+                src/thread/pthread/SDL_systhread.c
+                src/thread/pthread/SDL_systls.c
+                src/timer/unix/*.c
+                src/power/uikit/SDL_syspower.m
+                src/video/SDL_egl.c
+                src/video/cocoa/SDL_cocoaopengles.m
+                src/video/cocoa/SDL_cocoavulkan.m
+                src/video/uikit/*.m
+
+                #include/*.h
+                #include/SDL_config_iphoneos.h
+        )
+        list(APPEND SOURCES ${WATCHOS_SOURCES})
+        add_definitions(-DGL_GLEXT_PROTOTYPES)
+        add_definitions(-fobjc-arc)
+        add_definitions(-D__WATCHOS__)
+        add_definitions(-DSDL_HIDAPI_DISABLED)
+        include_directories(include)
+        include_directories(include/configs/default)
     else ()
         file(GLOB MAC_SOURCES
                 src/audio/coreaudio/*.m
@@ -338,5 +378,13 @@ if (IOS)
             XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 9.0
     )
 endif (IOS)
+
+if (WATCHOS)
+    set_target_properties(
+            sdl
+            PROPERTIES
+            XCODE_ATTRIBUTE_WATCHOS_DEPLOYMENT_TARGET 7.0
+    )
+endif (WATCHOS)
 
 
