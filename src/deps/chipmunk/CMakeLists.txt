@@ -54,7 +54,7 @@ if (IOS)
     set_target_properties(
             chipmunk
             PROPERTIES
-            XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 9.0
+            XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 13.1
     )
 endif (IOS)
 
