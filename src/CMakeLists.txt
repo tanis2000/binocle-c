@@ -26,7 +26,7 @@ endif ()
 
 if (NOT EMSCRIPTEN)
     set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
-            $<TARGET_OBJECTS:sdl>
+            $<TARGET_OBJECTS:SDL2::SDL2>
             $<TARGET_OBJECTS:ogg>
             $<TARGET_OBJECTS:vorbis>
             $<TARGET_OBJECTS:zlib>
@@ -69,6 +69,13 @@ if (IOS)
             $<TARGET_OBJECTS:lua>
             $<TARGET_OBJECTS:luasocket>
             )
+endif()
+
+if (WATCHOS)
+    set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
+            $<TARGET_OBJECTS:lua>
+            $<TARGET_OBJECTS:luasocket>
+    )
 endif()
 
 if (ANDROID)

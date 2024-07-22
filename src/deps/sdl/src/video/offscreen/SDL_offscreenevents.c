@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2022 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -18,10 +18,9 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
-
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_OFFSCREEN
+#ifdef SDL_VIDEO_DRIVER_OFFSCREEN
 
 /* Being a offscreen driver, there's no event stream. We just define stubs for
    most of the API. */
@@ -31,8 +30,7 @@
 #include "SDL_offscreenvideo.h"
 #include "SDL_offscreenevents_c.h"
 
-void
-OFFSCREEN_PumpEvents(_THIS)
+void OFFSCREEN_PumpEvents(_THIS)
 {
     /* do nothing. */
 }

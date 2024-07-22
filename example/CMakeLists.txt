@@ -28,6 +28,10 @@ if (APPLE)
         include_directories(${CMAKE_SOURCE_DIR}/src/deps/sdl/include/configs/default)
         include_directories(${PROJECT_SOURCE_DIR}/src/deps/lua/src)
         include_directories(${PROJECT_SOURCE_DIR}/src/deps/luasocket/src)
+    elseif (WATCHOS)
+        include_directories(${CMAKE_SOURCE_DIR}/src/deps/sdl/include/configs/default)
+        include_directories(${PROJECT_SOURCE_DIR}/src/deps/lua/src)
+        include_directories(${PROJECT_SOURCE_DIR}/src/deps/luasocket/src)
     else ()
         include_directories(${CMAKE_SOURCE_DIR}/src/deps/sdl/include/configs/mac)
         include_directories(${CMAKE_SOURCE_DIR}/src/deps/glew/include)
@@ -90,7 +94,7 @@ else ()
     add_executable(ExampleProject MACOSX_BUNDLE ${EXE_TYPE} ${SOURCE_FILES} ${BINOCLE_ICON} ${RESOURCES})
 endif ()
 
-if (NOT EMSCRIPTEN AND NOT ANDROID AND NOT IOS)
+if (NOT EMSCRIPTEN AND NOT ANDROID AND NOT IOS AND NOT WATCHOS)
     set(OPENSSL_USE_STATIC_LIBS TRUE)
     set(OPENSSL_MSVC_STATIC_RT TRUE)
     find_package(OpenSSL REQUIRED)
@@ -170,6 +174,30 @@ if (APPLE)
         #    COMMAND /Developer/Library/PrivateFrameworks/DevToolsCore.framework/Resources/pbxcp -exclude .DS_Store -exclude CVS -exclude .svn -resolve-src-symlinks ${CMAKE_SOURCE_DIR}/assets ${APP_NAME}
         #)
     endif ()
+
+    if (WATCHOS)
+        message("Using plist file: ${CMAKE_SOURCE_DIR}/platform/ios/Info.plist")
+        set_target_properties(
+                ${PROJECT_NAME}
+                PROPERTIES
+                MACOSX_BUNDLE YES
+                MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/platform/ios/Info.plist"
+                XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic"
+                XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iOS Developer"
+                XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER "Automatic"
+                XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${IOS_DEVELOPMENT_TEAM_ID}"
+                XCODE_ATTRIBUTE_INFOPLIST_PREPROCESS YES
+                XCODE_ATTRIBUTE_WATCHOS_DEPLOYMENT_TARGET 7.0
+                RESOURCE "${RESOURCES}"
+        )
+
+        # Copy resources
+        #add_custom_command(
+        #    TARGET ${NAME}
+        #    POST_BUILD
+        #    COMMAND /Developer/Library/PrivateFrameworks/DevToolsCore.framework/Resources/pbxcp -exclude .DS_Store -exclude CVS -exclude .svn -resolve-src-symlinks ${CMAKE_SOURCE_DIR}/assets ${APP_NAME}
+        #)
+    endif ()
 endif ()
 
 
@@ -179,7 +207,7 @@ if (MSVC)
 elseif (APPLE)
     #ICNS
     set(MACOSX_BUNDLE_ICON_FILE ExampleProject.icns)
-    if (NOT IOS)
+    if (NOT IOS AND NOT WATCHOS)
         set(BINOCLE_ICON ${CMAKE_SOURCE_DIR}/cmake/Binocle.icns)
     endif ()
     set_source_files_properties(${BINOCLE_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
@@ -205,7 +233,7 @@ if (MSVC)
 elseif (APPLE)
     #ICNS
     set(MACOSX_BUNDLE_ICON_FILE ExampleProject.icns)
-    if (NOT IOS)
+    if (NOT IOS AND NOT WATCHOS)
         set(BINOCLE_ICON ${CMAKE_SOURCE_DIR}/build/cmake/Binocle.icns)
     endif ()
     set_source_files_properties(${BINOCLE_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
@@ -253,7 +281,7 @@ endif(NOT MSVC)
 #endif ()
 
 if (APPLE)
-    if (NOT IOS)
+    if (NOT IOS AND NOT WATCHOS)
     add_custom_command ( TARGET ExampleProject POST_BUILD
             COMMAND codesign -s - -f --entitlements "${CMAKE_SOURCE_DIR}/platform/macosx/entitlements.plist"
             $<TARGET_FILE:ExampleProject>

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2022 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -91,10 +91,10 @@ static VOID APIENTRY ExitVMan(VOID)
 static BOOL _vmanInit(void)
 {
     ULONG       ulRC;
-    CHAR        acBuf[255];
+    CHAR        acBuf[256];
     INITPROCOUT stInitProcOut;
 
-    if (hmodVMan != NULLHANDLE) /* Already was initialized */
+    if (hmodVMan != NULLHANDLE) /* already initialized */
         return TRUE;
 
     /* Load vman.dll */
@@ -108,8 +108,7 @@ static BOOL _vmanInit(void)
     /* Get VMIEntry */
     ulRC = DosQueryProcAddr(hmodVMan, 0L, "VMIEntry", (PFN *)&pfnVMIEntry);
     if (ulRC != NO_ERROR) {
-        debug_os2("Could not query address of pfnVMIEntry func. of VMAN.DLL, "
-                  "rc = %u", ulRC);
+        debug_os2("Could not query address of VMIEntry from VMAN.DLL (Err: %lu)", ulRC);
         DosFreeModule(hmodVMan);
         hmodVMan = NULLHANDLE;
         return FALSE;
@@ -144,7 +143,7 @@ static PRECTL _getRectlArray(PVODATA pVOData, ULONG cRects)
         return pVOData->pRectl;
 
     pRectl = SDL_realloc(pVOData->pRectl, cRects * sizeof(RECTL));
-    if (pRectl == NULL)
+    if (!pRectl)
         return NULL;
 
     pVOData->pRectl = pRectl;
@@ -160,7 +159,7 @@ static PBLTRECT _getBltRectArray(PVODATA pVOData, ULONG cRects)
         return pVOData->pBltRect;
 
     pBltRect = SDL_realloc(pVOData->pBltRect, cRects * sizeof(BLTRECT));
-    if (pBltRect == NULL)
+    if (!pBltRect)
         return NULL;
 
     pVOData->pBltRect = pBltRect;
@@ -201,7 +200,7 @@ static PVODATA voOpen(void)
         return NULL;
 
     pVOData = SDL_calloc(1, sizeof(VODATA));
-    if (pVOData == NULL) {
+    if (!pVOData) {
         SDL_OutOfMemory();
         return NULL;
     }
@@ -211,10 +210,10 @@ static PVODATA voOpen(void)
 
 static VOID voClose(PVODATA pVOData)
 {
-    if (pVOData->pRectl != NULL)
+    if (pVOData->pRectl)
         SDL_free(pVOData->pRectl);
 
-    if (pVOData->pBltRect != NULL)
+    if (pVOData->pBltRect)
         SDL_free(pVOData->pBltRect);
 
     voVideoBufFree(pVOData);
@@ -254,7 +253,7 @@ static BOOL voSetVisibleRegion(PVODATA pVOData, HWND hwnd,
         WinQueryWindowRect(hwnd, &pVOData->rectlWin);
         WinMapWindowPoints(hwnd, HWND_DESKTOP, (PPOINTL)&pVOData->rectlWin, 2);
 
-        if (pSDLDisplayMode != NULL) {
+        if (pSDLDisplayMode) {
             pVOData->ulScreenHeight = pSDLDisplayMode->h;
             pVOData->ulScreenBytesPerLine =
                      ((MODEDATA *)pSDLDisplayMode->driverdata)->ulScanLineBytes;
@@ -303,7 +302,7 @@ static VOID voVideoBufFree(PVODATA pVOData)
 {
     ULONG ulRC;
 
-    if (pVOData->pBuffer == NULL)
+    if (!pVOData->pBuffer)
         return;
 
     ulRC = DosFreeMem(pVOData->pBuffer);
@@ -327,11 +326,10 @@ static BOOL voUpdate(PVODATA pVOData, HWND hwnd, SDL_Rect *pSDLRects,
     PPOINTL     pptlSrcOrg;
     PBLTRECT    pbrDst;
     HWREQIN     sHWReqIn;
-    BITBLTINFO  sBitbltInfo = { 0 };
+    BITBLTINFO  sBitbltInfo;
     ULONG       ulIdx;
-/*  RECTL       rectlScreenUpdate;*/
 
-    if (pVOData->pBuffer == NULL)
+    if (!pVOData->pBuffer)
         return FALSE;
 
     if (pVOData->hrgnVisible == NULLHANDLE)
@@ -368,7 +366,7 @@ static BOOL voUpdate(PVODATA pVOData, HWND hwnd, SDL_Rect *pSDLRects,
     /* Make list of destination rectangles (prectlDst) list from the source
      * list (prectl).  */
     prectlDst = _getRectlArray(pVOData, cSDLRects);
-    if (prectlDst == NULL) {
+    if (!prectlDst) {
         debug_os2("Not enough memory");
         return FALSE;
     }
@@ -402,7 +400,7 @@ static BOOL voUpdate(PVODATA pVOData, HWND hwnd, SDL_Rect *pSDLRects,
     }
     /* We don't need prectlDst, use it again to store update regions */
     prectlDst = _getRectlArray(pVOData, rgnCtl.crcReturned);
-    if (prectlDst == NULL) {
+    if (!prectlDst) {
         debug_os2("Not enough memory");
         GpiDestroyRegion(hps, hrgnUpdate);
         WinReleasePS(hps);
@@ -420,7 +418,7 @@ static BOOL voUpdate(PVODATA pVOData, HWND hwnd, SDL_Rect *pSDLRects,
 
     /* Make lists for blitting from update regions */
     pbrDst = _getBltRectArray(pVOData, cSDLRects);
-    if (pbrDst == NULL) {
+    if (!pbrDst) {
         debug_os2("Not enough memory");
         return FALSE;
     }
@@ -454,6 +452,7 @@ static BOOL voUpdate(PVODATA pVOData, HWND hwnd, SDL_Rect *pSDLRects,
         rclSrcBounds.xRight = bmiSrc.ulWidth;
         rclSrcBounds.yTop = bmiSrc.ulHeight;
 
+        SDL_zero(sBitbltInfo);
         sBitbltInfo.ulLength = sizeof(BITBLTINFO);
         sBitbltInfo.ulBltFlags = BF_DEFAULT_STATE | BF_ROP_INCL_SRC | BF_PAT_HOLLOW;
         sBitbltInfo.cBlits = cSDLRects;
