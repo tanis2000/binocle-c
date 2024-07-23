@@ -50,7 +50,7 @@ message("iOS sysroot search result: ${SYSROOT_RESULT}")
 set (CMAKE_FIND_ROOT_PATH ${IOS_SYSROOT})
 set (CMAKE_OSX_SYSROOT ${IOS_SYSROOT})
 
-set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework AudioToolbox -framework AVFoundation -framework CoreAudio -framework CoreBluetooth -framework CoreGraphics -framework CoreMotion -framework Foundation -framework GameController -framework Metal -framework MobileCoreServices -framework OpenGLES -framework QuartzCore -framework UIKit -framework MetalKit")
+set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework AudioToolbox -framework AVFoundation -framework CoreAudio -framework CoreBluetooth -framework CoreGraphics -framework CoreMotion -framework Foundation -framework GameController -framework Metal -framework MobileCoreServices -framework OpenGLES -framework QuartzCore -framework UIKit -framework MetalKit -framework CoreHaptics")
 
 # globally silence the GLES deprecation warning
 add_definitions(-DGLES_SILENCE_DEPRECATION)
