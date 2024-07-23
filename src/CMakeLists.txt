@@ -19,7 +19,7 @@ set(BINOCLE_STATIC_LIBS
         $<TARGET_OBJECTS:wren>
         )
 
-if (NOT EMSCRIPTEN AND NOT ANDROID AND NOT IOS AND BINOCLE_HTTP)
+if (NOT EMSCRIPTEN AND NOT ANDROID AND NOT IOS AND NOT WATCHOS AND BINOCLE_HTTP)
     find_package(OpenSSL REQUIRED)
     set(OPENSSL_USE_STATIC_LIBS true)
 endif ()
@@ -38,7 +38,7 @@ else()
             )
 endif()
 
-if (APPLE AND NOT IOS)
+if (APPLE AND NOT IOS AND NOT WATCHOS)
     set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
             $<TARGET_OBJECTS:glew>
             # we're using lua instead of luajit on macos to be able to test with valgrind
