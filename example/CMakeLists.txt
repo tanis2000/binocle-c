@@ -86,7 +86,6 @@ if (APPLE)
     #endif()
 endif ()
 
-
 if (ANDROID)
     include_directories(${CMAKE_SOURCE_DIR}/src/deps/sdl/include)
     add_library(ExampleProject SHARED ${SOURCE_FILES} ${CMAKE_SOURCE_DIR}/src/deps/sdl/src/main/android/SDL_android_main.c)
