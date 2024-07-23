@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2022 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -43,10 +43,11 @@
 /*#undef SDL_JOYSTICK_HIDAPI */
 #else
 #define SDL_JOYSTICK_HIDAPI 1
+#define HAVE_LIBUSB 1
 /* dynamically loaded libusb-1.0 dll: */
 #define SDL_LIBUSB_DYNAMIC "usb100.dll"
 #endif
-/*#undef SDL_JOYSTICK_VIRTUAL */
+#define SDL_JOYSTICK_VIRTUAL 1
 
 /* Enable OpenGL support */
 /* #undef SDL_VIDEO_OPENGL */
@@ -55,9 +56,6 @@
 #define SDL_LOADSO_OS2 1
 #define SDL_TIMER_OS2 1
 #define SDL_FILESYSTEM_OS2 1
-
-/* Enable assembly routines */
-#define SDL_ASSEMBLY_ROUTINES 1
 
 /* use libsamplerate for audio rate conversion. */
 /*#define HAVE_LIBSAMPLERATE_H 1 */
@@ -105,16 +103,17 @@
 #define HAVE_GETENV 1
 #define HAVE_SETENV 1
 #define HAVE_PUTENV 1
+/* OpenWatcom requires specific calling conventions for qsort and bsearch */
+#ifndef __WATCOMC__
 #define HAVE_QSORT 1
+#define HAVE_BSEARCH 1
+#endif
 #define HAVE_ABS 1
 #define HAVE_BCOPY 1
 #define HAVE_MEMSET 1
 #define HAVE_MEMCPY 1
 #define HAVE_MEMMOVE 1
 #define HAVE_MEMCMP 1
-#define HAVE_WCSLEN 1
-#define HAVE_WCSLCPY 1
-#define HAVE_WCSLCAT 1
 #define HAVE_WCSCMP 1
 #define HAVE__WCSICMP 1
 #define HAVE__WCSNICMP 1

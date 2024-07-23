@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2022 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -23,7 +23,7 @@
 #ifndef SDL_pulseaudio_h_
 #define SDL_pulseaudio_h_
 
-#include <pulse/simple.h>
+#include <pulse/pulseaudio.h>
 
 #include "../SDL_sysaudio.h"
 
@@ -35,19 +35,13 @@ struct SDL_PrivateAudioData
     char *device_name;
 
     /* pulseaudio structures */
-    pa_mainloop *mainloop;
-    pa_context *context;
     pa_stream *stream;
 
     /* Raw mixing buffer */
     Uint8 *mixbuf;
     int mixlen;
 
-    /* Pointer to the actual buffer in use in the current
-       GetDeviceBuf() -> PlayDevice() iteration.
-       Can be either the pointer returned by pa_stream_begin_write()
-       or mixbuf */
-    void *pabuf;
+    int bytes_requested; /* bytes of data the hardware wants _now_. */
 
     const Uint8 *capturebuf;
     int capturelen;

@@ -133,7 +133,7 @@ ENDIF()
 TARGET_LINK_LIBRARIES(lualib ${LIBS})
 SET_TARGET_PROPERTIES(lualib PROPERTIES OUTPUT_NAME "lua54")
 if(IOS)
-  set_xcode_property(lualib IPHONEOS_DEPLOYMENT_TARGET "9.0" "all")
+  set_xcode_property(lualib IPHONEOS_DEPLOYMENT_TARGET "13.1" "all")
 endif()
 LIST(APPEND LIB_LIST lualib)
 

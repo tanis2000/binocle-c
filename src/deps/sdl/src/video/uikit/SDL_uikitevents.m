@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2022 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,10 +20,11 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_UIKIT
+#ifdef SDL_VIDEO_DRIVER_UIKIT
 
 #include "../../events/SDL_events_c.h"
 
+#include "SDL_system.h"
 #include "SDL_uikitevents.h"
 #include "SDL_uikitopengles.h"
 #include "SDL_uikitvideo.h"
@@ -40,14 +41,86 @@
 
 static BOOL UIKit_EventPumpEnabled = YES;
 
-void
-SDL_iPhoneSetEventPump(SDL_bool enabled)
+
+@interface SDL_LifecycleObserver : NSObject
+@property (nonatomic, assign) BOOL isObservingNotifications;
+@end
+
+@implementation SDL_LifecycleObserver
+
+- (void)eventPumpChanged
 {
-    UIKit_EventPumpEnabled = enabled;
+    NSNotificationCenter *notificationCenter = NSNotificationCenter.defaultCenter;
+    if (UIKit_EventPumpEnabled && !self.isObservingNotifications) {
+        self.isObservingNotifications = YES;
+        [notificationCenter addObserver:self selector:@selector(applicationDidBecomeActive) name:UIApplicationDidBecomeActiveNotification object:nil];
+        [notificationCenter addObserver:self selector:@selector(applicationWillResignActive) name:UIApplicationWillResignActiveNotification object:nil];
+        [notificationCenter addObserver:self selector:@selector(applicationDidEnterBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
+        [notificationCenter addObserver:self selector:@selector(applicationWillEnterForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
+        [notificationCenter addObserver:self selector:@selector(applicationWillTerminate) name:UIApplicationWillTerminateNotification object:nil];
+        [notificationCenter addObserver:self selector:@selector(applicationDidReceiveMemoryWarning) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
+#if !TARGET_OS_TV
+        [notificationCenter addObserver:self selector:@selector(applicationDidChangeStatusBarOrientation) name:UIApplicationDidChangeStatusBarOrientationNotification object:nil];
+#endif
+    } else if (!UIKit_EventPumpEnabled && self.isObservingNotifications) {
+        self.isObservingNotifications = NO;
+        [notificationCenter removeObserver:self];
+    }
 }
 
-void
-UIKit_PumpEvents(_THIS)
+- (void)applicationDidBecomeActive
+{
+    SDL_OnApplicationDidBecomeActive();
+}
+
+- (void)applicationWillResignActive
+{
+    SDL_OnApplicationWillResignActive();
+}
+
+- (void)applicationDidEnterBackground
+{
+    SDL_OnApplicationDidEnterBackground();
+}
+
+- (void)applicationWillEnterForeground
+{
+    SDL_OnApplicationWillEnterForeground();
+}
+
+- (void)applicationWillTerminate
+{
+    SDL_OnApplicationWillTerminate();
+}
+
+- (void)applicationDidReceiveMemoryWarning
+{
+    SDL_OnApplicationDidReceiveMemoryWarning();
+}
+
+#if !TARGET_OS_TV
+- (void)applicationDidChangeStatusBarOrientation
+{
+    SDL_OnApplicationDidChangeStatusBarOrientation();
+}
+#endif
+
+@end
+
+
+void SDL_iPhoneSetEventPump(SDL_bool enabled)
+{
+    UIKit_EventPumpEnabled = enabled;
+
+    static SDL_LifecycleObserver *lifecycleObserver;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        lifecycleObserver = [SDL_LifecycleObserver new];
+    });
+    [lifecycleObserver eventPumpChanged];
+}
+
+void UIKit_PumpEvents(_THIS)
 {
     if (!UIKit_EventPumpEnabled) {
         return;
@@ -73,7 +146,7 @@ UIKit_PumpEvents(_THIS)
     } while(result == kCFRunLoopRunHandledSource);
 
     /* See the comment in the function definition. */
-#if SDL_VIDEO_OPENGL_ES || SDL_VIDEO_OPENGL_ES2
+#if defined(SDL_VIDEO_OPENGL_ES) || defined(SDL_VIDEO_OPENGL_ES2)
     UIKit_GL_RestoreCurrentContext();
 #endif
 }
@@ -87,7 +160,7 @@ static id keyboard_disconnect_observer = nil;
 static void OnGCKeyboardConnected(GCKeyboard *keyboard) API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0))
 {
     keyboard_connected = SDL_TRUE;
-    keyboard.keyboardInput.keyChangedHandler = ^(GCKeyboardInput *keyboard, GCControllerButtonInput *key, GCKeyCode keyCode, BOOL pressed)
+    keyboard.keyboardInput.keyChangedHandler = ^(GCKeyboardInput *kbrd, GCControllerButtonInput *key, GCKeyCode keyCode, BOOL pressed)
     {
         SDL_SendKeyboardKey(pressed ? SDL_PRESSED : SDL_RELEASED, (SDL_Scancode)keyCode);
     };
@@ -184,8 +257,33 @@ static int mice_connected = 0;
 static id mouse_connect_observer = nil;
 static id mouse_disconnect_observer = nil;
 static bool mouse_relative_mode = SDL_FALSE;
+static SDL_MouseWheelDirection mouse_scroll_direction = SDL_MOUSEWHEEL_NORMAL;
 
-static void UpdatePointerLock()
+static void UpdateScrollDirection(void)
+{
+#if 0 /* This code doesn't work for some reason */
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    if ([userDefaults boolForKey:@"com.apple.swipescrolldirection"]) {
+        mouse_scroll_direction = SDL_MOUSEWHEEL_FLIPPED;
+    } else {
+        mouse_scroll_direction = SDL_MOUSEWHEEL_NORMAL;
+    }
+#else
+    Boolean keyExistsAndHasValidFormat = NO;
+    Boolean naturalScrollDirection = CFPreferencesGetAppBooleanValue(CFSTR("com.apple.swipescrolldirection"), kCFPreferencesAnyApplication, &keyExistsAndHasValidFormat);
+    if (!keyExistsAndHasValidFormat) {
+        /* Couldn't read the preference, assume natural scrolling direction */
+        naturalScrollDirection = YES;
+    }
+    if (naturalScrollDirection) {    
+        mouse_scroll_direction = SDL_MOUSEWHEEL_FLIPPED;
+    } else {
+        mouse_scroll_direction = SDL_MOUSEWHEEL_NORMAL;
+    }
+#endif
+}
+
+static void UpdatePointerLock(void)
 {
     SDL_VideoDevice *_this = SDL_GetVideoDevice();
     SDL_Window *window;
@@ -225,20 +323,37 @@ static void OnGCMouseConnected(GCMouse *mouse) API_AVAILABLE(macos(11.0), ios(14
     };
 
     int auxiliary_button = SDL_BUTTON_X1;
-    for (GCControllerButtonInput *button in mouse.mouseInput.auxiliaryButtons) {
-        button.pressedChangedHandler = ^(GCControllerButtonInput *button, float value, BOOL pressed)
+    for (GCControllerButtonInput *btn in mouse.mouseInput.auxiliaryButtons) {
+        btn.pressedChangedHandler = ^(GCControllerButtonInput *button, float value, BOOL pressed)
         {
             OnGCMouseButtonChanged(mouseID, auxiliary_button, pressed);
         };
         ++auxiliary_button;
     }
 
-    mouse.mouseInput.mouseMovedHandler = ^(GCMouseInput *mouse, float deltaX, float deltaY)
+    mouse.mouseInput.mouseMovedHandler = ^(GCMouseInput *mouseInput, float deltaX, float deltaY)
     {
         if (SDL_GCMouseRelativeMode()) {
             SDL_SendMouseMotion(SDL_GetMouseFocus(), mouseID, 1, (int)deltaX, -(int)deltaY);
         }
     };
+
+    mouse.mouseInput.scroll.valueChangedHandler = ^(GCControllerDirectionPad *dpad, float xValue, float yValue) {
+        /* Raw scroll values come in here, vertical values in the first axis, horizontal values in the second axis.
+         * The vertical values are negative moving the mouse wheel up and positive moving it down.
+         * The horizontal values are negative moving the mouse wheel left and positive moving it right.
+         * The vertical values are inverted compared to SDL, and the horizontal values are as expected.
+         */
+        float vertical = -xValue;
+        float horizontal = yValue;
+        if (mouse_scroll_direction == SDL_MOUSEWHEEL_FLIPPED) {
+            /* Since these are raw values, we need to flip them ourselves */
+            vertical = -vertical;
+            horizontal = -horizontal;
+        }
+        SDL_SendMouseWheel(SDL_GetMouseFocus(), mouseID, horizontal, vertical, mouse_scroll_direction);
+    };
+    UpdateScrollDirection();
 
     dispatch_queue_t queue = dispatch_queue_create( "org.libsdl.input.mouse", DISPATCH_QUEUE_SERIAL );
     dispatch_set_target_queue( queue, dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_HIGH, 0 ) );

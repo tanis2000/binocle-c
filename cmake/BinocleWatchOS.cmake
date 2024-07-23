@@ -3,12 +3,13 @@
 set (CMAKE_SYSTEM_NAME watchOS)
 
 add_definitions (-DWATCHOS -D__WATCHOS__)
-#add_definitions (-DBINOCLE_METAL)
-#set(BINOCLE_METAL true)
+# watchOS supports Metal only. Do not try to use OpenGL
+add_definitions (-DBINOCLE_METAL)
+set(BINOCLE_METAL true)
 
-add_definitions (-DBINOCLE_GL)
-set(BINOCLE_GL true)
-add_definitions (-DBINOCLE_GLES2)
+#add_definitions (-DBINOCLE_GL)
+#set(BINOCLE_GL true)
+#add_definitions (-DBINOCLE_GLES2)
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-offsetof -std=gnu++0x")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DNDEBUG")
@@ -21,7 +22,7 @@ set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 -D_DEBUG_ -D_DEBUG -g")
 
 # Force unset of OS X-specific deployment target (otherwise autopopulated),
 # required as of cmake 2.8.10.
-set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING
+set(CMAKE_OSX_DEPLOYMENT_TARGET "7.0" CACHE STRING
         "Must be empty for watchOS builds." FORCE)
 
 #set (CMAKE_OSX_ARCHITECTURES $(ARCHS_STANDARD))
@@ -35,11 +36,11 @@ set (CMAKE_XCODE_EFFECTIVE_PLATFORMS "-watchos;-watchsimulator")
 set (CMAKE_CONFIGURATION_TYPES Debug Release)
 
 if(NOT BINOCLE_WATCHOS_SDK)
-    # Set Base SDK to "Latest iOS" for the device
+    # Set Base SDK to "Latest watchOS" for the device
     set (BINOCLE_WATCHOS_SDK "watchos")
 endif()
 
-# Obtain iOS sysroot path
+# Obtain watchOS sysroot path
 execute_process (COMMAND "xcodebuild" -version -sdk ${BINOCLE_WATCHOS_SDK} Path
         OUTPUT_VARIABLE WATCHOS_SYSROOT
         OUTPUT_STRIP_TRAILING_WHITESPACE

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2022 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -21,15 +21,15 @@
 /*
  * @author Mark Callow, www.edgewise-consulting.com.
  *
- * Thanks to Alex Szpakowski, @slime73 on GitHub, for his gist showing
- * how to add a CAMetalLayer backed view.
+ * Thanks to @slime73 on GitHub for their gist showing how to add a CAMetalLayer
+ * backed view.
  */
 #include "../../SDL_internal.h"
 
 #ifndef SDL_cocoametalview_h_
 #define SDL_cocoametalview_h_
 
-#if SDL_VIDEO_DRIVER_COCOA && (SDL_VIDEO_VULKAN || SDL_VIDEO_METAL)
+#if defined(SDL_VIDEO_DRIVER_COCOA) && (defined(SDL_VIDEO_VULKAN) || defined(SDL_VIDEO_METAL))
 
 #import "../SDL_sysvideo.h"
 

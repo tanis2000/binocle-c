@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2022 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,15 +20,15 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_OS2
+#ifdef SDL_VIDEO_DRIVER_OS2
 
 #include "SDL_os2util.h"
 
 HPOINTER utilCreatePointer(SDL_Surface *surface, ULONG ulHotX, ULONG ulHotY)
 {
     HBITMAP             hbm;
-    BITMAPINFOHEADER2   bmih = { 0 };
-    BITMAPINFO          bmi = { 0 };
+    BITMAPINFOHEADER2   bmih;
+    BITMAPINFO          bmi;
     HPS                 hps;
     PULONG              pulBitmap;
     PULONG              pulDst, pulSrc, pulDstMask;
@@ -40,8 +40,8 @@ HPOINTER utilCreatePointer(SDL_Surface *surface, ULONG ulHotX, ULONG ulHotY)
         return NULLHANDLE;
     }
 
-    pulBitmap = SDL_malloc(surface->h * surface->w * 4 * 2);
-    if (pulBitmap == NULL) {
+    pulBitmap = (PULONG) SDL_malloc(surface->h * surface->w * 2 * sizeof(ULONG));
+    if (!pulBitmap) {
         SDL_OutOfMemory();
         return NULLHANDLE;
     }
@@ -72,6 +72,9 @@ HPOINTER utilCreatePointer(SDL_Surface *surface, ULONG ulHotX, ULONG ulHotY)
     }
 
     /* Create system bitmap object. */
+    SDL_zero(bmih);
+    SDL_zero(bmi);
+
     bmih.cbFix          = sizeof(BITMAPINFOHEADER2);
     bmih.cx             = surface->w;
     bmih.cy             = 2 * surface->h;

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2022 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -67,10 +67,12 @@ OS2VIDEOOUTPUT voDive = {
 
 static BOOL voQueryInfo(VIDEOOUTPUTINFO *pInfo)
 {
-    DIVE_CAPS sDiveCaps = { 0 };
-    FOURCC fccFormats[100] = { 0 };
+    DIVE_CAPS sDiveCaps;
+    FOURCC fccFormats[100];
 
     /* Query information about display hardware from DIVE. */
+    SDL_zeroa(fccFormats);
+    SDL_zero(sDiveCaps);
     sDiveCaps.pFormatData    = fccFormats;
     sDiveCaps.ulFormatLength = 100;
     sDiveCaps.ulStructLen    = sizeof(DIVE_CAPS);
@@ -99,7 +101,7 @@ PVODATA voOpen(void)
 {
     PVODATA pVOData = SDL_calloc(1, sizeof(VODATA));
 
-    if (pVOData == NULL) {
+    if (!pVOData) {
         SDL_OutOfMemory();
         return NULL;
     }
@@ -172,7 +174,7 @@ static BOOL voSetVisibleRegion(PVODATA pVOData, HWND hwnd,
             /* Setup DIVE blitter. */
             SETUP_BLITTER   sSetupBlitter;
             SWP             swp;
-            POINTL          pointl = { 0 };
+            POINTL          pointl = { 0,0 };
 
             WinQueryWindowPos(hwnd, &swp);
             WinMapWindowPoints(hwnd, HWND_DESKTOP, &pointl, 1);
@@ -275,7 +277,7 @@ static VOID voVideoBufFree(PVODATA pVOData)
         pVOData->ulDIVEBufNum = 0;
     }
 
-    if (pVOData->pBuffer != NULL) {
+    if (pVOData->pBuffer) {
         ulRC = DosFreeMem(pVOData->pBuffer);
         if (ulRC != NO_ERROR) {
             debug_os2("DosFreeMem(), rc = %u", ulRC);
@@ -294,11 +296,11 @@ static BOOL voUpdate(PVODATA pVOData, HWND hwnd, SDL_Rect *pSDLRects,
         return FALSE;
     }
 
-    if (pSDLRects != 0) {
+    if (pSDLRects) {
         PBYTE   pbLineMask;
 
         pbLineMask = SDL_stack_alloc(BYTE, pVOData->ulHeight);
-        if (pbLineMask == NULL) {
+        if (!pbLineMask) {
             debug_os2("Not enough stack size");
             return FALSE;
         }
