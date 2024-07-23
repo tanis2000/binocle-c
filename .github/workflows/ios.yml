@@ -94,7 +94,7 @@ jobs:
         run: |
           cp -v ./src/binocle/core/*.h ./build/${{ env.RELEASE_NAME }}/include
           cp -v ./src/binocle/core/backend/*.h ./build/${{ env.RELEASE_NAME }}/include/backend
-          cp -v ./build/src/${{env.BUILD_TYPE}}-iphoneos/libbinocle-static.a ./build/${{ env.RELEASE_NAME }}/lib
+          cp -v ./build/src/${{env.BUILD_TYPE}}-${{ matrix.APPLE_SDK }}/libbinocle-static.a ./build/${{ env.RELEASE_NAME }}/lib
           cd build
           tar -czvf ${{ env.RELEASE_NAME }}.tar.gz ${{ env.RELEASE_NAME }}
 
