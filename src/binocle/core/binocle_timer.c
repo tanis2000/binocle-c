@@ -58,15 +58,15 @@ void binocle_timer_unpause(binocle_timer *timer) {
   timer->pausedMark = 0;
 }
 
-int32_t binocle_timer_is_running(binocle_timer *timer) {
+int32_t binocle_timer_is_running(const binocle_timer *timer) {
   return timer->running;
 }
 
-int32_t binocle_timer_is_paused(binocle_timer *timer) {
+int32_t binocle_timer_is_paused(const binocle_timer *timer) {
   return timer->paused;
 }
 
-uint32_t binocle_timer_delta(binocle_timer *timer) {
+uint32_t binocle_timer_delta(const binocle_timer *timer) {
   if (binocle_timer_is_running(timer))
     return binocle_timer_current_time(timer);
 
@@ -77,17 +77,17 @@ uint32_t binocle_timer_delta(binocle_timer *timer) {
   if (timer->startMark == 0)
     return 0;
 
-  return (timer->stopMark) - (timer->startMark);
+  return timer->stopMark - timer->startMark;
 }
 
-uint32_t binocle_timer_delta_ms(binocle_timer *timer) {
+uint32_t binocle_timer_delta_ms(const binocle_timer *timer) {
   return binocle_timer_delta(timer) % 1000;
 }
 
-uint32_t binocle_timer_delta_s(binocle_timer *timer) {
+uint32_t binocle_timer_delta_s(const binocle_timer *timer) {
   return binocle_timer_delta(timer) / 1000;
 }
 
-uint32_t binocle_timer_current_time(binocle_timer *timer) {
-  return (SDL_GetTicks()) - (timer->startMark);
+uint32_t binocle_timer_current_time(const binocle_timer *timer) {
+  return SDL_GetTicks() - timer->startMark;
 }

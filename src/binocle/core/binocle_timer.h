@@ -38,22 +38,22 @@ void binocle_timer_restart(binocle_timer *timer);
 void binocle_timer_unpause(binocle_timer *timer);
 
 /// Tells if the timer's still running (hasn't called stop())
-int32_t binocle_timer_is_running(binocle_timer *timer);
+int32_t binocle_timer_is_running(const binocle_timer *timer);
 
 /// Tells if the timer's paused.
-int32_t binocle_timer_is_paused(binocle_timer *timer);
+int32_t binocle_timer_is_paused(const binocle_timer *timer);
 
 /// Returns the whole timer's difference in milisseconds.
 //	@note If the timer's not started, will return 0.
-uint32_t binocle_timer_delta(binocle_timer *timer);
+uint32_t binocle_timer_delta(const binocle_timer *timer);
 
 /// Returns the milisseconds part of the timer's difference.
-uint32_t binocle_timer_delta_ms(binocle_timer *timer);
+uint32_t binocle_timer_delta_ms(const binocle_timer *timer);
 
 /// Returns the seconds part of the timer's difference.
-uint32_t binocle_timer_delta_s(binocle_timer *timer);
+uint32_t binocle_timer_delta_s(const binocle_timer *timer);
 
 /// Returns the difference between timer's start point and now.
-uint32_t binocle_timer_current_time(binocle_timer *timer);
+uint32_t binocle_timer_current_time(const binocle_timer *timer);
 
 #endif //BINOCLE_TIMER_H

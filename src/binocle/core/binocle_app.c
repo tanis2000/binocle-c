@@ -20,7 +20,7 @@ binocle_app binocle_app_new() {
   return res;
 }
 
-bool binocle_app_init(binocle_app *app, binocle_app_desc_t *desc) {
+bool binocle_app_init(binocle_app *app, const binocle_app_desc_t *desc) {
   // Initialize time stuff
   stm_setup();
 

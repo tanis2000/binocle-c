@@ -22,7 +22,7 @@ typedef struct binocle_app {
 } binocle_app;
 
 binocle_app binocle_app_new();
-bool binocle_app_init(binocle_app *app, binocle_app_desc_t *desc);
+bool binocle_app_init(binocle_app *app, const binocle_app_desc_t *desc);
 void binocle_app_destroy(binocle_app *app);
 
 #endif //BINOCLE_APP_H
