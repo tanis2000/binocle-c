@@ -5,6 +5,8 @@
 //
 
 #include "binocle_memory.h"
+
+#include "binocle_log.h"
 #include "binocle_math.h"
 #include "binocle_sdl.h"
 #include <assert.h>
@@ -78,8 +80,12 @@ binocle_memory_block *binocle_memory_allocate(binocle_memory_index size,
                                               uint64_t flags) {
   // We require memory block headers not to change the cache
   // line alignment of an allocation
+  binocle_log_debug("binocle_memory_allocate: size of binocle_memory_platform_block: %d", sizeof(binocle_memory_platform_block));
+#if defined(__EMSCRIPTEN__)
+  assert(sizeof(binocle_memory_platform_block) == 40);
+#else
   assert(sizeof(binocle_memory_platform_block) == 56);
-
+#endif
   uintptr_t page_size = 4096;
   uintptr_t total_size = size + sizeof(binocle_memory_platform_block);
   uintptr_t base_offset = sizeof(binocle_memory_platform_block);
