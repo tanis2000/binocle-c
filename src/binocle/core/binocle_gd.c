@@ -126,12 +126,15 @@ void binocle_gd_destroy(binocle_gd *gd) {
 void binocle_gd_init(binocle_gd *gd, binocle_window *win) {
 #if defined(BINOCLE_GL)
   sg_desc desc = {
+    .environment = binocle_window_get_environment(win),
     .logger.func = slog_func,
   };
 #elif defined(BINOCLE_METAL)
   binocle_metal_init(win->mtl_view);
+  sg_environment environment = binocle_window_get_environment(win);
+  environment.metal.device = binocle_metal_get_device();
   sg_desc desc = {
-    .context = binocle_metal_get_context(),
+    .environment = environment,
     .logger.func = slog_func,
   };
 #endif
@@ -182,8 +185,8 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
   gd->offscreen.action = offscreen_action;
 
   // Render pass that renders to the offscreen render target
-  gd->offscreen.pass = sg_make_pass(&(sg_pass_desc){
-      .color_attachments[0].image = gd->offscreen.render_target,
+  gd->offscreen.attachments = sg_make_attachments(&(sg_attachments_desc){
+    .colors[0].image = gd->offscreen.render_target,
     .label = "offscreen-pass",
   });
 
@@ -250,7 +253,7 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
     .label = "offscreen-sampler",
     .min_filter = SG_FILTER_LINEAR,
     .mag_filter = SG_FILTER_LINEAR,
-    .mipmap_filter = SG_FILTER_NONE,
+    .mipmap_filter = SG_FILTER_LINEAR,
   });
 
   // Render to screen pipeline
@@ -347,7 +350,7 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
     .label = "display-sampler",
     .min_filter = SG_FILTER_LINEAR,
     .mag_filter = SG_FILTER_LINEAR,
-    .mipmap_filter = SG_FILTER_NONE,
+    .mipmap_filter = SG_FILTER_LINEAR,
   });
 }
 
@@ -409,7 +412,10 @@ void binocle_gd_render_offscreen(binocle_gd *gd) {
   }
   sg_update_buffer(gd->offscreen.vbuf, &(sg_range){ .ptr=gd->vertices, .size=gd->num_vertices * sizeof(binocle_vpct) });
 
-  sg_begin_pass(gd->offscreen.pass, &gd->offscreen.action);
+  sg_begin_pass(&(sg_pass){
+    .action = gd->offscreen.action,
+    .attachments = gd->offscreen.attachments,
+  });
 
   ks_mergesort(binocle_gd_sort_commands, gd->num_commands, gd->commands, 0);
 
@@ -465,7 +471,10 @@ void binocle_gd_render_screen(binocle_gd *gd, struct binocle_window *window, flo
 
   gd->display.bind.fs.images[0] = gd->offscreen.render_target;
 
-  sg_begin_default_pass(&gd->display.action, window->width, window->height);
+  sg_begin_pass(&(sg_pass){
+    .action = gd->display.action,
+    .swapchain = binocle_window_get_swapchain(window),
+  });
   sg_apply_pipeline(gd->display.pip);
   sg_apply_bindings(&gd->display.bind);
   sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, &SG_RANGE(screen_vs_params));
@@ -540,8 +549,8 @@ void binocle_gd_setup_flat_pipeline(binocle_gd *gd) {
   };
   gd->flat.action = action;
 
-  gd->flat.pass = sg_make_pass(&(sg_pass_desc){
-    .color_attachments[0].image = gd->offscreen.render_target,
+  gd->flat.attachments = sg_make_attachments(&(sg_attachments_desc){
+    .colors[0].image = gd->offscreen.render_target,
   });
 
   binocle_log_info("Setting up flat pipeline");
@@ -788,7 +797,10 @@ void binocle_gd_draw_quad_to_screen(binocle_gd *gd, sg_shader shader, sg_image r
 
   /* default pass action */
   sg_pass_action pass_action = { 0 };
-  sg_begin_pass(gd->display.pass, &pass_action);
+  sg_begin_pass(&(sg_pass){
+    .action = pass_action,
+    .attachments = gd->display.attachments,
+  });
   sg_apply_pipeline(pip);
   sg_apply_bindings(&bind);
   sg_draw(0, 6, 1);
@@ -874,7 +886,10 @@ void binocle_gd_render_flat(binocle_gd *gd) {
   }
   sg_update_buffer(gd->flat.vbuf, &(sg_range){ .ptr=gd->flat_vertices, .size=gd->flat_num_vertices * sizeof(binocle_vpct) });
 
-  sg_begin_pass(gd->flat.pass, &gd->flat.action);
+  sg_begin_pass(&(sg_pass){
+    .action = gd->flat.action,
+    .attachments = gd->flat.attachments,
+  });
 
   for (uint32_t i = 0 ; i < gd->flat_num_commands ; i++) {
     binocle_gd_command_t *cmd = &gd->flat_commands[i];
