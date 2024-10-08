@@ -9,7 +9,7 @@
   #elif defined(__IPHONEOS__) || defined(__ANDROID__)
     #define SOKOL_GLES3
   #else
-    #define SOKOL_GLCORE33
+    #define SOKOL_GLCORE
   #endif
 #elif defined(BINOCLE_METAL)
   #define SOKOL_METAL

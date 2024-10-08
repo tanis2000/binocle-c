@@ -24,6 +24,8 @@ binocle_window *binocle_window_new(uint32_t width, uint32_t height, char *title)
   res->is_fullscreen = false;
   res->current_frame_delta = 0;
   res->framerate_timer = binocle_timer_new();
+  res->sample_count = 0;
+  res->has_depth_buffer = true;
 
   // Default to 60 FPS
   binocle_window_set_target_fps(res, 60);
@@ -349,4 +351,27 @@ bool binocle_window_get_display_size(uint32_t *w, uint32_t *h) {
     }
   }
   return false;
+}
+
+sg_environment binocle_window_get_environment(binocle_window *window) {
+  return (sg_environment) {
+    .defaults = {
+      .color_format = SG_PIXELFORMAT_RGBA8,
+      .depth_format = window->has_depth_buffer ? SG_PIXELFORMAT_NONE : SG_PIXELFORMAT_DEPTH_STENCIL,
+      .sample_count = window->sample_count,
+  },
+};
+}
+sg_swapchain binocle_window_get_swapchain(binocle_window *window) {
+  return (sg_swapchain) {
+    .width = window->width,
+    .height = window->height,
+    .sample_count = window->sample_count,
+    .color_format = SG_PIXELFORMAT_RGBA8,
+    .depth_format = window->has_depth_buffer ? SG_PIXELFORMAT_NONE : SG_PIXELFORMAT_DEPTH_STENCIL,
+    .gl = {
+      // we just assume here that the GL framebuffer is always 0
+      .framebuffer = 0,
+  }
+  };
 }

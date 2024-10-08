@@ -7,7 +7,7 @@
 #if defined(__IPHONEOS__) || defined(__ANDROID__)
 #define SOKOL_GLES3
 #else
-#define SOKOL_GLCORE33
+#define SOKOL_GLCORE
 #endif
 #elif defined(BINOCLE_METAL)
 #define SOKOL_METAL
@@ -44,16 +44,20 @@ static const void* binocle_sokol_mtk_get_drawable(void* user_data) {
   return cached_drawable_hack;
 }
 
-sg_context_desc binocle_metal_get_context(void) {
-  return (sg_context_desc) {
-    .sample_count = 1,
-    .metal = {
-      .device = (__bridge const void*) device,
-      .renderpass_descriptor_userdata_cb = binocle_sokol_mtk_get_render_pass_descriptor,
-      .drawable_userdata_cb = binocle_sokol_mtk_get_drawable,
-      .user_data = (void*)metal_layer,
-    }
-  };
+//sg_context_desc binocle_metal_get_context(void) {
+//  return (sg_context_desc) {
+//    .sample_count = 1,
+//    .metal = {
+//      .device = (__bridge const void*) device,
+//      .renderpass_descriptor_userdata_cb = binocle_sokol_mtk_get_render_pass_descriptor,
+//      .drawable_userdata_cb = binocle_sokol_mtk_get_drawable,
+//      .user_data = (void*)metal_layer,
+//    }
+//  };
+//}
+
+const void* binocle_metal_get_device(void) {
+  return (__bridge const void*) device;
 }
 
 GLuint binocle_sokol_tex_id(sg_image img_id) {

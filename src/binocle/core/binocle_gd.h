@@ -38,7 +38,7 @@ enum sg_blend_factor;
 enum sg_blend_op;
 
 typedef struct binocle_gd_gfx_t {
-  sg_pass pass;
+  sg_attachments attachments;
   sg_pipeline pip;
   sg_bindings bind;
   sg_pass_action action;

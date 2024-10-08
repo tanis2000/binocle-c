@@ -46,6 +46,9 @@ typedef struct binocle_window {
 
 
   SDL_Window *window;
+
+  bool has_depth_buffer;
+  uint32_t sample_count;
 } binocle_window;
 
 /**
@@ -189,5 +192,19 @@ void binocle_window_get_real_size(binocle_window *win, uint32_t *w, uint32_t *h)
  * @return true if the operation finished successfully
  */
 bool binocle_window_get_display_size(uint32_t *w, uint32_t *h);
+
+/**
+ * \brief Build the environment to pass to Sokol
+ * @param window a pointer to the window
+ * @return the environment
+ */
+sg_environment binocle_window_get_environment(binocle_window *window);
+
+/**
+ * \brief Build the swapchain data to pass to Sokol
+ * @param window a pointer to the window
+ * @return the swapchain data
+ */
+sg_swapchain binocle_window_get_swapchain(binocle_window *window);
 
 #endif //BINOCLE_WINDOW_H
