@@ -1,4 +1,4 @@
-#version 330
+#version 410
 
 uniform vec4 vs_params[4];
 layout(location = 0) in vec3 position;

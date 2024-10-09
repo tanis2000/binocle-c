@@ -1,7 +1,7 @@
 #pragma sokol @vs vs
-in vec3 vertexPosition;
-in vec2 vertexTCoord;
+in vec2 vertexPosition;
 in vec4 vertexColor;
+in vec2 vertexTCoord;
 in vec3 vertexNormal;
 
 out vec2 tcoord;
@@ -14,7 +14,7 @@ uniform vs_params {
 };
 
 void main(void) {
-    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);
+    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0, 1.0);
     tcoord = vertexTCoord;
     color = vertexColor;
     vec3 n = vertexNormal;

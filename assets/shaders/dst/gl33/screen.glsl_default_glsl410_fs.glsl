@@ -1,4 +1,4 @@
-#version 330
+#version 410
 
 uniform vec4 fs_params[2];
 uniform sampler2D tex0_smp;

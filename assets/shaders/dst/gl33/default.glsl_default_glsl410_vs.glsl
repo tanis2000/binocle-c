@@ -1,10 +1,10 @@
-#version 300 es
+#version 410
 
 uniform vec4 vs_params[12];
 layout(location = 0) in vec2 vertexPosition;
-out vec2 tcoord;
+layout(location = 0) out vec2 tcoord;
 layout(location = 2) in vec2 vertexTCoord;
-out vec4 color;
+layout(location = 1) out vec4 color;
 layout(location = 1) in vec4 vertexColor;
 layout(location = 3) in vec3 vertexNormal;
 
