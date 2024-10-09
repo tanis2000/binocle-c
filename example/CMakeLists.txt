@@ -324,7 +324,7 @@ foreach(GLSL ${GLSL_SOURCE_FILES})
             COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/assets/shaders/dst/metal-macos"
             COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/assets/shaders/dst/metal-ios"
             COMMAND "${CMAKE_SOURCE_DIR}/tools/sokol-shdc/${SHADER_COMPILER}"
-            ARGS "--input" "${GLSL}" "--output" "${SPIRV_GL33}" "--slang" "glsl330" "-f" "bare"
+            ARGS "--input" "${GLSL}" "--output" "${SPIRV_GL33}" "--slang" "glsl410" "-f" "bare"
             COMMAND "${CMAKE_SOURCE_DIR}/tools/sokol-shdc/${SHADER_COMPILER}"
             # Enable the following to get a C output of the shaders for debugging purposes
 #            ARGS "--input" "${GLSL}" "--output" "${SPIRV_GL33}" "--slang" "glsl330" "-f" "sokol"

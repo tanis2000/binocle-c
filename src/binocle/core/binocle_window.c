@@ -11,6 +11,9 @@
 #include "binocle_sdl.h"
 #include <inttypes.h>
 #include <stdlib.h>
+#if defined(BINOCLE_METAL)
+#include "binocle_sokol.h"
+#endif
 
 binocle_window *binocle_window_new(uint32_t width, uint32_t height, char *title) {
   binocle_window *res = SDL_malloc(sizeof(binocle_window));
@@ -356,7 +359,11 @@ bool binocle_window_get_display_size(uint32_t *w, uint32_t *h) {
 sg_environment binocle_window_get_environment(binocle_window *window) {
   return (sg_environment) {
     .defaults = {
+#if defined(BINOCLE_GL)
       .color_format = SG_PIXELFORMAT_RGBA8,
+#else
+      .color_format = SG_PIXELFORMAT_BGRA8,
+#endif
       .depth_format = window->has_depth_buffer ? SG_PIXELFORMAT_NONE : SG_PIXELFORMAT_DEPTH_STENCIL,
       .sample_count = window->sample_count,
   },
@@ -367,11 +374,20 @@ sg_swapchain binocle_window_get_swapchain(binocle_window *window) {
     .width = window->width,
     .height = window->height,
     .sample_count = window->sample_count,
-    .color_format = SG_PIXELFORMAT_RGBA8,
     .depth_format = window->has_depth_buffer ? SG_PIXELFORMAT_NONE : SG_PIXELFORMAT_DEPTH_STENCIL,
+#if defined(BINOCLE_GL)
+    .color_format = SG_PIXELFORMAT_RGBA8,
     .gl = {
       // we just assume here that the GL framebuffer is always 0
       .framebuffer = 0,
-  }
+    }
+#else
+    .color_format = SG_PIXELFORMAT_BGRA8,
+    .metal = {
+      .current_drawable = binocle_sokol_mtk_get_drawable(),
+      //.depth_stencil_texture = binocle_sokol_mtk_get_depth_stencil_texture(),
+      // .msaa_color_texture = binocle_sokol_mtk_get_msaa_color_texture(),
+    }
+#endif
   };
 }

@@ -5,6 +5,7 @@ platform/android/android-project/obj
 build/
 build-web
 build-win
+build-xcode
 
 # emacs clangd extension cache
 .cache/
