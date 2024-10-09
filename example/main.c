@@ -38,11 +38,12 @@
 #include "constants.h"
 
 #if defined(BINOCLE_MACOS) && defined(BINOCLE_METAL)
-#include "../../assets/metal/default-metal-macosx.h"
-#include "../../assets/metal/screen-metal-macosx.h"
-#endif
-
-#if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
+#define SHADER_PATH "dst/metal-macos"
+#define DEFAULT_VS_FILENAME "default.glsl_default_metal_macos_vs.metal"
+#define DEFAULT_FS_FILENAME "default.glsl_default_metal_macos_fs.metal"
+#define SCREEN_VS_FILENAME "screen.glsl_default_metal_macos_vs.metal"
+#define SCREEN_FS_FILENAME "screen.glsl_default_metal_macos_fs.metal"
+#elif defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
 #define SHADER_PATH "dst/gles"
 #define DEFAULT_VS_FILENAME "default.glsl_default_glsl300es_vs.glsl"
 #define DEFAULT_FS_FILENAME "default.glsl_default_glsl300es_fs.glsl"
@@ -50,10 +51,10 @@
 #define SCREEN_FS_FILENAME "screen.glsl_default_glsl300es_fs.glsl"
 #else
 #define SHADER_PATH "dst/gl33"
-#define DEFAULT_VS_FILENAME "default.glsl_default_glsl330_vs.glsl"
-#define DEFAULT_FS_FILENAME "default.glsl_default_glsl330_fs.glsl"
-#define SCREEN_VS_FILENAME "screen.glsl_default_glsl330_vs.glsl"
-#define SCREEN_FS_FILENAME "screen.glsl_default_glsl330_fs.glsl"
+#define DEFAULT_VS_FILENAME "default.glsl_default_glsl410_vs.glsl"
+#define DEFAULT_FS_FILENAME "default.glsl_default_glsl410_fs.glsl"
+#define SCREEN_VS_FILENAME "screen.glsl_default_glsl410_vs.glsl"
+#define SCREEN_FS_FILENAME "screen.glsl_default_glsl410_fs.glsl"
 #endif
 
 typedef struct default_shader_params_t {
@@ -486,7 +487,6 @@ int main(int argc, char *argv[])
   sprintf(filename, "%s%s", binocle_data_dir, "player.png");
   sg_image ball_image = binocle_image_load(filename);
 
-#ifdef BINOCLE_GL
   // Default shader
   char vert[1024];
   sprintf(vert, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, DEFAULT_VS_FILENAME);
@@ -500,14 +500,12 @@ int main(int argc, char *argv[])
   char *shader_fs_src;
   size_t shader_fs_src_size;
   binocle_sdl_load_text_file(frag, &shader_fs_src, &shader_fs_src_size);
-#endif
 
   sg_shader_desc default_shader_desc = {
-#ifdef BINOCLE_GL
+
     .vs.source = shader_vs_src,
-#else
-    .vs.bytecode.ptr = default_vs_bytecode,
-    .vs.bytecode.size = sizeof(default_vs_bytecode),
+#if defined(BINOCLE_METAL)
+    .vs.entry = "main0",
 #endif
     .attrs = {
       [0] = { .name = "vertexPosition"},
@@ -521,11 +519,9 @@ int main(int argc, char *argv[])
         [0] = { .name = "vs_params", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = 12},
       }
     },
-#ifdef BINOCLE_GL
     .fs.source = shader_fs_src,
-#else
-    .fs.bytecode.ptr = default_fs_bytecode,
-    .fs.bytecode.size = sizeof(default_fs_bytecode),
+#if defined(BINOCLE_METAL)
+    .fs.entry = "main0",
 #endif
     .fs.images[0] = {
       .used = true,
@@ -545,7 +541,6 @@ int main(int argc, char *argv[])
   };
   default_shader = sg_make_shader(&default_shader_desc);
 
-#ifdef BINOCLE_GL
   // Screen shader
   sprintf(vert, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, SCREEN_VS_FILENAME);
   sprintf(frag, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, SCREEN_FS_FILENAME);
@@ -559,14 +554,11 @@ int main(int argc, char *argv[])
   binocle_log_info("reading screen shader");
   binocle_sdl_load_text_file(frag, &screen_shader_fs_src, &screen_shader_fs_src_size);
   binocle_log_info("done reading screen shader");
-#endif
 
   sg_shader_desc screen_shader_desc = {
-#ifdef BINOCLE_GL
     .vs.source = screen_shader_vs_src,
-#else
-    .vs.bytecode.ptr = screen_vs_bytecode,
-    .vs.bytecode.size = sizeof(screen_vs_bytecode),
+#if defined(BINOCLE_METAL)
+    .vs.entry = "main0",
 #endif
     .attrs = {
       [0] = {.name = "position"},
@@ -579,11 +571,9 @@ int main(int argc, char *argv[])
         [0] = { .name = "vs_params", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = 4},
       },
     },
-#ifdef BINOCLE_GL
     .fs.source = screen_shader_fs_src,
-#else
-    .fs.bytecode.ptr = screen_fs_bytecode,
-    .fs.bytecode.size = sizeof(screen_fs_bytecode),
+#if defined(BINOCLE_METAL)
+    .fs.entry = "main0",
 #endif
     .fs.images[0] = {
       .used = true,

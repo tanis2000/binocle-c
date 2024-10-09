@@ -104,4 +104,4 @@ if (IOS)
     )
 endif(IOS)
 
-message("${CORE_SOURCE}")
+message("${SOURCE_FILES}")

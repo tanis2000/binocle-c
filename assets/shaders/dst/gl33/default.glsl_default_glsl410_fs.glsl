@@ -1,10 +1,10 @@
-#version 330
+#version 410
 
 uniform sampler2D tex0_smp;
 
-in vec2 tcoord;
+layout(location = 0) in vec2 tcoord;
 layout(location = 0) out vec4 fragColor;
-in vec4 color;
+layout(location = 1) in vec4 color;
 
 void main()
 {

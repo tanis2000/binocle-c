@@ -162,7 +162,7 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
 #ifdef BINOCLE_GL
       .pixel_format = SG_PIXELFORMAT_RGBA8,
 #else
-      .pixel_format = SG_PIXELFORMAT_BGRA8,
+      .pixel_format = SG_PIXELFORMAT_RGBA8,
 #endif
       .sample_count = 1,
       .label = "offscreen"
@@ -217,7 +217,7 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
 #ifdef BINOCLE_GL
             .pixel_format = SG_PIXELFORMAT_RGBA8,
 #else
-            .pixel_format = SG_PIXELFORMAT_BGRA8,
+            .pixel_format = SG_PIXELFORMAT_RGBA8,
 #endif
           .blend = {
           .enabled = true,
@@ -1245,8 +1245,9 @@ sg_shader_desc binocle_gd_create_offscreen_shader_desc(const char *shader_vs_src
 #ifdef BINOCLE_GL
     .vs.source = shader_vs_src,
 #else
-    .vs.byte_code = default_vs_bytecode,
-    .vs.byte_code_size = sizeof(default_vs_bytecode),
+    .vs.source = shader_vs_src,
+    // .vs.byte_code = default_vs_bytecode,
+    // .vs.byte_code_size = sizeof(default_vs_bytecode),
 #endif
     .attrs = {
       [0].name = "vertexPosition",
@@ -1264,8 +1265,9 @@ sg_shader_desc binocle_gd_create_offscreen_shader_desc(const char *shader_vs_src
 #ifdef BINOCLE_GL
     .fs.source = shader_fs_src,
 #else
-    .fs.byte_code = default_fs_bytecode,
-    .fs.byte_code_size = sizeof(default_fs_bytecode),
+    .fs.source = shader_fs_src,
+    // .fs.byte_code = default_fs_bytecode,
+    // .fs.byte_code_size = sizeof(default_fs_bytecode),
 #endif
     .fs.images[0] = {.used = true, .image_type = SG_IMAGETYPE_2D},
     .fs.samplers[0] = {.used = true, .sampler_type = SG_SAMPLERTYPE_FILTERING},
