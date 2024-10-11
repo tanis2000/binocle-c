@@ -204,14 +204,14 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
       .shader = offscreen_shader,
 //      .index_type = SG_INDEXTYPE_UINT16,
       .index_type = SG_INDEXTYPE_NONE,
-      .depth = {
-          .pixel_format = SG_PIXELFORMAT_NONE,
-          .compare = SG_COMPAREFUNC_NEVER,
-          .write_enabled = false,
-      },
-      .stencil = {
-          .enabled = false,
-      },
+      // .depth = {
+      //     .pixel_format = SG_PIXELFORMAT_NONE,
+      //     .compare = SG_COMPAREFUNC_NEVER,
+      //     .write_enabled = false,
+      // },
+      // .stencil = {
+      //     .enabled = false,
+      // },
       .colors = {
         [0] = {
 #ifdef BINOCLE_GL
@@ -288,14 +288,14 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
     .shader = display_shader,
     .index_type = SG_INDEXTYPE_UINT16,
 #if !defined(BINOCLE_GL)
-    .depth = {
-      .pixel_format = SG_PIXELFORMAT_NONE,
-      .compare = SG_COMPAREFUNC_NEVER,
-      .write_enabled = false,
-    },
-    .stencil = {
-      .enabled = false,
-    },
+    // .depth = {
+    //   .pixel_format = SG_PIXELFORMAT_NONE,
+    //   .compare = SG_COMPAREFUNC_NEVER,
+    //   .write_enabled = false,
+    // },
+    // .stencil = {
+    //   .enabled = false,
+    // },
 #endif
     .colors = {
 #ifdef BINOCLE_GL
