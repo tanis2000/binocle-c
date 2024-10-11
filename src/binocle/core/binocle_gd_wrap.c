@@ -160,9 +160,10 @@ int l_binocle_gd_render_screen(lua_State *L) {
 }
 
 int l_create_offscreen_shader_desc(lua_State *L) {
-  const char *vs = luaL_checkstring(L, 1);
-  const char *fs = luaL_checkstring(L, 2);
-  sg_shader_desc desc = binocle_gd_create_offscreen_shader_desc(vs, fs);
+  const char *name = luaL_checkstring(L, 1);
+  const char *vs = luaL_checkstring(L, 2);
+  const char *fs = luaL_checkstring(L, 3);
+  sg_shader_desc desc = binocle_gd_create_offscreen_shader_desc(name, vs, fs);
   l_binocle_shader_t *shader = lua_newuserdata(L, sizeof(l_binocle_shader_t));
   lua_getfield(L, LUA_REGISTRYINDEX, "binocle_shader");
   lua_setmetatable(L, -2);
