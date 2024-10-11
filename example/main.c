@@ -43,18 +43,24 @@
 #define DEFAULT_FS_FILENAME "default.glsl_default_metal_macos_fs.metal"
 #define SCREEN_VS_FILENAME "screen.glsl_default_metal_macos_vs.metal"
 #define SCREEN_FS_FILENAME "screen.glsl_default_metal_macos_fs.metal"
+#define FLAT_VS_FILENAME "flat_flat_metal_macos_vs.metal"
+#define FLAT_FS_FILENAME "flat_flat_metal_macos_fs.metal"
 #elif defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
 #define SHADER_PATH "dst/gles"
 #define DEFAULT_VS_FILENAME "default.glsl_default_glsl300es_vs.glsl"
 #define DEFAULT_FS_FILENAME "default.glsl_default_glsl300es_fs.glsl"
 #define SCREEN_VS_FILENAME "screen.glsl_default_glsl300es_vs.glsl"
 #define SCREEN_FS_FILENAME "screen.glsl_default_glsl300es_fs.glsl"
+#define FLAT_VS_FILENAME "flat_flat_glsl300es_vs.glsl"
+#define FLAT_FS_FILENAME "flat_flat_glsl300es_fs.glsl"
 #else
 #define SHADER_PATH "dst/gl33"
 #define DEFAULT_VS_FILENAME "default.glsl_default_glsl410_vs.glsl"
 #define DEFAULT_FS_FILENAME "default.glsl_default_glsl410_fs.glsl"
 #define SCREEN_VS_FILENAME "screen.glsl_default_glsl410_vs.glsl"
 #define SCREEN_FS_FILENAME "screen.glsl_default_glsl410_fs.glsl"
+#define FLAT_VS_FILENAME "flat_flat_glsl410_vs.glsl"
+#define FLAT_FS_FILENAME "flat_flat_glsl410_fs.glsl"
 #endif
 
 typedef struct default_shader_params_t {
