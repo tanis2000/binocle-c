@@ -487,7 +487,7 @@ int main(int argc, char *argv[])
   sprintf(filename, "%s%s", binocle_data_dir, "player.png");
   sg_image ball_image = binocle_image_load(filename);
 
-  // Default shader
+  // Default shader (off-screen texture)
   char vert[1024];
   sprintf(vert, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, DEFAULT_VS_FILENAME);
   char frag[1024];
@@ -502,7 +502,7 @@ int main(int argc, char *argv[])
   binocle_sdl_load_text_file(frag, &shader_fs_src, &shader_fs_src_size);
 
   sg_shader_desc default_shader_desc = {
-
+    .label = "default-shader",
     .vs.source = shader_vs_src,
 #if defined(BINOCLE_METAL)
     .vs.entry = "main0",
@@ -515,6 +515,7 @@ int main(int argc, char *argv[])
     },
     .vs.uniform_blocks[0] = {
       .size = sizeof(default_shader_params_t),
+      .layout = SG_UNIFORMLAYOUT_STD140,
       .uniforms = {
         [0] = { .name = "vs_params", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = 12},
       }
@@ -556,6 +557,7 @@ int main(int argc, char *argv[])
   binocle_log_info("done reading screen shader");
 
   sg_shader_desc screen_shader_desc = {
+    .label = "screen-shader",
     .vs.source = screen_shader_vs_src,
 #if defined(BINOCLE_METAL)
     .vs.entry = "main0",
@@ -567,6 +569,7 @@ int main(int argc, char *argv[])
     },
     .vs.uniform_blocks[0] = {
       .size = sizeof(screen_shader_vs_params_t),
+      .layout = SG_UNIFORMLAYOUT_STD140,
       .uniforms = {
         [0] = { .name = "vs_params", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = 4},
       },
@@ -592,6 +595,7 @@ int main(int argc, char *argv[])
     },
     .fs.uniform_blocks[0] = {
       .size = sizeof(screen_shader_fs_params_t),
+      .layout = SG_UNIFORMLAYOUT_STD140,
       .uniforms = {
         [0] = { .name = "fs_params", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = 2 },
       },
