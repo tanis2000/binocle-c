@@ -27,67 +27,6 @@ typedef struct binocle_gd_flat_shader_fs_params_t {
   float color[4];
 } binocle_gd_flat_shader_fs_params_t;
 
-const char *binocle_shader_flat_vertex_src_gles =
-"#version 300 es\n"
-"precision mediump float;\n"
-"precision mediump int;\n"
-"in vec3 vertexPosition;\n"
-"in vec4 vertexColor;\n"
-"in vec2 vertexTexture;\n"
-"\n"
-"uniform mat4 projectionMatrix;\n"
-"uniform mat4 viewMatrix;\n"
-"uniform mat4 modelMatrix;\n"
-"\n"
-"out vec4 color;\n"
-"\n"
-"void main(void) {\n"
-"    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);\n"
-"    gl_PointSize = 1.0;\n"
-"    color = vertexColor;\n"
-"}\n";
-
-const char *binocle_shader_flat_frag_src_gles =
-"#version 300 es\n"
-"precision mediump float;\n"
-"precision mediump int;\n"
-"in vec4 color;\n"
-"out vec4 fragColor;\n"
-"void main(void)\n"
-"{\n"
-"    fragColor = color;\n"
-"    //gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
-"}\n";
-
-const char *binocle_shader_flat_vertex_src_gl33 =
-"#version 330\n"
-"in vec3 vertexPosition;\n"
-"in vec4 vertexColor;\n"
-"in vec2 vertexTexture;\n"
-"\n"
-"uniform mat4 projectionMatrix;\n"
-"uniform mat4 viewMatrix;\n"
-"uniform mat4 modelMatrix;\n"
-"\n"
-"out vec4 color;"
-"\n"
-"void main(void) {\n"
-"    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);\n"
-"    //gl_Position = vec4(0.0, 0.0, 0.0, 1.0);\n"
-"    gl_PointSize = 1.0;\n"
-"    color = vertexColor;\n"
-"}\n";
-
-const char *binocle_shader_flat_src_gl33 =
-"#version 330\n"
-"in vec4 color;\n"
-"out vec4 fragColor;\n"
-"void main(void)\n"
-"{\n"
-"    fragColor = color;\n"
-"    //fragColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
-"}\n";
-
 binocle_gd binocle_gd_new() {
   binocle_gd res = {0};
   res.vertices = malloc(sizeof(binocle_vpct) * BINOCLE_GD_MAX_VERTICES);
@@ -491,17 +430,11 @@ void binocle_gd_render(binocle_gd *gd, struct binocle_window *window, float desi
   binocle_gd_render_screen(gd, window, design_width, design_height, viewport, matrix, scale);
 }
 
-void binocle_gd_setup_flat_pipeline(binocle_gd *gd) {
-#if defined(BINOCLE_MACOS) && defined(BINOCLE_METAL)
-#include "../../assets/metal/default-metal-macosx.h"
-#include "../../assets/metal/screen-metal-macosx.h"
-#endif
+void binocle_gd_setup_flat_pipeline(binocle_gd *gd, const char *vs_src, const char *fs_src) {
   sg_shader_desc screen_shader_desc = {
-#ifdef BINOCLE_GL
-#if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
-    .vs.source = binocle_shader_flat_vertex_src_gles,
-#else
-    .vs.source = binocle_shader_flat_vertex_src_gl33,
+    .vs.source = vs_src,
+#if defined(BINOCLE_METAL)
+    .vs.entry = "main0",
 #endif
     .vs.uniform_blocks[0] = {
       .size = sizeof(struct binocle_gd_flat_shader_vs_params_t),
@@ -511,24 +444,14 @@ void binocle_gd_setup_flat_pipeline(binocle_gd *gd) {
         [2] = { .name = "modelMatrix", .type = SG_UNIFORMTYPE_MAT4 },
       },
     },
-#else
-    .vs.bytecode.ptr = screen_vs_bytecode,
-    .vs.bytecode.size = sizeof(screen_vs_bytecode),
-#endif
     .attrs = {
       [0].name = "vertexPosition",
       [1].name = "vertexColor",
       [2].name = "vertexTexture",
     },
-#ifdef BINOCLE_GL
-#if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
-    .fs.source = binocle_shader_flat_frag_src_gles,
-#else
-    .fs.source = binocle_shader_flat_src_gl33,
-#endif
-#else
-    .fs.bytecode.ptr = screen_fs_bytecode,
-    .fs.bytecode.size = sizeof(screen_fs_bytecode),
+    .fs.source = fs_src,
+#if defined(BINOCLE_METAL)
+    .fs.entry = "main0",
 #endif
 //    .fs.uniform_blocks[0] = {
 //      .size = sizeof(struct binocle_gd_flat_shader_fs_params_t),
@@ -577,7 +500,7 @@ void binocle_gd_setup_flat_pipeline(binocle_gd *gd) {
 #ifdef BINOCLE_GL
         .pixel_format = SG_PIXELFORMAT_RGBA8,
 #else
-        .pixel_format = SG_PIXELFORMAT_BGRA8,
+        .pixel_format = SG_PIXELFORMAT_RGBA8,
 #endif
         .blend = {
           .enabled = true,
@@ -1240,14 +1163,12 @@ void binocle_gd_draw_test_cube(struct sg_shader *shader) {
 //  glCheck(glDeleteBuffers(1, &quad_indexbuffer));
 }
 
-sg_shader_desc binocle_gd_create_offscreen_shader_desc(const char *shader_vs_src, const char *shader_fs_src) {
+sg_shader_desc binocle_gd_create_offscreen_shader_desc(const char *name, const char *shader_vs_src, const char *shader_fs_src) {
   sg_shader_desc shader_desc = {
-#ifdef BINOCLE_GL
+    .label = name,
     .vs.source = shader_vs_src,
-#else
-    .vs.source = shader_vs_src,
-    // .vs.byte_code = default_vs_bytecode,
-    // .vs.byte_code_size = sizeof(default_vs_bytecode),
+#if defined(BINOCLE_METAL)
+    .vs.entry = "main0",
 #endif
     .attrs = {
       [0].name = "vertexPosition",
@@ -1256,23 +1177,19 @@ sg_shader_desc binocle_gd_create_offscreen_shader_desc(const char *shader_vs_src
     },
     .vs.uniform_blocks[0] = {
       .size = sizeof(float) * 16 * 3,
+      .layout = SG_UNIFORMLAYOUT_STD140,
       .uniforms = {
-        [0] = { .name = "projectionMatrix", .type = SG_UNIFORMTYPE_MAT4},
-        [1] = { .name = "viewMatrix", .type = SG_UNIFORMTYPE_MAT4},
-        [2] = { .name = "modelMatrix", .type = SG_UNIFORMTYPE_MAT4},
+        [0] = { .name = "vs_params", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = 12},
       }
     },
-#ifdef BINOCLE_GL
     .fs.source = shader_fs_src,
-#else
-    .fs.source = shader_fs_src,
-    // .fs.byte_code = default_fs_bytecode,
-    // .fs.byte_code_size = sizeof(default_fs_bytecode),
+#if defined(BINOCLE_METAL)
+    .fs.entry = "main0",
 #endif
-    .fs.images[0] = {.used = true, .image_type = SG_IMAGETYPE_2D},
+    .fs.images[0] = {.used = true, .image_type = SG_IMAGETYPE_2D, .sample_type = SG_IMAGESAMPLETYPE_FLOAT,},
     .fs.samplers[0] = {.used = true, .sampler_type = SG_SAMPLERTYPE_FILTERING},
     .fs.image_sampler_pairs[0] = {.used = true,
-                                  .glsl_name = "tex0",
+                                  .glsl_name = "tex0_smp",
                                   .image_slot = 0,
                                   .sampler_slot = 0},
   };
@@ -1324,16 +1241,16 @@ void binocle_gd_add_uniform_to_shader_desc(sg_shader_desc *shader_desc, sg_shade
     case SG_SHADERSTAGE_VS:
       shader_desc->vs.uniform_blocks[0].uniforms[idx].name = SDL_strdup(uniform_name);;
       shader_desc->vs.uniform_blocks[0].uniforms[idx].type = uniform_type;
+      shader_desc->vs.uniform_blocks[0].size = binocle_gd_compute_uniform_block_size(shader_desc->vs.uniform_blocks[0]);
       break;
     case SG_SHADERSTAGE_FS:
       shader_desc->fs.uniform_blocks[0].uniforms[idx].name = SDL_strdup(uniform_name);;
       shader_desc->fs.uniform_blocks[0].uniforms[idx].type = uniform_type;
+      shader_desc->fs.uniform_blocks[0].size = binocle_gd_compute_uniform_block_size(shader_desc->fs.uniform_blocks[0]);
       break;
     default:
       break;
   }
-  shader_desc->vs.uniform_blocks[0].size = binocle_gd_compute_uniform_block_size(shader_desc->vs.uniform_blocks[0]);
-  shader_desc->fs.uniform_blocks[0].size = binocle_gd_compute_uniform_block_size(shader_desc->fs.uniform_blocks[0]);
 }
 
 sg_shader binocle_gd_create_shader(sg_shader_desc desc) {
@@ -1365,7 +1282,7 @@ sg_pipeline binocle_gd_create_offscreen_pipeline(sg_shader shader) {
 #ifdef BINOCLE_GL
         .pixel_format = SG_PIXELFORMAT_RGBA8,
 #else
-        .pixel_format = SG_PIXELFORMAT_BGRA8,
+        .pixel_format = SG_PIXELFORMAT_RGBA8,
 #endif
         .blend = {
           .enabled = true,

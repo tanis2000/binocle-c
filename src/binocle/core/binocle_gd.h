@@ -332,10 +332,10 @@ void binocle_gd_draw_with_state(binocle_gd *gd, const struct binocle_vpct *verti
 void binocle_gd_draw_mesh(binocle_gd *gd, const struct binocle_mesh *mesh, kmAABB2 viewport, struct binocle_camera_3d *camera);
 void binocle_gd_draw_test_triangle(struct sg_shader *shader);
 void binocle_gd_draw_test_cube(struct sg_shader *shader);
-void binocle_gd_setup_flat_pipeline(binocle_gd *gd);
+void binocle_gd_setup_flat_pipeline(binocle_gd *gd, const char *vs_src, const char *fs_src);
 void binocle_gd_render_flat(binocle_gd *gd);
 
-sg_shader_desc binocle_gd_create_offscreen_shader_desc(const char *shader_vs_src, const char *shader_fs_src);
+sg_shader_desc binocle_gd_create_offscreen_shader_desc(const char *name, const char *shader_vs_src, const char *shader_fs_src);
 size_t binocle_gd_compute_uniform_block_size(sg_shader_uniform_block_desc desc);
 void binocle_gd_add_uniform_to_shader_desc(sg_shader_desc *shader_desc, sg_shader_stage stage, size_t idx, const char *uniform_name, sg_uniform_type uniform_type);
 sg_shader binocle_gd_create_shader(sg_shader_desc desc);
