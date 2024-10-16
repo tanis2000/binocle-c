@@ -442,7 +442,10 @@ void binocle_gd_commit() {
 void binocle_gd_render(binocle_gd *gd, struct binocle_window *window, float design_width, float design_height, kmAABB2 viewport, kmMat4 matrix, float scale) {
   binocle_gd_render_offscreen(gd);
   binocle_gd_render_flat(gd);
+  binocle_gd_begin_screen_pass(gd, window);
   binocle_gd_render_screen(gd, window, design_width, design_height, viewport, matrix, scale);
+  binocle_gd_end_screen_pass();
+  binocle_gd_commit();
 }
 
 void binocle_gd_setup_flat_pipeline(binocle_gd *gd, const char *vs_src, const char *fs_src) {
