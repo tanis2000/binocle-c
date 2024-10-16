@@ -329,6 +329,23 @@ void binocle_gd_draw_circle(binocle_gd *gd, kmVec2 center, float radius, struct 
 void binocle_gd_draw_with_state(binocle_gd *gd, const struct binocle_vpct *vertices, size_t vertex_count,
                                 struct binocle_render_state *render_state, float depth);
 
+/**
+ * /brief Begins the screen pass. Multiple pipelines can be applied during this pass.
+ * @param gd the graphics device instance
+ * @param window the window instance
+ */
+void binocle_gd_begin_screen_pass(binocle_gd *gd, struct binocle_window *window);
+
+/**
+ * /brief Ends the screen pass.
+ */
+void binocle_gd_end_screen_pass();
+
+/**
+ * /brief Commits all the buffers after the screen pass is done
+ */
+void binocle_gd_commit();
+
 void binocle_gd_draw_mesh(binocle_gd *gd, const struct binocle_mesh *mesh, kmAABB2 viewport, struct binocle_camera_3d *camera);
 void binocle_gd_draw_test_triangle(struct sg_shader *shader);
 void binocle_gd_draw_test_cube(struct sg_shader *shader);
