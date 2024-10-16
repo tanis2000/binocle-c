@@ -410,17 +410,32 @@ void binocle_gd_render_screen(binocle_gd *gd, struct binocle_window *window, flo
 
   gd->display.bind.fs.images[0] = gd->offscreen.render_target;
 
-  sg_begin_pass(&(sg_pass){
-    .action = gd->display.action,
-    .swapchain = binocle_window_get_swapchain(window),
-  });
+  // sg_begin_pass(&(sg_pass){
+  //   .action = gd->display.action,
+  //   .swapchain = binocle_window_get_swapchain(window),
+  // });
   sg_apply_pipeline(gd->display.pip);
   sg_apply_bindings(&gd->display.bind);
   sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, &SG_RANGE(screen_vs_params));
   sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, &SG_RANGE(screen_fs_params));
   sg_draw(0, 6, 1);
-  sg_end_pass();
+  // sg_end_pass();
 
+  // sg_commit();
+}
+
+void binocle_gd_begin_screen_pass(binocle_gd *gd, binocle_window *window) {
+  sg_begin_pass(&(sg_pass){
+  .action = gd->display.action,
+  .swapchain = binocle_window_get_swapchain(window),
+});
+}
+
+void binocle_gd_end_screen_pass() {
+  sg_end_pass();
+}
+
+void binocle_gd_commit() {
   sg_commit();
 }
 
@@ -438,10 +453,9 @@ void binocle_gd_setup_flat_pipeline(binocle_gd *gd, const char *vs_src, const ch
 #endif
     .vs.uniform_blocks[0] = {
       .size = sizeof(struct binocle_gd_flat_shader_vs_params_t),
+      .layout = SG_UNIFORMLAYOUT_STD140,
       .uniforms = {
-        [0] = { .name = "projectionMatrix", .type = SG_UNIFORMTYPE_MAT4 },
-        [1] = { .name = "viewMatrix", .type = SG_UNIFORMTYPE_MAT4 },
-        [2] = { .name = "modelMatrix", .type = SG_UNIFORMTYPE_MAT4 },
+        [0] = { .name = "vs_params", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = 12 },
       },
     },
     .attrs = {
@@ -466,8 +480,9 @@ void binocle_gd_setup_flat_pipeline(binocle_gd *gd, const char *vs_src, const ch
 
   sg_pass_action action = {
     .colors[0] = {
-      .load_action = SG_LOADACTION_DONTCARE,
+      .load_action = SG_LOADACTION_LOAD,
       .clear_value = {0.0f, 1.0f, 0.0f, 1.0f},
+      .store_action = SG_STOREACTION_STORE,
     }
   };
   gd->flat.action = action;
@@ -486,15 +501,15 @@ void binocle_gd_setup_flat_pipeline(binocle_gd *gd, const char *vs_src, const ch
       },
     },
     .shader = shader,
-    .index_type = SG_INDEXTYPE_NONE,
-    .depth = {
-      .pixel_format = SG_PIXELFORMAT_NONE,
-      .compare = SG_COMPAREFUNC_NEVER,
-      .write_enabled = false,
-    },
-    .stencil = {
-      .enabled = false,
-    },
+    // .index_type = SG_INDEXTYPE_NONE,
+    // .depth = {
+    //   .pixel_format = SG_PIXELFORMAT_NONE,
+    //   .compare = SG_COMPAREFUNC_NEVER,
+    //   .write_enabled = false,
+    // },
+    // .stencil = {
+    //   .enabled = false,
+    // },
     .colors = {
       [0] = {
 #ifdef BINOCLE_GL
@@ -506,6 +521,10 @@ void binocle_gd_setup_flat_pipeline(binocle_gd *gd, const char *vs_src, const ch
           .enabled = true,
           .src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA,
           .dst_factor_rgb = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+          .op_rgb = SG_BLENDOP_ADD,
+          .src_factor_alpha = SG_BLENDFACTOR_SRC_ALPHA,
+          .dst_factor_alpha = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+          .op_alpha = SG_BLENDOP_ADD,
         }
       }
     }

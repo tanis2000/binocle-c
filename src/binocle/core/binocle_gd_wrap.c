@@ -236,6 +236,24 @@ int l_binocle_gd_create_offscreen_pipeline(lua_State *L) {
   return 0;
 }
 
+int l_binocle_gd_begin_screen_pass(lua_State *L) {
+  l_binocle_gd_t *gd = luaL_checkudata(L, 1, "binocle_gd");
+  l_binocle_window_t *window = luaL_checkudata(L, 2, "binocle_window");
+  binocle_gd_begin_screen_pass(gd->gd, window->window);
+
+  return 0;
+}
+
+int l_binocle_gd_end_screen_pass(lua_State *L) {
+  binocle_gd_end_screen_pass();
+  return 0;
+}
+
+int l_binocle_gd_commit(lua_State *L) {
+  binocle_gd_commit();
+  return 0;
+}
+
 static const struct luaL_Reg gd [] = {
   {"new", l_binocle_gd_new},
   {"init", l_binocle_gd_init},
@@ -254,6 +272,9 @@ static const struct luaL_Reg gd [] = {
   {"add_uniform_to_shader_desc", l_binocle_gd_add_uniform_to_shader_desc},
   {"create_shader", l_binocle_gd_create_shader},
   {"create_pipeline", l_binocle_gd_create_offscreen_pipeline},
+  {"begin_screen_pass", l_binocle_gd_begin_screen_pass},
+  {"end_screen_pass", l_binocle_gd_end_screen_pass},
+  {"commit", l_binocle_gd_commit},
   {NULL, NULL}
 };
 
