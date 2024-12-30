@@ -10,6 +10,7 @@
       <file path="$PROJECT_DIR$/build-web" />
       <file path="$PROJECT_DIR$/build-win" />
       <file path="$PROJECT_DIR$/build-xcode" />
+      <file path="$PROJECT_DIR$/platform/android/android-project/app/jni/src/src" />
     </excludeRoots>
   </component>
   <component name="JavaScriptSettings">
