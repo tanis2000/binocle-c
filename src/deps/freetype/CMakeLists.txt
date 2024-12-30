@@ -85,12 +85,12 @@ set(SOURCES
         src/cid/cidriver.c
         src/cid/type1cid.c
         src/gzip/adler32.c
-        src/gzip/crc32.c
+        #src/gzip/crc32.c
         src/gzip/ftgzip.c
-        src/gzip/inffast.c
-        src/gzip/inflate.c
-        src/gzip/inftrees.c
-        src/gzip/zutil.c
+        #src/gzip/inffast.c
+        #src/gzip/inflate.c
+        #src/gzip/inftrees.c
+        #src/gzip/zutil.c
         src/lzw/ftlzw.c
         src/lzw/ftzopen.c
         src/otvalid/otvalid.c
@@ -190,6 +190,7 @@ set(SOURCES
 )
 
 set(HEADERS
+        include/ft2build.h
         include/freetype/freetype.h
         include/freetype/config/ftconfig.h
         include/freetype/config/ftstdlib.h
