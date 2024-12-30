@@ -1,31 +1,27 @@
-/***************************************************************************/
-/*                                                                         */
-/*  ftccback.h                                                             */
-/*                                                                         */
-/*    Callback functions of the caching sub-system (specification only).   */
-/*                                                                         */
-/*  Copyright 2004-2006, 2011, 2013 by                                     */
-/*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
-/*                                                                         */
-/*  This file is part of the FreeType project, and may only be used,       */
-/*  modified, and distributed under the terms of the FreeType project      */
-/*  license, LICENSE.TXT.  By continuing to use, modify, or distribute     */
-/*  this file you indicate that you have read the license and              */
-/*  understand and accept it fully.                                        */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * ftccback.h
+ *
+ *   Callback functions of the caching sub-system (specification only).
+ *
+ * Copyright (C) 2004-2024 by
+ * David Turner, Robert Wilhelm, and Werner Lemberg.
+ *
+ * This file is part of the FreeType project, and may only be used,
+ * modified, and distributed under the terms of the FreeType project
+ * license, LICENSE.TXT.  By continuing to use, modify, or distribute
+ * this file you indicate that you have read the license and
+ * understand and accept it fully.
+ *
+ */
 
-#ifndef __FTCCBACK_H__
-#define __FTCCBACK_H__
+#ifndef FTCCBACK_H_
+#define FTCCBACK_H_
 
-#include <ft2build.h>
-#include FT_CACHE_H
-#include "ftcmru.h"
-#include "ftcimage.h"
-#include "ftcmanag.h"
-#include "ftcglyph.h"
-#include "ftcsbits.h"
+#include <freetype/ftcache.h>
+#include "ftccache.h"
 
+FT_BEGIN_HEADER
 
   FT_LOCAL( void )
   ftc_inode_free( FTC_Node   inode,
@@ -81,11 +77,9 @@
   FT_LOCAL( void )
   ftc_cache_done( FTC_Cache  cache );
 
-  FT_LOCAL( void )
-  ftc_node_destroy( FTC_Node     node,
-                    FTC_Manager  manager );
+FT_END_HEADER
 
+#endif /* FTCCBACK_H_ */
 
-#endif /* __FTCCBACK_H__ */
 
 /* END */
