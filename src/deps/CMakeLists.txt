@@ -1,3 +1,4 @@
+# Common to all platforms
 add_subdirectory(chipmunk)
 add_subdirectory(freetype)
 add_subdirectory(kazmath)
@@ -8,11 +9,13 @@ add_subdirectory(zlib)
 add_subdirectory(libuv)
 add_subdirectory(wren)
 
+# SDL specific flags
+set(SDL_STATIC ON)
+set(SDL_CAMERA OFF)
+set(SDL_VULKAN OFF)
+add_subdirectory(sdl EXCLUDE_FROM_ALL)
+
 if (NOT EMSCRIPTEN)
-    set(SDL_STATIC ON)
-    set(SDL_CAMERA OFF)
-    set(SDL_VULKAN OFF)
-	add_subdirectory(sdl EXCLUDE_FROM_ALL)
     add_subdirectory(vorbis)
     add_subdirectory(ogg)
 else()

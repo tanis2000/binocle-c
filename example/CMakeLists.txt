@@ -292,12 +292,15 @@ file(GLOB_RECURSE GLSL_SOURCE_FILES
         "${CMAKE_SOURCE_DIR}/assets/shaders/src/*.glsl"
 )
 
-set(SHADER_COMPILER "")
-if (APPLE)
+set(SHADER_COMPILER "missing-sokol-shdc-for-this-host-architecture")
+if (CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
     set(SHADER_COMPILER "osx/sokol-shdc")
-elseif (WIN32)
+elseif (CMAKE_HOST_SYSTEM_NAME MATCHES "Windows")
     set(SHADER_COMPILER "win32/sokol-shdc.exe")
-endif (APPLE)
+elseif (CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
+    set(SHADER_COMPILER "linux/sokol-shdc")
+endif ()
+message("Using shader compiler ${SHADER_COMPILER}")
 
 foreach(GLSL ${GLSL_SOURCE_FILES})
     get_filename_component(FILE_NAME ${GLSL} NAME)

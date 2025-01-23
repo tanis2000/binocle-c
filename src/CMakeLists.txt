@@ -15,6 +15,7 @@ set(BINOCLE_STATIC_LIBS
         $<TARGET_OBJECTS:parson>
         $<TARGET_OBJECTS:physfs>
         $<TARGET_OBJECTS:rxi_map>
+        $<TARGET_OBJECTS:SDL3::SDL3-static>
         $<TARGET_OBJECTS:libuv>
         $<TARGET_OBJECTS:wren>
         )
@@ -26,7 +27,6 @@ endif ()
 
 if (NOT EMSCRIPTEN)
     set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
-            $<TARGET_OBJECTS:SDL3::SDL3-static>
             $<TARGET_OBJECTS:ogg>
             $<TARGET_OBJECTS:vorbis>
             $<TARGET_OBJECTS:zlib>
