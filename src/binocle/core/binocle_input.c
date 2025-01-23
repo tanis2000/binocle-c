@@ -25,7 +25,7 @@ binocle_input binocle_input_new() {
 
 void binocle_input_update(binocle_input *input) {
   int i;
-  const Uint8 *state = SDL_GetKeyboardState(NULL);
+  const bool *state = SDL_GetKeyboardState(NULL);
   for (i = 0; i < KEY_MAX; i++) {
     input->previousKeys[i] = input->currentKeys[i];
     input->currentKeys[i] = state[i];
@@ -33,11 +33,11 @@ void binocle_input_update(binocle_input *input) {
   for (i = 0; i < MOUSE_MAX; i++) {
     if (i == 0) continue;
     input->previousMouseButtons[i] = input->currentMouseButtons[i];
-    input->currentMouseButtons[i] = (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(i)) == 0 ? false : true;
+    input->currentMouseButtons[i] = (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON_MASK(i)) == 0 ? false : true;
   }
   input->curPrintableKey = KEY_UNKNOWN;
 
-  memset(input->text, 0, SDL_TEXTINPUTEVENT_TEXT_SIZE);
+  memset(input->text, 0, BINOCLE_INPUT_TEXT_SIZE);
 
   input->mouseWheelX = 0;
   input->mouseWheelY = 0;
@@ -46,63 +46,58 @@ void binocle_input_update(binocle_input *input) {
   SDL_Event event = {0};
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
-      case SDL_QUIT:
+      case SDL_EVENT_QUIT:
         input->quit_requested = true;
         break;
 
-      case SDL_WINDOWEVENT: {
-        switch (event.window.event) {
-          case SDL_WINDOWEVENT_FOCUS_LOST:
+          case SDL_EVENT_WINDOW_FOCUS_LOST:
             input->willPause = true;
             break;
 
-          case SDL_WINDOWEVENT_FOCUS_GAINED:
+          case SDL_EVENT_WINDOW_FOCUS_GAINED:
             input->willPause = false;
             break;
 
-          case SDL_WINDOWEVENT_SIZE_CHANGED:
+          case SDL_EVENT_WINDOW_RESIZED:
             input->resized = true;
             input->newWindowSize.x = (float)event.window.data1;
             input->newWindowSize.y = (float)event.window.data2;
             break;
-        }
-        break;
-      }
 
-      case SDL_KEYDOWN: {
-        int index = event.key.keysym.scancode;
+      case SDL_EVENT_KEY_DOWN: {
+        int index = event.key.scancode;
 
         if (binocle_input_is_printable((binocle_input_keyboard_key) index))
           input->curPrintableKey = (binocle_input_keyboard_key) index;
       }
         break;
 
-      case SDL_KEYUP: {
+      case SDL_EVENT_KEY_UP: {
 
-        int index = event.key.keysym.scancode;
+        int index = event.key.scancode;
       }
         break;
 
-      case SDL_MOUSEMOTION:
+      case SDL_EVENT_MOUSE_MOTION:
         input->mouseX = event.motion.x;
         input->mouseY = event.motion.y;
         break;
 
-      case SDL_MOUSEBUTTONDOWN:
+      case SDL_EVENT_MOUSE_BUTTON_DOWN:
 
         break;
 
-      case SDL_MOUSEBUTTONUP:
+      case SDL_EVENT_MOUSE_BUTTON_UP:
 
         break;
 
-      case SDL_MOUSEWHEEL: {
+      case SDL_EVENT_MOUSE_WHEEL: {
         input->mouseWheelX = event.wheel.x;
         input->mouseWheelY = event.wheel.y;
         break;
       }
 
-      case SDL_FINGERDOWN:
+      case SDL_EVENT_FINGER_DOWN:
         input->touch.x = event.tfinger.x;
         input->touch.y = event.tfinger.y;
         input->touch.dx = event.tfinger.dx;
@@ -110,7 +105,7 @@ void binocle_input_update(binocle_input *input) {
         input->touch.pressure = event.tfinger.pressure;
         input->touch.type = FINGER_DOWN;
         break;
-      case SDL_FINGERMOTION:
+      case SDL_EVENT_FINGER_MOTION:
         input->touch.x = event.tfinger.x;
         input->touch.y = event.tfinger.y;
         input->touch.dx = event.tfinger.dx;
@@ -118,7 +113,7 @@ void binocle_input_update(binocle_input *input) {
         input->touch.pressure = event.tfinger.pressure;
         input->touch.type = FINGER_MOTION;
         break;
-      case SDL_FINGERUP:
+      case SDL_EVENT_FINGER_UP:
         input->touch.x = event.tfinger.x;
         input->touch.y = event.tfinger.y;
         input->touch.dx = event.tfinger.dx;
@@ -126,8 +121,8 @@ void binocle_input_update(binocle_input *input) {
         input->touch.pressure = event.tfinger.pressure;
         input->touch.type = FINGER_UP;
         break;
-      case SDL_TEXTINPUT: {
-        memcpy(input->text, event.text.text, SDL_TEXTINPUTEVENT_TEXT_SIZE);
+      case SDL_EVENT_TEXT_INPUT: {
+        memcpy(input->text, event.text.text, BINOCLE_INPUT_TEXT_SIZE);
         break;
       }
       default:
@@ -280,7 +275,7 @@ kmVec2 binocle_input_get_mouse_position(binocle_input input, binocle_camera came
 }
 
 bool binocle_input_is_printable(SDL_Keycode key) {
-  return ((key > SDLK_SPACE) && (key < SDLK_z));
+  return ((key > SDLK_SPACE) && (key < SDLK_Z));
 }
 
 bool binocle_input_is_printable_key_down(binocle_input input) {

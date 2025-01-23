@@ -5,7 +5,7 @@
 //
 
 #include "binocle_log.h"
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <stdio.h>
 #include <stdarg.h>
 

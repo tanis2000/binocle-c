@@ -8,6 +8,7 @@
 #define BINOCLE_ATLAS_H
 
 #include <stdbool.h>
+#include <stdlib.h>
 #include "kazmath/kazmath.h"
 
 #define BINOCLE_MAX_ATLAS_FILENAME_LENGTH (1024)

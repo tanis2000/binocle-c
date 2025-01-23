@@ -120,23 +120,23 @@ void binocle_bitmapfont_parse_common_line(binocle_bitmapfont *font, const char *
 binocle_bitmapfont *binocle_bitmapfont_from_file(const char *filename, bool flip) {
   binocle_bitmapfont *font = binocle_bitmapfont_new();
 
-  SDL_RWops *file = SDL_RWFromFile(filename, "rb");
+  SDL_IOStream *file = SDL_IOFromFile(filename, "rb");
   if (file == NULL) {
     binocle_log_error("Cannot open BitmapFont file %s", filename);
     return font;
   }
 
-  Sint64 res_size = SDL_RWsize(file);
+  Sint64 res_size = SDL_GetIOSize(file);
   char *res = (char *) malloc(res_size + 1);
 
-  Sint64 nb_read_total = 0, nb_read = 1;
+  size_t nb_read_total = 0, nb_read = 1;
   char *buf = res;
   while (nb_read_total < res_size && nb_read != 0) {
-    nb_read = SDL_RWread(file, buf, 1, (res_size - nb_read_total));
+    nb_read = SDL_ReadIO(file, buf, res_size - nb_read_total);
     nb_read_total += nb_read;
     buf += nb_read;
   }
-  SDL_RWclose(file);
+  SDL_CloseIO(file);
   if (nb_read_total != res_size) {
     binocle_log_error("Size mismatch");
     free(res);

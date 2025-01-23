@@ -4,37 +4,36 @@
 // All rights reserved.
 //
 
-#include <string.h>
 #include "binocle_atlas.h"
-#include "binocle_sdl.h"
-#include "binocle_log.h"
-#include "binocle_subtexture.h"
-#include "binocle_sprite.h"
-#include <parson/parson.h>
-#include "sokol_gfx.h"
 #include "binocle_array.h"
+#include "binocle_log.h"
+#include "binocle_sdl.h"
+#include "binocle_sprite.h"
+#include "binocle_subtexture.h"
+#include "sokol_gfx.h"
+#include <parson/parson.h>
 
 bool binocle_atlas_load_texturepacker(char *filename, binocle_atlas_texturepacker *atlas) {
   binocle_log_info("Loading TexturePacker file: %s", filename);
   SDL_strlcpy(atlas->asset_filename, filename, BINOCLE_MAX_ATLAS_FILENAME_LENGTH);
 
-  SDL_RWops *file = SDL_RWFromFile(filename, "rb");
+  SDL_IOStream *file = SDL_IOFromFile(filename, "rb");
   if (file == NULL) {
     binocle_log_error("Cannot open JSON file");
     return false;
   }
 
-  Sint64 res_size = SDL_RWsize(file);
+  Sint64 res_size = SDL_GetIOSize(file);
   char *res = (char *) SDL_malloc(res_size + 1);
 
-  Sint64 nb_read_total = 0, nb_read = 1;
+  size_t nb_read_total = 0, nb_read = 1;
   char *buf = res;
   while (nb_read_total < res_size && nb_read != 0) {
-    nb_read = SDL_RWread(file, buf, 1, (res_size - nb_read_total));
+    nb_read = SDL_ReadIO(file, buf, res_size - nb_read_total);
     nb_read_total += nb_read;
     buf += nb_read;
   }
-  SDL_RWclose(file);
+  SDL_CloseIO(file);
   if (nb_read_total != res_size) {
     binocle_log_error("Size mismatch");
     SDL_free(res);
@@ -376,23 +375,23 @@ void binocle_atlas_load_libgdx(char *filename, struct sg_image *texture, struct 
                                int *num_subtextures) {
   *num_subtextures = 0;
   binocle_log_info("Loading LibGDX file: %s", filename);
-  SDL_RWops *file = SDL_RWFromFile(filename, "rb");
+  SDL_IOStream *file = SDL_IOFromFile(filename, "rb");
   if (file == NULL) {
     binocle_log_error("Cannot open text file");
     return;
   }
 
-  Sint64 res_size = SDL_RWsize(file);
+  Sint64 res_size = SDL_GetIOSize(file);
   char *res = (char *) SDL_malloc(res_size + 1);
 
-  Sint64 nb_read_total = 0, nb_read = 1;
+  size_t nb_read_total = 0, nb_read = 1;
   char *buf = res;
   while (nb_read_total < res_size && nb_read != 0) {
-    nb_read = SDL_RWread(file, buf, 1, (res_size - nb_read_total));
+    nb_read = SDL_ReadIO(file, buf, res_size - nb_read_total);
     nb_read_total += nb_read;
     buf += nb_read;
   }
-  SDL_RWclose(file);
+  SDL_CloseIO(file);
   if (nb_read_total != res_size) {
     binocle_log_error("Size mismatch");
     SDL_free(res);

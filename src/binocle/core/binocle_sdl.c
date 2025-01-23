@@ -12,16 +12,7 @@
 
 bool binocle_sdl_init() {
 
-  // Will initialize subsystems separatedly
-
-  // Make sure we don't end up using Retina
-  SDL_SetHint(SDL_HINT_VIDEO_HIGHDPI_DISABLED, "1");
-
-  // Make sure textures are being created using nearest pixel sampling
-  // 0 = nearest pixel sampling
-  // 1 = linear filtering
-  // 2 = anisotropic filtering
-  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+  // Will initialize subsystems separately
 
 #if defined(__IPHONEOS__) || defined(__ANDROID__)
   /*
@@ -47,11 +38,11 @@ bool binocle_sdl_init() {
 #endif
 
 #ifdef DEBUG
-  SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);
+  SDL_SetLogPriorities(SDL_LOG_PRIORITY_DEBUG);
 #endif
 
   uint32_t to_check = (SDL_INIT_VIDEO | SDL_INIT_EVENTS);
-  if (SDL_Init(to_check) < 0) {
+  if (!SDL_Init(to_check)) {
     binocle_log_error("SDL_Init: Couldn't start SDL");
     binocle_log_error(SDL_GetError());
     binocle_sdl_exit();
@@ -72,7 +63,7 @@ bool binocle_sdl_init() {
   char *base_path = SDL_GetBasePath();
   if (base_path) {
     binocle_log_info("Base path: %s", base_path);
-    SDL_free(base_path);
+    //SDL_free(base_path);
   } else {
     binocle_log_info("Base path not available");
   }
@@ -98,23 +89,23 @@ time_t binocle_sdl_get_last_modification_time(char *filename) {
 
 bool binocle_sdl_load_text_file(char *filename, char **buffer, size_t *buffer_length) {
   binocle_log_info("Loading text file: %s", filename);
-  SDL_RWops *file = SDL_RWFromFile(filename, "rb");
+  SDL_IOStream *file = SDL_IOFromFile(filename, "rb");
   if (file == NULL) {
     binocle_log_error("Cannot open text file");
     return false;
   }
 
-  Sint64 res_size = SDL_RWsize(file);
+  Sint64 res_size = SDL_GetIOSize(file);
   char *res = (char *) SDL_malloc(res_size + 1);
 
-  Sint64 nb_read_total = 0, nb_read = 1;
+  size_t nb_read_total = 0, nb_read = 1;
   char *buf = res;
   while (nb_read_total < res_size && nb_read != 0) {
-    nb_read = SDL_RWread(file, buf, 1, (res_size - nb_read_total));
+    nb_read = SDL_ReadIO(file, buf, res_size - nb_read_total);
     nb_read_total += nb_read;
     buf += nb_read;
   }
-  SDL_RWclose(file);
+  SDL_CloseIO(file);
   binocle_log_info("%d bytes read of %d", nb_read_total, res_size);
   if (nb_read_total != res_size) {
     binocle_log_error("Size mismatch");
@@ -130,30 +121,30 @@ bool binocle_sdl_load_text_file(char *filename, char **buffer, size_t *buffer_le
 
 bool binocle_sdl_write_text_file(char *filename, char *buffer, size_t size) {
   binocle_log_info("Writing text file: %s", filename);
-  SDL_RWops *file = SDL_RWFromFile(filename, "wb");
+  SDL_IOStream *file = SDL_IOFromFile(filename, "wb");
   if (file == NULL) {
     binocle_log_error("Cannot open text file");
     return false;
   }
 
-  if (SDL_RWwrite(file, buffer, 1, size) != size) {
+  if (SDL_WriteIO(file, buffer, size) != size) {
     binocle_log_error("Error writing to file");
     return false;
   }
 
-  SDL_RWclose(file);
+  SDL_CloseIO(file);
   return true;
 }
 
 bool binocle_sdl_load_binary_file(char *filename, char **buffer, size_t *buffer_length) {
   binocle_log_info("Loading binary file: %s", filename);
-  SDL_RWops *file = SDL_RWFromFile(filename, "rb");
+  SDL_IOStream *file = SDL_IOFromFile(filename, "rb");
   if (file == NULL) {
     binocle_log_error("Cannot open binary file: %s Reason: %s", filename, SDL_GetError());
     return false;
   }
 
-  Sint64 res_size = SDL_RWsize(file);
+  Sint64 res_size = SDL_GetIOSize(file);
   if (res_size == 0) {
     binocle_log_error("Stream size is zero.");
     return false;
@@ -168,11 +159,11 @@ bool binocle_sdl_load_binary_file(char *filename, char **buffer, size_t *buffer_
   size_t nb_read_total = 0, nb_read = 1;
   char *buf = res;
   while (nb_read_total < res_size && nb_read != 0) {
-    nb_read = SDL_RWread(file, buf, 1, ((size_t)res_size - nb_read_total));
+    nb_read = SDL_ReadIO(file, buf, ((size_t)res_size - nb_read_total));
     nb_read_total += nb_read;
     buf += nb_read;
   }
-  SDL_RWclose(file);
+  SDL_CloseIO(file);
   binocle_log_info("%d bytes read of %lld", nb_read_total, res_size);
   if (nb_read_total != res_size) {
     binocle_log_error("Size mismatch");
@@ -185,8 +176,8 @@ bool binocle_sdl_load_binary_file(char *filename, char **buffer, size_t *buffer_
   return true;
 }
 
-char *binocle_sdl_assets_dir() {
-  char *binocle_assets_dir = NULL;
+const char *binocle_sdl_assets_dir() {
+  const char *binocle_assets_dir = NULL;
 #if defined(__EMSCRIPTEN__)
   binocle_assets_dir = malloc(1024);
   sprintf(binocle_assets_dir, "/assets/");
@@ -201,9 +192,9 @@ char *binocle_sdl_assets_dir() {
 #elif defined(__ANDROID__)
   binocle_assets_dir = SDL_strdup("");
 #else
-  char *base_path = SDL_GetBasePath();
+  const char *base_path = SDL_GetBasePath();
   if (base_path) {
-    binocle_assets_dir = base_path;
+    binocle_assets_dir = SDL_strdup(base_path);
   } else {
     binocle_assets_dir = SDL_strdup("./");
   }
@@ -271,11 +262,11 @@ char *binocle_sdl_str_replace(char *orig, char *rep, char *with) {
 }
 
 bool binocle_sdl_file_exists(const char *filename) {
-  SDL_RWops *f = SDL_RWFromFile(filename, "r");
+  SDL_IOStream *f = SDL_IOFromFile(filename, "r");
   if (f == NULL) {
     return false;
   }
-  SDL_RWclose(f);
+  SDL_CloseIO(f);
   return true;
 }
 
