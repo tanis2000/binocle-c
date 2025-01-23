@@ -10,7 +10,9 @@ endif()
 
 # Workaround for https://gitlab.kitware.com/cmake/cmake/-/issues/24104
 # See also https://github.com/libsdl-org/SDL/issues/6454
-enable_language(OBJC)
+if (APPLE)
+	enable_language(OBJC)
+endif ()
 
 # cmake modules directory
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
