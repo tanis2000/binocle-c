@@ -48,7 +48,7 @@ binocle_window *binocle_window_new(uint32_t width, uint32_t height, char *title)
 void binocle_window_destroy(binocle_window *win) {
 #if defined(BINOCLE_GL)
   if (win->gl_context != NULL) {
-    SDL_GL_DeleteContext(win->gl_context);
+    SDL_GL_DestroyContext(win->gl_context);
     win->gl_context = NULL;
   }
 #endif
@@ -102,7 +102,7 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 #endif
 #if defined(BINOCLE_GL)
-  int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN;
+  int flags = SDL_WINDOW_OPENGL;
 #elif defined(BINOCLE_METAL)
   int flags = 0;
 #endif
