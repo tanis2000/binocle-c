@@ -104,7 +104,7 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
 #if defined(BINOCLE_GL)
   int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN;
 #elif defined(BINOCLE_METAL)
-  int flags = SDL_WINDOW_SHOWN;
+  int flags = 0;
 #endif
 
 #if defined(__IPHONEOS__) || defined(__ANDROID__)
@@ -113,8 +113,21 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
   flags |= SDL_WINDOW_RESIZABLE;
 #endif
 
-  SDL_DisplayMode mode;
-  SDL_GetDesktopDisplayMode(0, &mode);
+  int i, num_displays = 0;
+  SDL_DisplayID *displays = SDL_GetDisplays(&num_displays);
+  if (displays) {
+    for (i = 0; i < num_displays; ++i) {
+      SDL_DisplayID instance_id = displays[i];
+      const char *name = SDL_GetDisplayName(instance_id);
+
+      SDL_Log("Display %" SDL_PRIu32 ": %s", instance_id, name ? name : "Unknown");
+    }
+    SDL_free(displays);
+  }
+
+  ;
+  const SDL_DisplayMode *mode =
+    SDL_GetDesktopDisplayMode(SDL_GetPrimaryDisplay());
 
   /*
 #ifdef ANDROID
@@ -125,7 +138,7 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
   screen.h = mode.h - 200;
 #endif
 */
-  win->window = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height,
+  win->window = SDL_CreateWindow(title, width, height,
                                  flags);
 
   if (win->window == 0) {
@@ -184,14 +197,17 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
   win->width = width;
   win->height = height;
 
-  SDL_version compiled;
-  SDL_version linked;
-  SDL_VERSION(&compiled);
-  SDL_GetVersion(&linked);
-  binocle_log_info("Compiled SDL version: %d.%d.%d\n",
-                   compiled.major, compiled.minor, compiled.patch);
+  const int compiled = SDL_VERSION;
+  const int linked = SDL_GetVersion();
+  binocle_log_info(
+    "Compiled SDL version: %d.%d.%d\n",
+    SDL_VERSIONNUM_MAJOR(compiled),
+    SDL_VERSIONNUM_MINOR(compiled),
+    SDL_VERSIONNUM_MICRO(compiled));
   binocle_log_info("Linked SDL version: %d.%d.%d\n",
-                   linked.major, linked.minor, linked.patch);
+                   SDL_VERSIONNUM_MAJOR(linked),
+                   SDL_VERSIONNUM_MINOR(linked),
+                   SDL_VERSIONNUM_MICRO(linked));
 
 #if defined(WIN32)
   GLenum err = glewInit();
@@ -341,18 +357,29 @@ void binocle_window_get_real_size(binocle_window *win, uint32_t *w, uint32_t *h)
 
 bool binocle_window_get_display_size(uint32_t *w, uint32_t *h) {
   // NOTE: this only takes into account the first display
-  SDL_DisplayMode current;
-  for (int i = 0; i < SDL_GetNumVideoDisplays(); ++i) {
-
-    if (SDL_GetCurrentDisplayMode(i, &current) == 0) {
-      *w = current.w;
-      *h = current.h;
-      return true;
-    } else {
-      binocle_log_warning("Could not get display mode for video display #%d: %s", i, SDL_GetError());
-      return false;
+  const SDL_DisplayMode *current = NULL;
+  int i, num_displays = 0;
+  SDL_DisplayID *displays = SDL_GetDisplays(&num_displays);
+  if (displays) {
+    for (i = 0; i < num_displays; ++i) {
+      if (i == 0) {
+        SDL_DisplayID instance_id = displays[i];
+        current = SDL_GetCurrentDisplayMode(instance_id);
+        SDL_Rect *display_rect = { 0 };
+        SDL_GetDisplayBounds(instance_id, display_rect);
+        *w = display_rect->w;
+        *h = display_rect->h;
+      }
     }
+    SDL_free(displays);
   }
+
+  if (current != NULL) {
+    return true;
+  }
+
+  binocle_log_warning("Could not get display mode for video display #%d: %s", i,
+                      SDL_GetError());
   return false;
 }
 

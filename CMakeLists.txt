@@ -8,6 +8,10 @@ if("${CMAKE_VERSION}" VERSION_GREATER 3.5)
 	cmake_policy(SET CMP0025 NEW)
 endif()
 
+# Workaround for https://gitlab.kitware.com/cmake/cmake/-/issues/24104
+# See also https://github.com/libsdl-org/SDL/issues/6454
+enable_language(OBJC)
+
 # cmake modules directory
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 

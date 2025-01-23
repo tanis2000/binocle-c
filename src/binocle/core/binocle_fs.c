@@ -7,7 +7,7 @@
 #include "binocle_fs.h"
 #include "binocle_log.h"
 #include <physfs.h>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #define CUTE_PATH_IMPLEMENTATION
 #include <cute_path/cute_path.h>

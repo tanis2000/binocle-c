@@ -12,6 +12,7 @@
 #include "binocle_sdl.h"
 #include "binocle_log.h"
 #include <stdbool.h>
+#include <stdlib.h>
 
 #if defined(__EMSCRIPTEN__)
 

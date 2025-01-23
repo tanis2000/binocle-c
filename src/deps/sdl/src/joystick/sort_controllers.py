@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 #
-# Script to sort the game controller database entries in SDL_gamecontroller.c
+# Script to sort the game controller database entries in SDL_gamepad.c
 
 import re
 
 
-filename = "SDL_gamecontrollerdb.h"
+filename = "SDL_gamepad_db.h"
 input = open(filename)
 output = open(f"{filename}.new", "w")
 parsing_controllers = False
@@ -22,7 +22,7 @@ standard_guid_pattern = re.compile(r'^([0-9a-fA-F]{4})([0-9a-fA-F]{2})([0-9a-fA-
 invalid_controllers = (
     ('0079', '0006', '0000'), # DragonRise Inc. Generic USB Joystick
     ('0079', '0006', '6120'), # DragonRise Inc. Generic USB Joystick
-    ('04b4', '2412', 'c529'), # Flydigi Vader 2, Vader 2 Pro, Apex 2, Apex 3
+    ('04b4', '2412', 'c529'), # Flydigi Vader 2, Vader 2 Pro, Apex 2, Apex 3, Apex 4
     ('16c0', '05e1', '0000'), # Xinmotek Controller
 )
 
@@ -81,6 +81,14 @@ def save_controller(line):
             print("Controller '%s' not unique, skipping" % name)
             return
 
+    pos = find_element("type", bindings)
+    if pos >= 0:
+        bindings.insert(0, bindings.pop(pos))
+
+    pos = find_element("platform", bindings)
+    if pos >= 0:
+        bindings.insert(0, bindings.pop(pos))
+
     pos = find_element("sdk", bindings)
     if pos >= 0:
         bindings.append(bindings.pop(pos))
@@ -137,6 +145,9 @@ for line in input:
             output.write(line)
         elif (line.startswith("#if")):
             print(f"Parsing {line.strip()}")
+            output.write(line)
+        elif ("SDL_PRIVATE_GAMEPAD_DEFINITIONS" in line):
+            write_controllers()
             output.write(line)
         elif (line.startswith("#endif")):
             write_controllers()

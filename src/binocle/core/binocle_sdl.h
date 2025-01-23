@@ -33,9 +33,8 @@
 #include <sdl/include/SDL_syswm.h>
 #endif
 
-// SDL 2.0
-#include <SDL.h>            // SDL2
-//#include <SDL_mixer.h>      // SDL2_Mixer
+// SDL
+#include <SDL3/SDL.h>
 
 /**
  * \brief Starts SDL2 and must be called before everything else
@@ -92,7 +91,7 @@ bool binocle_sdl_load_binary_file(char *filename, char **buffer, size_t *buffer_
  * This function allocates the memory for the string and it's up to the caller to free it after use.
  * @return the pointer to the string with the folder of the assets
  */
-char *binocle_sdl_assets_dir();
+const char *binocle_sdl_assets_dir();
 
 /**
  * \brief Returns whether a filename ends with a certain suffix

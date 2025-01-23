@@ -26,8 +26,7 @@ endif ()
 
 if (NOT EMSCRIPTEN)
     set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
-            $<TARGET_OBJECTS:SDL2::SDL2main>
-            $<TARGET_OBJECTS:SDL2::SDL2-static>
+            $<TARGET_OBJECTS:SDL3::SDL3-static>
             $<TARGET_OBJECTS:ogg>
             $<TARGET_OBJECTS:vorbis>
             $<TARGET_OBJECTS:zlib>
@@ -41,7 +40,6 @@ endif()
 
 if (APPLE AND NOT IOS AND NOT WATCHOS)
     set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
-            $<TARGET_OBJECTS:SDL2::SDL2main>
             $<TARGET_OBJECTS:glew>
             # we're using lua instead of luajit on macos to be able to test with valgrind
             #$<TARGET_OBJECTS:luajit-5.1>
@@ -68,7 +66,6 @@ endif()
 
 if (IOS)
     set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
-            $<TARGET_OBJECTS:SDL2::SDL2main>
             $<TARGET_OBJECTS:lua>
             $<TARGET_OBJECTS:luasocket>
             )
@@ -76,7 +73,6 @@ endif()
 
 if (WATCHOS)
     set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
-            $<TARGET_OBJECTS:SDL2::SDL2main>
             $<TARGET_OBJECTS:lua>
             $<TARGET_OBJECTS:luasocket>
     )
@@ -93,7 +89,6 @@ endif()
 
 if (MSVC)
     set(BINOCLE_STATIC_LIBS ${BINOCLE_STATIC_LIBS}
-            $<TARGET_OBJECTS:SDL2::SDL2main>
             $<TARGET_OBJECTS:glew>
             # we're using lua instead of luajit on macos to be able to test with valgrind
             #$<TARGET_OBJECTS:luajit-5.1>
