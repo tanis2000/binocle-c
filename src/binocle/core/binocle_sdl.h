@@ -12,15 +12,15 @@
 
 #if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__)
 
-#include <SDL_opengles.h>
-#include <SDL_opengles2.h>
-#include <SDL_syswm.h>
+#include <SDL3/SDL_opengles.h>
+#include <SDL3/SDL_opengles2.h>
+#include <SDL3/SDL_system.h>
 
 #elif defined(__APPLE__)
 
 #if defined(BINOCLE_GL)
 //#define GL_GLEXT_PROTOTYPES 1
-//#include <SDL_opengl.h>
+//#include <SDL3/SDL_opengl.h>
 #include <OpenGL/gl.h>
 #elif defined(BINOCLE_METAL)
 #include <OpenGL/gl.h>
@@ -29,8 +29,8 @@
 
 #if defined(__WINDOWS__)
 #include <glew/include/GL/glew.h>
-#include <SDL_opengl.h>
-#include <sdl/include/SDL_syswm.h>
+#include <SDL3/SDL_opengl.h>
+#include <SDL3/SDL_system.h>
 #endif
 
 // SDL
