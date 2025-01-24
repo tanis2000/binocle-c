@@ -102,7 +102,7 @@ binocle_memory_block *binocle_memory_allocate(binocle_memory_index size,
   }
 
   binocle_memory_platform_block *block =
-    (binocle_memory_platform_block *)SDL_malloc(total_size);
+    (binocle_memory_platform_block *)SDL_calloc(1, total_size);
   assert(block != 0);
   block->block.base = (uint8_t *)block + base_offset;
   assert(block->block.used == 0);
