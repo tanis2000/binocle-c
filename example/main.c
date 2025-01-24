@@ -21,6 +21,10 @@
 #include <binocle_app.h>
 #include <binocle_wren.h>
 
+#if defined(__IPHONEOS__) || defined(__ANDROID__)
+#include <SDL3/SDL_main.h>
+#endif
+
 #define BINOCLE_MATH_IMPL
 #include "binocle_math.h"
 #include "binocle_gd.h"
@@ -495,9 +499,18 @@ int main(int argc, char *argv[])
 
   // Default shader (off-screen texture)
   char vert[1024];
+#if defined(__IPHONEOS__)
+  sprintf(vert, "%s%s", binocle_data_dir, DEFAULT_VS_FILENAME);
+#else
   sprintf(vert, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, DEFAULT_VS_FILENAME);
+#endif
+
   char frag[1024];
+#if defined(__IPHONEOS__)
+  sprintf(frag, "%s%s", binocle_data_dir, DEFAULT_FS_FILENAME);
+#else
   sprintf(frag, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, DEFAULT_FS_FILENAME);
+#endif
 
   char *shader_vs_src;
   size_t shader_vs_src_size;
@@ -549,8 +562,14 @@ int main(int argc, char *argv[])
   default_shader = sg_make_shader(&default_shader_desc);
 
   // Screen shader
+#if defined(__IPHONEOS__)
+  sprintf(vert, "%s%s", binocle_data_dir, SCREEN_VS_FILENAME);
+  sprintf(frag, "%s%s", binocle_data_dir, SCREEN_FS_FILENAME);
+#else
   sprintf(vert, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, SCREEN_VS_FILENAME);
   sprintf(frag, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, SCREEN_FS_FILENAME);
+#endif
+
 
   char *screen_shader_vs_src;
   size_t screen_shader_vs_src_size;

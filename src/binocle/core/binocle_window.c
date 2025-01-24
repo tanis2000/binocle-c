@@ -75,12 +75,11 @@ void binocle_window_destroy(binocle_window *win) {
 
 void binocle_window_refresh(binocle_window *win) {
 #if defined(__IPHONEOS__)
-  SDL_SysWMinfo info;
-  SDL_VERSION(&info.version);
-  SDL_GetWindowWMInfo(win->window, &info);
-
-  glBindFramebuffer(GL_FRAMEBUFFER, info.info.uikit.framebuffer);
-  glBindRenderbuffer(GL_RENDERBUFFER,info.info.uikit.colorbuffer);
+  SDL_PropertiesID props = SDL_GetWindowProperties(win->window);
+  GLuint framebuffer = (GLuint)SDL_GetNumberProperty(props, SDL_PROP_WINDOW_UIKIT_OPENGL_FRAMEBUFFER_NUMBER, 0);
+  GLuint colorbuffer = (GLuint)SDL_GetNumberProperty(props, SDL_PROP_WINDOW_UIKIT_OPENGL_RENDERBUFFER_NUMBER, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+  glBindRenderbuffer(GL_RENDERBUFFER,colorbuffer);
 #endif
 #if defined(BINOCLE_GL)
   SDL_GL_SwapWindow(win->window);
@@ -90,7 +89,7 @@ void binocle_window_refresh(binocle_window *win) {
 void binocle_window_create(binocle_window *win, char *title, uint32_t width, uint32_t height) {
 #if defined(__IPHONEOS__) || defined(__ANDROID__)
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 #elif defined(__EMSCRIPTEN__)
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
@@ -147,7 +146,7 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
   }
 
 #if defined(__ANDROID__) || defined(__IPHONEOS__)
-  SDL_SetWindowFullscreen(win->window, SDL_TRUE);
+  SDL_SetWindowFullscreen(win->window, true);
 #endif
 
 #if defined(BINOCLE_GL)
@@ -160,7 +159,6 @@ void binocle_window_create(binocle_window *win, char *title, uint32_t width, uin
 #elif defined(BINOCLE_METAL)
   win->mtl_view = SDL_Metal_CreateView(win->window);
 #endif
-
 
   //Use Vsync (0 = no vsync, 1 = vsync)
 #if defined(BINOCLE_GL) && !defined(__EMSCRIPTEN__)
