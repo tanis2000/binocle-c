@@ -1,3 +1,5 @@
+project(ExampleProject)
+
 if (${BINOCLE_HTTP})
     message(STATUS "HTTP support enabled")
     add_definitions(-DBINOCLE_HTTP)
@@ -74,23 +76,29 @@ if (APPLE)
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)
     file(GLOB_RECURSE RESOURCES "${CMAKE_SOURCE_DIR}/assets/*")
     foreach(RES_FILE ${RESOURCES})
-        message("RES_FILE: ${RES_FILE}")
-        file(RELATIVE_PATH RES_PATH "${CMAKE_SOURCE_DIR}/assets" ${RES_FILE})
-        message("RES_PATH: ${RES_PATH}")
-        get_filename_component(RES_FOLDER ${RES_PATH} DIRECTORY)
-        message("RES_FOLDER: ${RES_FOLDER}")
-        set_property(SOURCE ${RES_FILE} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/${RES_FOLDER}")
+        if (${RES_FILE} MATCHES ".*\.metal$")
+            message("Excluded: ${RES_FILE}")
+            set(REMOVE_RESOURCES ${REMOVE_RESOURCES} ${RES_FILE})
+        else ()
+            message("RES_FILE: ${RES_FILE}")
+            file(RELATIVE_PATH RES_PATH "${CMAKE_SOURCE_DIR}/assets" ${RES_FILE})
+            message("RES_PATH: ${RES_PATH}")
+            get_filename_component(RES_FOLDER ${RES_PATH} DIRECTORY)
+            message("RES_FOLDER: ${RES_FOLDER}")
+            set_property(SOURCE ${RES_FILE} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/${RES_FOLDER}")
+        endif ()
     endforeach(RES_FILE)
     #set_property(SOURCE ${RESOURCES} PROPERTY MACOSX_PACKAGE_LOCATION "Resources")
+    list(REMOVE_ITEM RESOURCES ${REMOVE_RESOURCES})
     message("Resources list: ${RESOURCES}")
     #endif()
 endif ()
 
 if (ANDROID)
     include_directories(${CMAKE_SOURCE_DIR}/src/deps/sdl/include)
-    add_library(ExampleProject SHARED ${SOURCE_FILES} ${CMAKE_SOURCE_DIR}/src/deps/sdl/src/main/android/SDL_android_main.c)
+    add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES} ${CMAKE_SOURCE_DIR}/src/deps/sdl/src/main/android/SDL_android_main.c)
 else ()
-    add_executable(ExampleProject MACOSX_BUNDLE ${EXE_TYPE} ${SOURCE_FILES} ${BINOCLE_ICON} ${RESOURCES})
+    add_executable(${PROJECT_NAME} MACOSX_BUNDLE ${EXE_TYPE} ${SOURCE_FILES} ${BINOCLE_ICON} ${RESOURCES})
 endif ()
 
 if (NOT EMSCRIPTEN AND NOT ANDROID AND NOT IOS AND NOT WATCHOS)
@@ -100,41 +108,41 @@ if (NOT EMSCRIPTEN AND NOT ANDROID AND NOT IOS AND NOT WATCHOS)
     message("OpenSSL Libraries: ${OPENSSL_LIBRARIES}")
     message("OpenSSL include dir: ${OPENSSL_INCLUDE_DIR}")
     if (MSVC)
-        target_link_libraries(ExampleProject ${BINOCLE_LINK_LIBRARIES} ${OPENSSL_LIBRARIES} wldap32 crypt32 Ws2_32)
+        target_link_libraries(${PROJECT_NAME} ${BINOCLE_LINK_LIBRARIES} ${OPENSSL_LIBRARIES} wldap32 crypt32 Ws2_32)
         message(STATUS "Target link libraries: ${BINOCLE_LINK_LIBRARIES} ${OPENSSL_LIBRARIES} wldap32 crypt32 Ws2_32")
     else()
-        target_link_libraries(ExampleProject ${BINOCLE_LINK_LIBRARIES} ${OPENSSL_LIBRARIES})
+        target_link_libraries(${PROJECT_NAME} ${BINOCLE_LINK_LIBRARIES} ${OPENSSL_LIBRARIES})
         message(STATUS "Target link libraries: ${BINOCLE_LINK_LIBRARIES} ${OPENSSL_LIBRARIES}")
     endif()
 else ()
-    target_link_libraries(ExampleProject ${BINOCLE_LINK_LIBRARIES})
+    target_link_libraries(${PROJECT_NAME} ${BINOCLE_LINK_LIBRARIES})
 endif ()
 
-set_property(TARGET ExampleProject PROPERTY C_STANDARD 99)
+set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 99)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 
 if (APPLE)
-    set_target_properties(ExampleProject PROPERTIES XCODE_ATTRIBUTE_PRODUCT_NAME "ExampleProject")
+    set_target_properties(${PROJECT_NAME} PROPERTIES XCODE_ATTRIBUTE_PRODUCT_NAME "ExampleProject")
 endif ()
 
 # Build the shared library next to sdl-endless-runner
-set_target_properties(ExampleProject PROPERTIES
+set_target_properties(${PROJECT_NAME} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/src
         RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/src
-        XCODE_ATTRIBUTE_PRODUCT_NAME "ExampleProject"
         XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
         )
 
 if (APPLE)
     set(CMAKE_MACOSX_RPATH 1)
 
-    set_target_properties(ExampleProject PROPERTIES
+    set_target_properties(${PROJECT_NAME} PROPERTIES
             MACOSX_RPATH 1
             BUILD_WITH_INSTALL_RPATH 1
             INSTALL_RPATH "@loader_path/../Frameworks"
             MACOSX_BUNDLE_GUI_IDENTIFIER "it.altralogica.exampleproject"
+            XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "it.altralogica.exampleproject"
             )
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)
     #set_target_properties(${PROJECT_NAME} PROPERTIES RESOURCE "${RESOURCES}")
@@ -151,12 +159,13 @@ if (APPLE)
 #            PROPERTIES
 #            MACOSX_PACKAGE_LOCATION Resources)
     if (IOS)
-        message("Using plist file: ${CMAKE_SOURCE_DIR}/platform/ios/Info.plist")
+        message("Using iOS plist file: ${CMAKE_SOURCE_DIR}/platform/ios/Info.plist")
         set_target_properties(
                 ${PROJECT_NAME}
                 PROPERTIES
                 MACOSX_BUNDLE YES
                 MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/platform/ios/Info.plist"
+                MACOSX_BUNDLE_BUNDLE_NAME "Binocle Example"
                 XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic"
                 XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iOS Developer"
                 XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER "Automatic"
@@ -175,12 +184,13 @@ if (APPLE)
     endif ()
 
     if (WATCHOS)
-        message("Using plist file: ${CMAKE_SOURCE_DIR}/platform/ios/Info.plist")
+        message("Using watchOS plist file: ${CMAKE_SOURCE_DIR}/platform/ios/Info.plist")
         set_target_properties(
                 ${PROJECT_NAME}
                 PROPERTIES
                 MACOSX_BUNDLE YES
                 MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/platform/ios/Info.plist"
+                MACOSX_BUNDLE_BUNDLE_NAME "Binocle Example"
                 XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic"
                 XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iOS Developer"
                 XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER "Automatic"
@@ -224,7 +234,7 @@ if (MSVC)
         message("RES_PATH: ${RES_PATH}")
         get_filename_component(RES_FOLDER ${RES_PATH} DIRECTORY)
         message("RES_FOLDER: ${RES_FOLDER}")
-        add_custom_command(TARGET ExampleProject
+        add_custom_command(TARGET ${PROJECT_NAME}
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${RES_FILE} ${CMAKE_CURRENT_BINARY_DIR}/src/assets/${RES_PATH}
     )
@@ -241,11 +251,11 @@ endif ()
 
 if (ANDROID)
     message("Post build will copy to ${CMAKE_CURRENT_BINARY_DIR}/../../../platform/android/android-project/app/libs/${ANDROID_ABI}/libmain.so")
-    add_custom_command(TARGET ExampleProject
+    add_custom_command(TARGET ${PROJECT_NAME}
             POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ExampleProject> ${CMAKE_CURRENT_BINARY_DIR}/../../../platform/android/android-project/app/libs/${ANDROID_ABI}/libmain.so)
+            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> ${CMAKE_CURRENT_BINARY_DIR}/../../../platform/android/android-project/app/libs/${ANDROID_ABI}/libmain.so)
 #    message("Post build will copy to ${CMAKE_CURRENT_BINARY_DIR}/../../platform/android/android-project/app/libs/${ANDROID_ABI}/libhidapi.so")
-#    add_custom_command(TARGET ExampleProject
+#    add_custom_command(TARGET ${PROJECT_NAME}
 #            POST_BUILD
 #            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:hidapi> ${CMAKE_CURRENT_BINARY_DIR}/../../platform/android/android-project/app/libs/${ANDROID_ABI}/libhidapi.so)
     message("android abi ${ANDROID_ABI}")
@@ -261,7 +271,7 @@ if (ANDROID)
     endif()
     message("android arch ${ANDROID_LLVM_TOOLCHAIN_ARCH}")
 
-    add_custom_command(TARGET ExampleProject
+    add_custom_command(TARGET ${PROJECT_NAME}
             POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy ${ANDROID_NDK}/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/${ANDROID_LLVM_TOOLCHAIN_ARCH}/libc++_shared.so ${CMAKE_CURRENT_BINARY_DIR}/../../../platform/android/android-project/app/libs/${ANDROID_ABI}/libc++_shared.so)
     #	file(RENAME ${CMAKE_CURRENT_BINARY_DIR}/../android-project/libs/${ANDROID_ABI}/lib${PROJECT_NAME}.so ${CMAKE_CURRENT_BINARY_DIR}/../android-project/libs/${ANDROID_ABI}/libmain.so)
@@ -273,17 +283,17 @@ endif(NOT MSVC)
 
 # Copy OpenSSL shared libraries
 #if (APPLE)
-#    add_custom_command ( TARGET ExampleProject POST_BUILD
+#    add_custom_command ( TARGET ${PROJECT_NAME} POST_BUILD
 #            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#            ${OPENSSL_LIBRARIES} $<TARGET_FILE_DIR:ExampleProject>
+#            ${OPENSSL_LIBRARIES} $<TARGET_FILE_DIR:${PROJECT_NAME}>
 #            )
 #endif ()
 
 if (APPLE)
     if (NOT IOS AND NOT WATCHOS)
-    add_custom_command ( TARGET ExampleProject POST_BUILD
+    add_custom_command ( TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND codesign -s - -f --entitlements "${CMAKE_SOURCE_DIR}/platform/macosx/entitlements.plist"
-            $<TARGET_FILE:ExampleProject>
+            $<TARGET_FILE:${PROJECT_NAME}>
             )
     endif ()
 endif ()
@@ -312,7 +322,8 @@ foreach(GLSL ${GLSL_SOURCE_FILES})
     message("Compiling shader ${GLSL} to ${SPIRV_GL33}")
     message("Compiling shader ${GLSL} to ${SPIRV_GLES}")
     message("Compiling shader ${GLSL} to ${SPIRV_HLSL}")
-    message("Compiling shader ${GLSL} to ${SPIRV_METAL}")
+    message("Compiling shader ${GLSL} to ${SPIRV_METAL_MACOS}")
+    message("Compiling shader ${GLSL} to ${SPIRV_METAL_IOS}")
     add_custom_command(
             OUTPUT ${SPIRV_GL33}
             OUTPUT ${SPIRV_GLES}
@@ -340,23 +351,38 @@ foreach(GLSL ${GLSL_SOURCE_FILES})
             COMMAND "${CMAKE_SOURCE_DIR}/tools/sokol-shdc/${SHADER_COMPILER}"
             ARGS "--input" "${GLSL}" "--output" "${SPIRV_METAL_IOS}" "--slang" "metal_ios" "-f" "bare"
     )
-    list(APPEND SPIRV_GENERATED_FILES ${SPIRV_GL33} ${SPIRV_GLES} ${SPIRV_HLSL} ${SPIRV_METAL})
+    if (BINOCLE_GL)
+        if (IOS)
+            list(APPEND SPIRV_GENERATED_FILES ${SPIRV_GLES})
+        else ()
+            list(APPEND SPIRV_GENERATED_FILES ${SPIRV_GL33})
+        endif ()
+    elseif (BINOCLE_METAL)
+        if (IOS)
+            list(APPEND SPIRV_GENERATED_FILES ${SPIRV_METAL_IOS})
+        else()
+            list(APPEND SPIRV_GENERATED_FILES ${SPIRV_METAL_MACOS})
+        endif ()
+    endif ()
 endforeach(GLSL)
 
+message("SPIRV files: ${SPIRV_GENERATED_FILES}")
 add_custom_target(
         Shaders
         DEPENDS ${SPIRV_GENERATED_FILES}
 )
 
-add_dependencies(ExampleProject Shaders)
+add_dependencies(${PROJECT_NAME} Shaders)
 
 #if (APPLE)
 #    if (NOT IOS)
 #        add_custom_command(
 ##                OUTPUT shader_output
-#                TARGET ExampleProject POST_BUILD
+#                TARGET ${PROJECT_NAME} POST_BUILD
 #                COMMAND "${CMAKE_SOURCE_DIR}/tools/sokol-shdc/osx_arm64/sokol-shdc"
 #                ARGS "--input" "${CMAKE_SOURCE_DIR}/assets/shaders/src/default.glsl" "--output" "${CMAKE_SOURCE_DIR}/assets/shaders/dst/gl33/" "--slang" "glsl330" "-f" "bare"
 #        )
 #    endif ()
 #endif ()
+
+print_target_properties(${PROJECT_NAME})
