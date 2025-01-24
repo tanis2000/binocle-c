@@ -3,6 +3,7 @@ platform/android/android-project/libs
 platform/android/android-project/obj
 
 build/
+build-ios
 build-web
 build-win
 build-xcode
