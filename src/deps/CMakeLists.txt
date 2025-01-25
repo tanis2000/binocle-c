@@ -13,6 +13,8 @@ add_subdirectory(wren)
 set(SDL_STATIC ON)
 set(SDL_CAMERA OFF)
 set(SDL_VULKAN OFF)
+# Workaround for https://github.com/libsdl-org/SDL/issues/12078
+set(CMAKE_DISABLE_PRECOMPILE_HEADERS ON)
 add_subdirectory(sdl EXCLUDE_FROM_ALL)
 
 if (NOT EMSCRIPTEN)
