@@ -16,8 +16,6 @@ set(BINOCLE_STATIC_LIBS
         $<TARGET_OBJECTS:physfs>
         $<TARGET_OBJECTS:rxi_map>
         $<TARGET_OBJECTS:SDL3::SDL3-static>
-        $<TARGET_OBJECTS:libuv>
-        $<TARGET_OBJECTS:wren>
         )
 
 if (NOT EMSCRIPTEN AND NOT ANDROID AND NOT IOS AND NOT WATCHOS AND BINOCLE_HTTP)
