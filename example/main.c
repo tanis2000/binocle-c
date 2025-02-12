@@ -34,7 +34,7 @@
 #include "binocle_http.h"
 #include "binocle_memory.h"
 
-//#define GAMELOOP 1
+// #define GAMELOOP 1
 //#define DEMOLOOP
 #define TWODLOOP
 

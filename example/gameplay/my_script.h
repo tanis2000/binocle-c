@@ -1,5 +1,6 @@
-#include <stdint.h>
+#pragma once
 #include "binocle_platform.h"
+#include <stdint.h>
 
 typedef struct game_state
 {

@@ -30,7 +30,7 @@
 #include "binocle_input.h"
 #include "binocle_math.h"
 
-void binocle_game_run(binocle_window window, binocle_input input) {
+void binocle_game_run(binocle_window *window, binocle_input input) {
   binocle_game game = {0};
   game_memory game_memory = {0};
   game_code game_code = {0};
@@ -61,7 +61,7 @@ void binocle_game_update(binocle_game *game, float dt) {
   }
 }
 
-void binocle_game_draw(binocle_game *game, binocle_window window, float dt) {
+void binocle_game_draw(binocle_game *game, binocle_window *window, float dt) {
   // TODO: split UpdateAndRender into Update and Render
   if (game->paused) return;
   //binocle_window_clear(&window);

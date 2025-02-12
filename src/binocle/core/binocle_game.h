@@ -29,11 +29,11 @@ typedef struct binocle_game {
 } binocle_game;
 
 
-void binocle_game_run(struct binocle_window window, struct binocle_input input);
+void binocle_game_run(struct binocle_window *window, struct binocle_input input);
 
 void binocle_game_update(binocle_game *game, float dt);
 
-void binocle_game_draw(binocle_game *game, struct binocle_window window, float dt);
+void binocle_game_draw(binocle_game *game, struct binocle_window *window, float dt);
 
 void binocle_game_hotreload(binocle_game *game, char *sourceGameCodeDLLFullPath);
 
