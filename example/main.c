@@ -19,7 +19,6 @@
 #include <backend/binocle_material.h>
 #include <binocle_lua.h>
 #include <binocle_app.h>
-#include <binocle_wren.h>
 
 #if defined(__IPHONEOS__) || defined(__ANDROID__)
 #include <SDL3/SDL_main.h>
@@ -107,9 +106,6 @@ binocle_audio_sound sound;
 binocle_audio_music music;
 char *binocle_data_dir;
 binocle_app app;
-struct binocle_wren_t *wren;
-WrenHandle* gameClass;
-WrenHandle* method;
 sg_image render_target;
 sg_shader default_shader;
 sg_shader screen_shader;
@@ -125,13 +121,6 @@ game_state_t *game_state;
 #include "physics.h"
 physics_state_t ps;
 #endif
-
-void wren_update(float dt) {
-  wrenEnsureSlots(wren->vm, 2);
-  wrenSetSlotHandle(wren->vm, 0, gameClass);
-  wrenSetSlotDouble(wren->vm, 1, dt);
-  WrenInterpretResult result = wrenCall(wren->vm, method);
-}
 
 #if defined(BINOCLE_HTTP)
 void test_http_get() {
@@ -255,10 +244,6 @@ void main_loop() {
   viewport.min.y = 0;
   viewport.max.x = DESIGN_WIDTH;
   viewport.max.y = DESIGN_HEIGHT;
-
-#if !defined(ANDROID)
-  wren_update(dt);
-#endif
 
 #ifdef WITH_PHYSICS
   advance_simulation(dt);
@@ -654,19 +639,6 @@ int main(int argc, char *argv[])
   lua_test_profiler(filename);
   //sprintf(filename, "%s%s", binocle_data_dir, "test_ffi.lua");
   //lua_testffi(filename, &window);
-
-  wren = binocle_wren_new();
-  binocle_wren_init(wren);
-  binocle_wren_wrap_input(wren, &input);
-
-  char main_wren[1024];
-  sprintf(main_wren, "%s%s", binocle_data_dir, "main.wren");
-  binocle_wren_run_script(wren, main_wren);
-
-  wrenEnsureSlots(wren->vm, 1);
-  wrenGetVariable(wren->vm, "main", "game", 0);
-  gameClass = wrenGetSlotHandle(wren->vm, 0);
-  method = wrenMakeCallHandle(wren->vm, "update(_)");
 #endif
 
 #ifdef DEMOLOOP

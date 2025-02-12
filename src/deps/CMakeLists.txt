@@ -6,8 +6,6 @@ add_subdirectory(parson)
 add_subdirectory(physfs)
 add_subdirectory(rxi_map)
 add_subdirectory(zlib)
-add_subdirectory(libuv)
-add_subdirectory(wren)
 
 # SDL specific flags
 set(SDL_STATIC ON)

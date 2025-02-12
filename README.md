@@ -43,7 +43,6 @@ The API is evolving all the time but the core is pretty stable. I keep adding an
 - Experimental hot code reloading for game code
 - Lua scripting through LuaJIT on supported platforms and fallback to Lua where LuaJIT is not available
 - Luasocket is included out of the box
-- Experimental Wren scripting support
 - 3D physics through Newton Dynamics (desktop platforms only)
 
 ## Documentation
@@ -89,8 +88,6 @@ The current libraries are the following:
 - parson
 - Lua
 - LuaJIT
-- libuv (Wren's dependency)
-- Wren
 - Newton Dynamics
 - Chipmunk (2D physics)
 
@@ -106,9 +103,7 @@ Right now there are a few areas that could use some help:
 
 - Adding Linux support. It should work almost out of the box once you figure out the CMake scripts.
 - More examples
-- Travis scripts to build static libraries for all the different systems so that we can distribute Binocle as a binary library with just the headers and avoid having to recompile the whole library for every new project.
 - Complete the Lua bindings
-- Complete the Wren bindings
 
 ## Manually compiling the library
 
