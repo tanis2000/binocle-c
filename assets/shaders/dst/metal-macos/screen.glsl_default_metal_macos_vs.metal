@@ -10,6 +10,7 @@ struct vs_params
 
 struct main0_out
 {
+    float2 uvCoord [[user(locn0)]];
     float4 gl_Position [[position]];
 };
 
@@ -22,6 +23,7 @@ vertex main0_out main0(main0_in in [[stage_in]], constant vs_params& _19 [[buffe
 {
     main0_out out = {};
     out.gl_Position = _19.transform * float4(in.position, 1.0);
+    out.uvCoord = (in.position.xy + float2(1.0)) * float2(0.5);
     return out;
 }
 
