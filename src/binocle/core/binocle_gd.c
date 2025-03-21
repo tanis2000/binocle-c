@@ -443,6 +443,7 @@ void binocle_gd_render(binocle_gd *gd, struct binocle_window *window, float desi
   binocle_gd_render_offscreen(gd);
   binocle_gd_render_flat(gd);
   binocle_gd_begin_screen_pass(gd, window);
+  binocle_gd_apply_viewport(viewport);
   binocle_gd_render_screen(gd, window, design_width, design_height, viewport, matrix, scale);
   binocle_gd_end_screen_pass();
   binocle_gd_commit();
