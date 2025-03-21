@@ -52,8 +52,11 @@ int l_binocle_viewport_adapter_get_viewport(lua_State *L) {
   kmAABB2 *p = &adapter->viewport_adapter->viewport;
   kmAABB2 **my__p = lua_newuserdata(L, sizeof(void *));
   *my__p = p;
-  //(lua_getfield(L, LUA_REGISTRYINDEX, ("KAZMATH{kmAABB2}")));
-  //lua_setmetatable(L, -2);
+  // Do not enable the following line, it will cause a segfault because the gc will kick in and free the memory
+  // which is not owned by the Lua runtime
+  // lua_getfield(L, LUA_REGISTRYINDEX, "KAZMATH{kmAABB2}");
+  // const char *name = lua_typename(L, lua_type(L, -1)); // returns "table" if found
+  // lua_setmetatable(L, -2);
   return 1;
 }
 

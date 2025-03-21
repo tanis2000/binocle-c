@@ -55,7 +55,7 @@ int l_binocle_gd_set_render_target(lua_State *L) {
 }
 
 int l_binocle_gd_apply_viewport(lua_State *L) {
-  //kmAABB2 **viewport = luaL_checkudata(L, 1, "KAZMATH{kmAABB2}");
+  // kmAABB2 *viewport = luaL_checkudata(L, 1, "KAZMATH{kmAABB2}");
   kmAABB2 **viewport = lua_touserdata(L, 1);
   binocle_gd_apply_viewport(**viewport);
   return 0;

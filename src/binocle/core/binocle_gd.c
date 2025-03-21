@@ -198,7 +198,7 @@ void binocle_gd_setup_default_pipeline(binocle_gd *gd, uint32_t offscreen_width,
   // Render to screen pipeline
 
   // Clear screen action for the actual screen
-  sg_color clear_color = binocle_color_green();
+  sg_color clear_color = binocle_color_black();
   sg_pass_action default_action = {
     .colors[0] = {
       .load_action = SG_LOADACTION_CLEAR,
