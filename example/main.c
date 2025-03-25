@@ -1,12 +1,14 @@
 //
 //  Binocle
-//  Copyright(C)2015-2018 Valerio Santinelli
+//  Copyright(C)2015-2025 Valerio Santinelli
 //
 
 #include <stdio.h>
+
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
+
 #include "binocle_sdl.h"
 #include "backend/binocle_color.h"
 #include "binocle_window.h"
@@ -19,13 +21,6 @@
 #include <backend/binocle_material.h>
 #include <binocle_lua.h>
 #include <binocle_app.h>
-
-#if defined(__IPHONEOS__) || defined(__ANDROID__)
-#include <SDL3/SDL_main.h>
-#endif
-
-#define BINOCLE_MATH_IMPL
-#include "binocle_math.h"
 #include "binocle_gd.h"
 #include "binocle_log.h"
 #include "binocle_bitmapfont.h"
@@ -34,11 +29,19 @@
 #include "binocle_http.h"
 #include "binocle_memory.h"
 
+#if defined(__IPHONEOS__) || defined(__ANDROID__)
+#include <SDL3/SDL_main.h>
+#endif
+
+#define BINOCLE_MATH_IMPL
+#include "binocle_math.h"
+
 // #define GAMELOOP 1
 //#define DEMOLOOP
 #define TWODLOOP
 
 #include "constants.h"
+#include "my_game.h"
 
 #if defined(BINOCLE_MACOS) && defined(BINOCLE_METAL)
 #define SHADER_PATH "dst/metal-macos"
@@ -83,33 +86,7 @@ typedef struct screen_shader_vs_params_t {
   float transform[16];
 } screen_shader_vs_params_t;
 
-typedef struct game_state_t {
-  binocle_memory_arena *main_arena;
-  binocle_memory_arena *frame_arena;
-} game_state_t;
-
-binocle_window *window;
-binocle_input input;
-binocle_viewport_adapter *adapter;
-binocle_camera camera;
-binocle_sprite *player;
-kmVec2 player_pos;
-binocle_gd gd;
-binocle_bitmapfont *font;
-sg_image font_texture;
-binocle_material *font_material;
-binocle_sprite *font_sprite;
-kmVec2 font_sprite_pos;
-float running_time;
-binocle_audio audio;
-binocle_audio_sound sound;
-binocle_audio_music music;
-char *binocle_data_dir;
 binocle_app app;
-sg_image render_target;
-sg_shader default_shader;
-sg_shader screen_shader;
-sg_image wabbit_image;
 game_state_t *game_state;
 
 #if (defined(__APPLE__) && !defined(__IPHONEOS__)) || defined(__EMSCRIPTEN__)
@@ -125,7 +102,8 @@ physics_state_t ps;
 #if defined(BINOCLE_HTTP)
 void test_http_get() {
   binocle_http_body_t body;
-  if (binocle_http_get("https://podium.altralogica.it/l/binocle-example/top/0", &body)) {
+  if (binocle_http_get("https://podium.altralogica.it/l/binocle-example/top/0",
+                       &body)) {
     binocle_log_info(body.memory);
   }
   free(body.memory);
@@ -134,7 +112,9 @@ void test_http_get() {
 void test_http_post() {
   binocle_http_body_t body;
   char *req = "{score=1}";
-  if (binocle_http_post("https://podium.altralogica.it/l/binocle-example/members/tanis/score", req, &body)) {
+  if (binocle_http_post(
+        "https://podium.altralogica.it/l/binocle-example/members/tanis/score",
+        req, &body)) {
     binocle_log_info(body.memory);
   }
   free(body.memory);
@@ -143,7 +123,9 @@ void test_http_post() {
 void test_http_put() {
   binocle_http_body_t body;
   char *req = "{\"score\":1}";
-  if (binocle_http_put("https://podium.altralogica.it/l/binocle-example/members/tanis/score", req, &body)) {
+  if (binocle_http_put(
+        "https://podium.altralogica.it/l/binocle-example/members/tanis/score",
+        req, &body)) {
     binocle_log_info(body.memory);
   }
   free(body.memory);
@@ -152,55 +134,65 @@ void test_http_put() {
 
 #ifdef TWODLOOP
 void main_loop() {
-  binocle_window_begin_frame(window);
-  float dt = binocle_window_get_frame_time(window) / 1000.0f;
+  binocle_window_begin_frame(game_state->engine.window);
+  float dt = binocle_window_get_frame_time(game_state->engine.window) / 1000.0f;
 
-  binocle_input_update(&input);
-  binocle_audio_update_music_stream(&audio, &music);
+  binocle_input_update(&game_state->engine.input);
+  binocle_audio_update_music_stream(&game_state->engine.audio,
+                                    &game_state->engine.music);
 
-  if (input.resized) {
+  if (game_state->engine.input.resized) {
     kmVec2 oldWindowSize;
-    oldWindowSize.x = window->width;
-    oldWindowSize.y = window->height;
-    window->width = input.newWindowSize.x;
-    window->height = input.newWindowSize.y;
+    oldWindowSize.x = game_state->engine.window->width;
+    oldWindowSize.y = game_state->engine.window->height;
+    game_state->engine.window->width = game_state->engine.input.newWindowSize.x;
+    game_state->engine.window->height =
+      game_state->engine.input.newWindowSize.y;
     // Update the pixel-perfect rescaling viewport adapter
-    binocle_viewport_adapter_reset(camera.viewport_adapter, oldWindowSize, input.newWindowSize);
-    input.resized = false;
+    binocle_viewport_adapter_reset(game_state->camera.viewport_adapter,
+                                   oldWindowSize,
+                                   game_state->engine.input.newWindowSize);
+    game_state->engine.input.resized = false;
   }
 
-
-  if (binocle_input_is_key_pressed(&input, KEY_RIGHT)) {
-    player_pos.x += 50.0f * (1.0f/window->frame_time);
-  } else if (binocle_input_is_key_pressed(&input, KEY_LEFT)) {
-    player_pos.x -= 50.0f * (1.0f/window->frame_time);
+  if (binocle_input_is_key_pressed(&game_state->engine.input, KEY_RIGHT)) {
+    game_state->player_pos.x +=
+      50.0f * (1.0f / game_state->engine.window->frame_time);
+  } else if (binocle_input_is_key_pressed(&game_state->engine.input,
+                                          KEY_LEFT)) {
+    game_state->player_pos.x -=
+      50.0f * (1.0f / game_state->engine.window->frame_time);
   }
 
-  if (binocle_input_is_key_pressed(&input, KEY_UP)) {
-    player_pos.y += 50.0f * (1.0f/window->frame_time);
-  } else if (binocle_input_is_key_pressed(&input, KEY_DOWN)) {
-    player_pos.y -= 50.0f * (1.0f/window->frame_time);
+  if (binocle_input_is_key_pressed(&game_state->engine.input, KEY_UP)) {
+    game_state->player_pos.y +=
+      50.0f * (1.0f / game_state->engine.window->frame_time);
+  } else if (binocle_input_is_key_pressed(&game_state->engine.input,
+                                          KEY_DOWN)) {
+    game_state->player_pos.y -=
+      50.0f * (1.0f / game_state->engine.window->frame_time);
   }
 
-  if (binocle_input_is_key_pressed(&input, KEY_SPACE)) {
-    binocle_audio_play_sound(sound);
+  if (binocle_input_is_key_pressed(&game_state->engine.input, KEY_SPACE)) {
+    binocle_audio_play_sound(game_state->engine.sound);
   }
 
-  if (binocle_input_is_key_pressed(&input, KEY_1)) {
+  if (binocle_input_is_key_pressed(&game_state->engine.input, KEY_1)) {
     float volume;
-    binocle_audio_get_master_volume(&audio, &volume);
-    binocle_audio_set_master_volume(&audio, volume-0.2f);
+    binocle_audio_get_master_volume(&game_state->engine.audio, &volume);
+    binocle_audio_set_master_volume(&game_state->engine.audio, volume - 0.2f);
   }
-  if (binocle_input_is_key_pressed(&input, KEY_2)) {
+  if (binocle_input_is_key_pressed(&game_state->engine.input, KEY_2)) {
     float volume;
-    binocle_audio_get_master_volume(&audio, &volume);
-    binocle_audio_set_master_volume(&audio, volume+0.2f);
+    binocle_audio_get_master_volume(&game_state->engine.audio, &volume);
+    binocle_audio_set_master_volume(&game_state->engine.audio, volume + 0.2f);
   }
 
   kmVec2 mouse_pos;
-  mouse_pos.x = (float)input.mouseX;
-  mouse_pos.y = (float)input.mouseY;
-  kmVec2 mouse_world_pos = binocle_camera_screen_to_world_point(camera, mouse_pos);
+  mouse_pos.x = (float)game_state->engine.input.mouseX;
+  mouse_pos.y = (float)game_state->engine.input.mouseY;
+  kmVec2 mouse_world_pos =
+    binocle_camera_screen_to_world_point(game_state->camera, mouse_pos);
 
 #ifdef WITH_PHYSICS
   cpVect pos = cpBodyGetPosition(ps.ball_body);
@@ -211,27 +203,29 @@ void main_loop() {
   ball_bounds.min.y = bb.b;
   ball_bounds.max.x = bb.r;
   ball_bounds.max.y = bb.t;
-  if (kmAABB2ContainsPoint(&ball_bounds, &mouse_world_pos) && binocle_input_is_mouse_down(input, MOUSE_LEFT)) {
+  if (kmAABB2ContainsPoint(&ball_bounds, &mouse_world_pos) &&
+      binocle_input_is_mouse_down(game_state->engine.input, MOUSE_LEFT)) {
     ps.dragging_ball = true;
     binocle_log_info("caught");
   }
 
-  if (ps.dragging_ball && binocle_input_is_mouse_pressed(input, MOUSE_LEFT)) {
+  if (ps.dragging_ball &&
+      binocle_input_is_mouse_pressed(game_state->engine.input, MOUSE_LEFT)) {
     // set position
     cpBodySetPosition(ps.ball_body, cpv(mouse_world_pos.x, mouse_world_pos.y));
 
     // apply force
-//    dFloat mass;
-//    dFloat Ixx;
-//    dFloat Iyy;
-//    dFloat Izz;
-//
-//    NewtonBodyGetMass(ball_body, &mass, &Ixx, &Iyy, &Izz);
-//    float gravityForce[4] = {10 * (mouse_world_pos.x - mouse_prev_pos.x), 0.0f, 0.0f, 0.0f};
-//    NewtonBodySetVelocity(ball_body, &gravityForce[0]);
+    //    dFloat mass;
+    //    dFloat Ixx;
+    //    dFloat Iyy;
+    //    dFloat Izz;
+    //
+    //    NewtonBodyGetMass(ball_body, &mass, &Ixx, &Iyy, &Izz);
+    //    float gravityForce[4] = {10 * (mouse_world_pos.x - mouse_prev_pos.x),
+    //    0.0f, 0.0f, 0.0f}; NewtonBodySetVelocity(ball_body, &gravityForce[0]);
   }
 
-  if (binocle_input_is_mouse_up(input, MOUSE_LEFT)) {
+  if (binocle_input_is_mouse_up(game_state->engine.input, MOUSE_LEFT)) {
     ps.dragging_ball = false;
   }
 #endif
@@ -252,38 +246,55 @@ void main_loop() {
   kmVec2 scale;
   scale.x = 1.0f;
   scale.y = 1.0f;
-  binocle_sprite_draw(player, &gd, (int64_t)player_pos.x, (int64_t)player_pos.y, &viewport, 0, &scale, &camera, 0, NULL);
+
+  draw_game();
+
+  binocle_sprite_draw(game_state->player, &game_state->engine.gd,
+                      (int64_t)game_state->player_pos.x,
+                      (int64_t)game_state->player_pos.y, &viewport, 0, &scale,
+                      &game_state->camera, 0, NULL);
 
   kmMat4 view_matrix;
   kmMat4Identity(&view_matrix);
 
 #ifdef WITH_PHYSICS
-  binocle_sprite_draw(ps.ball_sprite, &gd, (int64_t)pos.x - 8, (int64_t)pos.y - 8, &viewport, 0, &scale, &camera, 0, NULL);
+  binocle_sprite_draw(ps.ball_sprite, &game_state->engine.gd,
+                      (int64_t)pos.x - 8, (int64_t)pos.y - 8, &viewport, 0,
+                      &scale, &game_state->camera, 0, NULL);
   char mouse_str[256];
   sprintf(mouse_str, "x: %.0f y:%.0f %d", mouse_world_pos.x, mouse_world_pos.y,
           ps.dragging_ball);
-  binocle_bitmapfont_draw_string(font, mouse_str, 32, &gd, 0, DESIGN_HEIGHT - 70, viewport, binocle_color_white(), view_matrix, 0);
+  binocle_bitmapfont_draw_string(
+    game_state->engine.font, mouse_str, 32, &game_state->engine.gd, 0,
+    DESIGN_HEIGHT - 70, viewport, binocle_color_white(), view_matrix, 0);
 #endif
 
   char fps_str[256];
-  sprintf(fps_str, "FPS: %llu", binocle_window_get_fps(window));
-  binocle_bitmapfont_draw_string(font, fps_str, 32, &gd, 0, DESIGN_HEIGHT - 32, viewport, binocle_color_white(), view_matrix, 0);
-  //binocle_sprite_draw(font_sprite, &gd, (uint64_t)font_sprite_pos.x, (uint64_t)font_sprite_pos.y, adapter.viewport);
+  sprintf(fps_str, "FPS: %llu",
+          binocle_window_get_fps(game_state->engine.window));
+  binocle_bitmapfont_draw_string(
+    game_state->engine.font, fps_str, 32, &game_state->engine.gd, 0,
+    DESIGN_HEIGHT - 32, viewport, binocle_color_white(), view_matrix, 0);
+  // binocle_sprite_draw(font_sprite, &gd, (uint64_t)font_sprite_pos.x,
+  // (uint64_t)font_sprite_pos.y, adapter.viewport);
 
   // Gets the viewport calculated by the adapter
-  kmAABB2 vp = binocle_viewport_adapter_get_viewport(*adapter);
+  kmAABB2 vp =
+    binocle_viewport_adapter_get_viewport(*game_state->engine.adapter);
 
   // Render to screen
-  binocle_gd_render(&gd, window, DESIGN_WIDTH, DESIGN_HEIGHT, vp, camera.viewport_adapter->scale_matrix, camera.viewport_adapter->inverse_multiplier);
+  binocle_gd_render(&game_state->engine.gd, game_state->engine.window,
+                    DESIGN_WIDTH, DESIGN_HEIGHT, vp,
+                    game_state->camera.viewport_adapter->scale_matrix,
+                    game_state->camera.viewport_adapter->inverse_multiplier);
 
-  binocle_window_refresh(window);
-  binocle_window_end_frame(window);
-  //binocle_log_info("FPS: %d", binocle_window_get_fps(&window));
+  binocle_window_refresh(game_state->engine.window);
+  binocle_window_end_frame(game_state->engine.window);
+  // binocle_log_info("FPS: %d", binocle_window_get_fps(&window));
 
 #ifdef WITH_PHYSICS
   ps.mouse_prev_pos = mouse_world_pos;
 #endif
-
 }
 #endif
 
@@ -445,41 +456,53 @@ void main_loop() {
 }
 #endif
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   binocle_app_desc_t app_desc = {0};
   app = binocle_app_new();
   binocle_app_init(&app, &app_desc);
 
   game_state = binocle_memory_bootstrap_push_struct(
-    game_state_t, main_arena, binocle_memory_default_bootstrap_params(),
+    game_state_t, engine.main_arena, binocle_memory_default_bootstrap_params(),
     binocle_memory_default_arena_params());
-  game_state->frame_arena = binocle_memory_bootstrap_push_size(
+  game_state->engine.frame_arena = binocle_memory_bootstrap_push_size(
     BINOCLE_DEBUG_MEMORY_NAME("frame_arena") sizeof(binocle_memory_arena), 0,
     binocle_memory_non_restored_arena_bootstrap_params(),
     binocle_memory_default_arena_params());
-  binocle_string s1 = binocle_memory_push_cstring(game_state->main_arena, "Something");
-  binocle_string s2 = binocle_memory_push_cstring(game_state->main_arena, "Different");
+  binocle_string s1 =
+    binocle_memory_push_cstring(game_state->engine.main_arena, "Something");
+  binocle_string s2 =
+    binocle_memory_push_cstring(game_state->engine.main_arena, "Different");
   binocle_log_info("%s", s1.data);
   binocle_log_info("%s", s2.data);
 
-  window = binocle_window_new(DESIGN_WIDTH, DESIGN_HEIGHT, "Binocle Test Game");
-  binocle_window_set_background_color(window, binocle_color_azure());
-  binocle_window_set_minimum_size(window, DESIGN_WIDTH, DESIGN_HEIGHT);
-  adapter = binocle_viewport_adapter_new(window, BINOCLE_VIEWPORT_ADAPTER_KIND_SCALING, BINOCLE_VIEWPORT_ADAPTER_SCALING_TYPE_PIXEL_PERFECT, window->original_width, window->original_height, window->original_width, window->original_height);
-  camera = binocle_camera_new(adapter);
-  input = binocle_input_new();
-  gd = binocle_gd_new();
-  binocle_gd_init(&gd, window);
+  game_state->engine.window =
+    binocle_window_new(DESIGN_WIDTH, DESIGN_HEIGHT, "Binocle Test Game");
+  binocle_window_set_background_color(game_state->engine.window,
+                                      binocle_color_azure());
+  binocle_window_set_minimum_size(game_state->engine.window, DESIGN_WIDTH,
+                                  DESIGN_HEIGHT);
+  game_state->engine.adapter = binocle_viewport_adapter_new(
+    game_state->engine.window, BINOCLE_VIEWPORT_ADAPTER_KIND_SCALING,
+    BINOCLE_VIEWPORT_ADAPTER_SCALING_TYPE_PIXEL_PERFECT,
+    game_state->engine.window->original_width,
+    game_state->engine.window->original_height,
+    game_state->engine.window->original_width,
+    game_state->engine.window->original_height);
+  game_state->camera = binocle_camera_new(game_state->engine.adapter);
+  game_state->engine.input = binocle_input_new();
+  game_state->engine.gd = binocle_gd_new();
+  binocle_gd_init(&game_state->engine.gd, game_state->engine.window);
 
-  binocle_data_dir = binocle_sdl_assets_dir();
-  binocle_log_info("Current base path: %s", binocle_data_dir);
+  game_state->engine.binocle_data_dir = binocle_sdl_assets_dir();
+  binocle_log_info("Current base path: %s",
+                   game_state->engine.binocle_data_dir);
 
   char filename[1024];
-  sprintf(filename, "%s%s", binocle_data_dir, "wabbit_alpha.png");
-  wabbit_image = binocle_image_load(filename);
+  sprintf(filename, "%s%s", game_state->engine.binocle_data_dir,
+          "wabbit_alpha.png");
+  game_state->wabbit_image = binocle_image_load(filename);
 
-  sprintf(filename, "%s%s", binocle_data_dir, "player.png");
+  sprintf(filename, "%s%s", game_state->engine.binocle_data_dir, "player.png");
   sg_image ball_image = binocle_image_load(filename);
 
   // Default shader (off-screen texture)
@@ -487,14 +510,16 @@ int main(int argc, char *argv[])
 #if defined(__IPHONEOS__)
   sprintf(vert, "%s%s", binocle_data_dir, DEFAULT_VS_FILENAME);
 #else
-  sprintf(vert, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, DEFAULT_VS_FILENAME);
+  sprintf(vert, "%sshaders/%s/%s", game_state->engine.binocle_data_dir,
+          SHADER_PATH, DEFAULT_VS_FILENAME);
 #endif
 
   char frag[1024];
 #if defined(__IPHONEOS__)
   sprintf(frag, "%s%s", binocle_data_dir, DEFAULT_FS_FILENAME);
 #else
-  sprintf(frag, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, DEFAULT_FS_FILENAME);
+  sprintf(frag, "%sshaders/%s/%s", game_state->engine.binocle_data_dir,
+          SHADER_PATH, DEFAULT_FS_FILENAME);
 #endif
 
   char *shader_vs_src;
@@ -511,59 +536,65 @@ int main(int argc, char *argv[])
 #if defined(BINOCLE_METAL)
     .vs.entry = "main0",
 #endif
-    .attrs = {
-      [0] = { .name = "vertexPosition"},
-      [1] = { .name = "vertexColor"},
-      [2] = { .name = "vertexTCoord"},
-      [3] = { .name = "vertexNormal"},
-    },
-    .vs.uniform_blocks[0] = {
-      .size = sizeof(default_shader_params_t),
-      .layout = SG_UNIFORMLAYOUT_STD140,
-      .uniforms = {
-        [0] = { .name = "vs_params", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = 12},
-      }
-    },
+    .attrs =
+      {
+        [0] = {.name = "vertexPosition"},
+        [1] = {.name = "vertexColor"},
+        [2] = {.name = "vertexTCoord"},
+        [3] = {.name = "vertexNormal"},
+      },
+    .vs.uniform_blocks[0] = {.size = sizeof(default_shader_params_t),
+                             .layout = SG_UNIFORMLAYOUT_STD140,
+                             .uniforms =
+                               {
+                                 [0] = {.name = "vs_params",
+                                        .type = SG_UNIFORMTYPE_FLOAT4,
+                                        .array_count = 12},
+                               }},
     .fs.source = shader_fs_src,
 #if defined(BINOCLE_METAL)
     .fs.entry = "main0",
 #endif
-    .fs.images[0] = {
-      .used = true,
-      .image_type = SG_IMAGETYPE_2D,
-      .sample_type = SG_IMAGESAMPLETYPE_FLOAT,
-    },
-    .fs.samplers[0] = {
-      .used = true,
-      .sampler_type = SG_SAMPLERTYPE_FILTERING,
-    },
+    .fs.images[0] =
+      {
+        .used = true,
+        .image_type = SG_IMAGETYPE_2D,
+        .sample_type = SG_IMAGESAMPLETYPE_FLOAT,
+      },
+    .fs.samplers[0] =
+      {
+        .used = true,
+        .sampler_type = SG_SAMPLERTYPE_FILTERING,
+      },
     .fs.image_sampler_pairs[0] = {
       .used = true,
       .glsl_name = "tex0_smp",
       .image_slot = 0,
       .sampler_slot = 0,
-    }
-  };
-  default_shader = sg_make_shader(&default_shader_desc);
+    }};
+  game_state->engine.default_shader = sg_make_shader(&default_shader_desc);
 
   // Screen shader
 #if defined(__IPHONEOS__)
   sprintf(vert, "%s%s", binocle_data_dir, SCREEN_VS_FILENAME);
   sprintf(frag, "%s%s", binocle_data_dir, SCREEN_FS_FILENAME);
 #else
-  sprintf(vert, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, SCREEN_VS_FILENAME);
-  sprintf(frag, "%sshaders/%s/%s", binocle_data_dir, SHADER_PATH, SCREEN_FS_FILENAME);
+  sprintf(vert, "%sshaders/%s/%s", game_state->engine.binocle_data_dir,
+          SHADER_PATH, SCREEN_VS_FILENAME);
+  sprintf(frag, "%sshaders/%s/%s", game_state->engine.binocle_data_dir,
+          SHADER_PATH, SCREEN_FS_FILENAME);
 #endif
-
 
   char *screen_shader_vs_src;
   size_t screen_shader_vs_src_size;
-  binocle_sdl_load_text_file(vert, &screen_shader_vs_src, &screen_shader_vs_src_size);
+  binocle_sdl_load_text_file(vert, &screen_shader_vs_src,
+                             &screen_shader_vs_src_size);
 
   char *screen_shader_fs_src;
   size_t screen_shader_fs_src_size;
   binocle_log_info("reading screen shader");
-  binocle_sdl_load_text_file(frag, &screen_shader_fs_src, &screen_shader_fs_src_size);
+  binocle_sdl_load_text_file(frag, &screen_shader_fs_src,
+                             &screen_shader_fs_src_size);
   binocle_log_info("done reading screen shader");
 
   sg_shader_desc screen_shader_desc = {
@@ -572,73 +603,88 @@ int main(int argc, char *argv[])
 #if defined(BINOCLE_METAL)
     .vs.entry = "main0",
 #endif
-    .attrs = {
-      [0] = {.name = "position"},
-//      [1] = {.name = "color"},
-//      [2] = {.name = "tex"},
-    },
-    .vs.uniform_blocks[0] = {
-      .size = sizeof(screen_shader_vs_params_t),
-      .layout = SG_UNIFORMLAYOUT_STD140,
-      .uniforms = {
-        [0] = { .name = "vs_params", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = 4},
+    .attrs =
+      {
+        [0] = {.name = "position"},
+        //      [1] = {.name = "color"},
+        //      [2] = {.name = "tex"},
       },
-    },
+    .vs.uniform_blocks[0] =
+      {
+        .size = sizeof(screen_shader_vs_params_t),
+        .layout = SG_UNIFORMLAYOUT_STD140,
+        .uniforms =
+          {
+            [0] = {.name = "vs_params",
+                   .type = SG_UNIFORMTYPE_FLOAT4,
+                   .array_count = 4},
+          },
+      },
     .fs.source = screen_shader_fs_src,
 #if defined(BINOCLE_METAL)
     .fs.entry = "main0",
 #endif
-    .fs.images[0] = {
-      .used = true,
-       .image_type = SG_IMAGETYPE_2D,
-      .sample_type = SG_IMAGESAMPLETYPE_FLOAT,
-    },
-    .fs.samplers[0] = {
-      .used = true,
-      .sampler_type = SG_SAMPLERTYPE_FILTERING,
-    },
-    .fs.image_sampler_pairs[0] = {
-      .used = true,
-      .glsl_name = "tex0_smp",
-      .image_slot = 0,
-      .sampler_slot = 0,
-    },
-    .fs.uniform_blocks[0] = {
-      .size = sizeof(screen_shader_fs_params_t),
-      .layout = SG_UNIFORMLAYOUT_STD140,
-      .uniforms = {
-        [0] = { .name = "fs_params", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = 2 },
+    .fs.images[0] =
+      {
+        .used = true,
+        .image_type = SG_IMAGETYPE_2D,
+        .sample_type = SG_IMAGESAMPLETYPE_FLOAT,
       },
-    },
+    .fs.samplers[0] =
+      {
+        .used = true,
+        .sampler_type = SG_SAMPLERTYPE_FILTERING,
+      },
+    .fs.image_sampler_pairs[0] =
+      {
+        .used = true,
+        .glsl_name = "tex0_smp",
+        .image_slot = 0,
+        .sampler_slot = 0,
+      },
+    .fs.uniform_blocks[0] =
+      {
+        .size = sizeof(screen_shader_fs_params_t),
+        .layout = SG_UNIFORMLAYOUT_STD140,
+        .uniforms =
+          {
+            [0] = {.name = "fs_params",
+                   .type = SG_UNIFORMTYPE_FLOAT4,
+                   .array_count = 2},
+          },
+      },
   };
   binocle_log_info("creating screen shader");
-  screen_shader = sg_make_shader(&screen_shader_desc);
+  game_state->engine.screen_shader = sg_make_shader(&screen_shader_desc);
   binocle_log_info("done creating screen shader");
 
   binocle_material *material = binocle_material_new();
-  material->albedo_texture = wabbit_image;
-  material->shader = default_shader;
-  player = binocle_sprite_from_material(material);
-  player_pos.x = 50;
-  player_pos.y = 50;
+  material->albedo_texture = game_state->wabbit_image;
+  material->shader = game_state->engine.default_shader;
+  game_state->player = binocle_sprite_from_material(material);
+  game_state->player_pos.x = 50;
+  game_state->player_pos.y = 50;
 
 #ifdef WITH_PHYSICS
   ps = setup_world();
   binocle_material *ball_material = binocle_material_new();
   ball_material->albedo_texture = ball_image;
-  ball_material->shader = default_shader;
+  ball_material->shader = game_state->engine.default_shader;
   ps.ball_sprite = binocle_sprite_from_material(ball_material);
 #endif
 
 #if !defined(ANDROID)
-  sprintf(filename, "%s%s", binocle_data_dir, "test_simple.lua");
+  sprintf(filename, "%s%s", game_state->engine.binocle_data_dir,
+          "test_simple.lua");
   lua_test(filename);
-  sprintf(filename, "%s%s", binocle_data_dir, "test_simple2.lua");
+  sprintf(filename, "%s%s", game_state->engine.binocle_data_dir,
+          "test_simple2.lua");
   lua_test2(filename);
-  sprintf(filename, "%s%s", binocle_data_dir, "test_profiler.lua");
+  sprintf(filename, "%s%s", game_state->engine.binocle_data_dir,
+          "test_profiler.lua");
   lua_test_profiler(filename);
-  //sprintf(filename, "%s%s", binocle_data_dir, "test_ffi.lua");
-  //lua_testffi(filename, &window);
+  // sprintf(filename, "%s%s", binocle_data_dir, "test_ffi.lua");
+  // lua_testffi(filename, &window);
 #endif
 
 #ifdef DEMOLOOP
@@ -669,36 +715,46 @@ int main(int argc, char *argv[])
 #endif
 
   char font_filename[1024];
-  sprintf(font_filename, "%s%s", binocle_data_dir, "font.fnt");
+  sprintf(font_filename, "%s%s", game_state->engine.binocle_data_dir,
+          "font.fnt");
   binocle_log_info("creating font");
-  font = binocle_bitmapfont_from_file(font_filename, true);
+  game_state->engine.font = binocle_bitmapfont_from_file(font_filename, true);
   binocle_log_info("done creating font");
 
   char font_image_filename[1024];
-  sprintf(font_image_filename, "%s%s", binocle_data_dir, "font.png");
-  font_texture = binocle_image_load(font_image_filename);
-  font_material = binocle_material_new();
-  font_material->albedo_texture = font_texture;
-  font_material->shader = default_shader;
-  font->material = font_material;
-  font_sprite = binocle_sprite_from_material(font_material);
-  font_sprite_pos.x = 0;
-  font_sprite_pos.y = -256;
+  sprintf(font_image_filename, "%s%s", game_state->engine.binocle_data_dir,
+          "font.png");
+  game_state->engine.font_texture = binocle_image_load(font_image_filename);
+  game_state->engine.font_material = binocle_material_new();
+  game_state->engine.font_material->albedo_texture =
+    game_state->engine.font_texture;
+  game_state->engine.font_material->shader = game_state->engine.default_shader;
+  game_state->engine.font->material = game_state->engine.font_material;
+  game_state->engine.font_sprite =
+    binocle_sprite_from_material(game_state->engine.font_material);
 
   binocle_log_info("audio init");
-  audio = binocle_audio_new();
-  binocle_audio_init(&audio);
+  game_state->engine.audio = binocle_audio_new();
+  binocle_audio_init(&game_state->engine.audio);
   binocle_log_info("done audio init");
   char sound_filename[1024];
-  sprintf(sound_filename, "%s%s", binocle_data_dir, "Jump.wav");
-  sound = binocle_audio_load_sound(&audio, sound_filename);
+  sprintf(sound_filename, "%s%s", game_state->engine.binocle_data_dir,
+          "Jump.wav");
+  game_state->engine.sound =
+    binocle_audio_load_sound(&game_state->engine.audio, sound_filename);
   char music_filename[1024];
-  sprintf(music_filename, "%s%s", binocle_data_dir, "8bit.ogg");
-  music = binocle_audio_load_music_stream(&audio, music_filename);
-  binocle_audio_play_music_stream(&music);
-  binocle_audio_set_music_volume(&music, 0.00f);
+  sprintf(music_filename, "%s%s", game_state->engine.binocle_data_dir,
+          "8bit.ogg");
+  game_state->engine.music =
+    binocle_audio_load_music_stream(&game_state->engine.audio, music_filename);
+  binocle_audio_play_music_stream(&game_state->engine.music);
+  binocle_audio_set_music_volume(&game_state->engine.music, 0.00f);
 
-  binocle_gd_setup_default_pipeline(&gd, DESIGN_WIDTH, DESIGN_HEIGHT, default_shader, screen_shader);
+  binocle_gd_setup_default_pipeline(
+    &game_state->engine.gd, DESIGN_WIDTH, DESIGN_HEIGHT,
+    game_state->engine.default_shader, game_state->engine.screen_shader);
+
+  setup_game(game_state);
 
 #if defined(BINOCLE_HTTP)
   test_http_get();
@@ -706,28 +762,28 @@ int main(int argc, char *argv[])
   test_http_put();
 #endif
 
-  running_time = 0;
+  game_state->engine.running_time = 0;
 #ifdef GAMELOOP
   binocle_game_run(window, input);
 #else
 #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop(main_loop, 0, 1);
 #else
-  while (!input.quit_requested) {
+  while (!game_state->engine.input.quit_requested) {
     main_loop();
   }
 #endif // __EMSCRIPTEN__
   binocle_log_info("Quit requested");
 #endif // GAMELOOP
-  binocle_audio_unload_sound(&audio, sound);
-  binocle_audio_unload_music_stream(&audio, &music);
-  binocle_audio_destroy(&audio);
+  binocle_audio_unload_sound(&game_state->engine.audio,
+                             game_state->engine.sound);
+  binocle_audio_unload_music_stream(&game_state->engine.audio,
+                                    &game_state->engine.music);
+  binocle_audio_destroy(&game_state->engine.audio);
 #ifdef WITH_PHYSICS
   destroy_world();
 #endif
-  binocle_gd_destroy(&gd);
+  binocle_gd_destroy(&game_state->engine.gd);
   binocle_app_destroy(&app);
   binocle_sdl_exit();
 }
-
-

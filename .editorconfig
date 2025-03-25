@@ -1,9 +1,11 @@
 root = true
 
-[*.cpp]
-indent_style = space
-indent_size = 2
-end_of_line = lf
+[*]
 charset = utf-8
+indent_style = space
+end_of_line = lf
 trim_trailing_whitespace = true
 insert_final_newline = true
+
+[*.{c,h,cpp,hpp}]
+indent_size = 2
