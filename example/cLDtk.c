@@ -912,7 +912,7 @@ struct entityInstances* getEntity(char* entityName,int levelUId){
 
 
 //return layer as struct
-struct layerInstances* getLayer(char* layerName,int levelUId){
+struct layerInstances* ldtk_get_layer(char* layerName,int levelUId){
     int levelId = getIdFromUid(levelUId);
 
     struct layerInstances *ptr_li;

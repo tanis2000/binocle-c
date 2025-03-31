@@ -5,15 +5,19 @@
 #include "binocle_gd.h"
 #include "binocle_input.h"
 #include "binocle_sprite.h"
+
 struct binocle_memory_arena;
 struct binocle_window;
 struct binocle_viewport_adapter;
 struct binocle_bitmapfont;
 struct binocle_material;
 struct binocle_sprite;
+struct layerInstances;
 
 #define GRID 18
 #define MAX_ENTITIES 256
+#define PLATFORM_END_RIGHT 1
+#define PLATFORM_END_LEFT 2
 
 typedef enum e_entity_type {
   PLAYER,
@@ -73,6 +77,11 @@ typedef struct entity_t {
   } data;
 } entity_t;
 
+typedef struct level_t {
+  struct layerInstances *collision_layer;
+  int64_t marks_map[1024*1024];
+} level_t;
+
 typedef struct game_state_t {
   struct {
     struct binocle_memory_arena *main_arena;
@@ -113,6 +122,8 @@ typedef struct game_state_t {
     } tiles[256];
     entity_t entities[MAX_ENTITIES];
     uint64_t num_entities;
+    entity_t *player;
+    level_t level;
   } world;
 
   binocle_camera camera;
