@@ -13,34 +13,27 @@
 #include "sokol_gfx.h"
 #include <parson/parson.h>
 
-bool binocle_atlas_load_texturepacker(char *filename, binocle_atlas_texturepacker *atlas) {
-  binocle_log_info("Loading TexturePacker file: %s", filename);
-  SDL_strlcpy(atlas->asset_filename, filename, BINOCLE_MAX_ATLAS_FILENAME_LENGTH);
+bool binocle_atlas_load_texturepacker(binocle_atlas_texturepacker *atlas, binocle_atlas_texturepacker_load_desc *desc) {
+  binocle_log_info("Loading TexturePacker file: %s", desc->filename);
+  SDL_strlcpy(atlas->asset_filename, desc->filename, BINOCLE_MAX_ATLAS_FILENAME_LENGTH);
 
-  SDL_IOStream *file = SDL_IOFromFile(filename, "rb");
-  if (file == NULL) {
-    binocle_log_error("Cannot open JSON file");
-    return false;
+  char *buffer;
+  size_t size;
+
+  switch (desc->fs) {
+  case BINOCLE_FS_SDL:
+    if (!binocle_sdl_load_text_file(desc->filename, &buffer, &size)) {
+      binocle_log_error("Unable to load JSON file %s", desc->filename);
+      return false;
+    }
+    break;
+  case BINOCLE_FS_PHYSFS:
+    if (!binocle_fs_load_text_file(desc->filename, &buffer, &size)) {
+      binocle_log_error("Unable to load JSON file %s", desc->filename);
+      return false;
+    }
+    break;
   }
-
-  Sint64 res_size = SDL_GetIOSize(file);
-  char *res = (char *) SDL_malloc(res_size + 1);
-
-  size_t nb_read_total = 0, nb_read = 1;
-  char *buf = res;
-  while (nb_read_total < res_size && nb_read != 0) {
-    nb_read = SDL_ReadIO(file, buf, res_size - nb_read_total);
-    nb_read_total += nb_read;
-    buf += nb_read;
-  }
-  SDL_CloseIO(file);
-  if (nb_read_total != res_size) {
-    binocle_log_error("Size mismatch");
-    SDL_free(res);
-    return false;
-  }
-
-  res[nb_read_total] = '\0';
 
   JSON_Value *root_value;
   JSON_Object *root;
@@ -52,18 +45,18 @@ bool binocle_atlas_load_texturepacker(char *filename, binocle_atlas_texturepacke
   JSON_Array *slices_array;
   JSON_Object *slice_object;
 
-  root_value = json_parse_string(res);
+  root_value = json_parse_string(buffer);
 
   if (root_value == NULL) {
     binocle_log_error("Error parsing JSON, cannot parse the string");
-    SDL_free(res);
+    SDL_free(buffer);
     return false;
   }
 
   if (json_value_get_type(root_value) != JSONObject) {
     binocle_log_error("Error parsing JSON, root object isn't an Object");
     json_value_free(root_value);
-    SDL_free(res);
+    SDL_free(buffer);
     return false;
   }
 
@@ -71,7 +64,7 @@ bool binocle_atlas_load_texturepacker(char *filename, binocle_atlas_texturepacke
   if (root == NULL) {
     binocle_log_error("Error parsing JSON, cannot read root object");
     json_value_free(root_value);
-    SDL_free(res);
+    SDL_free(buffer);
     return false;
   }
 
@@ -262,7 +255,7 @@ bool binocle_atlas_load_texturepacker(char *filename, binocle_atlas_texturepacke
 
   // Clean up after ourselves
   json_value_free(root_value);
-  SDL_free(res);
+  SDL_free(buffer);
 
   binocle_log_debug("Atlas loaded.");
   return true;
