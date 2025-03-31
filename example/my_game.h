@@ -12,6 +12,67 @@ struct binocle_bitmapfont;
 struct binocle_material;
 struct binocle_sprite;
 
+#define GRID 18
+#define MAX_ENTITIES 256
+
+typedef enum e_entity_type {
+  PLAYER,
+  MOB,
+} e_entity_type;
+
+typedef struct transform_t {
+  int64_t cx, cy;
+  float xr, yr;
+} transform_t;
+
+typedef struct physics_t {
+  float dx, dy;
+  float bdx, bdy;
+  float gravity;
+  float frict;
+  float bump_frict;
+  float hei, wid;
+  float radius;
+  float time_mul;
+  bool has_collisions;
+} physics_t;
+
+typedef struct graphics_t {
+  float depth;
+  float pivot_x, pivot_y;
+  binocle_sprite *sprite;
+  binocle_material *material;
+  sg_image texture;
+  float sprite_x, sprite_y;
+  float sprite_scale_x, sprite_scale_y;
+  float sprite_scale_set_x, sprite_scale_set_y;
+  bool visible;
+  int8_t dir;
+} graphics_t;
+
+typedef struct health_t {
+  float max;
+  float current;
+} health_t;
+
+typedef struct player_t {
+  health_t health;
+} player_t;
+
+typedef struct mob_t {
+} mob_t;
+
+typedef struct entity_t {
+  e_entity_type type;
+  transform_t transform;
+  physics_t physics;
+  graphics_t graphics;
+  union {
+    player_t player;
+    mob_t mob;
+  } data;
+} entity_t;
+
 typedef struct game_state_t {
   struct {
     struct binocle_memory_arena *main_arena;
@@ -49,7 +110,9 @@ typedef struct game_state_t {
     struct {
       int tile_id;
       binocle_sprite *sprite;
-    }tiles[256];
+    } tiles[256];
+    entity_t entities[MAX_ENTITIES];
+    uint64_t num_entities;
   } world;
 
   binocle_camera camera;
@@ -59,4 +122,6 @@ typedef struct game_state_t {
 } game_state_t;
 
 void setup_game(game_state_t *gs);
+void update_game(float dt);
 void draw_game();
+entity_t *new_player();

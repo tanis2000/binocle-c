@@ -7,9 +7,11 @@
 #ifndef BINOCLE_ATLAS_H
 #define BINOCLE_ATLAS_H
 
+#include "binocle_fs.h"
+
+#include "kazmath/kazmath.h"
 #include <stdbool.h>
 #include <stdlib.h>
-#include "kazmath/kazmath.h"
 
 #define BINOCLE_MAX_ATLAS_FILENAME_LENGTH (1024)
 
@@ -78,12 +80,18 @@ typedef struct binocle_atlas_texturepacker {
   binocle_atlas_tp_meta meta;
 } binocle_atlas_texturepacker;
 
+typedef struct binocle_atlas_texturepacker_load_desc {
+  /// the JSON file path and name
+  const char *filename;
+  binocle_fs_supported fs;
+} binocle_atlas_texturepacker_load_desc;
 /**
- * Load a TexturePacker JSON atlas
- * @param filename the JSON file path and name
- * @return an instance of binocle_atlas_texturepacker with the data of the atlas
+ * Load a TexturePacker JSON atlas into the `atlas` struct.
+ * @param atlas an instance of binocle_atlas_texturepacker
+ * @param desc The descriptor of the file to load
+ * @return true if successful, false otherwise
  */
-bool binocle_atlas_load_texturepacker(char *filename, binocle_atlas_texturepacker *atlas);
+bool binocle_atlas_load_texturepacker(binocle_atlas_texturepacker *atlas, binocle_atlas_texturepacker_load_desc *desc);
 
 /**
  * Creates the subtexttures from the frames of an already loaded TexturePacker JSON atlas.

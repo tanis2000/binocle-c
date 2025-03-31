@@ -247,6 +247,7 @@ void main_loop() {
   scale.x = 1.0f;
   scale.y = 1.0f;
 
+  update_game(dt);
   draw_game();
 
   binocle_sprite_draw(game_state->player, &game_state->engine.gd,
