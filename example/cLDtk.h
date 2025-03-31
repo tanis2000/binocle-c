@@ -286,7 +286,7 @@ void freeLevelsData(void);
 struct levels* ldtk_get_level(char* levelName);
 struct levels* getLevelFromUid(int levelId);
 struct entityInstances* getEntity(char* entityName,int levelId);
-struct layerInstances* getLayer(char* layerName,int levelId);
+struct layerInstances* ldtk_get_layer(char* layerName,int levelId);
 void ldtk_load_json_file(char* fileName);
 void ldtk_load_json_from_memory(const char *stream);
 void ldtk_import_map_data(void);

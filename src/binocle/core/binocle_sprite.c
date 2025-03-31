@@ -306,7 +306,7 @@ void binocle_sprite_update(binocle_sprite *sprite, float dt) {
         sprite->current_frame = sprite->current_animation->frames[sprite->current_animation_frame];
       }
     }
-    binocle_log_info("anim: %s - frame: %d", sprite->current_animation->name, sprite->current_frame);
+    // binocle_log_info("anim: %s - frame: %d", sprite->current_animation->name, sprite->current_frame);
   }
 }
 
