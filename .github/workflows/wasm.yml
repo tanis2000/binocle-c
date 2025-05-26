@@ -39,7 +39,8 @@ jobs:
         uses: mymindstorm/setup-emsdk@v12
         with:
           version: 3.1.35
-          actions-cache-folder: 'emsdk-cache-${{ env.RELEASE_NAME }}'
+# Disabled caching till https://github.com/mymindstorm/setup-emsdk/pull/48 is merged
+#          actions-cache-folder: 'emsdk-cache'
 
       - name: Setup Release Version
         run: |
