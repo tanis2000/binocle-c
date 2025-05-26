@@ -19,6 +19,10 @@ if (APPLE)
     add_definitions(-D_LARGEFILE64_SOURCE=1)
 endif ()
 
+if (EMSCRIPTEN)
+    add_definitions(-D_LARGEFILE64_SOURCE=1)
+endif ()
+
 if (IOS)
     set_target_properties(
             zlib
