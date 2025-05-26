@@ -19,7 +19,7 @@ bool level_is_valid(level_t *level, int64_t cx, int64_t cy) {
 
 int64_t level_coord_id(level_t *level, int64_t cx, int64_t cy) {
   int64_t cy_inverted = level->collision_layer->cHei - 1 - cy;
-  return cx + 1 + cy_inverted * level->collision_layer->cWid;
+  return cx + cy_inverted * level->collision_layer->cWid;
 }
 
 bool level_has_collision(level_t *level, int64_t cx, int64_t cy) {
