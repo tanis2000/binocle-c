@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.10)
 
 option(LUA_DIR "Path of Lua 5.4 source dir" OFF)
 option(LUAJIT_DIR "Path of LuaJIT 2.1 source dir" OFF)
